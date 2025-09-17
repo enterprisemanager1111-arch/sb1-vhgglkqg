@@ -195,6 +195,8 @@ export default function PersonalInfoScreen() {
       nameLength: name.length,
       hasRole: !!role
     });
+    // Update the ref whenever state changes
+    stateRef.current = { name, birthDate, role, interests };
   }, [name, birthDate, role, interests]);
 
   // Add a ref to track if state is being properly maintained
@@ -325,6 +327,36 @@ export default function PersonalInfoScreen() {
 
   const isValid = name.trim().length > 0 && role;
 
+  // Debug function to check current form state
+  const logCurrentState = () => {
+    console.log('DEBUG: Current form state check:', {
+      name: `"${name}"` + ` (length: ${name.length})`,
+      birthDate: `"${birthDate}"`,
+      role: `"${role}"`,
+      interests: interests,
+      stateRef: stateRef.current,
+      isValid: isValid
+    });
+  };
+
+  // Function to verify if data was saved correctly
+  const verifyDataSaved = async () => {
+    try {
+      const savedData = await AsyncStorage.getItem('@famora_onboarding_data');
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        console.log('DEBUG: Current stored personal info:', parsed.personalInfo);
+        return parsed.personalInfo;
+      } else {
+        console.log('DEBUG: No data found in storage');
+        return null;
+      }
+    } catch (error) {
+      console.error('DEBUG: Error reading saved data:', error);
+      return null;
+    }
+  };
+
   // Emergency direct save function (bypasses context completely)
   const saveDirectToStorage = async (personalInfo: any) => {
     console.log('DEBUG: Direct storage save called with:', personalInfo);
@@ -363,7 +395,7 @@ export default function PersonalInfoScreen() {
 
   const handleContinue = async () => {
     console.log('DEBUG: Continue button clicked');
-    console.log('DEBUG: Form data:', { name, birthDate, role, interests });
+    logCurrentState();
     
     // Use ref values as backup if state values are empty
     const currentName = name || stateRef.current.name;
@@ -405,15 +437,49 @@ export default function PersonalInfoScreen() {
       
       console.log('DEBUG: Saving personal info:', personalInfoToSave);
       
-      try {
-        // Save personal info to local storage via context
-        await updatePersonalInfo(personalInfoToSave);
-        console.log('DEBUG: Context save completed');
-      } catch (contextError) {
-        console.error('DEBUG: Context save failed:', contextError);
+      // Primary save: Use context to save to AsyncStorage
+      console.log('DEBUG: Attempting to save via context...');
+      await updatePersonalInfo(personalInfoToSave);
+      console.log('DEBUG: Context save completed successfully');
+      
+      // Verify the save worked by checking AsyncStorage directly
+      console.log('DEBUG: Verifying save...');
+      const savedData = await AsyncStorage.getItem('@famora_onboarding_data');
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        console.log('DEBUG: Verified saved personal info:', parsed.personalInfo);
         
-        // EMERGENCY: Direct save to storage if context fails
-        console.log('DEBUG: Attempting emergency direct save...');
+        // Double-check that the data matches what we tried to save
+        if (parsed.personalInfo.name === finalName && 
+            parsed.personalInfo.role === currentRole) {
+          console.log('DEBUG: Save verification successful - data matches');
+        } else {
+          console.warn('DEBUG: Save verification failed - data mismatch');
+          throw new Error('Data verification failed after save');
+        }
+      } else {
+        console.warn('DEBUG: No data found in AsyncStorage after save');
+        throw new Error('No data found after save');
+      }
+
+      // Mark step as completed
+      console.log('DEBUG: Marking step as completed...');
+      await completeStep('personal-info', {
+        name: finalName,
+        birthDate: currentBirthDate,
+        role: currentRole,
+        interests: currentInterests.join(', ')
+      });
+
+      console.log('DEBUG: All saves completed successfully, navigating to preferences');
+      router.push('/(onboarding)/preferences');
+    } catch (error: any) {
+      console.error('ERROR: Failed to save personal info:', error);
+      console.error('ERROR details:', error.message, error.stack);
+      
+      // Emergency fallback: Direct save to AsyncStorage
+      console.log('DEBUG: Context save failed, attempting emergency direct save...');
+      try {
         const currentData = await AsyncStorage.getItem('@famora_onboarding_data');
         let baseData = {
           personalInfo: { name: '', birthDate: '', role: '', interests: [] },
@@ -429,48 +495,31 @@ export default function PersonalInfoScreen() {
         
         const emergencyData = {
           ...baseData,
-          personalInfo: personalInfoToSave
+          personalInfo: {
+            name: finalName,
+            birthDate: currentBirthDate,
+            role: currentRole,
+            interests: currentInterests,
+          }
         };
         
         await AsyncStorage.setItem('@famora_onboarding_data', JSON.stringify(emergencyData));
-        console.log('DEBUG: Emergency direct save completed:', emergencyData);
+        console.log('DEBUG: Emergency save completed successfully:', emergencyData.personalInfo);
+        
+        // Try to complete the step again
+        await completeStep('personal-info', {
+          name: finalName,
+          birthDate: currentBirthDate,
+          role: currentRole,
+          interests: currentInterests.join(', ')
+        });
+        
+        console.log('DEBUG: Emergency save successful, navigating to preferences');
+        router.push('/(onboarding)/preferences');
+      } catch (emergencyError) {
+        console.error('ERROR: Emergency save also failed:', emergencyError);
+        alert(`Error saving information: ${error.message || error}. Please try again.`);
       }
-      
-      // ADDITIONAL BACKUP: Also try direct save function
-      console.log('DEBUG: Attempting additional direct save backup...');
-      const directSaveSuccess = await saveDirectToStorage(personalInfoToSave);
-      if (directSaveSuccess) {
-        console.log('DEBUG: Direct save backup successful');
-      } else {
-        console.log('DEBUG: Direct save backup failed');
-      }
-      
-      console.log('DEBUG: Personal info successfully saved to local storage!');
-      
-      // Verify that data was saved
-      try {
-        const savedData = await AsyncStorage.getItem('@famora_onboarding_data');
-        if (savedData) {
-          const parsed = JSON.parse(savedData);
-          console.log('DEBUG: Verified saved data:', parsed.personalInfo);
-        }
-      } catch (verifyError) {
-        console.log('DEBUG: Error verifying saved data:', verifyError);
-      }
-
-      // Mark step as completed
-      await completeStep('personal-info', {
-        name: finalName,
-        birthDate: currentBirthDate,
-        role: currentRole,
-        interests: currentInterests.join(', ')
-      });
-
-      router.push('/(onboarding)/preferences');
-    } catch (error: any) {
-      console.error('ERROR: Failed to save personal info:', error);
-      console.error('ERROR details:', error.message, error.stack);
-      alert(`Error saving information: ${error.message || error}. Please try again.`);
     }
   };
 
