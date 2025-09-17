@@ -16,8 +16,10 @@ import { router } from 'expo-router';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
 import { ChevronLeft, ChevronRight, User, Calendar, Heart, CircleHelp as HelpCircle, ChevronDown } from 'lucide-react-native';
 import { sanitizeText, validateName } from '@/utils/sanitization';
-import { validateBirthDate, formatBirthDate, calculateAge, getZodiacSign } from '@/utils/birthdaySystem';
+import { validateBirthDate, formatBirthDate, calculateAge, getZodiacSignKey } from '@/utils/birthdaySystem';
 import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useLocalizedDate } from '@/utils/dateLocalization';
 
 // Date Picker Modal Component
 const DatePickerModal = ({ 
@@ -29,15 +31,16 @@ const DatePickerModal = ({
   onClose: () => void; 
   onDateSelect: (date: Date) => void; 
 }) => {
+  const { t } = useLanguage();
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear() - 25);
   const [selectedMonth, setSelectedMonth] = useState(1);
   const [selectedDay, setSelectedDay] = useState(1);
   
   const generateDateOptions = () => {
     const currentYear = new Date().getFullYear();
-    const years = [];
-    const months = [];
-    const days = [];
+    const years: number[] = [];
+    const months: Array<{label: string, value: number}> = [];
+    const days: number[] = [];
     
     // Generate years (1900 to current year)
     for (let year = currentYear; year >= 1920; year--) {
@@ -46,8 +49,8 @@ const DatePickerModal = ({
     
     // Generate months
     const monthNames = [
-      'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-      'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
     ];
     monthNames.forEach((month, index) => {
       months.push({ label: month, value: index + 1 });
@@ -77,12 +80,12 @@ const DatePickerModal = ({
     >
       <View style={styles.modalOverlay}>
         <View style={styles.datePickerContainer}>
-          <Text style={styles.datePickerTitle}>Geburtsdatum auswählen</Text>
+          <Text style={styles.datePickerTitle}>{t('onboarding.personal.datePicker.title')}</Text>
           
           <View style={styles.datePickerContent}>
             {/* Year Selector */}
             <View style={styles.dateSection}>
-              <Text style={styles.dateSectionLabel}>Jahr</Text>
+              <Text style={styles.dateSectionLabel}>{t('onboarding.personal.datePicker.year')}</Text>
               <ScrollView style={styles.dateScroll} showsVerticalScrollIndicator={false}>
                 {years.map(year => (
                   <Pressable
@@ -100,7 +103,7 @@ const DatePickerModal = ({
             
             {/* Month Selector */}
             <View style={styles.dateSection}>
-              <Text style={styles.dateSectionLabel}>Monat</Text>
+              <Text style={styles.dateSectionLabel}>{t('onboarding.personal.datePicker.month')}</Text>
               <ScrollView style={styles.dateScroll} showsVerticalScrollIndicator={false}>
                 {months.map(month => (
                   <Pressable
@@ -118,7 +121,7 @@ const DatePickerModal = ({
             
             {/* Day Selector */}
             <View style={styles.dateSection}>
-              <Text style={styles.dateSectionLabel}>Tag</Text>
+              <Text style={styles.dateSectionLabel}>{t('onboarding.personal.datePicker.day')}</Text>
               <ScrollView style={styles.dateScroll} showsVerticalScrollIndicator={false}>
                 {days.map(day => (
                   <Pressable
@@ -137,10 +140,10 @@ const DatePickerModal = ({
           
           <View style={styles.datePickerButtons}>
             <Pressable style={styles.datePickerCancel} onPress={onClose}>
-              <Text style={styles.datePickerCancelText}>Abbrechen</Text>
+              <Text style={styles.datePickerCancelText}>{t('common.cancel')}</Text>
             </Pressable>
             <Pressable style={styles.datePickerConfirm} onPress={handleConfirm}>
-              <Text style={styles.datePickerConfirmText}>Bestätigen</Text>
+              <Text style={styles.datePickerConfirmText}>{t('onboarding.personal.datePicker.confirm')}</Text>
             </Pressable>
           </View>
         </View>
@@ -150,79 +153,100 @@ const DatePickerModal = ({
 };
 
 export default function PersonalInfoScreen() {
+  console.log('DEBUG: PersonalInfoScreen component mounted/re-rendered');
+  
   const { onboardingData, updatePersonalInfo, completeStep } = useOnboarding();
-  const [name, setName] = useState('');
-  const [birthDate, setBirthDate] = useState('');
-  const [role, setRole] = useState('');
-  const [interests, setInterests] = useState<string[]>([]);
+  const { t } = useLanguage();
+  // Temporarily simplified - removed useLocalizedDate to test if it's causing issues
+  const getLocale = () => 'en-US';
+  
+  // Initialize state with logging
+  const [name, setName] = useState(() => {
+    console.log('DEBUG: Initializing name state with empty string');
+    return '';
+  });
+  const [birthDate, setBirthDate] = useState(() => {
+    console.log('DEBUG: Initializing birthDate state with empty string');
+    return '';
+  });
+  const [role, setRole] = useState(() => {
+    console.log('DEBUG: Initializing role state with empty string');
+    return '';
+  });
+  const [interests, setInterests] = useState<string[]>(() => {
+    console.log('DEBUG: Initializing interests state with empty array');
+    return [];
+  });
+  
+  // Debug state changes - log whenever form data changes
+  React.useEffect(() => {
+    console.log('DEBUG: Form state updated:', {
+      name: `"${name}"`,
+      birthDate: `"${birthDate}"`, 
+      role: `"${role}"`,
+      interests: interests,
+      nameLength: name.length,
+      hasRole: !!role
+    });
+  }, [name, birthDate, role, interests]);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
 
   const buttonScale = useSharedValue(1);
 
   const roleOptions = [
-    { id: 'parent', label: 'Elternteil', icon: '👨‍👩‍👧‍👦' },
-    { id: 'child', label: 'Kind', icon: '🧒' },
-    { id: 'teen', label: 'Teenager', icon: '🧑‍🎓' },
-    { id: 'grandparent', label: 'Großeltern', icon: '👴👵' },
-    { id: 'other', label: 'Andere', icon: '👤' },
+    { id: 'parent', labelKey: 'onboarding.personal.roles.parent', icon: '👨‍👩‍👧‍👦' },
+    { id: 'child', labelKey: 'onboarding.personal.roles.child', icon: '🧒' },
+    { id: 'teenager', labelKey: 'onboarding.personal.roles.teenager', icon: '🧑‍🎓' },
+    { id: 'grandparent', labelKey: 'onboarding.personal.roles.grandparent', icon: '👴👵' },
+    { id: 'other', labelKey: 'onboarding.personal.roles.other', icon: '👤' },
   ];
 
   const interestOptions = [
-    'Sport', 'Musik', 'Kochen', 'Lesen', 'Reisen', 
-    'Filme', 'Gaming', 'Kunst', 'Natur', 'Technik'
+    { id: 'sport', labelKey: 'onboarding.personal.interests.sport' },
+    { id: 'music', labelKey: 'onboarding.personal.interests.music' },
+    { id: 'cooking', labelKey: 'onboarding.personal.interests.cooking' },
+    { id: 'reading', labelKey: 'onboarding.personal.interests.reading' },
+    { id: 'travel', labelKey: 'onboarding.personal.interests.travel' },
+    { id: 'movies', labelKey: 'onboarding.personal.interests.movies' },
+    { id: 'gaming', labelKey: 'onboarding.personal.interests.gaming' },
+    { id: 'art', labelKey: 'onboarding.personal.interests.art' },
+    { id: 'nature', labelKey: 'onboarding.personal.interests.nature' },
+    { id: 'tech', labelKey: 'onboarding.personal.interests.tech' }
   ];
 
-  // Load existing data on mount
+  // Load existing data on mount - but only once to avoid overwriting user input
+  const [hasLoadedInitialData, setHasLoadedInitialData] = useState(false);
+  
   React.useEffect(() => {
-    const personalInfo = onboardingData.personalInfo;
-    if (personalInfo.name) setName(personalInfo.name);
-    if (personalInfo.birthDate) setBirthDate(personalInfo.birthDate);
-    if (personalInfo.role) setRole(personalInfo.role);
-    if (personalInfo.interests.length > 0) setInterests(personalInfo.interests);
-  }, [onboardingData]);
-
-  const handleContinue = async () => {
-    const validation = validateName(name);
-    
-    if (!validation.isValid) {
-      alert(validation.error);
-      return;
-    }
-    
-    if (birthDate) {
-      const birthValidation = validateBirthDate(birthDate);
-      if (!birthValidation.isValid) {
-        alert(birthValidation.error);
-        return;
+    if (!hasLoadedInitialData) {
+      console.log('DEBUG: Loading initial personal info from onboarding context:', onboardingData.personalInfo);
+      const personalInfo = onboardingData.personalInfo;
+      
+      // Only load if there's actual data (not empty defaults)
+      if (personalInfo.name && personalInfo.name.trim() !== '') {
+        console.log('DEBUG: Loading existing name:', personalInfo.name);
+        setName(personalInfo.name);
       }
+      if (personalInfo.birthDate && personalInfo.birthDate !== '') {
+        console.log('DEBUG: Loading existing birth date:', personalInfo.birthDate);
+        setBirthDate(personalInfo.birthDate);
+      }
+      if (personalInfo.role && personalInfo.role !== '') {
+        console.log('DEBUG: Loading existing role:', personalInfo.role);
+        setRole(personalInfo.role);
+      }
+      if (personalInfo.interests && personalInfo.interests.length > 0) {
+        console.log('DEBUG: Loading existing interests:', personalInfo.interests);
+        setInterests(personalInfo.interests);
+      }
+      
+      setHasLoadedInitialData(true);
+      console.log('DEBUG: Initial data loading complete');
     }
+  }, [onboardingData, hasLoadedInitialData]);
 
-    const sanitizedName = sanitizeText(name, 50);
 
-    try {
-      // Save personal info to onboarding context
-      await updatePersonalInfo({
-        name: sanitizedName,
-        birthDate: birthDate,
-        role: role,
-        interests: interests,
-      });
-
-      // Mark step as completed
-      await completeStep('personal-info', {
-        name: sanitizedName,
-        birthDate: birthDate,
-        role: role,
-        interests: interests.join(', ')
-      });
-
-      router.push('/(onboarding)/preferences');
-    } catch (error) {
-      console.error('Error saving personal info:', error);
-      alert('Fehler beim Speichern der Daten. Bitte versuchen Sie es erneut.');
-    }
-  };
 
   const handleDateSelection = (selectedDate: Date) => {
     const dateString = selectedDate.toISOString().split('T')[0]; // YYYY-MM-DD format
@@ -233,23 +257,15 @@ export default function PersonalInfoScreen() {
   const getAgeDisplay = () => {
     if (!birthDate) return '';
     const age = calculateAge(birthDate);
-    const zodiac = getZodiacSign(birthDate);
+    const zodiacKey = getZodiacSignKey(birthDate);
+    const zodiac = t(`zodiac.${zodiacKey}`);
     if (!age || !zodiac) {
       return '';
     }
 
-    return `${age} Jahre • ${zodiac}`;
+    return t('onboarding.personal.ageDisplay', { age: age.toString(), zodiac });
   };
 
-  const t = (key: string) => {
-    // Placeholder translation function
-    const translations: { [key: string]: string } = {
-      'onboarding.personal.title': 'Erzählen Sie uns von sich',
-      'onboarding.personal.subtitle': 'Diese Informationen helfen uns, Ihre Familien-App zu personalisieren',
-      'common.continue': 'Weiter'
-    };
-    return translations[key] || key;
-  };
 
   const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -279,6 +295,70 @@ export default function PersonalInfoScreen() {
 
   const isValid = name.trim().length > 0 && role;
 
+  const handleContinue = async () => {
+    console.log('DEBUG: Continue button clicked!');
+    console.log('DEBUG: Current form data:', { name, birthDate, role, interests });
+    console.log('DEBUG: Validation state - name length:', name.trim().length, 'role selected:', !!role);
+    
+    // Always attempt to save whatever data is entered
+    // Basic validation for required fields
+    if (!name || name.trim().length < 1) {
+      console.log('DEBUG: Name validation failed');
+      alert('Please enter your name to continue');
+      return;
+    }
+    
+    if (!role) {
+      console.log('DEBUG: Role validation failed');
+      alert('Please select your role to continue');
+      return;
+    }
+    
+    console.log('DEBUG: Validation passed, proceeding to save personal info');
+
+    // Use the exact name you typed (with basic sanitization for safety)
+    const finalName = sanitizeText(name, 50);
+
+    try {
+      console.log('DEBUG: Saving personal info exactly as entered:', {
+        originalName: name,
+        finalName: finalName,
+        birthDate: birthDate,
+        role: role,
+        interests: interests,
+      });
+      
+      const personalInfoToSave = {
+        name: finalName,
+        birthDate: birthDate,
+        role: role,
+        interests: interests,
+      };
+      
+      console.log('DEBUG: About to save to personalInfo in local storage:', personalInfoToSave);
+      
+      // Save personal info to local storage exactly as you entered it
+      await updatePersonalInfo(personalInfoToSave);
+      
+      console.log('DEBUG: Personal info successfully saved to local storage!');
+
+      // Mark step as completed
+      await completeStep('personal-info', {
+        name: finalName,
+        birthDate: birthDate,
+        role: role,
+        interests: interests.join(', ')
+      });
+
+      router.push('/(onboarding)/preferences');
+    } catch (error: any) {
+      console.error('ERROR: Failed to save personal info:', error);
+      console.error('ERROR details:', error.message, error.stack);
+      alert(`Error saving information: ${error.message || error}. Please try again.`);
+    }
+  };
+
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F3F3F5" />
@@ -288,7 +368,7 @@ export default function PersonalInfoScreen() {
         <Pressable style={styles.backButton} onPress={handleBack}>
           <ChevronLeft size={24} color="#161618" strokeWidth={2} />
         </Pressable>
-        <Text style={styles.stepIndicator}>Schritt 2 von 5</Text>
+        <Text style={styles.stepIndicator}>{t('onboarding.stepIndicator', { current: '2', total: '5' })}</Text>
       </View>
 
       {/* Progress Indicator */}
@@ -311,12 +391,13 @@ export default function PersonalInfoScreen() {
             </Text>
           </View>
 
+
           {/* Name Input */}
           <View style={styles.inputSection}>
             <View style={styles.labelContainer}>
               <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 8 }}>
                 <User size={20} color="#54FE54" strokeWidth={2} />
-                <Text style={styles.inputLabel}>Wie möchten Sie genannt werden?</Text>
+                <Text style={styles.inputLabel}>{t('onboarding.personal.name.label')}</Text>
               </View>
               <Pressable 
                 style={styles.tooltipButton}
@@ -328,16 +409,19 @@ export default function PersonalInfoScreen() {
             {showTooltip === 'name' && (
               <View style={styles.tooltip}>
                 <Text style={styles.tooltipText}>
-                  Verwenden Sie den Namen, den Ihre Familie normalerweise verwendet.
+                  {t('onboarding.personal.name.tooltip')}
                 </Text>
               </View>
             )}
             <TextInput
               style={styles.textInput}
-              placeholder="Ihr Vorname oder Nickname"
+              placeholder={t('onboarding.personal.name.placeholder')}
               placeholderTextColor="#888888"
               value={name}
-              onChangeText={setName}
+              onChangeText={(text) => {
+                console.log('DEBUG: Name input changed to:', `"${text}"`);
+                setName(text);
+              }}
               autoComplete="given-name"
             />
           </View>
@@ -347,7 +431,7 @@ export default function PersonalInfoScreen() {
             <View style={styles.labelContainer}>
               <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 8 }}>
                 <Calendar size={20} color="#54FE54" strokeWidth={2} />
-                <Text style={styles.inputLabel}>Wann ist dein Geburtstag? (optional)</Text>
+                <Text style={styles.inputLabel}>{t('onboarding.personal.birthdate.label')}</Text>
               </View>
               <Pressable 
                 style={styles.tooltipButton}
@@ -359,8 +443,7 @@ export default function PersonalInfoScreen() {
             {showTooltip === 'birthday' && (
               <View style={styles.tooltip}>
                 <Text style={styles.tooltipText}>
-                  Wir verwenden dein Geburtsdatum nur für Geburtstags-Benachrichtigungen. 
-                  Deine Daten bleiben privat und sicher.
+                  {t('onboarding.personal.birthdate.tooltip')}
                 </Text>
               </View>
             )}
@@ -372,7 +455,7 @@ export default function PersonalInfoScreen() {
                 styles.datePickerButtonText,
                 !birthDate && styles.placeholderText
               ]}>
-                {birthDate ? formatBirthDate(birthDate, true) : 'Geburtsdatum auswählen'}
+                {birthDate ? formatBirthDate(birthDate, true, getLocale()) : t('onboarding.personal.datePicker.placeholder')}
               </Text>
               <ChevronDown size={20} color="#666666" strokeWidth={2} />
             </Pressable>
@@ -389,7 +472,7 @@ export default function PersonalInfoScreen() {
             <View style={styles.labelContainer}>
               <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 8 }}>
                 <Heart size={20} color="#54FE54" strokeWidth={2} />
-                <Text style={styles.inputLabel}>Was ist Ihre Rolle in der Familie?</Text>
+                <Text style={styles.inputLabel}>{t('onboarding.personal.role.label')}</Text>
               </View>
               <Pressable 
                 style={styles.tooltipButton}
@@ -401,7 +484,7 @@ export default function PersonalInfoScreen() {
             {showTooltip === 'role' && (
               <View style={styles.tooltip}>
                 <Text style={styles.tooltipText}>
-                  Dies hilft uns, passende Funktionen und Berechtigungen zu empfehlen.
+                  {t('onboarding.personal.role.tooltip')}
                 </Text>
               </View>
             )}
@@ -413,14 +496,17 @@ export default function PersonalInfoScreen() {
                     styles.roleOption,
                     role === option.id && styles.selectedRole
                   ]}
-                  onPress={() => setRole(option.id)}
+                  onPress={() => {
+                    console.log('DEBUG: Role selected:', option.id);
+                    setRole(option.id);
+                  }}
                 >
                   <Text style={styles.roleEmoji}>{option.icon}</Text>
                   <Text style={[
                     styles.roleLabel,
                     role === option.id && styles.selectedRoleLabel
                   ]}>
-                    {option.label}
+                    {t(option.labelKey)}
                   </Text>
                 </Pressable>
               ))}
@@ -429,26 +515,26 @@ export default function PersonalInfoScreen() {
 
           {/* Interests Selection */}
           <View style={styles.inputSection}>
-            <Text style={styles.inputLabel}>Was sind Ihre Interessen? (optional)</Text>
+            <Text style={styles.inputLabel}>{t('onboarding.personal.interests.label')}</Text>
             <Text style={styles.inputDescription}>
-              Wählen Sie bis zu 5 Bereiche, die Sie interessieren
+              {t('onboarding.personal.interests.subtitle')}
             </Text>
             <View style={styles.interestGrid}>
               {interestOptions.map((interest) => (
                 <Pressable
-                  key={interest}
+                  key={interest.id}
                   style={[
                     styles.interestChip,
-                    interests.includes(interest) && styles.selectedInterest
+                    interests.includes(interest.id) && styles.selectedInterest
                   ]}
-                  onPress={() => toggleInterest(interest)}
-                  disabled={interests.length >= 5 && !interests.includes(interest)}
+                  onPress={() => toggleInterest(interest.id)}
+                  disabled={interests.length >= 5 && !interests.includes(interest.id)}
                 >
                   <Text style={[
                     styles.interestText,
-                    interests.includes(interest) && styles.selectedInterestText
+                    interests.includes(interest.id) && styles.selectedInterestText
                   ]}>
-                    {interest}
+                    {t(interest.labelKey)}
                   </Text>
                 </Pressable>
               ))}
@@ -475,13 +561,12 @@ export default function PersonalInfoScreen() {
           onPress={handleContinue}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
-          disabled={!isValid}
         >
           <Text style={[
             styles.continueText,
             !isValid && styles.disabledText
           ]}>
-            {t('common.continue')}
+{t('common.continue')}
           </Text>
           <ChevronRight size={20} color={isValid ? "#161618" : "#999999"} strokeWidth={2} />
         </AnimatedPressable>

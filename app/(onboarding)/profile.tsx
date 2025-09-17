@@ -31,14 +31,14 @@ export default function ProfileCompletion() {
 
   const handleAvatarUpload = async () => {
     if (!isFeatureAvailable('imageLibrary')) {
-      showFeatureUnavailableAlert('Bildauswahl');
+      showFeatureUnavailableAlert('Image Selection');
       return;
     }
 
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (!permissionResult.granted) {
-      Alert.alert('Berechtigung erforderlich', 'Wir benötigen Zugriff auf Ihre Fotos, um ein Profilbild auszuwählen.');
+      Alert.alert('Permission Required', 'We need access to your photos to select a profile picture.');
       return;
     }
 
@@ -56,14 +56,14 @@ export default function ProfileCompletion() {
 
   const takePhoto = async () => {
     if (!isFeatureAvailable('camera')) {
-      showFeatureUnavailableAlert('Kamera');
+      showFeatureUnavailableAlert('Camera');
       return;
     }
 
     const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
     
     if (!cameraPermission.granted) {
-      Alert.alert('Berechtigung erforderlich', 'Wir benötigen Zugriff auf Ihre Kamera, um ein Foto zu machen.');
+      Alert.alert('Permission Required', 'We need access to your camera to take a photo.');
       return;
     }
 
@@ -105,7 +105,7 @@ export default function ProfileCompletion() {
       router.replace('/(onboarding)/family');
     } catch (error: any) {
       console.error('Error updating profile:', error);
-      Alert.alert('Fehler', 'Profil konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.');
+      Alert.alert('Error', 'Profile could not be updated. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -171,7 +171,7 @@ export default function ProfileCompletion() {
         <Pressable style={styles.backButton} onPress={handleBack}>
           <ChevronLeft size={24} color="#161618" strokeWidth={2} />
         </Pressable>
-        <Text style={styles.stepIndicator}>Schritt 4 von 5</Text>
+        <Text style={styles.stepIndicator}>Step 4 of 5</Text>
       </View>
 
       {/* Progress Indicator */}
@@ -188,9 +188,9 @@ export default function ProfileCompletion() {
         <View style={styles.content}>
           {/* Title */}
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>Willkommen, {userName}!</Text>
+            <Text style={styles.title}>Welcome, {userName}!</Text>
             <Text style={styles.subtitle}>
-              Vervollständigen Sie Ihr Profil, um loszulegen
+              Complete your profile to get started
             </Text>
           </View>
 
@@ -212,24 +212,24 @@ export default function ProfileCompletion() {
               </View>
             </View>
 
-            <Text style={styles.avatarLabel}>Profilbild hinzufügen (optional)</Text>
+            <Text style={styles.avatarLabel}>Add profile picture (optional)</Text>
             
             <View style={styles.avatarActions}>
               <Pressable style={styles.avatarActionButton} onPress={takePhoto}>
                 <Camera size={18} color="#54FE54" strokeWidth={2} />
-                <Text style={styles.avatarActionText}>Foto aufnehmen</Text>
+                <Text style={styles.avatarActionText}>Take Photo</Text>
               </Pressable>
               
               <Pressable style={styles.avatarActionButton} onPress={handleAvatarUpload}>
                 <User size={18} color="#54FE54" strokeWidth={2} />
-                <Text style={styles.avatarActionText}>Aus Galerie</Text>
+                <Text style={styles.avatarActionText}>From Gallery</Text>
               </Pressable>
             </View>
           </View>
 
           {/* Profile Summary */}
           <View style={styles.summarySection}>
-            <Text style={styles.summaryTitle}>Ihr Profil</Text>
+            <Text style={styles.summaryTitle}>Your Profile</Text>
             <View style={styles.summaryCard}>
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Name</Text>
@@ -238,29 +238,29 @@ export default function ProfileCompletion() {
               
               {userBirthday && (
                 <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>Geburtstag</Text>
+                  <Text style={styles.summaryLabel}>Birthday</Text>
                   <Text style={styles.summaryValue}>
-                    {formatBirthDate(userBirthday, false)} ({calculateAge(userBirthday)} Jahre)
+                    {formatBirthDate(userBirthday, false)} ({calculateAge(userBirthday)} years old)
                   </Text>
                 </View>
               )}
               
               {userRole && (
                 <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>Rolle</Text>
+                  <Text style={styles.summaryLabel}>Role</Text>
                   <Text style={styles.summaryValue}>
-                    {userRole === 'parent' ? 'Elternteil' :
-                     userRole === 'child' ? 'Kind' :
+                    {userRole === 'parent' ? 'Parent' :
+                     userRole === 'child' ? 'Child' :
                      userRole === 'teen' ? 'Teenager' :
-                     userRole === 'grandparent' ? 'Großeltern' :
-                     'Andere'}
+                     userRole === 'grandparent' ? 'Grandparent' :
+                     'Other'}
                   </Text>
                 </View>
               )}
 
               {userInterests.length > 0 && (
                 <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>Interessen</Text>
+                  <Text style={styles.summaryLabel}>Interests</Text>
                   <Text style={styles.summaryValue}>
                     {userInterests.slice(0, 3).join(', ')}
                     {userInterests.length > 3 && '...'}
@@ -270,7 +270,7 @@ export default function ProfileCompletion() {
               
               {user?.email && (
                 <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>E-Mail</Text>
+                  <Text style={styles.summaryLabel}>Email</Text>
                   <Text style={styles.summaryValue}>{user.email}</Text>
                 </View>
               )}
@@ -282,9 +282,9 @@ export default function ProfileCompletion() {
             <View style={styles.successIcon}>
               <Check size={24} color="#54FE54" strokeWidth={2.5} />
             </View>
-            <Text style={styles.successTitle}>Profil erfolgreich erstellt!</Text>
+            <Text style={styles.successTitle}>Profile created successfully!</Text>
             <Text style={styles.successText}>
-              Ihr Konto ist bereit. Als nächstes richten wir Ihre Familie ein.
+              Your account is ready. Next, we'll set up your family.
             </Text>
           </View>
         </View>
@@ -304,7 +304,7 @@ export default function ProfileCompletion() {
           disabled={loading}
         >
           <Text style={styles.continueText}>
-            {loading ? 'Wird gespeichert...' : 'Weiter'}
+            {loading ? 'Saving...' : 'Continue'}
           </Text>
           {!loading && <ChevronRight size={20} color="#161618" strokeWidth={2} />}
         </AnimatedPressable>

@@ -1,0 +1,220 @@
+{
+  "onboarding": {
+    "stepIndicator": "Stap {{current}} van {{total}}",
+    "welcome": {
+      "title": "Welkom bij Famora",
+      "subtitle": "Jouw digitale familie-organizer",
+      "description": "Afspraken, taken en herinneringen – alles op één plek voor het hele gezin.",
+      "getStarted": "Aan de slag",
+      "footnote": "Gratis • Geen Advertenties • Gezinsveilig",
+      "setup": "✨ Ingesteld in 3 minuten"
+    },
+    "personal": {
+      "title": "Vertel ons over jezelf",
+      "subtitle": "Deze informatie helpt ons Famora perfect voor jou aan te passen",
+      "name": {
+        "label": "Hoe wil je genoemd worden?",
+        "placeholder": "Je voornaam of bijnaam",
+        "tooltip": "Gebruik de naam die je familie gewoonlijk gebruikt."
+      },
+      "birthdate": {
+        "label": "Geboortedatum",
+        "tooltip": "We gebruiken je geboortedatum alleen voor verjaardagsmeldingen. Je gegevens blijven privé en veilig."
+      },
+      "avatar": {
+        "label": "Kies profielfoto",
+        "tooltip": "Selecteer een afbeelding die jou vertegenwoordigt in het gezin."
+      },
+      "roles": {
+        "parent": "Ouder",
+        "child": "Kind",
+        "teenager": "Tiener",
+        "grandparent": "Grootouder",
+        "other": "Anders"
+      },
+      "role": {
+        "label": "Wat is je rol in het gezin?",
+        "tooltip": "Dit helpt ons passende functies en rechten aan te bevelen."
+      },
+      "interests": {
+        "label": "Wat zijn je interesses? (optioneel)",
+        "subtitle": "Selecteer maximaal 5 gebieden die je interesseren",
+        "sport": "Sport",
+        "music": "Muziek",
+        "cooking": "Koken",
+        "reading": "Lezen",
+        "travel": "Reizen",
+        "movies": "Films",
+        "gaming": "Gaming",
+        "art": "Kunst",
+        "nature": "Natuur",
+        "technology": "Technologie"
+      },
+      "datePicker": {
+        "title": "Selecteer geboortedatum",
+        "year": "Jaar",
+        "month": "Maand",
+        "day": "Dag",
+        "confirm": "Bevestigen",
+        "placeholder": "Selecteer geboortedatum"
+      },
+      "ageDisplay": "{{age}} jaar oud, {{zodiac}}"
+    },
+    "language": {
+      "title": "Selecteer taal",
+      "subtitle": "Kies je voorkeurstaal voor de app"
+    },
+    "preferences": {
+      "title": "Je doelen & voorkeuren",
+      "goals": {
+        "title": "Wat wil je bereiken?",
+        "subtitle": "Selecteer maximaal 3 hoofddoelen die belangrijk voor je zijn",
+        "organization": "Betere organisatie",
+        "organizationDesc": "Structuur en overzicht in het gezinsleven",
+        "communication": "Communicatie verbeteren",
+        "communicationDesc": "Beter contact en uitwisseling binnen het gezin",
+        "timeManagement": "Tijdbeheer",
+        "timeManagementDesc": "Efficiënter omgaan met tijd en afspraken",
+        "taskDistribution": "Taken verdelen",
+        "taskDistributionDesc": "Eerlijke verdeling van huishoudelijke taken",
+        "familyTime": "Meer gezinstijd",
+        "familyTimeDesc": "Meer tijd samen doorbrengen als gezin",
+        "stressReduction": "Stress verminderen",
+        "stressReductionDesc": "Minder chaos en meer rust in het dagelijks leven"
+      }
+    },
+    "auth": {
+      "title": {
+        "login": "Inloggen",
+        "signup": "Account aanmaken"
+      },
+      "subtitle": {
+        "login": "Log in op je account",
+        "signup": "Maak je Famora-account aan"
+      },
+      "form": {
+        "email": "E-mailadres",
+        "password": "Wachtwoord",
+        "confirmPassword": "Bevestig wachtwoord"
+      },
+      "buttons": {
+        "login": "Inloggen",
+        "signup": "Account aanmaken",
+        "loggingIn": "Inloggen...",
+        "signingUp": "Account aanmaken..."
+      },
+      "toggle": {
+        "toSignup": "Nog geen account?",
+        "toLogin": "Heb je al een account?",
+        "signupLink": "Account aanmaken",
+        "loginLink": "Inloggen"
+      },
+      "errors": {
+        "invalidEmail": "Voer een geldig e-mailadres in",
+        "passwordTooShort": "Wachtwoord moet minimaal 6 tekens bevatten",
+        "userAlreadyExists": "Dit e-mailadres is al geregistreerd. Probeer in te loggen.",
+        "invalidCredentials": "E-mailadres of wachtwoord is onjuist. Controleer je gegevens.",
+        "emailNotConfirmed": "Bevestig je e-mailadres via de link in de e-mail.",
+        "tooManyRequests": "Te veel pogingen. Wacht even en probeer opnieuw.",
+        "passwordRequirement": "Wachtwoord moet minimaal 6 tekens bevatten.",
+        "emailInvalid": "Voer een geldig e-mailadres in."
+      },
+      "success": {
+        "accountCreated": "Account succesvol aangemaakt!"
+      }
+    },
+    "family": {
+      "title": "Gezin instellen",
+      "subtitle": "Maak een nieuw gezin aan, sluit je aan bij een bestaand gezin of zoek naar gezinnen",
+      "create": {
+        "title": "Gezin aanmaken",
+        "description": "Maak een nieuw gezin aan en nodig andere leden uit"
+      },
+      "join": {
+        "title": "Bij gezin aansluiten",
+        "description": "Sluit je aan bij een bestaand gezin met een uitnodigingscode"
+      },
+      "search": {
+        "title": "Gezin zoeken",
+        "description": "Zoek naar gezinnen op naam of code"
+      }
+    },
+    "overview": {
+      "title": "Alles klaar!",
+      "subtitle": "Je hebt Famora succesvol ingesteld",
+      "description": "Welkom in je nieuwe digitale gezin. Begin nu met het organiseren van je gezinsleven!"
+    }
+  },
+  "common": {
+    "continue": "Doorgaan",
+    "back": "Terug",
+    "next": "Volgende",
+    "cancel": "Annuleren",
+    "confirm": "Bevestigen",
+    "save": "Opslaan",
+    "loading": "Laden...",
+    "error": "Fout",
+    "success": "Succes",
+    "warning": "Waarschuwing",
+    "info": "Info",
+    "yes": "Ja",
+    "no": "Nee",
+    "ok": "OK",
+    "close": "Sluiten",
+    "delete": "Verwijderen",
+    "edit": "Bewerken",
+    "add": "Toevoegen",
+    "remove": "Verwijderen",
+    "search": "Zoeken",
+    "filter": "Filteren",
+    "sort": "Sorteren",
+    "settings": "Instellingen",
+    "profile": "Profiel",
+    "logout": "Uitloggen",
+    "saving": "Opslaan...",
+    "redirecting": "Doorverwijzen..."
+  },
+  "calendar": {
+    "months": {
+      "january": "Januari",
+      "february": "Februari",
+      "march": "Maart",
+      "april": "April",
+      "may": "Mei",
+      "june": "Juni",
+      "july": "Juli",
+      "august": "Augustus",
+      "september": "September",
+      "october": "Oktober",
+      "november": "November",
+      "december": "December"
+    }
+  },
+  "zodiac": {
+    "aries": "Ram",
+    "taurus": "Stier",
+    "gemini": "Tweelingen",
+    "cancer": "Kreeft",
+    "leo": "Leeuw",
+    "virgo": "Maagd",
+    "libra": "Weegschaal",
+    "scorpio": "Schorpioen",
+    "sagittarius": "Boogschutter",
+    "capricorn": "Steenbok",
+    "aquarius": "Waterman",
+    "pisces": "Vissen"
+  },
+  "dashboard": {
+    "welcome": "Hallo {{userName}}!"
+  },
+  "profile": {
+    "title": "Mijn Profiel",
+    "name": "Naam",
+    "email": "E-mail",
+    "birthDate": "Geboortedatum",
+    "role": "Rol",
+    "interests": "Interesses",
+    "settings": "Instellingen",
+    "logout": "Uitloggen"
+  }
+}

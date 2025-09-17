@@ -46,7 +46,18 @@ export default function OnboardingWelcome() {
     );
   }, []);
 
-  const handleGetStarted = () => {
+  const handleGetStarted = async () => {
+    // Clear any existing onboarding data to start fresh
+    try {
+      const { clearOnboardingData } = await import('@/contexts/OnboardingContext');
+      // Note: We can't use the hook here, so we'll clear directly in AsyncStorage
+      const AsyncStorage = await import('@react-native-async-storage/async-storage');
+      await AsyncStorage.default.removeItem('@famora_onboarding_data');
+      console.log('DEBUG: Cleared onboarding data for fresh start');
+    } catch (error) {
+      console.log('DEBUG: Error clearing onboarding data:', error);
+    }
+    
     router.push('/(onboarding)/language');
   };
 
@@ -112,7 +123,7 @@ export default function OnboardingWelcome() {
 
         {/* Simple Trust Signal */}
         <View style={styles.trustSection}>
-          <Text style={styles.trustText}>✨ In 3 Minuten eingerichtet</Text>
+          <Text style={styles.trustText}>{t('onboarding.welcome.setup')}</Text>
         </View>
       </View>
 
@@ -128,7 +139,7 @@ export default function OnboardingWelcome() {
           <ChevronRight size={20} color="#161618" strokeWidth={2.5} />
         </AnimatedPressable>
         
-        <Text style={styles.footnote}>Kostenlos • Keine Werbung • Familiensicher</Text>
+        <Text style={styles.footnote}>{t('onboarding.welcome.footnote')}</Text>
       </View>
     </SafeAreaView>
   );

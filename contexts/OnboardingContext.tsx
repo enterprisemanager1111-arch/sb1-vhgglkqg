@@ -115,7 +115,28 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       const storedData = await AsyncStorage.getItem(ONBOARDING_STORAGE_KEY);
       if (storedData) {
         const parsedData = JSON.parse(storedData);
-        setOnboardingData({ ...defaultOnboardingData, ...parsedData });
+        // Merge carefully to preserve existing data
+        const mergedData = {
+          ...defaultOnboardingData,
+          ...parsedData,
+          // Preserve personal info if it exists in stored data
+          personalInfo: {
+            ...defaultOnboardingData.personalInfo,
+            ...parsedData.personalInfo
+          },
+          preferences: {
+            ...defaultOnboardingData.preferences,
+            ...parsedData.preferences
+          },
+          authInfo: {
+            ...defaultOnboardingData.authInfo,
+            ...parsedData.authInfo
+          }
+        };
+        console.log('DEBUG: Loaded onboarding data from storage:', mergedData);
+        setOnboardingData(mergedData);
+      } else {
+        console.log('DEBUG: No stored onboarding data found, using defaults');
       }
     } catch (error) {
       console.error('Error loading onboarding data:', error);
@@ -126,20 +147,53 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
   const saveOnboardingData = async (newData: OnboardingData) => {
     try {
-      await AsyncStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(newData));
+      console.log('DEBUG: Attempting to save to AsyncStorage...');
+      const dataToSave = JSON.stringify(newData);
+      console.log('DEBUG: Data to save (JSON):', dataToSave);
+      
+      await AsyncStorage.setItem(ONBOARDING_STORAGE_KEY, dataToSave);
+      console.log('DEBUG: Successfully saved to AsyncStorage');
+      
       setOnboardingData(newData);
+      console.log('DEBUG: Successfully updated state');
     } catch (error) {
-      console.error('Error saving onboarding data:', error);
-      throw error;
+      console.error('ERROR: Failed to save onboarding data to AsyncStorage:', error);
+      console.error('ERROR details:', error.message, error.stack);
+      throw new Error(`Failed to save data: ${error.message}`);
     }
   };
 
   const updatePersonalInfo = async (info: Partial<OnboardingData['personalInfo']>) => {
+    console.log('DEBUG: updatePersonalInfo called with:', info);
+    console.log('DEBUG: Current onboarding data before update:', onboardingData.personalInfo);
+    
+    // Simply merge the new info with existing data
+    const updatedPersonalInfo = {
+      ...onboardingData.personalInfo,
+      ...info
+    };
+    
     const updatedData = {
       ...onboardingData,
-      personalInfo: { ...onboardingData.personalInfo, ...info },
+      personalInfo: updatedPersonalInfo,
     };
+    
+    console.log('DEBUG: Personal info to be saved:', updatedPersonalInfo);
+    console.log('DEBUG: Full updated data to save:', updatedData);
+    
     await saveOnboardingData(updatedData);
+    console.log('DEBUG: Personal info successfully saved to AsyncStorage!');
+    
+    // Verify what was actually saved
+    try {
+      const savedData = await AsyncStorage.getItem(ONBOARDING_STORAGE_KEY);
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        console.log('DEBUG: Verified saved personal info in storage:', parsed.personalInfo);
+      }
+    } catch (error) {
+      console.log('DEBUG: Could not verify saved data:', error);
+    }
   };
 
   const updatePreferences = async (prefs: Partial<OnboardingData['preferences']>) => {

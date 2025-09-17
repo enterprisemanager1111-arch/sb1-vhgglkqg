@@ -1,5 +1,527 @@
 {
-  "profile": "Mein Profil",
-  "settings": "Einstellungen",
-  "logout": "Abmelden"
+  "onboarding": {
+    "stepIndicator": "Schritt {{current}} von {{total}}",
+    "welcome": {
+      "title": "Willkommen bei Famora",
+      "subtitle": "Ihr digitaler Familienorganisator",
+      "description": "Termine, Aufgaben und Erinnerungen – alles an einem Ort für die ganze Familie.",
+      "getStarted": "Jetzt starten",
+      "footnote": "Kostenlos • Keine Werbung • Familiensicher",
+      "setup": "✨ In 3 Minuten eingerichtet"
+    },
+    "personal": {
+      "title": "Erzählen Sie uns von sich",
+      "subtitle": "Diese Informationen helfen uns, Famora perfekt für Sie anzupassen",
+      "name": {
+        "label": "Wie möchten Sie genannt werden?",
+        "placeholder": "Ihr Vorname oder Nickname",
+        "tooltip": "Verwenden Sie den Namen, den Ihre Familie normalerweise verwendet."
+      },
+      "birthdate": {
+        "label": "Geburtsdatum",
+        "tooltip": "Wir verwenden dein Geburtsdatum nur für Geburtstags-Benachrichtigungen. Deine Daten bleiben privat und sicher."
+      },
+      "avatar": {
+        "label": "Profilbild auswählen",
+        "tooltip": "Wählen Sie ein Bild, das Sie in der Familie repräsentiert."
+      },
+      "roles": {
+        "parent": "Elternteil",
+        "child": "Kind",
+        "teenager": "Teenager",
+        "grandparent": "Großeltern",
+        "other": "Andere"
+      },
+      "role": {
+        "label": "Was ist Ihre Rolle in der Familie?",
+        "tooltip": "Dies hilft uns, passende Funktionen und Berechtigungen zu empfehlen."
+      },
+      "interests": {
+        "label": "Was sind Ihre Interessen? (optional)",
+        "subtitle": "Wählen Sie bis zu 5 Bereiche, die Sie interessieren",
+        "sport": "Sport",
+        "music": "Musik",
+        "cooking": "Kochen",
+        "reading": "Lesen",
+        "travel": "Reisen",
+        "movies": "Filme",
+        "gaming": "Gaming",
+        "art": "Kunst",
+        "nature": "Natur",
+        "tech": "Technik"
+      },
+      "datePicker": {
+        "title": "Geburtsdatum auswählen",
+        "year": "Jahr",
+        "month": "Monat",
+        "day": "Tag",
+        "confirm": "Bestätigen",
+        "placeholder": "Geburtsdatum auswählen"
+      },
+      "ageDisplay": "{{age}} Jahre • {{zodiac}}"
+    },
+    "overview": {
+      "title": "Onboarding Übersicht",
+      "completed": "Abgeschlossen"
+    },
+    "preferences": {
+      "title": "Ihre Ziele & Präferenzen",
+      "subtitle": "Lassen Sie uns Famora nach Ihren Wünschen gestalten",
+      "goals": {
+        "title": "Was möchten Sie erreichen?",
+        "subtitle": "Wählen Sie bis zu 3 Hauptziele für Ihr Familienleben",
+        "organization": {
+          "label": "Familie besser organisieren",
+          "description": "Termine und Aufgaben im Überblick"
+        },
+        "communication": {
+          "label": "Kommunikation verbessern",
+          "description": "Alle wichtigen Infos teilen"
+        },
+        "responsibility": {
+          "label": "Verantwortung teilen",
+          "description": "Aufgaben fair verteilen"
+        },
+        "memories": {
+          "label": "Erinnerungen festhalten",
+          "description": "Besondere Momente sammeln"
+        },
+        "routine": {
+          "label": "Routinen etablieren",
+          "description": "Regelmäßige Abläufe schaffen"
+        },
+        "fun": {
+          "label": "Mehr Spaß haben",
+          "description": "Gemeinsame Aktivitäten planen"
+        }
+      },
+      "family": {
+        "title": "Familie einrichten",
+        "subtitle": "Erstellen Sie eine neue Familie, treten Sie einer bei oder suchen Sie nach bestehenden Familien",
+        "modes": {
+          "choose": "Erstellen Sie eine neue Familie, treten Sie einer bei oder suchen Sie nach bestehenden Familien",
+          "create": "Geben Sie Ihrer Familie einen Namen",
+          "search": "Suchen Sie nach einer Familie zum Beitreten",
+          "join": "Geben Sie den Familiencode ein"
+        },
+        "options": {
+          "create": {
+            "title": "Familie erstellen",
+            "description": "Erstellen Sie eine neue Familie und laden Sie andere Mitglieder ein"
+          },
+          "join": {
+            "title": "Familie beitreten",
+            "description": "Treten Sie einer bestehenden Familie mit einem Einladungscode bei"
+          },
+          "search": {
+            "title": "Familie suchen",
+            "description": "Suchen Sie nach Familien anhand des Namens oder Codes"
+          }
+        },
+        "form": {
+          "familyName": {
+            "label": "Familienname",
+            "placeholder": "z.B. Familie Schmidt",
+            "tooltip": "Wählen Sie einen Namen, den alle Familienmitglieder erkennen, z.B. \"Familie Schmidt\" oder \"Die Müllers\"."
+          },
+          "familyCode": {
+            "label": "Familiencode",
+            "placeholder": "6-stelligen Code eingeben",
+            "tooltip": "Der 6-stellige Code wurde Ihnen von einem Familienmitglied gesendet, das bereits Teil der Familie ist."
+          },
+          "search": {
+            "label": "Familie suchen",
+            "placeholder": "Familienname oder Code eingeben..."
+          }
+        },
+        "buttons": {
+          "create": "Familie erstellen",
+          "join": "Familie beitreten",
+          "search": "Familie suchen",
+          "searchAction": "Suchen",
+          "creating": "Familie wird erstellt...",
+          "joining": "Beitritt läuft...",
+          "searching": "Suche läuft..."
+        },
+        "success": {
+          "created": {
+            "title": "Familie erfolgreich erstellt!",
+            "subtitle": "Teilen Sie diesen Code mit Ihren Familienmitgliedern, damit sie beitreten können.",
+            "codeLabel": "Ihr Familiencode:",
+            "tip": "💡 Tipp: Ihre Familienmitglieder können diesen Code in der App eingeben, um Ihrer Familie beizutreten. Sie finden den Code jederzeit in den Einstellungen."
+          },
+          "joined": {
+            "title": "Erfolgreich beigetreten!",
+            "message": "Sie sind nun Mitglied der Familie."
+          }
+        },
+        "search": {
+          "resultsTitle": "Gefundene Familien:",
+          "noResults": {
+            "title": "Keine Familien gefunden",
+            "message": "Keine Familie mit \"{{searchTerm}}\" gefunden. Versuchen Sie einen anderen Suchbegriff oder verwenden Sie einen Einladungscode."
+          }
+        },
+        "info": {
+          "createInfo": "Nach der Erstellung erhalten Sie einen 6-stelligen Code, den Sie mit Ihren Familienmitgliedern teilen können.",
+          "joinInfo": "Bitten Sie ein Familienmitglied, Ihnen den Familiencode aus den Einstellungen zu senden."
+        },
+        "errors": {
+          "createFailed": "Familie konnte nicht erstellt werden",
+          "joinFailed": "Konnte der Familie nicht beitreten"
+        },
+        "activities": {
+          "familyCreated": "Familie \"{{name}}\" erstellt",
+          "familyJoined": "Der Familie beigetreten",
+          "memberJoined": "Ein neues Mitglied ist der Familie beigetreten"
+        },
+        "notifications": {
+          "familyCreated": "Familie \"{{name}}\" erstellt!",
+          "familyJoined": "Familie beigetreten!",
+          "codeCopied": "Code kopiert! Der Familiencode wurde in die Zwischenablage kopiert."
+        }
+      }
+    },
+    "language": {
+      "title": "Sprache auswählen",
+      "subtitle": "Wählen Sie Ihre bevorzugte Sprache für die App"
+    },
+    "auth": {
+      "title": "Authentifizierung",
+      "subtitle": {
+        "login": "Bei Ihrem Konto anmelden",
+        "signup": "Erstellen Sie Ihr Famora-Konto"
+      },
+      "form": {
+        "email": "E-Mail-Adresse",
+        "password": "Passwort",
+        "confirmPassword": "Passwort bestätigen"
+      },
+      "buttons": {
+        "login": "Anmelden",
+        "signup": "Registrieren",
+        "loggingIn": "Anmelden...",
+        "signingUp": "Registrieren..."
+      },
+      "toggle": {
+        "toSignup": "Noch kein Konto? ",
+        "toLogin": "Bereits ein Konto? ",
+        "signupLink": "Registrieren",
+        "loginLink": "Anmelden"
+      },
+      "errors": {
+        "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+        "passwordTooShort": "Passwort muss mindestens 6 Zeichen haben",
+        "passwordTooLong": "Passwort darf maximal 128 Zeichen haben",
+        "userAlreadyExists": "Diese E-Mail ist bereits registriert. Versuchen Sie sich anzumelden.",
+        "invalidCredentials": "E-Mail-Adresse oder Passwort ist falsch. Bitte überprüfen Sie Ihre Eingaben.",
+        "emailNotConfirmed": "Bitte bestätigen Sie Ihre E-Mail-Adresse über den Link in der E-Mail.",
+        "tooManyRequests": "Zu viele Versuche. Bitte warten Sie einen Moment und versuchen Sie es erneut.",
+        "passwordRequirement": "Das Passwort muss mindestens 6 Zeichen haben.",
+        "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein."
+      },
+      "success": {
+        "accountCreated": "Konto wurde erfolgreich erstellt!"
+      },
+      "old": {
+        "title": {
+          "signup": "Account erstellen",
+          "login": "Willkommen zurück!"
+        }
+      }
+    },
+    "nav": {
+      "home": "Home",
+      "family": "Familie",
+      "flames": "Flames",
+      "profile": "Profil"
+    },
+    "common": {
+      "continue": "Weiter",
+      "cancel": "Abbrechen",
+      "save": "Speichern",
+      "skip": "Überspringen",
+      "back": "Zurück",
+      "loading": "Wird geladen...",
+      "error": "Fehler",
+      "success": "Erfolg",
+      "yes": "Ja",
+      "no": "Nein",
+      "ok": "OK",
+      "delete": "Löschen",
+      "edit": "Bearbeiten",
+      "add": "Hinzufügen",
+      "create": "Erstellen",
+      "update": "Aktualisieren",
+      "retry": "Erneut versuchen",
+      "saving": "Wird gespeichert...",
+      "redirecting": "Weiterleitung..."
+    },
+    "settings": {
+      "language": {
+        "title": "Sprache",
+        "changed": "Sprache wurde auf",
+        "restart": "Starten Sie die App neu, um die Änderungen zu sehen.",
+        "error": "Sprache konnte nicht geändert werden."
+      }
+    },
+    "dashboard": {
+      "welcome": "Willkommen zurück in deiner Familie",
+      "family": {
+        "manage": "Familie verwalten"
+      },
+      "quickAccess": "Schnellzugriff",
+      "nextSteps": "Nächste Schritte",
+      "showAll": "Alle anzeigen",
+      "todayOverview": "Heute im Überblick",
+      "progress": "Fortschritt",
+      "completedToday": "Erledigt heute",
+      "thisWeek": "Diese Woche",
+      "nextAppointment": "Nächster Termin:",
+      "noUpcoming": "Keine anstehenden Termine",
+      "allTasksDone": "Alle Aufgaben erledigt!",
+      "greatJob": "Großartig! Erstellen Sie neue Aufgaben oder entspannen Sie sich.",
+      "loading": "Dashboard wird geladen...",
+      "shopping": "Einkaufsliste",
+      "calendar": "Kalender",
+      "tasks": "Aufgaben",
+      "flames": "Flames",
+      "items": "Artikel",
+      "appointments": "Termine",
+      "open": "offen",
+      "allDone": "Alle erledigt",
+      "points": "Punkte"
+    },
+    "flames": {
+      "title": "Flames & Punkte",
+      "subtitle": "Familie-Punkte gesammelt",
+      "loading": "Flames werden geladen...",
+      "error": {
+        "title": "Fehler beim Laden",
+        "retry": "Erneut versuchen"
+      },
+      "period": {
+        "week": "Woche",
+        "month": "Monat",
+        "all": "Gesamt"
+      },
+      "family": {
+        "level": "Familie Level",
+        "points": "Familie-Punkte",
+        "progress": "Familien-Fortschritt",
+        "progressPoints": "Punkte bis Level",
+        "maxLevel": "Maximales Level erreicht! 👑",
+        "nextLevel": "Nächstes Level:"
+      },
+      "leaderboard": {
+        "title": "Leaderboard",
+        "thisWeek": "Diese Woche",
+        "thisMonth": "Dieser Monat",
+        "total": "Gesamt",
+        "you": "(Du)",
+        "achievements": "Erfolge",
+        "activities": "Aktivitäten",
+        "pointsToFirst": "zum 1. Platz",
+        "points": "Punkte"
+      },
+      "activities": {
+        "title": "Letzte Aktivitäten",
+        "empty": "Noch keine Aktivitäten",
+        "emptySubtitle": "Erledigen Sie Aufgaben und sammeln Sie Punkte!",
+        "unknown": "Unbekannt"
+      },
+      "achievements": {
+        "title": "Familien-Erfolge",
+        "unlocked": "Freigeschaltet"
+      },
+      "goal": {
+        "title": "Neues Familienziel",
+        "name": "Zielname",
+        "namePlaceholder": "z.B. 50 Aufgaben in der Woche",
+        "points": "Zielpunkte",
+        "pointsPlaceholder": "100",
+        "cancel": "Abbrechen",
+        "create": "Erstellen",
+        "error": {
+          "name": "Bitte geben Sie einen Zielnamen ein",
+          "points": "Bitte geben Sie eine gültige Punktzahl ein",
+          "create": "Ziel konnte nicht erstellt werden:"
+        },
+        "description": "Erreiche Punkte als Familie",
+        "created": "hat ein neues Ziel erstellt:"
+      }
+    },
+    "tasks": {
+      "title": "Family Tasks",
+      "loading": "Lade Tasks...",
+      "error": {
+        "loading": "Fehler beim Laden der Tasks",
+        "toggle": "Task-Status konnte nicht geändert werden:",
+        "create": "Task konnte nicht erstellt werden:",
+        "delete": "Task konnte nicht gelöscht werden:",
+        "empty": "Bitte geben Sie eine Aufgabenbeschreibung ein"
+      },
+      "stats": {
+        "completed": "erledigt",
+        "pointsCollected": "Punkte gesammelt"
+      },
+      "leaderboard": {
+        "title": "Family Leaderboard"
+      },
+      "add": {
+        "title": "Neue Aufgabe hinzufügen",
+        "placeholder": "Aufgabenbeschreibung eingeben..."
+      },
+      "filter": {
+        "all": "Alle Tasks",
+        "categories": {
+          "all": "Alle",
+          "household": "Haushalt",
+          "personal": "Persönliche Tasks",
+          "work": "Arbeit",
+          "family": "Familien-Tasks"
+        }
+      },
+      "list": {
+        "pending": "Zu erledigen",
+        "completed": "Kürzlich erledigt",
+        "completedNotice": "✨ Erledigte Aufgaben werden automatisch nach 24 Stunden gelöscht",
+        "timeRemaining": "Noch {{hours}}h sichtbar",
+        "unassigned": "Unzugewiesen",
+        "unknown": "Unbekannt"
+      },
+      "delete": {
+        "title": "Task löschen",
+        "message": "Möchten Sie diese Aufgabe wirklich löschen?"
+      },
+      "notifications": {
+        "completed": "Aufgabe erledigt: {{task}}",
+        "memberCompleted": "hat \"{{task}}\" erledigt"
+      },
+      "empty": {
+        "title": "Noch keine Tasks",
+        "description": "Erstellen Sie Ihren ersten Task und sammeln Sie Punkte für erledigte Aufgaben!",
+        "button": "Task erstellen"
+      }
+    },
+    "zodiac": {
+      "aquarius": "♒ Wassermann",
+      "pisces": "♓ Fische",
+      "aries": "♈ Widder",
+      "taurus": "♉ Stier",
+      "gemini": "♊ Zwillinge",
+      "cancer": "♋ Krebs",
+      "leo": "♌ Löwe",
+      "virgo": "♍ Jungfrau",
+      "libra": "♎ Waage",
+      "scorpio": "♏ Skorpion",
+      "sagittarius": "♐ Schütze",
+      "capricorn": "♑ Steinbock"
+    },
+    "calendar": {
+      "title": "Kalender",
+      "loading": "Kalender wird geladen...",
+      "error": {
+        "loading": "Fehler beim Laden des Kalenders",
+        "delete": "Termin konnte nicht gelöscht werden:"
+      },
+      "today": "heute",
+      "thisWeek": "Diese Woche",
+      "noEvents": "Keine Termine für diesen Tag",
+      "addEvent": "Termin hinzufügen",
+      "eventsFor": "Termine für {{date}}. {{month}}",
+      "upcoming": "Diese Woche",
+      "pointsEarned": "+10 Punkte erhalten",
+      "unknown": "Unbekannt",
+      "delete": {
+        "title": "Termin löschen",
+        "message": "Möchten Sie diesen Termin wirklich löschen?"
+      },
+      "empty": {
+        "title": "Noch keine Termine",
+        "description": "Erstellen Sie Ihren ersten Familientermin und planen Sie gemeinsame Aktivitäten!",
+        "button": "Termin erstellen"
+      },
+      "months": {
+        "january": "Januar",
+        "february": "Februar",
+        "march": "März",
+        "april": "April",
+        "may": "Mai",
+        "june": "Juni",
+        "july": "Juli",
+        "august": "August",
+        "september": "September",
+        "october": "Oktober",
+        "november": "November",
+        "december": "Dezember"
+      },
+      "monthsShort": {
+        "january": "Jan",
+        "february": "Feb",
+        "march": "Mär",
+        "april": "Apr",
+        "may": "Mai",
+        "june": "Jun",
+        "july": "Jul",
+        "august": "Aug",
+        "september": "Sep",
+        "october": "Okt",
+        "november": "Nov",
+        "december": "Dez"
+      },
+      "days": {
+        "sunday": "So",
+        "monday": "Mo",
+        "tuesday": "Di",
+        "wednesday": "Mi",
+        "thursday": "Do",
+        "friday": "Fr",
+        "saturday": "Sa"
+      }
+    },
+    "shopping": {
+      "title": "Einkaufsliste",
+      "loading": "Lade Einkaufsliste...",
+      "error": {
+        "loading": "Fehler beim Laden der Einkaufsliste",
+        "toggle": "Artikel-Status konnte nicht geändert werden:",
+        "delete": "Artikel konnte nicht gelöscht werden:"
+      },
+      "stats": {
+        "completed": "von {{total}} erledigt",
+        "stillToBuy": "Noch kaufen",
+        "bought": "Gekauft",
+        "progress": "Fortschritt"
+      },
+      "categories": {
+        "all": "Alle Artikel",
+        "dairy": "Milchprodukte",
+        "produce": "Obst & Gemüse",
+        "meat": "Fleisch",
+        "bakery": "Bäckerei",
+        "pantry": "Vorratsschrank"
+      },
+      "list": {
+        "shopping": "Einkaufen",
+        "bought": "Kürzlich gekauft",
+        "completedNotice": "✨ Gekaufte Artikel werden automatisch nach 24 Stunden gelöscht",
+        "timeRemaining": "Noch {{hours}}h sichtbar",
+        "unknown": "Unbekannt"
+      },
+      "delete": {
+        "title": "Artikel löschen",
+        "message": "Möchten Sie diesen Artikel wirklich löschen?"
+      },
+      "notifications": {
+        "bought": "Gekauft: {{item}}",
+        "memberBought": "hat \"{{item}}\" gekauft"
+      },
+      "empty": {
+        "title": "Einkaufsliste ist leer",
+        "description": "Fügen Sie Ihre ersten Artikel zur Einkaufsliste hinzu und teilen Sie sie mit Ihrer Familie!",
+        "button": "Artikel hinzufügen"
+      }
+    }
+  }
 }

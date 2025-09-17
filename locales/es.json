@@ -1,0 +1,360 @@
+{
+  "onboarding": {
+    "stepIndicator": "Paso {{current}} de {{total}}",
+    "welcome": {
+      "title": "Bienvenido a Famora",
+      "subtitle": "Tu organizador familiar digital",
+      "description": "Citas, tareas y recordatorios: todo en un lugar para toda la familia.",
+      "getStarted": "Empezar"
+    },
+    "personal": {
+      "title": "Cuéntanos sobre ti",
+      "subtitle": "Esta información nos ayuda a adaptar Famora perfectamente para ti",
+      "name": {
+        "label": "¿Cómo te gustaría que te llamen?",
+        "placeholder": "Tu nombre o apodo",
+        "tooltip": "Usa el nombre que tu familia normalmente usa."
+      },
+      "birthdate": {
+        "label": "Fecha de nacimiento",
+        "tooltip": "Lo usamos para recordatorios de cumpleaños y funciones apropiadas para la edad."
+      },
+      "avatar": {
+        "label": "Elegir foto de perfil",
+        "tooltip": "Selecciona una imagen que te represente en la familia."
+      },
+      "roles": {
+        "parent": "Padre/Madre",
+        "child": "Niño",
+        "teenager": "Adolescente",
+        "grandparent": "Abuelo",
+        "other": "Otro"
+      },
+      "interests": {
+        "label": "¿Cuáles son tus intereses? (opcional)",
+        "subtitle": "Selecciona hasta 5 áreas que te interesan",
+        "sport": "Deportes",
+        "music": "Música",
+        "cooking": "Cocina",
+        "reading": "Lectura",
+        "travel": "Viajes",
+        "movies": "Películas",
+        "gaming": "Juegos",
+        "art": "Arte",
+        "nature": "Naturaleza",
+        "tech": "Tecnología"
+      },
+      "datePicker": {
+        "title": "Seleccionar fecha de nacimiento",
+        "year": "Año",
+        "month": "Mes",
+        "day": "Día",
+        "confirm": "Confirmar",
+        "placeholder": "Seleccionar fecha de nacimiento"
+      }
+    },
+    "language": {
+      "title": "Seleccionar idioma",
+      "subtitle": "Elige tu idioma preferido para la aplicación"
+    },
+    "auth": {
+      "title": {
+        "signup": "Crear cuenta",
+        "login": "¡Bienvenido de vuelta!"
+      }
+    },
+    "family": {
+      "title": "Configurar familia"
+    }
+  },
+  "nav": {
+    "home": "Inicio",
+    "family": "Familia",
+    "flames": "Flames",
+    "profile": "Perfil"
+  },
+  "common": {
+    "continue": "Continuar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "skip": "Saltar",
+    "back": "Atrás",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "yes": "Sí",
+    "no": "No",
+    "ok": "OK",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Agregar",
+    "create": "Crear",
+    "update": "Actualizar",
+    "retry": "Intentar de nuevo"
+  },
+  "settings": {
+    "language": {
+      "title": "Idioma",
+      "changed": "Idioma cambiado a",
+      "restart": "Por favor, reinicia la aplicación para ver los cambios.",
+      "error": "No se pudo cambiar el idioma."
+    }
+  },
+  "dashboard": {
+    "welcome": "Bienvenido a tu familia",
+    "family": {
+      "manage": "Gestionar familia"
+    },
+    "quickAccess": "Acceso rápido",
+    "nextSteps": "Próximos pasos",
+    "showAll": "Mostrar todo",
+    "todayOverview": "Resumen de hoy",
+    "progress": "Progreso",
+    "completedToday": "Completado hoy",
+    "thisWeek": "Esta semana",
+    "nextAppointment": "Próxima cita:",
+    "noUpcoming": "No hay citas próximas",
+    "allTasksDone": "¡Todas las tareas completadas!",
+    "greatJob": "¡Genial! Crea nuevas tareas o relájate.",
+    "loading": "Cargando panel...",
+    "shopping": "Lista de compras",
+    "calendar": "Calendario",
+    "tasks": "Tareas",
+    "flames": "Flames",
+    "items": "artículos",
+    "appointments": "citas",
+    "open": "abierto",
+    "allDone": "Todo hecho",
+    "points": "puntos"
+  },
+  "flames": {
+    "title": "Llamas y Puntos",
+    "subtitle": "puntos de familia recopilados",
+    "loading": "Cargando llamas...",
+    "error": {
+      "title": "Error al cargar",
+      "retry": "Intentar de nuevo"
+    },
+    "period": {
+      "week": "Semana",
+      "month": "Mes",
+      "all": "Total"
+    },
+    "family": {
+      "level": "Nivel Familia",
+      "points": "Puntos Familia",
+      "progress": "Progreso Familia",
+      "progressPoints": "puntos al Nivel",
+      "maxLevel": "¡Nivel máximo alcanzado! 👑",
+      "nextLevel": "Siguiente Nivel:"
+    },
+    "leaderboard": {
+      "title": "Tabla de Posiciones",
+      "thisWeek": "Esta Semana",
+      "thisMonth": "Este Mes",
+      "total": "Total",
+      "you": "(Tú)",
+      "achievements": "Logros",
+      "activities": "Actividades",
+      "pointsToFirst": "al 1er lugar",
+      "points": "Puntos"
+    },
+    "activities": {
+      "title": "Actividades Recientes",
+      "empty": "Aún no hay actividades",
+      "emptySubtitle": "¡Completa tareas y gana puntos!",
+      "unknown": "Desconocido"
+    },
+    "achievements": {
+      "title": "Logros Familiares",
+      "unlocked": "Desbloqueado"
+    },
+    "goal": {
+      "title": "Nueva Meta Familiar",
+      "name": "Nombre de la Meta",
+      "namePlaceholder": "ej. 50 tareas esta semana",
+      "points": "Puntos Meta",
+      "pointsPlaceholder": "100",
+      "cancel": "Cancelar",
+      "create": "Crear",
+      "error": {
+        "name": "Por favor ingresa un nombre de meta",
+        "points": "Por favor ingresa un valor de puntos válido",
+        "create": "La meta no pudo ser creada:"
+      },
+      "description": "Alcanza puntos como familia",
+      "created": "creó una nueva meta:"
+    }
+  },
+  "tasks": {
+    "title": "Tareas Familiares",
+    "loading": "Cargando tareas...",
+    "error": {
+      "loading": "Error al cargar las tareas",
+      "toggle": "El estado de la tarea no pudo ser cambiado:",
+      "create": "La tarea no pudo ser creada:",
+      "delete": "La tarea no pudo ser eliminada:",
+      "empty": "Por favor ingresa una descripción de tarea"
+    },
+    "stats": {
+      "completed": "completadas",
+      "pointsCollected": "puntos recopilados"
+    },
+    "leaderboard": {
+      "title": "Tabla de Posiciones Familiar"
+    },
+    "add": {
+      "title": "Agregar nueva tarea",
+      "placeholder": "Ingresa descripción de la tarea..."
+    },
+    "filter": {
+      "all": "Todas las Tareas",
+      "categories": {
+        "all": "Todas",
+        "household": "Hogar",
+        "personal": "Tareas Personales",
+        "work": "Trabajo",
+        "family": "Tareas Familiares"
+      }
+    },
+    "list": {
+      "pending": "Por hacer",
+      "completed": "Recientemente completadas",
+      "completedNotice": "✨ Las tareas completadas se eliminan automáticamente después de 24 horas",
+      "timeRemaining": "{{hours}}h restantes visibles",
+      "unassigned": "Sin asignar",
+      "unknown": "Desconocido"
+    },
+    "delete": {
+      "title": "Eliminar tarea",
+      "message": "¿Realmente quieres eliminar esta tarea?"
+    },
+    "notifications": {
+      "completed": "Tarea completada: {{task}}",
+      "memberCompleted": "completó \"{{task}}\""
+    },
+    "empty": {
+      "title": "Aún no hay tareas",
+      "description": "¡Crea tu primera tarea y recopila puntos por las tareas completadas!",
+      "button": "Crear tarea"
+    }
+  },
+  "calendar": {
+    "title": "Calendario",
+    "loading": "Cargando calendario...",
+    "error": {
+      "loading": "Error al cargar el calendario",
+      "delete": "El evento no pudo ser eliminado:"
+    },
+    "today": "hoy",
+    "thisWeek": "Esta semana",
+    "noEvents": "No hay eventos para este día",
+    "addEvent": "Agregar evento",
+    "eventsFor": "Eventos para el {{date}}. de {{month}}",
+    "upcoming": "Esta semana",
+    "pointsEarned": "+10 puntos ganados",
+    "unknown": "Desconocido",
+    "delete": {
+      "title": "Eliminar evento",
+      "message": "¿Realmente quieres eliminar este evento?"
+    },
+    "empty": {
+      "title": "Aún no hay eventos",
+      "description": "¡Crea tu primer evento familiar y planifica actividades juntos!",
+      "button": "Crear evento"
+    },
+    "months": {
+      "january": "Enero",
+      "february": "Febrero",
+      "march": "Marzo",
+      "april": "Abril",
+      "may": "Mayo",
+      "june": "Junio",
+      "july": "Julio",
+      "august": "Agosto",
+      "september": "Septiembre",
+      "october": "Octubre",
+      "november": "Noviembre",
+      "december": "Diciembre"
+    },
+    "monthsShort": {
+      "january": "Ene",
+      "february": "Feb",
+      "march": "Mar",
+      "april": "Abr",
+      "may": "May",
+      "june": "Jun",
+      "july": "Jul",
+      "august": "Ago",
+      "september": "Sep",
+      "october": "Oct",
+      "november": "Nov",
+      "december": "Dic"
+    },
+    "days": {
+      "sunday": "Do",
+      "monday": "Lu",
+      "tuesday": "Ma",
+      "wednesday": "Mi",
+      "thursday": "Ju",
+      "friday": "Vi",
+      "saturday": "Sa"
+    }
+  },
+  "shopping": {
+    "title": "Lista de Compras",
+    "loading": "Cargando lista de compras...",
+    "error": {
+      "loading": "Error al cargar la lista de compras",
+      "toggle": "El estado del artículo no pudo ser cambiado:",
+      "delete": "El artículo no pudo ser eliminado:"
+    },
+    "stats": {
+      "completed": "de {{total}} completados",
+      "stillToBuy": "Aún por comprar",
+      "bought": "Comprado",
+      "progress": "Progreso"
+    },
+    "categories": {
+      "all": "Todos los artículos",
+      "dairy": "Lácteos",
+      "produce": "Frutas y Verduras",
+      "meat": "Carne",
+      "bakery": "Panadería",
+      "pantry": "Despensa"
+    },
+    "list": {
+      "shopping": "Compras",
+      "bought": "Recientemente comprado",
+      "completedNotice": "✨ Los artículos comprados se eliminan automáticamente después de 24 horas",
+      "timeRemaining": "{{hours}}h restantes visibles",
+      "unknown": "Desconocido"
+    },
+    "delete": {
+      "title": "Eliminar artículo",
+      "message": "¿Realmente quieres eliminar este artículo?"
+    },
+    "notifications": {
+      "bought": "Comprado: {{item}}",
+      "memberBought": "compró \"{{item}}\""
+    },
+    "empty": {
+      "title": "La lista de compras está vacía",
+      "description": "¡Agrega tus primeros artículos a la lista de compras y co mpártela con tu familia!",
+      "button": "Agregar artículo"
+    }
+  },
+  "family": {
+    "prompt": {
+      "title": "Unirse a la Familia",
+      "description": "Aún no eres parte de una familia. Únete a una familia o crea una nueva.",
+      "joinButton": "Unirse a la Familia",
+      "createButton": "Crear Familia"
+    }
+  },
+  "profile": {
+    "title": "Mi Perfil",
+    "settings": "Configuración",
+    "logout": "Cerrar Sesión"
+  }
+}

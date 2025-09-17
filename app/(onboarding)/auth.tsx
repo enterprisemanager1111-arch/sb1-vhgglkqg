@@ -68,6 +68,9 @@ function Notification({ type, message, visible, onClose }: NotificationProps) {
 
 export default function OnboardingAuth() {
   const { t } = useLanguage();
+  const { onboardingData, completeStep, updateAuthInfo, loading: onboardingLoading, updatePersonalInfo } = useOnboarding();
+  const { signIn, signUp } = useAuth();
+  
   const [isLogin, setIsLogin] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -81,10 +84,7 @@ export default function OnboardingAuth() {
     visible: false
   });
   
-  const { signUp, signIn } = useAuth();
   const buttonScale = useSharedValue(1);
-  const { onboardingData, updateAuthInfo } = useOnboarding();
-  const { completeStep } = useOnboarding();
 
   const showNotification = (type: 'error' | 'success', message: string) => {
     setNotification({ type, message, visible: true });
@@ -105,28 +105,28 @@ export default function OnboardingAuth() {
     const sanitizedPassword = sanitizeInput(password);
     const sanitizedConfirmPassword = sanitizeInput(confirmPassword);
     
-    if (!sanitizedEmail || !sanitizedPassword) {
-      showNotification('error', 'Bitte füllen Sie alle Felder aus');
+    if (!sanitizedEmail || !sanitizedPassword || (!isLogin && !sanitizedConfirmPassword)) {
+      showNotification('error', 'Please fill in all fields');
       return;
     }
 
     if (!validateEmail(sanitizedEmail)) {
-      showNotification('error', 'Bitte geben Sie eine gültige E-Mail-Adresse ein');
+      showNotification('error', 'Please enter a valid email address');
       return;
     }
 
     if (!isLogin && sanitizedPassword.length < 6) {
-      showNotification('error', 'Passwort muss mindestens 6 Zeichen haben');
+      showNotification('error', 'Password must be at least 6 characters');
       return;
     }
     
     if (!isLogin && sanitizedPassword.length > 128) {
-      showNotification('error', 'Passwort darf maximal 128 Zeichen haben');
+      showNotification('error', 'Password can be at most 128 characters');
       return;
     }
 
     if (!isLogin && sanitizedPassword !== sanitizedConfirmPassword) {
-      showNotification('error', 'Passwörter stimmen nicht überein');
+      showNotification('error', 'Passwords do not match');
       return;
     }
 
@@ -144,7 +144,7 @@ export default function OnboardingAuth() {
 
       if (isLogin) {
         await signIn(sanitizedEmail, sanitizedPassword);
-        showNotification('success', 'Erfolgreich angemeldet!');
+        showNotification('success', 'Successfully signed in!');
         
         await completeStep('authentication', {
           email: sanitizedEmail,
@@ -155,12 +155,30 @@ export default function OnboardingAuth() {
           router.replace('/(onboarding)/profile');
         }, 1000);
       } else {
+        // Wait for onboarding data to load first
+        if (onboardingLoading) {
+          console.log('DEBUG: Onboarding data still loading, waiting...');
+          showNotification('error', 'Loading your information, please wait...');
+          return;
+        }
+        
         // Get the actual name from onboarding data
-        const actualName = onboardingData.personalInfo.name || 'Familie Mitglied';
-        console.log('Using name for signup:', actualName);
+        const actualName = onboardingData.personalInfo.name;
+        console.log('DEBUG: Using name for signup:', actualName);
+        console.log('DEBUG: Full onboarding data:', JSON.stringify(onboardingData, null, 2));
+        console.log('DEBUG: Onboarding loading state:', onboardingLoading);
+        
+        // If no name is provided, redirect to personal info step first
+        if (!actualName || actualName.trim() === '') {
+          console.log('DEBUG: Name is empty, redirecting to personal info');
+          showNotification('error', 'Please complete your personal information first');
+          router.replace('/(onboarding)/personal');
+          return;
+        }
         
         await signUp(sanitizedEmail, sanitizedPassword, actualName);
-        showNotification('success', 'Konto wurde erfolgreich erstellt!');
+        showNotification('success', 'Account created successfully!');
+        alert(`🎉 Signup successful! Welcome to Famora!\nName used: "${actualName}"`);
         
         await completeStep('authentication', {
           email: sanitizedEmail,
@@ -173,21 +191,21 @@ export default function OnboardingAuth() {
         }, 1000);
       }
     } catch (error: any) {
-      let errorMessage = 'Ein Fehler ist aufgetreten';
+      let errorMessage = 'An error occurred';
       
       if (error.message?.includes('User already registered') || error.message?.includes('user_already_exists')) {
-        errorMessage = 'Diese E-Mail ist bereits registriert. Versuchen Sie sich anzumelden.';
+        errorMessage = 'This email is already registered. Try signing in.';
         setIsLogin(true);
       } else if (error.message?.includes('Invalid login credentials')) {
-        errorMessage = 'E-Mail-Adresse oder Passwort ist falsch. Bitte überprüfen Sie Ihre Eingaben.';
+        errorMessage = 'Email or password is incorrect. Please check your credentials.';
       } else if (error.message?.includes('Email not confirmed')) {
-        errorMessage = 'Bitte bestätigen Sie Ihre E-Mail-Adresse über den Link in der E-Mail.';
+        errorMessage = 'Please confirm your email address via the link in the email.';
       } else if (error.message?.includes('Too many requests')) {
-        errorMessage = 'Zu viele Versuche. Bitte warten Sie einen Moment und versuchen Sie es erneut.';
+        errorMessage = 'Too many attempts. Please wait a moment and try again.';
       } else if (error.message?.includes('Password should be at least')) {
-        errorMessage = 'Das Passwort muss mindestens 6 Zeichen haben.';
+        errorMessage = 'Password must be at least 6 characters.';
       } else if (error.message?.includes('Invalid email')) {
-        errorMessage = 'Bitte geben Sie eine gültige E-Mail-Adresse ein.';
+        errorMessage = 'Please enter a valid email address.';
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -237,12 +255,12 @@ export default function OnboardingAuth() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>
-            {isLogin ? t('onboarding.auth.title.login') : t('onboarding.auth.title.signup')}
+            {isLogin ? 'Welcome Back!' : 'Create Account'}
           </Text>
           <Text style={styles.subtitle}>
             {isLogin 
-              ? 'Bei Ihrem Konto anmelden'
-              : 'Erstellen Sie Ihr Famora-Konto'
+              ? 'Sign in to your account'
+              : 'Create your Famora account'
             }
           </Text>
         </View>
@@ -254,7 +272,7 @@ export default function OnboardingAuth() {
             <Mail size={20} color="#666666" strokeWidth={1.5} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="E-Mail-Adresse"
+              placeholder="Email address"
               placeholderTextColor="#888888"
               value={email}
               onChangeText={setEmail}
@@ -269,7 +287,7 @@ export default function OnboardingAuth() {
             <Lock size={20} color="#666666" strokeWidth={1.5} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, styles.passwordInput]}
-              placeholder="Passwort"
+              placeholder="Password"
               placeholderTextColor="#888888"
               value={password}
               onChangeText={setPassword}
@@ -294,7 +312,7 @@ export default function OnboardingAuth() {
               <Lock size={20} color="#666666" strokeWidth={1.5} style={styles.inputIcon} />
               <TextInput
                 style={[styles.input, styles.passwordInput]}
-                placeholder="Passwort bestätigen"
+                placeholder="Confirm password"
                 placeholderTextColor="#888888"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
@@ -324,8 +342,8 @@ export default function OnboardingAuth() {
           >
             <Text style={styles.authButtonText}>
               {loading 
-                ? (isLogin ? 'Anmelden...' : 'Registrieren...') 
-                : (isLogin ? 'Anmelden' : 'Registrieren')
+                ? (isLogin ? 'Signing in...' : 'Signing up...') 
+                : (isLogin ? 'Sign In' : 'Sign Up')
               }
             </Text>
           </AnimatedPressable>
@@ -333,14 +351,15 @@ export default function OnboardingAuth() {
           {/* Toggle Login/Signup */}
           <View style={styles.toggleContainer}>
             <Text style={styles.toggleText}>
-              {isLogin ? 'Noch kein Konto? ' : 'Bereits ein Konto? '}
+              {isLogin ? "Don't have an account? " : 'Already have an account? '}
             </Text>
             <Pressable onPress={() => setIsLogin(!isLogin)}>
               <Text style={styles.toggleLink}>
-                {isLogin ? 'Registrieren' : 'Anmelden'}
+                {isLogin ? 'Sign up' : 'Sign in'}
               </Text>
             </Pressable>
           </View>
+
         </View>
       </View>
     </SafeAreaView>

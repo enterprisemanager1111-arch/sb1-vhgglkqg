@@ -242,9 +242,9 @@ export const performDailyBirthdayCheck = async (
 };
 
 /**
- * Format date for display
+ * Format date for display with locale support
  */
-export const formatBirthDate = (birthDate: string, includeYear: boolean = false): string => {
+export const formatBirthDate = (birthDate: string, includeYear: boolean = false, locale: string = 'de-DE'): string => {
   const date = new Date(birthDate);
   const options: Intl.DateTimeFormatOptions = { 
     day: 'numeric', 
@@ -252,11 +252,51 @@ export const formatBirthDate = (birthDate: string, includeYear: boolean = false)
     ...(includeYear && { year: 'numeric' })
   };
   
-  return date.toLocaleDateString('de-DE', options);
+  return date.toLocaleDateString(locale, options);
 };
 
 /**
- * Get zodiac sign from birth date
+ * Get zodiac sign from birth date (returns key for translation)
+ */
+export const getZodiacSignKey = (birthDate: string): string => {
+  const date = new Date(birthDate);
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  
+  const zodiacSigns = [
+    { key: 'aquarius', start: [1, 20], end: [2, 18] },
+    { key: 'pisces', start: [2, 19], end: [3, 20] },
+    { key: 'aries', start: [3, 21], end: [4, 19] },
+    { key: 'taurus', start: [4, 20], end: [5, 20] },
+    { key: 'gemini', start: [5, 21], end: [6, 20] },
+    { key: 'cancer', start: [6, 21], end: [7, 22] },
+    { key: 'leo', start: [7, 23], end: [8, 22] },
+    { key: 'virgo', start: [8, 23], end: [9, 22] },
+    { key: 'libra', start: [9, 23], end: [10, 22] },
+    { key: 'scorpio', start: [10, 23], end: [11, 21] },
+    { key: 'sagittarius', start: [11, 22], end: [12, 21] },
+    { key: 'capricorn', start: [12, 22], end: [1, 19] },
+  ];
+  
+  for (const { key, start, end } of zodiacSigns) {
+    const [startMonth, startDay] = start;
+    const [endMonth, endDay] = end;
+    
+    if (
+      (month === startMonth && day >= startDay) ||
+      (month === endMonth && day <= endDay) ||
+      (startMonth > endMonth && (month === startMonth || month === endMonth))
+    ) {
+      return key;
+    }
+  }
+  
+  return 'capricorn'; // Fallback
+};
+
+/**
+ * Get zodiac sign from birth date (legacy function - returns German text)
+ * @deprecated Use getZodiacSignKey with translation instead
  */
 export const getZodiacSign = (birthDate: string): string => {
   const date = new Date(birthDate);

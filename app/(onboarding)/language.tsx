@@ -12,14 +12,12 @@ import { router } from 'expo-router';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
 import { ChevronLeft, ChevronRight, Globe, Check } from 'lucide-react-native';
 import { supportedLanguages, useLanguage } from '@/contexts/LanguageContext';
-import { useOnboarding } from '@/contexts/OnboardingContext';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function LanguageSelection() {
-  const [selectedLanguage, setSelectedLanguage] = useState('de');
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const { currentLanguage, changeLanguage, t } = useLanguage();
-  const { completeStep } = useOnboarding();
   
   const buttonScale = useSharedValue(1);
 
@@ -30,21 +28,13 @@ export default function LanguageSelection() {
 
   const handleContinue = async () => {
     try {
-      // Change language if different
-      if (selectedLanguage !== currentLanguage.code) {
-        await changeLanguage(selectedLanguage);
-      }
-
-      // Mark step as completed
-      await completeStep('language-selection', {
-        language: selectedLanguage,
-        languageName: supportedLanguages.find(l => l.code === selectedLanguage)?.name
-      });
-
+      // Language is already saved when selected - just navigate
+      // Don't save any onboarding data to avoid overwriting personal info
+      console.log('DEBUG: Language page - navigating to personal without saving onboarding data');
       router.push('/(onboarding)/personal');
     } catch (error) {
-      console.error('Error saving language preference:', error);
-      alert(t('settings.language.error'));
+      console.error('Error navigating to personal page:', error);
+      alert('Navigation error');
     }
   };
 
@@ -73,7 +63,7 @@ export default function LanguageSelection() {
         <Pressable style={styles.backButton} onPress={handleBack}>
           <ChevronLeft size={24} color="#161618" strokeWidth={2} />
         </Pressable>
-        <Text style={styles.stepIndicator}>Schritt 1 von 5</Text>
+        <Text style={styles.stepIndicator}>{t('onboarding.stepIndicator', { current: '1', total: '5' })}</Text>
       </View>
 
       {/* Progress Indicator */}
@@ -105,7 +95,13 @@ export default function LanguageSelection() {
                   styles.languageOption,
                   selectedLanguage === language.code && styles.selectedLanguageOption
                 ]}
-                onPress={() => setSelectedLanguage(language.code)}
+                onPress={async () => {
+                  setSelectedLanguage(language.code);
+                  // Change language immediately for preview
+                  if (language.code !== currentLanguage.code) {
+                    await changeLanguage(language.code);
+                  }
+                }}
               >
                 <View style={styles.languageLeft}>
                   <Text style={styles.languageFlag}>{language.flag}</Text>
@@ -135,7 +131,7 @@ export default function LanguageSelection() {
 
           {/* Language Preview */}
           <View style={styles.previewSection}>
-            <Text style={styles.previewTitle}>Vorschau:</Text>
+            <Text style={styles.previewTitle}>Preview:</Text>
             <View style={styles.previewCard}>
               <Text style={styles.previewText}>
                 {t('onboarding.welcome.title')}

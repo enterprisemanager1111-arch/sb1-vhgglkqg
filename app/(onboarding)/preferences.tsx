@@ -27,12 +27,12 @@ export default function PreferencesSetup() {
   const buttonScale = useSharedValue(1);
 
   const goalOptions = [
-    { id: 'organization', label: 'Familie besser organisieren', icon: '📋', description: 'Termine und Aufgaben im Überblick' },
-    { id: 'communication', label: 'Kommunikation verbessern', icon: '💬', description: 'Alle wichtigen Infos teilen' },
-    { id: 'responsibility', label: 'Verantwortung teilen', icon: '🤝', description: 'Aufgaben fair verteilen' },
-    { id: 'memories', label: 'Erinnerungen festhalten', icon: '📸', description: 'Besondere Momente sammeln' },
-    { id: 'routine', label: 'Routinen etablieren', icon: '⏰', description: 'Regelmäßige Abläufe schaffen' },
-    { id: 'fun', label: 'Mehr Spaß haben', icon: '🎉', description: 'Gemeinsame Aktivitäten planen' },
+    { id: 'organization', labelKey: 'onboarding.preferences.goals.organization.label', icon: '📋', descriptionKey: 'onboarding.preferences.goals.organization.description' },
+    { id: 'communication', labelKey: 'onboarding.preferences.goals.communication.label', icon: '💬', descriptionKey: 'onboarding.preferences.goals.communication.description' },
+    { id: 'responsibility', labelKey: 'onboarding.preferences.goals.responsibility.label', icon: '🤝', descriptionKey: 'onboarding.preferences.goals.responsibility.description' },
+    { id: 'memories', labelKey: 'onboarding.preferences.goals.memories.label', icon: '📸', descriptionKey: 'onboarding.preferences.goals.memories.description' },
+    { id: 'routine', labelKey: 'onboarding.preferences.goals.routine.label', icon: '⏰', descriptionKey: 'onboarding.preferences.goals.routine.description' },
+    { id: 'fun', labelKey: 'onboarding.preferences.goals.fun.label', icon: '🎉', descriptionKey: 'onboarding.preferences.goals.fun.description' },
   ];
 
   // Load existing data on mount
@@ -93,7 +93,7 @@ export default function PreferencesSetup() {
         <Pressable style={styles.backButton} onPress={handleBack}>
           <ChevronLeft size={24} color="#161618" strokeWidth={2} />
         </Pressable>
-        <Text style={styles.stepIndicator}>Schritt 3 von 5</Text>
+        <Text style={styles.stepIndicator}>{t('onboarding.stepIndicator', { current: '3', total: '5' })}</Text>
       </View>
 
       {/* Progress Indicator */}
@@ -111,9 +111,9 @@ export default function PreferencesSetup() {
         <View style={styles.content}>
           {/* Title */}
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>Ihre Ziele & Präferenzen</Text>
+            <Text style={styles.title}>{t('onboarding.preferences.title')}</Text>
             <Text style={styles.subtitle}>
-              Lassen Sie uns Famora nach Ihren Wünschen gestalten
+              {t('onboarding.preferences.subtitle')}
             </Text>
           </View>
 
@@ -121,7 +121,7 @@ export default function PreferencesSetup() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Target size={20} color="#54FE54" strokeWidth={2} />
-              <Text style={styles.sectionTitle}>Was möchten Sie erreichen?</Text>
+              <Text style={styles.sectionTitle}>{t('onboarding.preferences.goals.title')}</Text>
               <Pressable 
                 style={styles.tooltipButton}
                 onPress={() => setShowTooltip(showTooltip === 'goals' ? null : 'goals')}
@@ -137,7 +137,7 @@ export default function PreferencesSetup() {
               </View>
             )}
             <Text style={styles.sectionDescription}>
-              Wählen Sie bis zu 3 Hauptziele für Ihr Familienleben
+                  {t('onboarding.preferences.goals.subtitle')}
             </Text>
             <View style={styles.goalGrid}>
               {goalOptions.map((goal) => (
@@ -155,10 +155,10 @@ export default function PreferencesSetup() {
                     styles.goalLabel,
                     goals.includes(goal.id) && styles.selectedGoalLabel
                   ]}>
-                    {goal.label}
+                    {t(goal.labelKey)}
                   </Text>
                   <Text style={styles.goalDescription}>
-                    {goal.description}
+                    {t(goal.descriptionKey)}
                   </Text>
                 </Pressable>
               ))}
@@ -176,7 +176,7 @@ export default function PreferencesSetup() {
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
         >
-          <Text style={styles.continueText}>Weiter</Text>
+          <Text style={styles.continueText}>Continue</Text>
           <ChevronRight size={20} color="#161618" strokeWidth={2} />
         </AnimatedPressable>
       </View>

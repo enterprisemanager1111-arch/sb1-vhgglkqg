@@ -52,7 +52,7 @@ export default function FamilySetup() {
     const validation = validateName(familyName);
     
     if (!validation.isValid) {
-      Alert.alert('Fehler', validation.error);
+      Alert.alert('Error', validation.error);
       return;
     }
     
@@ -79,7 +79,7 @@ export default function FamilySetup() {
       try {
         await awardPoints({
           activity_type: 'member_added',
-          description: `Familie "${sanitizedName}" erstellt`,
+          description: `Family "${sanitizedName}" created`,
           metadata: {
             family_name: sanitizedName,
             family_code: result.code,
@@ -87,12 +87,12 @@ export default function FamilySetup() {
           },
         });
         
-        showPointsEarned(20, `Familie "${sanitizedName}" erstellt!`);
+        showPointsEarned(20, `Family "${sanitizedName}" created!`);
       } catch (pointsError) {
         console.error('Error awarding points for family creation:', pointsError);
       }
     } catch (error: any) {
-      Alert.alert('Fehler', error.message || 'Familie konnte nicht erstellt werden');
+      Alert.alert('Error', error.message || 'Could not create family');
     } finally {
       setLoading(false);
     }
@@ -104,7 +104,7 @@ export default function FamilySetup() {
     const codeValidation = validateFamilyCode(joinCode.trim());
     
     if (!codeValidation.isValid) {
-      Alert.alert('Fehler', codeValidation.error);
+      Alert.alert('Error', codeValidation.error);
       return;
     }
     
@@ -128,26 +128,26 @@ export default function FamilySetup() {
       try {
         await awardPoints({
           activity_type: 'member_added',
-          description: 'Der Familie beigetreten',
+          description: 'Joined family',
           metadata: {
             family_code: codeValidation.sanitized,
             action: 'joined'
           },
         });
         
-        showPointsEarned(20, 'Familie beigetreten!');
-        showMemberActivity('Ein neues Mitglied', 'ist der Familie beigetreten');
+        showPointsEarned(20, 'Family joined!');
+        showMemberActivity('A new member', 'joined the family');
       } catch (pointsError) {
         console.error('Error awarding points for joining family:', pointsError);
       }
       
       Alert.alert(
-        'Erfolgreich beigetreten!',
-        'Sie sind nun Mitglied der Familie.',
+        'Successfully joined!',
+        'You are now a member of the family.',
         [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
       );
     } catch (error: any) {
-      Alert.alert('Fehler', error.message || 'Konnte der Familie nicht beitreten');
+      Alert.alert('Error', error.message || 'Could not join family');
     } finally {
       setLoading(false);
     }
@@ -155,7 +155,7 @@ export default function FamilySetup() {
 
   const handleSearchFamilies = async () => {
     if (searchTerm.trim().length < 2) {
-      Alert.alert('Fehler', 'Suchbegriff muss mindestens 2 Zeichen haben');
+      Alert.alert('Error', 'Search term must be at least 2 characters');
       return;
     }
 
@@ -164,7 +164,7 @@ export default function FamilySetup() {
       const results = await searchFamilies(searchTerm);
       setSearchResults(results);
     } catch (error: any) {
-      Alert.alert('Fehler', error.message || 'Suche fehlgeschlagen');
+      Alert.alert('Error', error.message || 'Search failed');
     } finally {
       setSearchLoading(false);
     }
@@ -174,12 +174,12 @@ export default function FamilySetup() {
     try {
       await joinFamily(family.code);
       Alert.alert(
-        'Erfolgreich beigetreten!',
-        `Sie sind nun Mitglied von "${family.name}".`,
+        'Successfully joined!',
+        `You are now a member of "${family.name}".`,
         [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
       );
     } catch (error: any) {
-      Alert.alert('Fehler', error.message || 'Konnte der Familie nicht beitreten');
+      Alert.alert('Error', error.message || 'Could not join family');
     }
   };
 
@@ -207,7 +207,7 @@ export default function FamilySetup() {
 
   const copyCodeToClipboard = () => {
     // In a real app, you'd use Clipboard from react-native or expo-clipboard
-    Alert.alert('Code kopiert!', 'Der Familiencode wurde in die Zwischenablage kopiert.');
+    Alert.alert('Code copied!', 'The family code has been copied to clipboard.');
   };
 
   const buttonAnimatedStyle = useAnimatedStyle(() => ({
@@ -232,7 +232,7 @@ export default function FamilySetup() {
           <Pressable style={styles.backButton} onPress={handleBack}>
             <ChevronLeft size={24} color="#161618" strokeWidth={2} />
           </Pressable>
-          <Text style={styles.stepIndicator}>Familie erstellt!</Text>
+          <Text style={styles.stepIndicator}>{t('onboarding.stepIndicator', { current: '4', total: '5' })}</Text>
         </View>
 
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.successContainer}>
@@ -240,13 +240,13 @@ export default function FamilySetup() {
             <Check size={40} color="#54FE54" strokeWidth={2.5} />
           </View>
 
-          <Text style={styles.successTitle}>Familie erfolgreich erstellt!</Text>
+          <Text style={styles.successTitle}>Family created successfully!</Text>
           <Text style={styles.successSubtitle}>
-            Teilen Sie diesen Code mit Ihren Familienmitgliedern, damit sie beitreten können.
+            Share this code with your family members so they can join.
           </Text>
 
           <View style={styles.codeContainer}>
-            <Text style={styles.codeLabel}>Ihr Familiencode:</Text>
+            <Text style={styles.codeLabel}>Your family code:</Text>
             <View style={styles.codeDisplay}>
               <Text style={styles.codeText}>{createdCode}</Text>
               <Pressable style={styles.copyButton} onPress={copyCodeToClipboard}>
@@ -257,8 +257,8 @@ export default function FamilySetup() {
 
           <View style={styles.codeInfo}>
             <Text style={styles.infoText}>
-              💡 Tipp: Ihre Familienmitglieder können diesen Code in der App eingeben, 
-              um Ihrer Familie beizutreten. Sie finden den Code jederzeit in den Einstellungen.
+              💡 Tip: Your family members can enter this code in the app 
+              to join your family. You can find the code anytime in settings.
             </Text>
           </View>
 
@@ -285,7 +285,7 @@ export default function FamilySetup() {
         <Pressable style={styles.backButton} onPress={handleBack}>
           <ChevronLeft size={24} color="#161618" strokeWidth={2} />
         </Pressable>
-        <Text style={styles.stepIndicator}>Schritt 4 von 4</Text>
+        <Text style={styles.stepIndicator}>{t('onboarding.stepIndicator', { current: '4', total: '4' })}</Text>
       </View>
 
       {/* Progress Indicator */}
@@ -300,15 +300,15 @@ export default function FamilySetup() {
         <View style={styles.content}>
           {/* Title */}
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>{t('onboarding.family.title')}</Text>
+            <Text style={styles.title}>Family Setup</Text>
             <Text style={styles.subtitle}>
               {mode === 'choose' 
-                ? 'Erstellen Sie eine neue Familie, treten Sie einer bei oder suchen Sie nach bestehenden Familien'
+                ? 'Create a new family, join an existing one, or search for families'
                 : mode === 'create'
-                ? 'Geben Sie Ihrer Familie einen Namen'
+                ? 'Give your family a name'
                 : mode === 'search'
-                ? 'Suchen Sie nach einer Familie zum Beitreten'
-                : 'Geben Sie den Familiencode ein'
+                ? 'Search for a family to join'
+                : 'Enter the family code'
               }
             </Text>
           </View>
@@ -322,9 +322,9 @@ export default function FamilySetup() {
                 <View style={styles.choiceIcon}>
                   <Plus size={32} color="#54FE54" strokeWidth={2} />
                 </View>
-                <Text style={styles.choiceTitle}>Familie erstellen</Text>
+                <Text style={styles.choiceTitle}>Create Family</Text>
                 <Text style={styles.choiceDescription}>
-                  Erstellen Sie eine neue Familie und laden Sie andere Mitglieder ein
+                  Create a new family and invite other members
                 </Text>
               </Pressable>
 
@@ -335,9 +335,9 @@ export default function FamilySetup() {
                 <View style={styles.choiceIcon}>
                   <Hash size={32} color="#54FE54" strokeWidth={2} />
                 </View>
-                <Text style={styles.choiceTitle}>Familie beitreten</Text>
+                <Text style={styles.choiceTitle}>Join Family</Text>
                 <Text style={styles.choiceDescription}>
-                  Treten Sie einer bestehenden Familie mit einem Einladungscode bei
+                  Join an existing family with an invitation code
                 </Text>
               </Pressable>
 
@@ -348,9 +348,9 @@ export default function FamilySetup() {
                 <View style={styles.choiceIcon}>
                   <Search size={32} color="#54FE54" strokeWidth={2} />
                 </View>
-                <Text style={styles.choiceTitle}>Familie suchen</Text>
+                <Text style={styles.choiceTitle}>Search Family</Text>
                 <Text style={styles.choiceDescription}>
-                  Suchen Sie nach Familien anhand des Namens oder Codes
+                  Search for families by name or code
                 </Text>
               </Pressable>
 
@@ -358,7 +358,7 @@ export default function FamilySetup() {
                 style={styles.skipLink}
                 onPress={handleFinish}
               >
-                <Text style={styles.skipText}>Später einrichten</Text>
+                <Text style={styles.skipText}>Set up later</Text>
               </Pressable>
             </View>
           )}
@@ -368,7 +368,7 @@ export default function FamilySetup() {
               <View style={styles.inputSection}>
                 <View style={styles.labelContainer}>
                   <Users size={20} color="#54FE54" strokeWidth={2} />
-                  <Text style={styles.inputLabel}>Familienname</Text>
+                  <Text style={styles.inputLabel}>Family Name</Text>
                   <Pressable 
                     style={styles.tooltipButton}
                     onPress={() => setShowTooltip(showTooltip === 'name' ? null : 'name')}
@@ -379,14 +379,14 @@ export default function FamilySetup() {
                 {showTooltip === 'name' && (
                   <View style={styles.tooltip}>
                     <Text style={styles.tooltipText}>
-                      Wählen Sie einen Namen, den alle Familienmitglieder erkennen, 
-                      z.B. "Familie Schmidt" oder "Die Müllers".
+                      Choose a name that all family members will recognize, 
+                      e.g. "The Smiths" or "The Johnsons".
                     </Text>
                   </View>
                 )}
                 <TextInput
                   style={styles.textInput}
-                  placeholder="z.B. Familie Schmidt"
+                  placeholder="e.g. The Smiths"
                   placeholderTextColor="#888888"
                   value={familyName}
                   onChangeText={setFamilyName}
@@ -395,10 +395,10 @@ export default function FamilySetup() {
               </View>
 
               <View style={styles.infoBox}>
-                <Text style={styles.infoTitle}>Was passiert als nächstes?</Text>
+                <Text style={styles.infoTitle}>What happens next?</Text>
                 <Text style={styles.infoText}>
-                  Nach der Erstellung erhalten Sie einen 6-stelligen Code, 
-                  den Sie mit Ihren Familienmitgliedern teilen können.
+                  After creation, you will receive a 6-digit code 
+                  that you can share with your family members.
                 </Text>
               </View>
             </View>
@@ -409,12 +409,12 @@ export default function FamilySetup() {
               <View style={styles.inputSection}>
                 <View style={styles.labelContainer}>
                   <Search size={20} color="#54FE54" strokeWidth={2} />
-                  <Text style={styles.inputLabel}>Familie suchen</Text>
+                  <Text style={styles.inputLabel}>Search Family</Text>
                 </View>
                 <View style={styles.searchContainer}>
                   <TextInput
                     style={styles.textInput}
-                    placeholder="Familienname oder Code eingeben..."
+                    placeholder="Enter family name or code..."
                     placeholderTextColor="#888888"
                     value={searchTerm}
                     onChangeText={setSearchTerm}
@@ -432,7 +432,7 @@ export default function FamilySetup() {
               {/* Search Results */}
               {searchResults.length > 0 && (
                 <View style={styles.searchResults}>
-                  <Text style={styles.resultsTitle}>Gefundene Familien:</Text>
+                  <Text style={styles.resultsTitle}>Found families:</Text>
                   {searchResults.map((family) => (
                     <Pressable
                       key={family.id}
@@ -451,16 +451,16 @@ export default function FamilySetup() {
 
               {searchLoading && (
                 <View style={styles.searchLoadingContainer}>
-                  <Text style={styles.searchLoadingText}>Suche läuft...</Text>
+                  <Text style={styles.searchLoadingText}>Searching...</Text>
                 </View>
               )}
 
               {searchTerm.length >= 2 && searchResults.length === 0 && !searchLoading && (
                 <View style={styles.noResultsContainer}>
-                  <Text style={styles.noResultsTitle}>Keine Familien gefunden</Text>
+                  <Text style={styles.noResultsTitle}>No families found</Text>
                   <Text style={styles.noResultsText}>
-                    Keine Familie mit "{searchTerm}" gefunden. 
-                    Versuchen Sie einen anderen Suchbegriff oder verwenden Sie einen Einladungscode.
+                    No family found with "{searchTerm}". 
+                    Try a different search term or use an invitation code.
                   </Text>
                 </View>
               )}
@@ -472,7 +472,7 @@ export default function FamilySetup() {
               <View style={styles.inputSection}>
                 <View style={styles.labelContainer}>
                   <Hash size={20} color="#54FE54" strokeWidth={2} />
-                  <Text style={styles.inputLabel}>Familiencode</Text>
+                  <Text style={styles.inputLabel}>Family Code</Text>
                   <Pressable 
                     style={styles.tooltipButton}
                     onPress={() => setShowTooltip(showTooltip === 'code' ? null : 'code')}
@@ -483,8 +483,8 @@ export default function FamilySetup() {
                 {showTooltip === 'code' && (
                   <View style={styles.tooltip}>
                     <Text style={styles.tooltipText}>
-                      Der 6-stellige Code wurde Ihnen von einem Familienmitglied 
-                      gesendet, das bereits Teil der Familie ist.
+                      The 6-digit code was sent to you by a family member 
+                      who is already part of the family.
                     </Text>
                   </View>
                 )}
@@ -506,10 +506,10 @@ export default function FamilySetup() {
               </View>
 
               <View style={styles.infoBox}>
-                <Text style={styles.infoTitle}>Keinen Code erhalten?</Text>
+                <Text style={styles.infoTitle}>Didn't receive a code?</Text>
                 <Text style={styles.infoText}>
-                  Bitten Sie ein Familienmitglied, Ihnen den Familiencode 
-                  aus den Einstellungen zu senden.
+                  Ask a family member to send you the family code 
+                  from settings.
                 </Text>
                 <Pressable 
                   style={styles.testCodeButton}
@@ -518,7 +518,7 @@ export default function FamilySetup() {
                     setJoinCode('TEST01');
                   }}
                 >
-                  <Text style={styles.testCodeText}>Test-Code verwenden (TEST01)</Text>
+                  <Text style={styles.testCodeText}>Use test code (TEST01)</Text>
                 </Pressable>
               </View>
             </View>
@@ -556,10 +556,10 @@ export default function FamilySetup() {
                 ? styles.disabledText : null
             ]}>
               {loading 
-                ? (mode === 'create' ? 'Familie wird erstellt...' : 
-                   mode === 'join' ? 'Beitritt läuft...' : 'Suche läuft...') 
-                : (mode === 'create' ? 'Familie erstellen' : 
-                   mode === 'join' ? 'Familie beitreten' : 'Familie suchen')
+                ? (mode === 'create' ? 'Creating family...' : 
+                   mode === 'join' ? 'Joining...' : 'Searching...') 
+                : (mode === 'create' ? 'Create Family' : 
+                   mode === 'join' ? 'Join Family' : 'Search Family')
               }
             </Text>
             {!loading && mode !== 'search' && <ChevronRight size={20} color="#161618" strokeWidth={2} />}

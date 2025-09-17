@@ -1,5 +1,457 @@
 {
-  "profile": "My Profile",
+  "onboarding": {
+    "stepIndicator": "Step {{current}} of {{total}}",
+    "welcome": {
+      "title": "Welcome to Famora",
+      "subtitle": "Your digital family organizer",
+      "description": "Appointments, tasks and reminders – all in one place for the whole family.",
+      "getStarted": "Get started",
+      "footnote": "Free • No Ads • Family Safe",
+      "setup": "✨ Set up in 3 minutes"
+    },
+    "personal": {
+      "title": "Tell us about yourself",
+      "subtitle": "This information helps us tailor Famora perfectly for you",
+      "name": {
+        "label": "What would you like to be called?",
+        "placeholder": "Your first name or nickname",
+        "tooltip": "Use the name your family usually calls you."
+      },
+      "birthdate": {
+        "label": "Date of birth",
+        "tooltip": "We only use your birth date for birthday notifications. Your data remains private and secure."
+      },
+      "avatar": {
+        "label": "Choose profile picture",
+        "tooltip": "Select an image that represents you in the family."
+      },
+      "roles": {
+        "parent": "Parent",
+        "child": "Child",
+        "teenager": "Teenager",
+        "grandparent": "Grandparent",
+        "other": "Other"
+      },
+      "role": {
+        "label": "What is your role in the family?",
+        "tooltip": "This helps us recommend appropriate features and permissions."
+      },
+      "interests": {
+        "label": "What are your interests? (optional)",
+        "subtitle": "Select up to 5 areas that interest you",
+        "sport": "Sports",
+        "music": "Music",
+        "cooking": "Cooking",
+        "reading": "Reading",
+        "travel": "Travel",
+        "movies": "Movies",
+        "gaming": "Gaming",
+        "art": "Art",
+        "nature": "Nature",
+        "tech": "Technology"
+      },
+      "datePicker": {
+        "title": "Select birth date",
+        "year": "Year",
+        "month": "Month",
+        "day": "Day",
+        "confirm": "Confirm",
+        "placeholder": "Select birth date"
+      },
+      "ageDisplay": "{{age}} years • {{zodiac}}"
+    },
+    "overview": {
+      "title": "Onboarding Overview",
+      "completed": "Completed"
+    },
+    "preferences": {
+      "title": "Your Goals & Preferences",
+      "subtitle": "Let us customize Famora to your needs",
+      "goals": {
+        "title": "What would you like to achieve?",
+        "subtitle": "Choose up to 3 main goals for your family life",
+        "organization": {
+          "label": "Better organize family",
+          "description": "Keep track of appointments and tasks"
+        },
+        "communication": {
+          "label": "Improve communication",
+          "description": "Share all important information"
+        },
+        "responsibility": {
+          "label": "Share responsibility",
+          "description": "Distribute tasks fairly"
+        },
+        "memories": {
+          "label": "Capture memories",
+          "description": "Collect special moments"
+        },
+        "routine": {
+          "label": "Establish routines",
+          "description": "Create regular workflows"
+        },
+        "fun": {
+          "label": "Have more fun",
+          "description": "Plan activities together"
+        }
+      }
+    },
+    "language": {
+      "title": "Select language",
+      "subtitle": "Choose your preferred language for the app"
+    },
+    "auth": {
+      "title": "Authentication",
+      "subtitle": {
+        "login": "Sign in to your account",
+        "signup": "Create your Famora account"
+      },
+      "form": {
+        "email": "Email address",
+        "password": "Password",
+        "confirmPassword": "Confirm password"
+      },
+      "buttons": {
+        "login": "Sign in",
+        "signup": "Sign up",
+        "loggingIn": "Signing in...",
+        "signingUp": "Signing up..."
+      },
+      "toggle": {
+        "toSignup": "Don't have an account? ",
+        "toLogin": "Already have an account? ",
+        "signupLink": "Sign up",
+        "loginLink": "Sign in"
+      },
+      "errors": {
+        "invalidEmail": "Please enter a valid email address",
+        "passwordTooShort": "Password must be at least 6 characters",
+        "passwordTooLong": "Password can be at most 128 characters",
+        "userAlreadyExists": "This email is already registered. Try signing in.",
+        "invalidCredentials": "Email or password is incorrect. Please check your credentials.",
+        "emailNotConfirmed": "Please confirm your email address via the link in the email.",
+        "tooManyRequests": "Too many attempts. Please wait a moment and try again.",
+        "passwordRequirement": "Password must be at least 6 characters.",
+        "emailInvalid": "Please enter a valid email address."
+      },
+      "success": {
+        "accountCreated": "Account created successfully!"
+      },
+      "old": {
+        "title": {
+          "signup": "Create account",
+          "login": "Welcome back!"
+        }
+      },
+      "family": {
+        "title": "Set up family"
+      }
+    },
+    "nav": {
+      "home": "Home",
+      "family": "Family",
+      "flames": "Flames",
+      "profile": "Profile"
+    },
+    "common": {
+      "continue": "Continue",
+      "cancel": "Cancel",
+      "save": "Save",
+      "skip": "Skip",
+      "back": "Back",
+      "loading": "Loading Famora...",
+      "error": "Error",
+      "success": "Success",
+      "yes": "Yes",
+      "no": "No",
+      "ok": "OK",
+      "delete": "Delete",
+      "edit": "Edit",
+      "add": "Add",
+      "create": "Create",
+      "update": "Update",
+      "retry": "Try again",
+      "saving": "Saving...",
+      "redirecting": "Redirecting..."
+    },
+    "settings": {
+      "language": {
+        "title": "Language",
+        "changed": "Language changed to",
+        "restart": "Please restart the app to see the changes.",
+        "error": "Language could not be changed."
+      }
+    },
+    "dashboard": {
+      "welcome": "Welcome back to your family",
+      "family": {
+        "manage": "Manage family"
+      },
+      "quickAccess": "Quick access",
+      "nextSteps": "Next steps",
+      "showAll": "Show all",
+      "todayOverview": "Today overview",
+      "progress": "Progress",
+      "completedToday": "Completed today",
+      "thisWeek": "This week",
+      "nextAppointment": "Next appointment:",
+      "noUpcoming": "No upcoming appointments",
+      "allTasksDone": "All tasks done!",
+      "greatJob": "Great! Create new tasks or relax.",
+      "loading": "Loading dashboard...",
+      "shopping": "Shopping list",
+      "calendar": "Calendar",
+      "tasks": "Tasks",
+      "flames": "Flames",
+      "items": "items",
+      "appointments": "appointments",
+      "open": "open",
+      "allDone": "All done",
+      "points": "points"
+    },
+    "flames": {
+      "title": "Flames & Points",
+      "subtitle": "family points collected",
+      "loading": "Loading flames...",
+      "error": {
+        "title": "Error loading",
+        "retry": "Try again"
+      },
+      "period": {
+        "week": "Week",
+        "month": "Month",
+        "all": "Total"
+      },
+      "family": {
+        "level": "Family Level",
+        "points": "Family Points",
+        "progress": "Family Progress",
+        "progressPoints": "points to Level",
+        "maxLevel": "Maximum level reached! 👑",
+        "nextLevel": "Next Level:"
+      },
+      "leaderboard": {
+        "title": "Leaderboard",
+        "thisWeek": "This Week",
+        "thisMonth": "This Month",
+        "total": "Total",
+        "you": "(You)",
+        "achievements": "Achievements",
+        "activities": "Activities",
+        "pointsToFirst": "to 1st place",
+        "points": "Points"
+      },
+      "activities": {
+        "title": "Recent Activities",
+        "empty": "No activities yet",
+        "emptySubtitle": "Complete tasks and earn points!",
+        "unknown": "Unknown"
+      },
+      "achievements": {
+        "title": "Family Achievements",
+        "unlocked": "Unlocked"
+      },
+      "goal": {
+        "title": "New Family Goal",
+        "name": "Goal Name",
+        "namePlaceholder": "e.g. 50 tasks this week",
+        "points": "Goal Points",
+        "pointsPlaceholder": "100",
+        "cancel": "Cancel",
+        "create": "Create",
+        "error": {
+          "name": "Please enter a goal name",
+          "points": "Please enter a valid point value",
+          "create": "Goal could not be created:"
+        },
+        "description": "Achieve points as a family",
+        "created": "created a new goal:"
+      }
+    },
+    "tasks": {
+      "title": "Family Tasks",
+      "loading": "Loading tasks...",
+      "error": {
+        "loading": "Error loading tasks",
+        "toggle": "Task status could not be changed:",
+        "create": "Task could not be created:",
+        "delete": "Task could not be deleted:",
+        "empty": "Please enter a task description"
+      },
+      "stats": {
+        "completed": "completed",
+        "pointsCollected": "points collected"
+      },
+      "leaderboard": {
+        "title": "Family Leaderboard"
+      },
+      "add": {
+        "title": "Add new task",
+        "placeholder": "Enter task description..."
+      },
+      "filter": {
+        "all": "All Tasks",
+        "categories": {
+          "all": "All",
+          "household": "Household",
+          "personal": "Personal Tasks",
+          "work": "Work",
+          "family": "Family Tasks"
+        }
+      },
+      "list": {
+        "pending": "To do",
+        "completed": "Recently completed",
+        "completedNotice": "✨ Completed tasks are automatically deleted after 24 hours",
+        "timeRemaining": "{{hours}}h remaining visible",
+        "unassigned": "Unassigned",
+        "unknown": "Unknown"
+      },
+      "delete": {
+        "title": "Delete task",
+        "message": "Do you really want to delete this task?"
+      },
+      "notifications": {
+        "completed": "Task completed: {{task}}",
+        "memberCompleted": "completed \"{{task}}\""
+      },
+      "empty": {
+        "title": "No tasks yet",
+        "description": "Create your first task and collect points for completed tasks!",
+        "button": "Create task"
+      }
+    },
+    "zodiac": {
+      "aquarius": "♒ Aquarius",
+      "pisces": "♓ Pisces",
+      "aries": "♈ Aries",
+      "taurus": "♉ Taurus",
+      "gemini": "♊ Gemini",
+      "cancer": "♋ Cancer",
+      "leo": "♌ Leo",
+      "virgo": "♍ Virgo",
+      "libra": "♎ Libra",
+      "scorpio": "♏ Scorpio",
+      "sagittarius": "♐ Sagittarius",
+      "capricorn": "♑ Capricorn"
+    },
+    "calendar": {
+      "title": "Calendar",
+      "loading": "Loading calendar...",
+      "error": {
+        "loading": "Error loading calendar",
+        "delete": "Event could not be deleted:"
+      },
+      "today": "today",
+      "thisWeek": "This week",
+      "noEvents": "No events for this day",
+      "addEvent": "Add event",
+      "eventsFor": "Events for {{date}}. {{month}}",
+      "upcoming": "This week",
+      "pointsEarned": "+10 points earned",
+      "unknown": "Unknown",
+      "delete": {
+        "title": "Delete event",
+        "message": "Do you really want to delete this event?"
+      },
+      "empty": {
+        "title": "No events yet",
+        "description": "Create your first family event and plan activities together!",
+        "button": "Create event"
+      },
+      "months": {
+        "january": "January",
+        "february": "February",
+        "march": "March",
+        "april": "April",
+        "may": "May",
+        "june": "June",
+        "july": "July",
+        "august": "August",
+        "september": "September",
+        "october": "October",
+        "november": "November",
+        "december": "December"
+      },
+      "monthsShort": {
+        "january": "Jan",
+        "february": "Feb",
+        "march": "Mar",
+        "april": "Apr",
+        "may": "May",
+        "june": "Jun",
+        "july": "Jul",
+        "august": "Aug",
+        "september": "Sep",
+        "october": "Oct",
+        "november": "Nov",
+        "december": "Dec"
+      },
+      "days": {
+        "sunday": "Su",
+        "monday": "Mo",
+        "tuesday": "Tu",
+        "wednesday": "We",
+        "thursday": "Th",
+        "friday": "Fr",
+        "saturday": "Sa"
+      }
+    },
+    "shopping": {
+      "title": "Shopping List",
+      "loading": "Loading shopping list...",
+      "error": {
+        "loading": "Error loading shopping list",
+        "toggle": "Item status could not be changed:",
+        "delete": "Item could not be deleted:"
+      },
+      "stats": {
+        "completed": "of {{total}} completed",
+        "stillToBuy": "Still to buy",
+        "bought": "Bought",
+        "progress": "Progress"
+      },
+      "categories": {
+        "all": "All items",
+        "dairy": "Dairy",
+        "produce": "Produce",
+        "meat": "Meat",
+        "bakery": "Bakery",
+        "pantry": "Pantry"
+      },
+      "list": {
+        "shopping": "Shopping",
+        "bought": "Recently bought",
+        "completedNotice": "✨ Bought items are automatically deleted after 24 hours",
+        "timeRemaining": "{{hours}}h remaining visible",
+        "unknown": "Unknown"
+      },
+      "delete": {
+        "title": "Delete item",
+        "message": "Do you really want to delete this item?"
+      },
+      "notifications": {
+        "bought": "Bought: {{item}}",
+        "memberBought": "bought \"{{item}}\""
+      },
+      "empty": {
+        "title": "Shopping list is empty",
+        "description": "Add your first items to the shopping list and share it with your family!",
+        "button": "Add item"
+      }
+    },
+    "family": {
+      "prompt": {
+        "title": "Join Family",
+        "description": "You are not part of a family yet. Join a family or create a new one.",
+        "joinButton": "Join Family",
+        "createButton": "Create Family"
+      }
+    },
+    "profile": {
+      "title": "My Profile",
   "settings": "Settings",
   "logout": "Logout"
+}
+  }
 }

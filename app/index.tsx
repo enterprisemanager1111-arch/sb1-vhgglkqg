@@ -11,7 +11,7 @@ export default function IndexScreen() {
   const { session, loading: authLoading, user } = useAuth();
   const { isInFamily, loading: familyLoading } = useFamily();
   const { getCompletionPercentage, loading: onboardingLoading } = useOnboarding();
-  const { loading: languageLoading } = useLanguage();
+  const { loading: languageLoading, t } = useLanguage();
   const navigationHandled = useRef(false);
 
   useEffect(() => {
@@ -38,9 +38,10 @@ export default function IndexScreen() {
           console.log('Redirecting to onboarding (new user)');
           router.replace('/(onboarding)');
         } else {
-          // Returning user who just needs family setup
-          console.log('Redirecting to family setup');
-          router.replace('/(onboarding)/family');
+          // User has some progress - send them to complete personal info first
+          console.log('User has authentication but no family - ensuring personal info is complete');
+          // Send to personal info to ensure name is collected properly
+          router.replace('/(onboarding)/personal');
         }
       } else {
         // User is authenticated and in a family, go to main app
@@ -56,12 +57,12 @@ export default function IndexScreen() {
       <View style={styles.container}>
         <SupabaseStatus />
         <View style={styles.loadingContent}>
-          <Text style={styles.loadingText}>Famora wird geladen...</Text>
+          <Text style={styles.loadingText}>Loading Famora...</Text>
           <Text style={styles.loadingSubtext}>
-            {authLoading ? 'Authentifizierung...' : 
-             familyLoading ? 'Familie wird geladen...' : 
-             languageLoading ? 'Sprache wird geladen...' :
-             'Onboarding wird geladen...'}
+            {authLoading ? 'Authenticating...' : 
+             familyLoading ? 'Loading family...' : 
+             languageLoading ? 'Loading language...' :
+             'Loading onboarding...'}
           </Text>
         </View>
       </View>
@@ -73,8 +74,8 @@ export default function IndexScreen() {
     <View style={styles.container}>
       <SupabaseStatus />
       <View style={styles.loadingContent}>
-        <Text style={styles.loadingText}>Famora wird geladen...</Text>
-        <Text style={styles.loadingSubtext}>Weiterleitung...</Text>
+        <Text style={styles.loadingText}>{t('common.loading')}</Text>
+        <Text style={styles.loadingSubtext}>{t('common.redirecting')}</Text>
       </View>
     </View>
   );

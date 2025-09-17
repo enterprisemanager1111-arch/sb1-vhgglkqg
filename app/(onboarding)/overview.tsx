@@ -12,11 +12,13 @@ import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-na
 import { ChevronLeft, RotateCcw, Check } from 'lucide-react-native';
 import OnboardingOverview, { OnboardingStep } from '@/components/OnboardingOverview';
 import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function OnboardingOverviewScreen() {
   const { getOnboardingSteps, getCompletionPercentage, clearOnboardingData } = useOnboarding();
+  const { t } = useLanguage();
   const [refreshing, setRefreshing] = useState(false);
   
   const backButtonScale = useSharedValue(1);
@@ -114,11 +116,11 @@ export default function OnboardingOverviewScreen() {
         </AnimatedPressable>
         
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Onboarding Übersicht</Text>
+          <Text style={styles.headerTitle}>{t('onboarding.overview.title')}</Text>
           {isCompleted && (
             <View style={styles.completedBadge}>
               <Check size={14} color="#FFFFFF" strokeWidth={2} />
-              <Text style={styles.completedBadgeText}>Abgeschlossen</Text>
+              <Text style={styles.completedBadgeText}>{t('onboarding.overview.completed')}</Text>
             </View>
           )}
         </View>

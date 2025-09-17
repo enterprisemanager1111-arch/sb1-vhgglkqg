@@ -244,7 +244,7 @@ export default function PermissionsScreen() {
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
         >
-          <Text style={styles.continueText}>Weiter</Text>
+          <Text style={styles.continueText}>Continue</Text>
           <ChevronRight size={20} color="#161618" strokeWidth={2} />
         </AnimatedPressable>
       </View>

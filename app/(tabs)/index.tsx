@@ -277,7 +277,7 @@ export default function HomeDashboard() {
           
           {/* Text Content Below Profile Picture */}
           <View style={styles.textContent}>
-            <Text style={styles.text1}>Hallo {userName}!</Text>
+            <Text style={styles.text1}>{t('dashboard.welcome')}</Text>
             <Text style={styles.text2}>{t('dashboard.welcome')}</Text>
           </View>
         </AnimatedView>

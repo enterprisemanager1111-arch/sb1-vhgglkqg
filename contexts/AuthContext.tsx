@@ -53,9 +53,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const createProfile = async (user: User, fullName: string) => {
     try {
-      const profileName = fullName && fullName.trim() ? fullName.trim() : 'Familie Mitglied';
+      console.log('createProfile called with fullName:', fullName);
+      const profileName = fullName && fullName.trim() ? fullName.trim() : 'Family Member';
+      
+      console.log('Creating profile for user:', user.id, 'with name:', profileName);
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .insert([
           {
@@ -63,15 +66,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             name: profileName,
             avatar_url: null,
           }
-        ]);
+        ])
+        .select()
+        .single();
 
       if (error) {
         console.error('Error creating profile:', error);
+        throw error;
       } else {
+        console.log('Profile created successfully:', data);
         await loadProfile(user.id);
       }
     } catch (error) {
       console.error('Error creating profile:', error);
+      throw error;
     }
   };
 
@@ -149,15 +157,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (!existingProfile) {
           await createProfile(data.user, fullName);
+        } else {
+          console.log('Profile already exists for user:', data.user.id);
         }
       } catch (profileError) {
         console.error('Profile creation failed:', profileError);
+        
+        // Show the actual error to help debug
+        const errorMessage = profileError instanceof Error ? profileError.message : 'Unknown error';
+        console.error('Detailed error:', errorMessage);
+        
         try {
           await supabase.auth.signOut();
         } catch (cleanupError) {
           console.error('Failed to cleanup after profile creation failure:', cleanupError);
         }
-        throw new Error('Account creation failed. Please try again.');
+        throw new Error(`Profile creation failed: ${errorMessage}. Please try again or contact support.`);
       }
     }
   };
@@ -166,11 +181,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Enhanced validation with better error messages
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      throw new Error('Bitte geben Sie eine gültige E-Mail-Adresse ein');
+      throw new Error('Please enter a valid email address');
     }
 
     if (password.length < 6) {
-      throw new Error('Passwort muss mindestens 6 Zeichen haben');
+      throw new Error('Password must be at least 6 characters');
     }
 
     // Add timeout for auth operations

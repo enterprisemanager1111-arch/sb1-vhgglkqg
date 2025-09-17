@@ -15,6 +15,7 @@ import Animated, { useSharedValue, withSpring, withDelay, useAnimatedStyle, with
 import { Plus, CircleCheck as CheckCircle, Circle, Trophy, Star, User, Filter, Trash2, Calendar } from 'lucide-react-native';
 
 import { useFamily } from '@/contexts/FamilyContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useFamilyTasks } from '@/hooks/useFamilyTasks';
 import { NotificationSystem, useNotifications } from '@/components/NotificationSystem';
 import EmptyState from '@/components/EmptyState';
@@ -30,6 +31,7 @@ export default function Tasks() {
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'household' | 'personal' | 'work' | 'family'>('all');
   
   const { isInFamily, currentFamily, familyMembers, loading: familyLoading } = useFamily();
+  const { t } = useLanguage();
   const { 
     tasks, 
     loading: tasksLoading, 
@@ -88,7 +90,7 @@ export default function Tasks() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Lade Tasks...</Text>
+          <Text style={styles.loadingText}>{t('tasks.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -99,10 +101,10 @@ export default function Tasks() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorTitle}>Fehler beim Laden der Tasks</Text>
+          <Text style={styles.errorTitle}>{t('tasks.error.loading')}</Text>
           <Text style={styles.errorText}>{tasksError}</Text>
           <Pressable style={styles.retryButton} onPress={refreshTasks}>
-            <Text style={styles.retryButtonText}>Erneut versuchen</Text>
+            <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -122,7 +124,7 @@ export default function Tasks() {
 
   const handleAddTask = async () => {
     if (!newTask.trim()) {
-      Alert.alert('Fehler', 'Bitte geben Sie eine Aufgabenbeschreibung ein');
+      Alert.alert(t('common.error'), t('tasks.error.empty'));
       return;
     }
 
@@ -135,7 +137,7 @@ export default function Tasks() {
       });
       setNewTask('');
     } catch (error: any) {
-      Alert.alert('Fehler', 'Task konnte nicht erstellt werden: ' + error.message);
+      Alert.alert(t('common.error'), t('tasks.error.create') + ' ' + error.message);
     }
   };
 
@@ -148,33 +150,33 @@ export default function Tasks() {
       
       // Show notification when task is completed
       if (!wasCompleted && task) {
-        showPointsEarned(15, `Aufgabe erledigt: ${task.title}`);
+        showPointsEarned(15, t('tasks.notifications.completed', { task: task.title }));
         
         // Show member activity notification for other family members
         showMemberActivity(
-          task.assignee_profile?.name || 'Jemand',
-          `hat "${task.title}" erledigt`
+          task.assignee_profile?.name || t('tasks.list.unknown'),
+          t('tasks.notifications.memberCompleted', { task: task.title })
         );
       }
     } catch (error: any) {
-      Alert.alert('Fehler', 'Task-Status konnte nicht geändert werden: ' + error.message);
+      Alert.alert(t('common.error'), t('tasks.error.toggle') + ' ' + error.message);
     }
   };
 
   const handleDeleteTask = async (taskId: string) => {
     Alert.alert(
-      'Task löschen',
-      'Möchten Sie diese Aufgabe wirklich löschen?',
+      t('tasks.delete.title'),
+      t('tasks.delete.message'),
       [
-        { text: 'Abbrechen', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Löschen',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
               await deleteTask(taskId);
             } catch (error: any) {
-              Alert.alert('Fehler', 'Task konnte nicht gelöscht werden: ' + error.message);
+              Alert.alert(t('common.error'), t('tasks.error.delete') + ' ' + error.message);
             }
           },
         },
@@ -207,9 +209,9 @@ export default function Tasks() {
       <SafeAreaView style={styles.container}>
         <EmptyState
           icon={<CheckCircle size={40} color="#54FE54" strokeWidth={1.5} />}
-          title="Noch keine Tasks"
-          description="Erstellen Sie Ihren ersten Task und sammeln Sie Punkte für erledigte Aufgaben!"
-          buttonText="Task erstellen"
+          title={t('tasks.empty.title')}
+          description={t('tasks.empty.description')}
+          buttonText={t('tasks.empty.button')}
           onButtonPress={() => {
             // Focus on the input field
           }}
@@ -239,10 +241,10 @@ export default function Tasks() {
       >
         {/* Header */}
         <AnimatedView style={[styles.header, headerAnimatedStyle]}>
-          <Text style={styles.title}>Family Tasks</Text>
+          <Text style={styles.title}>{t('tasks.title')}</Text>
           <View style={styles.headerStats}>
-            <Text style={styles.statText}>{completedTasks.length} erledigt</Text>
-            <Text style={styles.pointsText}>{totalPoints} Punkte gesammelt</Text>
+            <Text style={styles.statText}>{completedTasks.length} {t('tasks.stats.completed')}</Text>
+            <Text style={styles.pointsText}>{totalPoints} {t('tasks.stats.pointsCollected')}</Text>
           </View>
         </AnimatedView>
 
@@ -251,7 +253,7 @@ export default function Tasks() {
           <AnimatedView style={[styles.section, leaderboardAnimatedStyle]}>
             <View style={styles.sectionHeader}>
               <Trophy size={20} color="#161618" strokeWidth={1.5} />
-              <Text style={styles.sectionTitle}>Family Leaderboard</Text>
+              <Text style={styles.sectionTitle}>{t('tasks.leaderboard.title')}</Text>
             </View>
             <AnimatedView style={styles.glassCard}>
               {leaderboard.map((member, index) => (
@@ -273,11 +275,11 @@ export default function Tasks() {
 
         {/* Add New Task */}
         <AnimatedView style={[styles.section, addTaskAnimatedStyle]}>
-          <Text style={styles.sectionTitle}>Neue Aufgabe hinzufügen</Text>
+          <Text style={styles.sectionTitle}>{t('tasks.add.title')}</Text>
           <View style={styles.addTaskContainer}>
             <TextInput
               style={styles.taskInput}
-              placeholder="Aufgabenbeschreibung eingeben..."
+              placeholder={t('tasks.add.placeholder')}
               value={newTask}
               onChangeText={setNewTask}
               placeholderTextColor="#888888"
@@ -309,11 +311,7 @@ export default function Tasks() {
                     styles.filterButtonText,
                     selectedCategory === category && styles.filterButtonTextActive
                   ]}>
-                    {category === 'all' ? 'Alle' : 
-                     category === 'household' ? 'Haushalt' :
-                     category === 'personal' ? 'Persönlich' :
-                     category === 'work' ? 'Arbeit' :
-                     'Familie'}
+                    {t(`tasks.filter.categories.${category}`)}
                   </Text>
                 </AnimatedPressable>
               ))}
@@ -326,17 +324,13 @@ export default function Tasks() {
           <View style={styles.sectionHeader}>
             <Filter size={20} color="#161618" strokeWidth={1.5} />
             <Text style={styles.sectionTitle}>
-              {selectedCategory === 'all' ? 'Alle Tasks' : 
-               selectedCategory === 'household' ? 'Haushalt' :
-               selectedCategory === 'personal' ? 'Persönliche Tasks' :
-               selectedCategory === 'work' ? 'Arbeit' :
-               'Familien-Tasks'}
+              {selectedCategory === 'all' ? t('tasks.filter.all') : t(`tasks.filter.categories.${selectedCategory}`)}
             </Text>
           </View>
           
           {/* Pending Tasks */}
           <View style={styles.tasksList}>
-            <Text style={styles.subsectionTitle}>Zu erledigen ({pendingTasks.filter(t => selectedCategory === 'all' || t.category === selectedCategory).length})</Text>
+            <Text style={styles.subsectionTitle}>{t('tasks.list.pending')} ({pendingTasks.filter(task => selectedCategory === 'all' || task.category === selectedCategory).length})</Text>
             {filteredTasks.filter(task => !task.completed).map((task) => (
               <AnimatedView key={task.id} style={styles.glassTaskCard}>
                 <AnimatedPressable 
@@ -360,16 +354,12 @@ export default function Tasks() {
                     <View style={styles.taskAssignee}>
                       <User size={12} color="#161618" strokeWidth={1.5} />
                       <Text style={styles.assigneeText}>
-                        {task.assignee_profile?.name || 'Unzugewiesen'}
+                        {task.assignee_profile?.name || t('tasks.list.unassigned')}
                       </Text>
                     </View>
                     <View style={styles.taskCategory}>
                       <Text style={styles.categoryText}>
-                        {task.category === 'household' ? 'Haushalt' :
-                         task.category === 'personal' ? 'Persönlich' :
-                         task.category === 'work' ? 'Arbeit' :
-                         task.category === 'family' ? 'Familie' :
-                         task.category}
+                        {t(`tasks.filter.categories.${task.category}`)}
                       </Text>
                     </View>
                     {task.due_date && (
@@ -400,11 +390,11 @@ export default function Tasks() {
             {completedTasks.filter(t => selectedCategory === 'all' || t.category === selectedCategory).length > 0 && (
               <>
                 <Text style={[styles.subsectionTitle, styles.completedSubsection]}>
-                  Kürzlich erledigt ({completedTasks.filter(t => selectedCategory === 'all' || t.category === selectedCategory).length})
+                  {t('tasks.list.completed')} ({completedTasks.filter(task => selectedCategory === 'all' || task.category === selectedCategory).length})
                 </Text>
                 <View style={styles.completedNotice}>
                   <Text style={styles.completedNoticeText}>
-                    ✨ Erledigte Aufgaben werden automatisch nach 24 Stunden gelöscht
+                    {t('tasks.list.completedNotice')}
                   </Text>
                 </View>
                 {filteredTasks.filter(task => task.completed).map((task) => {
@@ -430,21 +420,17 @@ export default function Tasks() {
                           <View style={styles.taskAssignee}>
                             <User size={12} color="#666666" strokeWidth={1.5} />
                             <Text style={styles.assigneeText}>
-                              {task.assignee_profile?.name || 'Unzugewiesen'}
+                              {task.assignee_profile?.name || t('tasks.list.unassigned')}
                             </Text>
                           </View>
                           <View style={styles.taskCategory}>
                             <Text style={styles.categoryText}>
-                              {task.category === 'household' ? 'Haushalt' :
-                               task.category === 'personal' ? 'Persönlich' :
-                               task.category === 'work' ? 'Arbeit' :
-                               task.category === 'family' ? 'Familie' :
-                               task.category}
+                              {t(`tasks.filter.categories.${task.category}`)}
                             </Text>
                           </View>
                           <View style={styles.timeRemaining}>
                             <Text style={styles.timeRemainingText}>
-                              Noch {Math.max(0, timeRemaining)}h sichtbar
+                              {t('tasks.list.timeRemaining', { hours: Math.max(0, timeRemaining).toString() })}
                             </Text>
                           </View>
                         </View>
