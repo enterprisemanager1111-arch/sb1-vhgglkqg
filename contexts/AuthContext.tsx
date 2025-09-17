@@ -7,6 +7,8 @@ interface Profile {
   name: string;
   birth_date?: string;
   avatar_url?: string;
+  role?: string;
+  interests?: string[];
   created_at: string;
   updated_at: string;
 }
@@ -16,10 +18,10 @@ interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string, birthDate?: string, role?: string, interests?: string[]) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
-  updateProfile: (updates: Partial<Pick<Profile, 'name' | 'birth_date' | 'avatar_url'>>) => Promise<void>;
+  updateProfile: (updates: Partial<Pick<Profile, 'name' | 'birth_date' | 'avatar_url' | 'role' | 'interests'>>) => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -51,31 +53,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const createProfile = async (user: User, fullName: string) => {
+  const createProfile = async (user: User, fullName: string, birthDate?: string, role?: string, interests?: string[]) => {
     try {
-      console.log('createProfile called with fullName:', fullName);
+      console.log('createProfile called with fullName:', fullName, 'birthDate:', birthDate, 'role:', role, 'interests:', interests);
       const profileName = fullName && fullName.trim() ? fullName.trim() : 'Family Member';
       
-      console.log('Creating profile for user:', user.id, 'with name:', profileName);
+      console.log('Creating profile for user:', user.id, 'with name:', profileName, 'birth_date:', birthDate, 'role:', role, 'interests:', interests);
+
+      const profileData: any = {
+        id: user.id,
+        name: profileName,
+        avatar_url: user.user_metadata?.avatar_url || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Add birth_date if provided
+      if (birthDate && birthDate.trim()) {
+        profileData.birth_date = birthDate.trim();
+      }
+
+      // Add role if provided and valid
+      if (role && role.trim()) {
+        const validRoles = ['parent', 'child', 'teenager', 'grandparent', 'other'];
+        const cleanRole = role.trim().toLowerCase();
+        if (validRoles.includes(cleanRole)) {
+          profileData.role = cleanRole;
+        }
+      }
+
+      // Add interests if provided
+      if (interests && Array.isArray(interests) && interests.length > 0) {
+        profileData.interests = interests.filter(interest => interest && interest.trim());
+      }
+
+      console.log('Final profile data to insert:', profileData);
 
       const { data, error } = await supabase
         .from('profiles')
-        .insert([
-          {
-            id: user.id,
-            name: profileName,
-            avatar_url: null,
-          }
-        ])
+        .insert([profileData])
         .select()
         .single();
 
       if (error) {
         console.error('Error creating profile:', error);
+        console.error('Error details:', error.message, error.code, error.details);
         throw error;
       } else {
         console.log('Profile created successfully:', data);
-        await loadProfile(user.id);
+        setProfile(data);
+        return data;
       }
     } catch (error) {
       console.error('Error creating profile:', error);
@@ -114,6 +141,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
       
+      console.log('Auth state change:', event, 'User ID:', session?.user?.id);
+      
       setSession(session);
       setUser(session?.user ?? null);
 
@@ -134,7 +163,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, birthDate?: string, role?: string, interests?: string[]) => {
+    console.log('SignUp called with:', { email, fullName, birthDate, role, interests });
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -148,31 +179,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
 
     if (data.user) {
+      console.log('User created successfully:', data.user.id);
+      
+      // Wait a moment for the database trigger to create the profile
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Check and ensure profile exists (database trigger should have created it)
       try {
-        const { data: existingProfile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', data.user.id)
-          .maybeSingle();
+        let profile = null;
+        let retries = 0;
+        const maxRetries = 3;
+        
+        // Retry logic to wait for profile creation
+        while (!profile && retries < maxRetries) {
+          const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', data.user.id)
+            .maybeSingle();
+          
+          profile = existingProfile;
+          
+          if (!profile) {
+            retries++;
+            console.log(`Profile not found, retry ${retries}/${maxRetries}`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
 
-        if (!existingProfile) {
-          await createProfile(data.user, fullName);
+        if (!profile) {
+          console.log('Database trigger failed, creating profile manually for user:', data.user.id);
+          await createProfile(data.user, fullName, birthDate, role, interests);
         } else {
-          console.log('Profile already exists for user:', data.user.id);
+          console.log('Profile found for user:', data.user.id);
+          // Update profile with additional onboarding data if provided
+          if (birthDate || role || interests) {
+            const updates: any = {};
+            if (birthDate) updates.birth_date = birthDate;
+            if (role) updates.role = role;
+            if (interests && interests.length > 0) updates.interests = interests;
+            
+            if (Object.keys(updates).length > 0) {
+              console.log('Updating profile with onboarding data:', updates);
+              await updateProfile(updates);
+            }
+          }
         }
       } catch (profileError) {
-        console.error('Profile creation failed:', profileError);
+        console.error('Profile handling failed:', profileError);
         
         // Show the actual error to help debug
         const errorMessage = profileError instanceof Error ? profileError.message : 'Unknown error';
         console.error('Detailed error:', errorMessage);
         
-        try {
-          await supabase.auth.signOut();
-        } catch (cleanupError) {
-          console.error('Failed to cleanup after profile creation failure:', cleanupError);
-        }
-        throw new Error(`Profile creation failed: ${errorMessage}. Please try again or contact support.`);
+        // Don't sign out the user, but throw error to show in UI
+        throw new Error(`Profile setup failed: ${errorMessage}. Your account was created, but there was an issue setting up your profile. Please try signing in.`);
       }
     }
   };
@@ -219,7 +280,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log('Auth state cleared');
   };
 
-  const updateProfile = async (updates: Partial<Pick<Profile, 'name' | 'birth_date' | 'avatar_url'>>) => {
+  const updateProfile = async (updates: Partial<Pick<Profile, 'name' | 'birth_date' | 'avatar_url' | 'role' | 'interests'>>) => {
     if (!user) throw new Error('No user logged in');
 
     const { error } = await supabase

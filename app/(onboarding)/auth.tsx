@@ -176,7 +176,13 @@ export default function OnboardingAuth() {
           return;
         }
         
-        await signUp(sanitizedEmail, sanitizedPassword, actualName);
+        // Get all personal info from onboarding data
+        const birthDate = onboardingData.personalInfo.birthDate;
+        const role = onboardingData.personalInfo.role;
+        const interests = onboardingData.personalInfo.interests;
+        console.log('DEBUG: Using complete personal info for signup:', { birthDate, role, interests });
+        
+        await signUp(sanitizedEmail, sanitizedPassword, actualName, birthDate, role, interests);
         showNotification('success', 'Account created successfully!');
         alert(`🎉 Signup successful! Welcome to Famora!\nName used: "${actualName}"`);
         

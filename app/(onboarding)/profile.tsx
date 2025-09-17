@@ -18,6 +18,7 @@ import { isFeatureAvailable, showFeatureUnavailableAlert } from '@/utils/expoGoC
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { formatBirthDate, calculateAge } from '@/utils/birthdaySystem';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -28,6 +29,31 @@ export default function ProfileCompletion() {
   const { user, profile, updateProfile } = useAuth();
   const { onboardingData, clearOnboardingData, completeStep } = useOnboarding();
   const buttonScale = useSharedValue(1);
+
+  // Debug onboarding data on component mount
+  React.useEffect(() => {
+    const checkStorageAndData = async () => {
+      console.log('DEBUG: ProfileCompletion mounted');
+      console.log('DEBUG: Onboarding data from context:', onboardingData);
+      console.log('DEBUG: Personal info from context:', onboardingData?.personalInfo);
+      console.log('DEBUG: User profile:', profile);
+      
+      // Also check AsyncStorage directly
+      try {
+        const storedData = await AsyncStorage.getItem('@famora_onboarding_data');
+        if (storedData) {
+          const parsed = JSON.parse(storedData);
+          console.log('DEBUG: Data directly from AsyncStorage:', parsed.personalInfo);
+        } else {
+          console.log('DEBUG: No data found in AsyncStorage');
+        }
+      } catch (error) {
+        console.log('DEBUG: Error reading from AsyncStorage:', error);
+      }
+    };
+    
+    checkStorageAndData();
+  }, [onboardingData, profile]);
 
   const handleAvatarUpload = async () => {
     if (!isFeatureAvailable('imageLibrary')) {
@@ -83,6 +109,9 @@ export default function ProfileCompletion() {
     
     setLoading(true);
     try {
+      console.log('DEBUG: Starting profile completion process');
+      console.log('DEBUG: Current onboarding data:', onboardingData.personalInfo);
+      
       const profileUpdates: any = {};
       
       if (avatarUri) {
@@ -93,8 +122,26 @@ export default function ProfileCompletion() {
         profileUpdates.birth_date = onboardingData.personalInfo.birthDate;
       }
       
+      // Always save the name from personal info if it exists
+      if (onboardingData.personalInfo.name) {
+        profileUpdates.name = onboardingData.personalInfo.name;
+      }
+      
+      // Update role and interests if available (in case they weren't set during initial profile creation)
+      if (onboardingData.personalInfo.role) {
+        profileUpdates.role = onboardingData.personalInfo.role;
+      }
+      
+      if (onboardingData.personalInfo.interests && onboardingData.personalInfo.interests.length > 0) {
+        profileUpdates.interests = onboardingData.personalInfo.interests;
+      }
+      
       if (Object.keys(profileUpdates).length > 0) {
+        console.log('DEBUG: Updating profile with complete data:', profileUpdates);
         await updateProfile(profileUpdates);
+        console.log('DEBUG: Profile update completed successfully');
+      } else {
+        console.log('DEBUG: No profile updates needed');
       }
 
       await completeStep('profile-picture', {
@@ -135,26 +182,30 @@ export default function ProfileCompletion() {
     buttonScale.value = withSpring(1);
   };
 
-  // FIXED: Vereinfachte Username-Logik
+  // Get username from onboarding data with proper fallbacks
   const userName = (() => {
-    // 1. Erste Priorität: Direkt aus Onboarding-Daten
+    // 1. First priority: Data from personal page (onboarding context)
     const onboardingName = onboardingData?.personalInfo?.name;
-    if (onboardingName && onboardingName.trim() && onboardingName.length > 0) {
+    if (onboardingName && onboardingName.trim().length > 0) {
+      console.log('DEBUG: Using onboarding name:', onboardingName);
       return onboardingName.trim();
     }
     
     // 2. Fallback: Auth metadata
     const metadataName = user?.user_metadata?.full_name;
     if (metadataName && metadataName.trim() && metadataName !== 'Familie Mitglied') {
+      console.log('DEBUG: Using metadata name:', metadataName);
       return metadataName.trim();
     }
     
-    // 3. Fallback: Profil
+    // 3. Fallback: Profile
     const profileName = profile?.name;
     if (profileName && profileName.trim() && profileName !== 'Familie Mitglied') {
+      console.log('DEBUG: Using profile name:', profileName);
       return profileName.trim();
     }
     
+    console.log('DEBUG: No name found, using default');
     return 'User';
   })();
 
@@ -251,7 +302,7 @@ export default function ProfileCompletion() {
                   <Text style={styles.summaryValue}>
                     {userRole === 'parent' ? 'Parent' :
                      userRole === 'child' ? 'Child' :
-                     userRole === 'teen' ? 'Teenager' :
+                     userRole === 'teenager' ? 'Teenager' :
                      userRole === 'grandparent' ? 'Grandparent' :
                      'Other'}
                   </Text>

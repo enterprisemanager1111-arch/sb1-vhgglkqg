@@ -20,6 +20,7 @@ import { validateBirthDate, formatBirthDate, calculateAge, getZodiacSignKey } fr
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLocalizedDate } from '@/utils/dateLocalization';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Date Picker Modal Component
 const DatePickerModal = ({ 
@@ -156,6 +157,12 @@ export default function PersonalInfoScreen() {
   console.log('DEBUG: PersonalInfoScreen component mounted/re-rendered');
   
   const { onboardingData, updatePersonalInfo, completeStep } = useOnboarding();
+  
+  // Debug component mounting
+  React.useEffect(() => {
+    console.log('DEBUG: PersonalInfoScreen useEffect - Component mounted');
+    console.log('DEBUG: Initial onboarding data:', onboardingData);
+  }, []);
   const { t } = useLanguage();
   // Temporarily simplified - removed useLocalizedDate to test if it's causing issues
   const getLocale = () => 'en-US';
@@ -188,6 +195,16 @@ export default function PersonalInfoScreen() {
       nameLength: name.length,
       hasRole: !!role
     });
+  }, [name, birthDate, role, interests]);
+
+  // Add a ref to track if state is being properly maintained
+  const stateRef = React.useRef({ name, birthDate, role, interests });
+  const [forceUpdateCounter, setForceUpdateCounter] = React.useState(0);
+  
+  React.useEffect(() => {
+    stateRef.current = { name, birthDate, role, interests };
+    console.log('DEBUG: State ref updated:', stateRef.current);
+    setForceUpdateCounter(prev => prev + 1); // Force re-render to update debug panel
   }, [name, birthDate, role, interests]);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
@@ -223,20 +240,20 @@ export default function PersonalInfoScreen() {
       console.log('DEBUG: Loading initial personal info from onboarding context:', onboardingData.personalInfo);
       const personalInfo = onboardingData.personalInfo;
       
-      // Only load if there's actual data (not empty defaults)
-      if (personalInfo.name && personalInfo.name.trim() !== '') {
+      // Only load if there's actual data (not empty defaults) AND user hasn't entered data yet
+      if (personalInfo.name && personalInfo.name.trim() !== '' && name === '') {
         console.log('DEBUG: Loading existing name:', personalInfo.name);
         setName(personalInfo.name);
       }
-      if (personalInfo.birthDate && personalInfo.birthDate !== '') {
+      if (personalInfo.birthDate && personalInfo.birthDate !== '' && birthDate === '') {
         console.log('DEBUG: Loading existing birth date:', personalInfo.birthDate);
         setBirthDate(personalInfo.birthDate);
       }
-      if (personalInfo.role && personalInfo.role !== '') {
+      if (personalInfo.role && personalInfo.role !== '' && role === '') {
         console.log('DEBUG: Loading existing role:', personalInfo.role);
         setRole(personalInfo.role);
       }
-      if (personalInfo.interests && personalInfo.interests.length > 0) {
+      if (personalInfo.interests && personalInfo.interests.length > 0 && interests.length === 0) {
         console.log('DEBUG: Loading existing interests:', personalInfo.interests);
         setInterests(personalInfo.interests);
       }
@@ -244,13 +261,19 @@ export default function PersonalInfoScreen() {
       setHasLoadedInitialData(true);
       console.log('DEBUG: Initial data loading complete');
     }
-  }, [onboardingData, hasLoadedInitialData]);
+  }, [hasLoadedInitialData]); // Remove onboardingData dependency to prevent re-runs
 
 
 
   const handleDateSelection = (selectedDate: Date) => {
     const dateString = selectedDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    console.log('DEBUG: Date selected:', selectedDate, '-> formatted:', dateString);
+    console.log('DEBUG: Previous birthDate state:', `"${birthDate}"`);
     setBirthDate(dateString);
+    console.log('DEBUG: setBirthDate called with:', dateString);
+    // Force update ref immediately
+    stateRef.current.birthDate = dateString;
+    console.log('DEBUG: Updated stateRef.current.birthDate to:', dateString);
     setShowDatePicker(false);
   };
 
@@ -274,11 +297,18 @@ export default function PersonalInfoScreen() {
   };
 
   const toggleInterest = (interest: string) => {
-    setInterests(prev => 
-      prev.includes(interest) 
+    console.log('DEBUG: Toggling interest:', interest);
+    console.log('DEBUG: Previous interests state:', interests);
+    setInterests(prev => {
+      const newInterests = prev.includes(interest) 
         ? prev.filter(i => i !== interest)
-        : [...prev, interest]
-    );
+        : [...prev, interest];
+      console.log('DEBUG: New interests array:', newInterests);
+      // Force update ref immediately
+      stateRef.current.interests = newInterests;
+      console.log('DEBUG: Updated stateRef.current.interests to:', newInterests);
+      return newInterests;
+    });
   };
 
   const buttonAnimatedStyle = useAnimatedStyle(() => ({
@@ -295,21 +325,59 @@ export default function PersonalInfoScreen() {
 
   const isValid = name.trim().length > 0 && role;
 
-  const handleContinue = async () => {
-    console.log('DEBUG: Continue button clicked!');
-    console.log('DEBUG: Current form data:', { name, birthDate, role, interests });
-    console.log('DEBUG: Validation state - name length:', name.trim().length, 'role selected:', !!role);
+  // Emergency direct save function (bypasses context completely)
+  const saveDirectToStorage = async (personalInfo: any) => {
+    console.log('DEBUG: Direct storage save called with:', personalInfo);
     
-    // Always attempt to save whatever data is entered
+    const STORAGE_KEY = '@famora_onboarding_data';
+    
+    try {
+      // Get existing data
+      const existingData = await AsyncStorage.getItem(STORAGE_KEY);
+      let fullData = {
+        personalInfo: { name: '', birthDate: '', role: '', interests: [] },
+        preferences: { goals: [] },
+        authInfo: { email: '', password: '' },
+        completedSteps: [],
+        currentStepIndex: 0
+      };
+      
+      if (existingData) {
+        fullData = JSON.parse(existingData);
+      }
+      
+      // Update personal info
+      fullData.personalInfo = personalInfo;
+      
+      // Save back to storage
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(fullData));
+      console.log('DEBUG: Direct storage save completed:', fullData);
+      
+      return true;
+    } catch (error) {
+      console.error('DEBUG: Direct storage save failed:', error);
+      return false;
+    }
+  };
+
+
+  const handleContinue = async () => {
+    console.log('DEBUG: Continue button clicked');
+    console.log('DEBUG: Form data:', { name, birthDate, role, interests });
+    
+    // Use ref values as backup if state values are empty
+    const currentName = name || stateRef.current.name;
+    const currentBirthDate = birthDate || stateRef.current.birthDate;
+    const currentRole = role || stateRef.current.role;
+    const currentInterests = interests.length > 0 ? interests : stateRef.current.interests;
+    
     // Basic validation for required fields
-    if (!name || name.trim().length < 1) {
-      console.log('DEBUG: Name validation failed');
+    if (!currentName || currentName.trim().length < 1) {
       alert('Please enter your name to continue');
       return;
     }
     
-    if (!role) {
-      console.log('DEBUG: Role validation failed');
+    if (!currentRole) {
       alert('Please select your role to continue');
       return;
     }
@@ -317,37 +385,85 @@ export default function PersonalInfoScreen() {
     console.log('DEBUG: Validation passed, proceeding to save personal info');
 
     // Use the exact name you typed (with basic sanitization for safety)
-    const finalName = sanitizeText(name, 50);
+    const finalName = sanitizeText(currentName, 50);
 
     try {
       console.log('DEBUG: Saving personal info exactly as entered:', {
-        originalName: name,
+        originalName: currentName,
         finalName: finalName,
-        birthDate: birthDate,
-        role: role,
-        interests: interests,
+        birthDate: currentBirthDate,
+        role: currentRole,
+        interests: currentInterests,
       });
       
       const personalInfoToSave = {
         name: finalName,
-        birthDate: birthDate,
-        role: role,
-        interests: interests,
+        birthDate: currentBirthDate,
+        role: currentRole,
+        interests: currentInterests,
       };
       
-      console.log('DEBUG: About to save to personalInfo in local storage:', personalInfoToSave);
+      console.log('DEBUG: Saving personal info:', personalInfoToSave);
       
-      // Save personal info to local storage exactly as you entered it
-      await updatePersonalInfo(personalInfoToSave);
+      try {
+        // Save personal info to local storage via context
+        await updatePersonalInfo(personalInfoToSave);
+        console.log('DEBUG: Context save completed');
+      } catch (contextError) {
+        console.error('DEBUG: Context save failed:', contextError);
+        
+        // EMERGENCY: Direct save to storage if context fails
+        console.log('DEBUG: Attempting emergency direct save...');
+        const currentData = await AsyncStorage.getItem('@famora_onboarding_data');
+        let baseData = {
+          personalInfo: { name: '', birthDate: '', role: '', interests: [] },
+          preferences: { goals: [] },
+          authInfo: { email: '', password: '' },
+          completedSteps: [],
+          currentStepIndex: 0
+        };
+        
+        if (currentData) {
+          baseData = JSON.parse(currentData);
+        }
+        
+        const emergencyData = {
+          ...baseData,
+          personalInfo: personalInfoToSave
+        };
+        
+        await AsyncStorage.setItem('@famora_onboarding_data', JSON.stringify(emergencyData));
+        console.log('DEBUG: Emergency direct save completed:', emergencyData);
+      }
+      
+      // ADDITIONAL BACKUP: Also try direct save function
+      console.log('DEBUG: Attempting additional direct save backup...');
+      const directSaveSuccess = await saveDirectToStorage(personalInfoToSave);
+      if (directSaveSuccess) {
+        console.log('DEBUG: Direct save backup successful');
+      } else {
+        console.log('DEBUG: Direct save backup failed');
+      }
       
       console.log('DEBUG: Personal info successfully saved to local storage!');
+      
+      // Verify that data was saved
+      try {
+        const savedData = await AsyncStorage.getItem('@famora_onboarding_data');
+        if (savedData) {
+          const parsed = JSON.parse(savedData);
+          console.log('DEBUG: Verified saved data:', parsed.personalInfo);
+        }
+      } catch (verifyError) {
+        console.log('DEBUG: Error verifying saved data:', verifyError);
+      }
 
       // Mark step as completed
       await completeStep('personal-info', {
         name: finalName,
-        birthDate: birthDate,
-        role: role,
-        interests: interests.join(', ')
+        birthDate: currentBirthDate,
+        role: currentRole,
+        interests: currentInterests.join(', ')
       });
 
       router.push('/(onboarding)/preferences');
@@ -392,6 +508,8 @@ export default function PersonalInfoScreen() {
           </View>
 
 
+
+
           {/* Name Input */}
           <View style={styles.inputSection}>
             <View style={styles.labelContainer}>
@@ -419,8 +537,13 @@ export default function PersonalInfoScreen() {
               placeholderTextColor="#888888"
               value={name}
               onChangeText={(text) => {
-                console.log('DEBUG: Name input changed to:', `"${text}"`);
+                console.log('DEBUG: onChangeText called with:', `"${text}"`);
+                console.log('DEBUG: Previous name state:', `"${name}"`);
                 setName(text);
+                console.log('DEBUG: setName called with:', `"${text}"`);
+                // Force update ref immediately
+                stateRef.current.name = text;
+                console.log('DEBUG: Updated stateRef.current.name to:', `"${text}"`);
               }}
               autoComplete="given-name"
             />
@@ -497,8 +620,13 @@ export default function PersonalInfoScreen() {
                     role === option.id && styles.selectedRole
                   ]}
                   onPress={() => {
-                    console.log('DEBUG: Role selected:', option.id);
+                    console.log('DEBUG: Role button pressed, option.id:', option.id);
+                    console.log('DEBUG: Previous role state:', `"${role}"`);
                     setRole(option.id);
+                    console.log('DEBUG: setRole called with:', option.id);
+                    // Force update ref immediately
+                    stateRef.current.role = option.id;
+                    console.log('DEBUG: Updated stateRef.current.role to:', option.id);
                   }}
                 >
                   <Text style={styles.roleEmoji}>{option.icon}</Text>
@@ -552,6 +680,7 @@ export default function PersonalInfoScreen() {
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
+        
         <AnimatedPressable
           style={[
             styles.continueButton,
