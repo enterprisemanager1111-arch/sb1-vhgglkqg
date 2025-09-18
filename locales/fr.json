@@ -61,6 +61,12 @@
       "title": {
         "signup": "Créer un compte",
         "login": "Bon retour!"
+      },
+      "buttons": {
+        "login": "Se connecter",
+        "signup": "S'inscrire",
+        "loggingIn": "Connexion...",
+        "signingUp": "Inscription..."
       }
     },
     "family": {

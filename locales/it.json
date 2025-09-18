@@ -61,6 +61,12 @@
       "title": {
         "signup": "Crea account",
         "login": "Bentornato!"
+      },
+      "buttons": {
+        "login": "Accedi",
+        "signup": "Registrati",
+        "loggingIn": "Accesso...",
+        "signingUp": "Registrazione..."
       }
     },
     "family": {

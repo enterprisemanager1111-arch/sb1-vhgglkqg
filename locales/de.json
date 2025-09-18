@@ -1,4 +1,297 @@
 {
+  "nav": {
+    "home": "Home",
+    "family": "Familie",
+    "flames": "Flames",
+    "profile": "Profil"
+  },
+  "common": {
+    "continue": "Weiter",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "skip": "Überspringen",
+    "back": "Zurück",
+    "loading": "Wird geladen...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "yes": "Ja",
+    "no": "Nein",
+    "ok": "OK",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "add": "Hinzufügen",
+    "create": "Erstellen",
+    "update": "Aktualisieren",
+    "retry": "Erneut versuchen",
+    "saving": "Wird gespeichert...",
+    "redirecting": "Weiterleitung..."
+  },
+  "settings": {
+    "language": {
+      "title": "Sprache",
+      "changed": "Sprache wurde auf",
+      "restart": "Starten Sie die App neu, um die Änderungen zu sehen.",
+      "error": "Sprache konnte nicht geändert werden."
+    }
+  },
+  "dashboard": {
+    "welcome": "Willkommen zurück in deiner Familie",
+    "family": {
+      "manage": "Familie verwalten"
+    },
+    "quickAccess": "Schnellzugriff",
+    "nextSteps": "Nächste Schritte",
+    "showAll": "Alle anzeigen",
+    "todayOverview": "Heute im Überblick",
+    "progress": "Fortschritt",
+    "completedToday": "Erledigt heute",
+    "thisWeek": "Diese Woche",
+    "nextAppointment": "Nächster Termin:",
+    "noUpcoming": "Keine anstehenden Termine",
+    "allTasksDone": "Alle Aufgaben erledigt!",
+    "greatJob": "Großartig! Erstellen Sie neue Aufgaben oder entspannen Sie sich.",
+    "loading": "Dashboard wird geladen...",
+    "shopping": "Einkaufsliste",
+    "calendar": "Kalender",
+    "tasks": "Aufgaben",
+    "flames": "Flames",
+    "items": "Artikel",
+    "appointments": "Termine",
+    "open": "offen",
+    "allDone": "Alle erledigt",
+    "points": "Punkte"
+  },
+  "flames": {
+    "title": "Flames & Punkte",
+    "subtitle": "Familie-Punkte gesammelt",
+    "loading": "Flames werden geladen...",
+    "error": {
+      "title": "Fehler beim Laden",
+      "retry": "Erneut versuchen"
+    },
+    "period": {
+      "week": "Woche",
+      "month": "Monat",
+      "all": "Gesamt"
+    },
+    "family": {
+      "level": "Familie Level",
+      "points": "Familie-Punkte",
+      "progress": "Familien-Fortschritt",
+      "progressPoints": "Punkte bis Level",
+      "maxLevel": "Maximales Level erreicht! 👑",
+      "nextLevel": "Nächstes Level:"
+    },
+    "leaderboard": {
+      "title": "Leaderboard",
+      "thisWeek": "Diese Woche",
+      "thisMonth": "Dieser Monat",
+      "total": "Gesamt",
+      "you": "(Du)",
+      "achievements": "Erfolge",
+      "activities": "Aktivitäten",
+      "pointsToFirst": "zum 1. Platz",
+      "points": "Punkte"
+    },
+    "activities": {
+      "title": "Letzte Aktivitäten",
+      "empty": "Noch keine Aktivitäten",
+      "emptySubtitle": "Erledigen Sie Aufgaben und sammeln Sie Punkte!",
+      "unknown": "Unbekannt"
+    },
+    "achievements": {
+      "title": "Familien-Erfolge",
+      "unlocked": "Freigeschaltet"
+    },
+    "goal": {
+      "title": "Neues Familienziel",
+      "name": "Zielname",
+      "namePlaceholder": "z.B. 50 Aufgaben in der Woche",
+      "points": "Zielpunkte",
+      "pointsPlaceholder": "100",
+      "cancel": "Abbrechen",
+      "create": "Erstellen",
+      "error": {
+        "name": "Bitte geben Sie einen Zielnamen ein",
+        "points": "Bitte geben Sie eine gültige Punktzahl ein",
+        "create": "Ziel konnte nicht erstellt werden:"
+      },
+      "description": "Erreiche Punkte als Familie",
+      "created": "hat ein neues Ziel erstellt:"
+    }
+  },
+  "tasks": {
+    "title": "Family Tasks",
+    "loading": "Lade Tasks...",
+    "error": {
+      "loading": "Fehler beim Laden der Tasks",
+      "toggle": "Task-Status konnte nicht geändert werden:",
+      "create": "Task konnte nicht erstellt werden:",
+      "delete": "Task konnte nicht gelöscht werden:",
+      "empty": "Bitte geben Sie eine Aufgabenbeschreibung ein"
+    },
+    "stats": {
+      "completed": "erledigt",
+      "pointsCollected": "Punkte gesammelt"
+    },
+    "leaderboard": {
+      "title": "Family Leaderboard"
+    },
+    "add": {
+      "title": "Neue Aufgabe hinzufügen",
+      "placeholder": "Aufgabenbeschreibung eingeben..."
+    },
+    "filter": {
+      "all": "Alle Tasks",
+      "categories": {
+        "all": "Alle",
+        "household": "Haushalt",
+        "personal": "Persönliche Tasks",
+        "work": "Arbeit",
+        "family": "Familien-Tasks"
+      }
+    },
+    "list": {
+      "pending": "Zu erledigen",
+      "completed": "Kürzlich erledigt",
+      "completedNotice": "✨ Erledigte Aufgaben werden automatisch nach 24 Stunden gelöscht",
+      "timeRemaining": "Noch {{hours}}h sichtbar",
+      "unassigned": "Unzugewiesen",
+      "unknown": "Unbekannt"
+    },
+    "delete": {
+      "title": "Task löschen",
+      "message": "Möchten Sie diese Aufgabe wirklich löschen?"
+    },
+    "notifications": {
+      "completed": "Aufgabe erledigt: {{task}}",
+      "memberCompleted": "hat \"{{task}}\" erledigt"
+    },
+    "empty": {
+      "title": "Noch keine Tasks",
+      "description": "Erstellen Sie Ihren ersten Task und sammeln Sie Punkte für erledigte Aufgaben!",
+      "button": "Task erstellen"
+    }
+  },
+  "zodiac": {
+    "aquarius": "♒ Wassermann",
+    "pisces": "♓ Fische",
+    "aries": "♈ Widder",
+    "taurus": "♉ Stier",
+    "gemini": "♊ Zwillinge",
+    "cancer": "♋ Krebs",
+    "leo": "♌ Löwe",
+    "virgo": "♍ Jungfrau",
+    "libra": "♎ Waage",
+    "scorpio": "♏ Skorpion",
+    "sagittarius": "♐ Schütze",
+    "capricorn": "♑ Steinbock"
+  },
+  "calendar": {
+    "title": "Kalender",
+    "loading": "Kalender wird geladen...",
+    "error": {
+      "loading": "Fehler beim Laden des Kalenders",
+      "delete": "Termin konnte nicht gelöscht werden:"
+    },
+    "today": "heute",
+    "thisWeek": "Diese Woche",
+    "noEvents": "Keine Termine für diesen Tag",
+    "addEvent": "Termin hinzufügen",
+    "eventsFor": "Termine für {{date}}. {{month}}",
+    "upcoming": "Diese Woche",
+    "pointsEarned": "+10 Punkte erhalten",
+    "unknown": "Unbekannt",
+    "delete": {
+      "title": "Termin löschen",
+      "message": "Möchten Sie diesen Termin wirklich löschen?"
+    },
+    "empty": {
+      "title": "Noch keine Termine",
+      "description": "Erstellen Sie Ihren ersten Familientermin und planen Sie gemeinsame Aktivitäten!",
+      "button": "Termin erstellen"
+    },
+    "months": {
+      "january": "Januar",
+      "february": "Februar",
+      "march": "März",
+      "april": "April",
+      "may": "Mai",
+      "june": "Juni",
+      "july": "Juli",
+      "august": "August",
+      "september": "September",
+      "october": "Oktober",
+      "november": "November",
+      "december": "Dezember"
+    },
+    "monthsShort": {
+      "january": "Jan",
+      "february": "Feb",
+      "march": "Mär",
+      "april": "Apr",
+      "may": "Mai",
+      "june": "Jun",
+      "july": "Jul",
+      "august": "Aug",
+      "september": "Sep",
+      "october": "Okt",
+      "november": "Nov",
+      "december": "Dez"
+    },
+    "days": {
+      "sunday": "So",
+      "monday": "Mo",
+      "tuesday": "Di",
+      "wednesday": "Mi",
+      "thursday": "Do",
+      "friday": "Fr",
+      "saturday": "Sa"
+    }
+  },
+  "shopping": {
+    "title": "Einkaufsliste",
+    "loading": "Lade Einkaufsliste...",
+    "error": {
+      "loading": "Fehler beim Laden der Einkaufsliste",
+      "toggle": "Artikel-Status konnte nicht geändert werden:",
+      "delete": "Artikel konnte nicht gelöscht werden:"
+    },
+    "stats": {
+      "completed": "von {{total}} erledigt",
+      "stillToBuy": "Noch kaufen",
+      "bought": "Gekauft",
+      "progress": "Fortschritt"
+    },
+    "categories": {
+      "all": "Alle Artikel",
+      "dairy": "Milchprodukte",
+      "produce": "Obst & Gemüse",
+      "meat": "Fleisch",
+      "bakery": "Bäckerei",
+      "pantry": "Vorratsschrank"
+    },
+    "list": {
+      "shopping": "Einkaufen",
+      "bought": "Kürzlich gekauft",
+      "completedNotice": "✨ Gekaufte Artikel werden automatisch nach 24 Stunden gelöscht",
+      "timeRemaining": "Noch {{hours}}h sichtbar",
+      "unknown": "Unbekannt"
+    },
+    "delete": {
+      "title": "Artikel löschen",
+      "message": "Möchten Sie diesen Artikel wirklich löschen?"
+    },
+    "notifications": {
+      "bought": "Gekauft: {{item}}",
+      "memberBought": "hat \"{{item}}\" gekauft"
+    },
+    "empty": {
+      "title": "Einkaufsliste ist leer",
+      "description": "Fügen Sie Ihre ersten Artikel zur Einkaufsliste hinzu und teilen Sie sie mit Ihrer Familie!",
+      "button": "Artikel hinzufügen"
+    }
+  },
   "onboarding": {
     "stepIndicator": "Schritt {{current}} von {{total}}",
     "welcome": {
@@ -228,299 +521,6 @@
           "signup": "Account erstellen",
           "login": "Willkommen zurück!"
         }
-      }
-    },
-    "nav": {
-      "home": "Home",
-      "family": "Familie",
-      "flames": "Flames",
-      "profile": "Profil"
-    },
-    "common": {
-      "continue": "Weiter",
-      "cancel": "Abbrechen",
-      "save": "Speichern",
-      "skip": "Überspringen",
-      "back": "Zurück",
-      "loading": "Wird geladen...",
-      "error": "Fehler",
-      "success": "Erfolg",
-      "yes": "Ja",
-      "no": "Nein",
-      "ok": "OK",
-      "delete": "Löschen",
-      "edit": "Bearbeiten",
-      "add": "Hinzufügen",
-      "create": "Erstellen",
-      "update": "Aktualisieren",
-      "retry": "Erneut versuchen",
-      "saving": "Wird gespeichert...",
-      "redirecting": "Weiterleitung..."
-    },
-    "settings": {
-      "language": {
-        "title": "Sprache",
-        "changed": "Sprache wurde auf",
-        "restart": "Starten Sie die App neu, um die Änderungen zu sehen.",
-        "error": "Sprache konnte nicht geändert werden."
-      }
-    },
-    "dashboard": {
-      "welcome": "Willkommen zurück in deiner Familie",
-      "family": {
-        "manage": "Familie verwalten"
-      },
-      "quickAccess": "Schnellzugriff",
-      "nextSteps": "Nächste Schritte",
-      "showAll": "Alle anzeigen",
-      "todayOverview": "Heute im Überblick",
-      "progress": "Fortschritt",
-      "completedToday": "Erledigt heute",
-      "thisWeek": "Diese Woche",
-      "nextAppointment": "Nächster Termin:",
-      "noUpcoming": "Keine anstehenden Termine",
-      "allTasksDone": "Alle Aufgaben erledigt!",
-      "greatJob": "Großartig! Erstellen Sie neue Aufgaben oder entspannen Sie sich.",
-      "loading": "Dashboard wird geladen...",
-      "shopping": "Einkaufsliste",
-      "calendar": "Kalender",
-      "tasks": "Aufgaben",
-      "flames": "Flames",
-      "items": "Artikel",
-      "appointments": "Termine",
-      "open": "offen",
-      "allDone": "Alle erledigt",
-      "points": "Punkte"
-    },
-    "flames": {
-      "title": "Flames & Punkte",
-      "subtitle": "Familie-Punkte gesammelt",
-      "loading": "Flames werden geladen...",
-      "error": {
-        "title": "Fehler beim Laden",
-        "retry": "Erneut versuchen"
-      },
-      "period": {
-        "week": "Woche",
-        "month": "Monat",
-        "all": "Gesamt"
-      },
-      "family": {
-        "level": "Familie Level",
-        "points": "Familie-Punkte",
-        "progress": "Familien-Fortschritt",
-        "progressPoints": "Punkte bis Level",
-        "maxLevel": "Maximales Level erreicht! 👑",
-        "nextLevel": "Nächstes Level:"
-      },
-      "leaderboard": {
-        "title": "Leaderboard",
-        "thisWeek": "Diese Woche",
-        "thisMonth": "Dieser Monat",
-        "total": "Gesamt",
-        "you": "(Du)",
-        "achievements": "Erfolge",
-        "activities": "Aktivitäten",
-        "pointsToFirst": "zum 1. Platz",
-        "points": "Punkte"
-      },
-      "activities": {
-        "title": "Letzte Aktivitäten",
-        "empty": "Noch keine Aktivitäten",
-        "emptySubtitle": "Erledigen Sie Aufgaben und sammeln Sie Punkte!",
-        "unknown": "Unbekannt"
-      },
-      "achievements": {
-        "title": "Familien-Erfolge",
-        "unlocked": "Freigeschaltet"
-      },
-      "goal": {
-        "title": "Neues Familienziel",
-        "name": "Zielname",
-        "namePlaceholder": "z.B. 50 Aufgaben in der Woche",
-        "points": "Zielpunkte",
-        "pointsPlaceholder": "100",
-        "cancel": "Abbrechen",
-        "create": "Erstellen",
-        "error": {
-          "name": "Bitte geben Sie einen Zielnamen ein",
-          "points": "Bitte geben Sie eine gültige Punktzahl ein",
-          "create": "Ziel konnte nicht erstellt werden:"
-        },
-        "description": "Erreiche Punkte als Familie",
-        "created": "hat ein neues Ziel erstellt:"
-      }
-    },
-    "tasks": {
-      "title": "Family Tasks",
-      "loading": "Lade Tasks...",
-      "error": {
-        "loading": "Fehler beim Laden der Tasks",
-        "toggle": "Task-Status konnte nicht geändert werden:",
-        "create": "Task konnte nicht erstellt werden:",
-        "delete": "Task konnte nicht gelöscht werden:",
-        "empty": "Bitte geben Sie eine Aufgabenbeschreibung ein"
-      },
-      "stats": {
-        "completed": "erledigt",
-        "pointsCollected": "Punkte gesammelt"
-      },
-      "leaderboard": {
-        "title": "Family Leaderboard"
-      },
-      "add": {
-        "title": "Neue Aufgabe hinzufügen",
-        "placeholder": "Aufgabenbeschreibung eingeben..."
-      },
-      "filter": {
-        "all": "Alle Tasks",
-        "categories": {
-          "all": "Alle",
-          "household": "Haushalt",
-          "personal": "Persönliche Tasks",
-          "work": "Arbeit",
-          "family": "Familien-Tasks"
-        }
-      },
-      "list": {
-        "pending": "Zu erledigen",
-        "completed": "Kürzlich erledigt",
-        "completedNotice": "✨ Erledigte Aufgaben werden automatisch nach 24 Stunden gelöscht",
-        "timeRemaining": "Noch {{hours}}h sichtbar",
-        "unassigned": "Unzugewiesen",
-        "unknown": "Unbekannt"
-      },
-      "delete": {
-        "title": "Task löschen",
-        "message": "Möchten Sie diese Aufgabe wirklich löschen?"
-      },
-      "notifications": {
-        "completed": "Aufgabe erledigt: {{task}}",
-        "memberCompleted": "hat \"{{task}}\" erledigt"
-      },
-      "empty": {
-        "title": "Noch keine Tasks",
-        "description": "Erstellen Sie Ihren ersten Task und sammeln Sie Punkte für erledigte Aufgaben!",
-        "button": "Task erstellen"
-      }
-    },
-    "zodiac": {
-      "aquarius": "♒ Wassermann",
-      "pisces": "♓ Fische",
-      "aries": "♈ Widder",
-      "taurus": "♉ Stier",
-      "gemini": "♊ Zwillinge",
-      "cancer": "♋ Krebs",
-      "leo": "♌ Löwe",
-      "virgo": "♍ Jungfrau",
-      "libra": "♎ Waage",
-      "scorpio": "♏ Skorpion",
-      "sagittarius": "♐ Schütze",
-      "capricorn": "♑ Steinbock"
-    },
-    "calendar": {
-      "title": "Kalender",
-      "loading": "Kalender wird geladen...",
-      "error": {
-        "loading": "Fehler beim Laden des Kalenders",
-        "delete": "Termin konnte nicht gelöscht werden:"
-      },
-      "today": "heute",
-      "thisWeek": "Diese Woche",
-      "noEvents": "Keine Termine für diesen Tag",
-      "addEvent": "Termin hinzufügen",
-      "eventsFor": "Termine für {{date}}. {{month}}",
-      "upcoming": "Diese Woche",
-      "pointsEarned": "+10 Punkte erhalten",
-      "unknown": "Unbekannt",
-      "delete": {
-        "title": "Termin löschen",
-        "message": "Möchten Sie diesen Termin wirklich löschen?"
-      },
-      "empty": {
-        "title": "Noch keine Termine",
-        "description": "Erstellen Sie Ihren ersten Familientermin und planen Sie gemeinsame Aktivitäten!",
-        "button": "Termin erstellen"
-      },
-      "months": {
-        "january": "Januar",
-        "february": "Februar",
-        "march": "März",
-        "april": "April",
-        "may": "Mai",
-        "june": "Juni",
-        "july": "Juli",
-        "august": "August",
-        "september": "September",
-        "october": "Oktober",
-        "november": "November",
-        "december": "Dezember"
-      },
-      "monthsShort": {
-        "january": "Jan",
-        "february": "Feb",
-        "march": "Mär",
-        "april": "Apr",
-        "may": "Mai",
-        "june": "Jun",
-        "july": "Jul",
-        "august": "Aug",
-        "september": "Sep",
-        "october": "Okt",
-        "november": "Nov",
-        "december": "Dez"
-      },
-      "days": {
-        "sunday": "So",
-        "monday": "Mo",
-        "tuesday": "Di",
-        "wednesday": "Mi",
-        "thursday": "Do",
-        "friday": "Fr",
-        "saturday": "Sa"
-      }
-    },
-    "shopping": {
-      "title": "Einkaufsliste",
-      "loading": "Lade Einkaufsliste...",
-      "error": {
-        "loading": "Fehler beim Laden der Einkaufsliste",
-        "toggle": "Artikel-Status konnte nicht geändert werden:",
-        "delete": "Artikel konnte nicht gelöscht werden:"
-      },
-      "stats": {
-        "completed": "von {{total}} erledigt",
-        "stillToBuy": "Noch kaufen",
-        "bought": "Gekauft",
-        "progress": "Fortschritt"
-      },
-      "categories": {
-        "all": "Alle Artikel",
-        "dairy": "Milchprodukte",
-        "produce": "Obst & Gemüse",
-        "meat": "Fleisch",
-        "bakery": "Bäckerei",
-        "pantry": "Vorratsschrank"
-      },
-      "list": {
-        "shopping": "Einkaufen",
-        "bought": "Kürzlich gekauft",
-        "completedNotice": "✨ Gekaufte Artikel werden automatisch nach 24 Stunden gelöscht",
-        "timeRemaining": "Noch {{hours}}h sichtbar",
-        "unknown": "Unbekannt"
-      },
-      "delete": {
-        "title": "Artikel löschen",
-        "message": "Möchten Sie diesen Artikel wirklich löschen?"
-      },
-      "notifications": {
-        "bought": "Gekauft: {{item}}",
-        "memberBought": "hat \"{{item}}\" gekauft"
-      },
-      "empty": {
-        "title": "Einkaufsliste ist leer",
-        "description": "Fügen Sie Ihre ersten Artikel zur Einkaufsliste hinzu und teilen Sie sie mit Ihrer Familie!",
-        "button": "Artikel hinzufügen"
       }
     }
   }

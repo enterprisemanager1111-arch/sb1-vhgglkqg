@@ -289,12 +289,30 @@ const DatePickerModal = ({
 export default function PersonalInfoScreen() {
   console.log('DEBUG: PersonalInfoScreen component mounted/re-rendered');
   
-  const { onboardingData, updatePersonalInfo, completeStep } = useOnboarding();
+  const { onboardingData, updatePersonalInfo, completeStep, loading } = useOnboarding();
   
   // Debug component mounting
   React.useEffect(() => {
     console.log('DEBUG: PersonalInfoScreen useEffect - Component mounted');
     console.log('DEBUG: Initial onboarding data:', onboardingData);
+    
+    // Check what's currently in AsyncStorage
+    const checkCurrentStorage = async () => {
+      try {
+        const currentData = await AsyncStorage.getItem('@famora_onboarding_data');
+        if (currentData) {
+          const parsed = JSON.parse(currentData);
+          console.log('DEBUG: Current AsyncStorage data on mount:', parsed);
+          console.log('DEBUG: Current personalInfo in storage:', parsed.personalInfo);
+        } else {
+          console.log('DEBUG: No data in AsyncStorage on mount');
+        }
+      } catch (error) {
+        console.log('DEBUG: Error reading AsyncStorage on mount:', error);
+      }
+    };
+    
+    checkCurrentStorage();
   }, []);
 
   // Load existing data from context when it becomes available
@@ -548,9 +566,48 @@ export default function PersonalInfoScreen() {
     }
   };
 
+  // Test function to verify AsyncStorage is working
+  const testAsyncStorage = async () => {
+    console.log('=== TESTING ASYNC STORAGE ===');
+    const testKey = '@test_key';
+    const testData = { test: 'data', timestamp: Date.now() };
+    
+    try {
+      // Test write
+      await AsyncStorage.setItem(testKey, JSON.stringify(testData));
+      console.log('DEBUG: Test write successful');
+      
+      // Test read
+      const readData = await AsyncStorage.getItem(testKey);
+      if (readData) {
+        const parsed = JSON.parse(readData);
+        console.log('DEBUG: Test read successful:', parsed);
+        
+        // Clean up
+        await AsyncStorage.removeItem(testKey);
+        console.log('DEBUG: Test cleanup successful');
+        return true;
+      } else {
+        console.log('DEBUG: Test read failed - no data returned');
+        return false;
+      }
+    } catch (error) {
+      console.error('DEBUG: AsyncStorage test failed:', error);
+      return false;
+    }
+  };
+
 
   const handleContinue = async () => {
-    console.log('DEBUG: Continue button clicked');
+    console.log('=== DEBUG: Continue button clicked ===');
+    console.log('DEBUG: Current context loading state:', loading);
+    console.log('DEBUG: Current onboardingData from context:', onboardingData);
+    
+    // Test AsyncStorage first
+    console.log('DEBUG: Testing AsyncStorage functionality...');
+    const storageWorking = await testAsyncStorage();
+    console.log('DEBUG: AsyncStorage test result:', storageWorking);
+    
     logCurrentState();
     
     // Use ref values as backup if state values are empty
@@ -558,6 +615,13 @@ export default function PersonalInfoScreen() {
     const currentBirthDate = birthDate || stateRef.current.birthDate;
     const currentRole = role || stateRef.current.role;
     const currentInterests = interests.length > 0 ? interests : stateRef.current.interests;
+    
+    console.log('DEBUG: Final values to save:', {
+      currentName,
+      currentBirthDate, 
+      currentRole,
+      currentInterests
+    });
     
     // Basic validation for required fields
     if (!currentName || currentName.trim().length < 1) {
@@ -595,6 +659,20 @@ export default function PersonalInfoScreen() {
       
       // Primary save: Use context to save to AsyncStorage
       console.log('DEBUG: Attempting to save via context...');
+      console.log('DEBUG: updatePersonalInfo function available:', typeof updatePersonalInfo);
+      
+      // Check if context is still loading
+      if (loading) {
+        console.log('DEBUG: Context is still loading, waiting for it to complete...');
+        // Wait for context to finish loading
+        let attempts = 0;
+        while (loading && attempts < 50) { // Max 5 seconds
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+        console.log('DEBUG: Loading wait completed, attempts:', attempts, 'still loading:', loading);
+      }
+      
       await updatePersonalInfo(personalInfoToSave);
       console.log('DEBUG: Context save completed successfully');
       
@@ -632,6 +710,11 @@ export default function PersonalInfoScreen() {
     } catch (error: any) {
       console.error('ERROR: Failed to save personal info:', error);
       console.error('ERROR details:', error.message, error.stack);
+      
+      // Test if it's an AsyncStorage issue
+      console.log('DEBUG: Testing AsyncStorage again after error...');
+      const storageWorking2 = await testAsyncStorage();
+      console.log('DEBUG: AsyncStorage test result after error:', storageWorking2);
       
       // Emergency fallback: Direct save to AsyncStorage
       console.log('DEBUG: Context save failed, attempting emergency direct save...');

@@ -184,10 +184,13 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   };
 
   const updatePersonalInfo = async (info: Partial<OnboardingData['personalInfo']>) => {
-    console.log('DEBUG: updatePersonalInfo called with:', info);
+    console.log('=== DEBUG: updatePersonalInfo called ===');
+    console.log('DEBUG: Info parameter:', info);
     console.log('DEBUG: Loading state:', loading);
     console.log('DEBUG: Current onboarding data state:', onboardingData);
     console.log('DEBUG: Current personal info before update:', onboardingData.personalInfo);
+    console.log('DEBUG: Is onboardingData valid?', !!onboardingData);
+    console.log('DEBUG: Is personalInfo object valid?', !!onboardingData.personalInfo);
     
     // Wait for loading to complete if still loading
     if (loading) {
@@ -226,9 +229,41 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   };
 
   const completeStep = async (stepId: string, details?: Record<string, any>) => {
+    console.log('DEBUG: completeStep called with stepId:', stepId, 'details:', details);
+    
     const now = new Date().toISOString();
     
-    const updatedSteps = [...onboardingData.completedSteps];
+    // Get fresh data from AsyncStorage to avoid stale state
+    let currentData = onboardingData;
+    try {
+      const storedData = await AsyncStorage.getItem(ONBOARDING_STORAGE_KEY);
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        currentData = {
+          ...defaultOnboardingData,
+          ...parsedData,
+          personalInfo: {
+            ...defaultOnboardingData.personalInfo,
+            ...parsedData.personalInfo
+          },
+          preferences: {
+            ...defaultOnboardingData.preferences,
+            ...parsedData.preferences
+          },
+          authInfo: {
+            ...defaultOnboardingData.authInfo,
+            ...parsedData.authInfo
+          }
+        };
+        console.log('DEBUG: completeStep using fresh data from storage:', currentData);
+      } else {
+        console.log('DEBUG: completeStep no stored data, using context data');
+      }
+    } catch (error) {
+      console.log('DEBUG: completeStep error reading storage, using context data:', error);
+    }
+    
+    const updatedSteps = [...currentData.completedSteps];
     const existingStepIndex = updatedSteps.findIndex(step => step.id === stepId);
     
     const stepTemplate = ONBOARDING_STEPS.find(s => s.id === stepId);
@@ -249,11 +284,12 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     }
 
     const updatedData = {
-      ...onboardingData,
+      ...currentData,
       completedSteps: updatedSteps,
-      currentStepIndex: Math.max(onboardingData.currentStepIndex, updatedSteps.length)
+      currentStepIndex: Math.max(currentData.currentStepIndex, updatedSteps.length)
     };
     
+    console.log('DEBUG: completeStep saving data with personalInfo:', updatedData.personalInfo);
     await saveOnboardingData(updatedData);
   };
 

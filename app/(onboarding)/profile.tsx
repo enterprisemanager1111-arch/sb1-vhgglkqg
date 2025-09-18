@@ -17,6 +17,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { isFeatureAvailable, showFeatureUnavailableAlert } from '@/utils/expoGoCompatibility';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { formatBirthDate, calculateAge } from '@/utils/birthdaySystem';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -28,6 +29,7 @@ export default function ProfileCompletion() {
   
   const { user, profile, updateProfile } = useAuth();
   const { onboardingData, clearOnboardingData, completeStep } = useOnboarding();
+  const { t } = useLanguage();
   const buttonScale = useSharedValue(1);
 
   // Debug onboarding data on component mount
@@ -344,7 +346,7 @@ export default function ProfileCompletion() {
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
         <Pressable style={styles.skipButton} onPress={handleSkip}>
-          <Text style={styles.skipText}>Überspringen</Text>
+          <Text style={styles.skipText}>{t('common.skip')}</Text>
         </Pressable>
         
         <AnimatedPressable

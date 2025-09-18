@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   StatusBar,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
@@ -340,16 +341,30 @@ export default function OnboardingAuth() {
 
           {/* Auth Button */}
           <AnimatedPressable
-            style={[styles.authButton, buttonAnimatedStyle]}
+            style={[
+              styles.authButton, 
+              buttonAnimatedStyle,
+              loading && styles.authButtonLoading
+            ]}
             onPress={handleAuth}
             onPressIn={handlePressIn}
             onPressOut={handlePressOut}
             disabled={loading}
           >
-            <Text style={styles.authButtonText}>
+            {loading && (
+              <ActivityIndicator 
+                size="small" 
+                color="#161618" 
+                style={styles.loadingSpinner} 
+              />
+            )}
+            <Text style={[
+              styles.authButtonText,
+              loading && styles.authButtonTextLoading
+            ]}>
               {loading 
-                ? (isLogin ? 'Signing in...' : 'Signing up...') 
-                : (isLogin ? 'Sign In' : 'Sign Up')
+                ? (isLogin ? t('onboarding.auth.buttons.loggingIn') || 'Signing in...' : t('onboarding.auth.buttons.signingUp') || 'Signing up...') 
+                : (isLogin ? t('onboarding.auth.buttons.login') || 'Sign In' : t('onboarding.auth.buttons.signup') || 'Sign Up')
               }
             </Text>
           </AnimatedPressable>
@@ -473,6 +488,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#161618',
     fontFamily: 'Montserrat-SemiBold',
+  },
+  authButtonLoading: {
+    opacity: 0.8,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  authButtonTextLoading: {
+    marginLeft: 8,
+  },
+  loadingSpinner: {
+    marginRight: 0,
   },
   toggleContainer: {
     flexDirection: 'row',
