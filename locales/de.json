@@ -28,7 +28,13 @@
     "fillAllFields": "Bitte füllen Sie alle Felder aus",
     "permissionRequired": "Berechtigung erforderlich",
     "copied": "Kopiert!",
-    "navigationError": "Navigationsfehler"
+    "navigationError": "Navigationsfehler",
+    "name": "Name",
+    "birthday": "Geburtstag",
+    "role": "Rolle",
+    "interests": "Interessen",
+    "email": "E-Mail",
+    "yearsOld": "Jahre alt"
   },
   "settings": {
     "language": {
@@ -294,6 +300,18 @@
       "title": "Einkaufsliste ist leer",
       "description": "Fügen Sie Ihre ersten Artikel zur Einkaufsliste hinzu und teilen Sie sie mit Ihrer Familie!",
       "button": "Artikel hinzufügen"
+    }
+  },
+  "profile": {
+    "title": "Mein Profil",
+    "settings": "Einstellungen",
+    "logout": "Abmelden",
+    "roles": {
+      "parent": "Elternteil",
+      "child": "Kind",
+      "teenager": "Teenager",
+      "grandparent": "Großeltern",
+      "other": "Andere"
     }
   },
   "onboarding": {

@@ -19,6 +19,7 @@ import { sanitizeText, validateName } from '@/utils/sanitization';
 import { validateBirthDate, formatBirthDate, calculateAge, getZodiacSignKey } from '@/utils/birthdaySystem';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useLoading } from '@/contexts/LoadingContext';
 import { useLocalizedDate } from '@/utils/dateLocalization';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -338,6 +339,7 @@ export default function PersonalInfoScreen() {
     }
   }, [onboardingData.personalInfo]);
   const { t, currentLanguage } = useLanguage();
+  const { showLoading, hideLoading } = useLoading();
   // Temporarily simplified - removed useLocalizedDate to test if it's causing issues
   const getLocale = () => 'en-US';
   
@@ -603,13 +605,6 @@ export default function PersonalInfoScreen() {
     console.log('DEBUG: Current context loading state:', loading);
     console.log('DEBUG: Current onboardingData from context:', onboardingData);
     
-    // Test AsyncStorage first
-    console.log('DEBUG: Testing AsyncStorage functionality...');
-    const storageWorking = await testAsyncStorage();
-    console.log('DEBUG: AsyncStorage test result:', storageWorking);
-    
-    logCurrentState();
-    
     // Use ref values as backup if state values are empty
     const currentName = name || stateRef.current.name;
     const currentBirthDate = birthDate || stateRef.current.birthDate;
@@ -635,6 +630,9 @@ export default function PersonalInfoScreen() {
     }
     
     console.log('DEBUG: Validation passed, proceeding to save personal info');
+    
+    // Show full-screen loading
+    showLoading(t('common.saving') || 'Saving...');
 
     // Use the exact name you typed (with basic sanitization for safety)
     const finalName = sanitizeText(currentName, 50);
@@ -706,10 +704,13 @@ export default function PersonalInfoScreen() {
       });
 
       console.log('DEBUG: All saves completed successfully, navigating to preferences');
+      hideLoading();
       router.push('/(onboarding)/preferences');
     } catch (error: any) {
       console.error('ERROR: Failed to save personal info:', error);
       console.error('ERROR details:', error.message, error.stack);
+      
+      hideLoading();
       
       // Test if it's an AsyncStorage issue
       console.log('DEBUG: Testing AsyncStorage again after error...');
@@ -754,9 +755,11 @@ export default function PersonalInfoScreen() {
         });
         
         console.log('DEBUG: Emergency save successful, navigating to preferences');
+        hideLoading();
         router.push('/(onboarding)/preferences');
       } catch (emergencyError) {
         console.error('ERROR: Emergency save also failed:', emergencyError);
+        hideLoading();
         alert(`Error saving information: ${error.message || error}. Please try again.`);
       }
     }

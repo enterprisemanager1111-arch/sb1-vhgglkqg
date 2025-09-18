@@ -14,6 +14,7 @@ import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-na
 import { ChevronLeft, ChevronRight, Target, CircleHelp as HelpCircle } from 'lucide-react-native';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useLoading } from '@/contexts/LoadingContext';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -23,6 +24,7 @@ export default function PreferencesSetup() {
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
 
   const { onboardingData, updatePreferences, completeStep } = useOnboarding();
+  const { showLoading, hideLoading } = useLoading();
 
   const buttonScale = useSharedValue(1);
 
@@ -42,6 +44,8 @@ export default function PreferencesSetup() {
   }, [onboardingData]);
 
   const handleContinue = async () => {
+    showLoading(t('common.saving') || 'Saving...');
+    
     try {
       // Save preferences to onboarding context
       await updatePreferences({
@@ -53,9 +57,11 @@ export default function PreferencesSetup() {
         goals: goals.join(', ')
       });
 
+      hideLoading();
       router.push('/(onboarding)/auth');
     } catch (error) {
       console.error('Error saving preferences:', error);
+      hideLoading();
       alert('Fehler beim Speichern der Präferenzen. Bitte versuchen Sie es erneut.');
     }
   };

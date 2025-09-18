@@ -25,6 +25,7 @@ import { Flame, Trophy, TrendingUp, Target, Star, Crown, Medal, Award, Plus, Cal
 import { useFamily } from '@/contexts/FamilyContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useLoading } from '@/contexts/LoadingContext';
 import { useFamilyPoints, POINTS_CONFIG, ACHIEVEMENTS_CONFIG } from '@/hooks/useFamilyPoints';
 import { getCurrentLevel, getNextLevel, getLevelProgress, FAMILY_LEVELS } from '@/hooks/useFamilyPoints';
 import { NotificationSystem, useNotifications } from '@/components/NotificationSystem';
@@ -44,6 +45,7 @@ export default function FlamesScreen() {
   const { isInFamily, familyMembers, loading: familyLoading, refreshFamily } = useFamily();
   const { user, profile } = useAuth();
   const { t } = useLanguage();
+  const { showLoading, hideLoading } = useLoading();
   const {
     leaderboard,
     currentUserRank,
@@ -198,6 +200,7 @@ export default function FlamesScreen() {
       return;
     }
 
+    showLoading('Creating goal...');
     try {
       await createGoal({
         title: newGoalTitle.trim(),
@@ -210,8 +213,10 @@ export default function FlamesScreen() {
       setShowGoalModal(false);
       
       showMemberActivity(profile?.name || 'Ein Familienmitglied', `${t('flames.goal.created')} ${newGoalTitle}`);
+      hideLoading();
     } catch (error: any) {
       Alert.alert(t('common.error'), t('flames.goal.error.create') + ' ' + error.message);
+      hideLoading();
     }
   };
 

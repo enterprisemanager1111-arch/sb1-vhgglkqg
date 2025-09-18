@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { sanitizeInput, validateEmail } from '@/utils/sanitization';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useLoading } from '@/contexts/LoadingContext';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedView = Animated.createAnimatedComponent(View);
@@ -71,6 +72,7 @@ export default function OnboardingAuth() {
   const { t } = useLanguage();
   const { onboardingData, completeStep, updateAuthInfo, loading: onboardingLoading, updatePersonalInfo } = useOnboarding();
   const { signIn, signUp } = useAuth();
+  const { showLoading, hideLoading } = useLoading();
   
   const [isLogin, setIsLogin] = useState(false);
   const [email, setEmail] = useState('');
@@ -136,6 +138,7 @@ export default function OnboardingAuth() {
     }
 
     setLoading(true);
+    showLoading(isLogin ? (t('onboarding.auth.buttons.loggingIn') || 'Signing in...') : (t('onboarding.auth.buttons.signingUp') || 'Signing up...'));
     
     try {
       await updateAuthInfo({
@@ -220,6 +223,7 @@ export default function OnboardingAuth() {
       showNotification('error', errorMessage);
     } finally {
       setLoading(false);
+      hideLoading();
     }
   };
 

@@ -29,7 +29,19 @@ export default function ProfileCompletion() {
   
   const { user, profile, updateProfile } = useAuth();
   const { onboardingData, clearOnboardingData, completeStep } = useOnboarding();
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
+  
+  // Get locale for date formatting
+  const getLocale = () => {
+    switch (currentLanguage.code) {
+      case 'de': return 'de-DE';
+      case 'fr': return 'fr-FR';
+      case 'es': return 'es-ES';
+      case 'it': return 'it-IT';
+      case 'nl': return 'nl-NL';
+      default: return 'en-US';
+    }
+  };
   const buttonScale = useSharedValue(1);
 
   // Debug onboarding data on component mount
@@ -282,38 +294,39 @@ export default function ProfileCompletion() {
 
           {/* Profile Summary */}
           <View style={styles.summarySection}>
-            <Text style={styles.summaryTitle}>Your Profile</Text>
+            <Text style={styles.summaryTitle}>{t('profile.title') || 'Your Profile'}</Text>
             <View style={styles.summaryCard}>
               <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>Name</Text>
+                <Text style={styles.summaryLabel}>{t('common.name') || 'Name'}</Text>
                 <Text style={styles.summaryValue}>{userName}</Text>
               </View>
               
               {userBirthday && (
                 <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>Birthday</Text>
+                  <Text style={styles.summaryLabel}>{t('common.birthday') || 'Birthday'}</Text>
                   <Text style={styles.summaryValue}>
-                    {formatBirthDate(userBirthday, false)} ({calculateAge(userBirthday)} years old)
+                    {formatBirthDate(userBirthday, false, getLocale())} ({calculateAge(userBirthday)} {t('common.yearsOld') || 'years old'})
                   </Text>
                 </View>
               )}
               
               {userRole && (
                 <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>Role</Text>
+                  <Text style={styles.summaryLabel}>{t('common.role') || 'Role'}</Text>
                   <Text style={styles.summaryValue}>
-                    {userRole === 'parent' ? 'Parent' :
-                     userRole === 'child' ? 'Child' :
-                     userRole === 'teenager' ? 'Teenager' :
-                     userRole === 'grandparent' ? 'Grandparent' :
-                     'Other'}
+                    {t(`profile.roles.${userRole}`) || 
+                     (userRole === 'parent' ? 'Parent' :
+                      userRole === 'child' ? 'Child' :
+                      userRole === 'teenager' ? 'Teenager' :
+                      userRole === 'grandparent' ? 'Grandparent' :
+                      'Other')}
                   </Text>
                 </View>
               )}
 
               {userInterests.length > 0 && (
                 <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>Interests</Text>
+                  <Text style={styles.summaryLabel}>{t('common.interests') || 'Interests'}</Text>
                   <Text style={styles.summaryValue}>
                     {userInterests.slice(0, 3).join(', ')}
                     {userInterests.length > 3 && '...'}
@@ -323,7 +336,7 @@ export default function ProfileCompletion() {
               
               {user?.email && (
                 <View style={styles.summaryItem}>
-                  <Text style={styles.summaryLabel}>Email</Text>
+                  <Text style={styles.summaryLabel}>{t('common.email') || 'Email'}</Text>
                   <Text style={styles.summaryValue}>{user.email}</Text>
                 </View>
               )}

@@ -173,7 +173,13 @@
     "profile": "Profiel",
     "logout": "Uitloggen",
     "saving": "Opslaan...",
-    "redirecting": "Doorverwijzen..."
+    "redirecting": "Doorverwijzen...",
+    "name": "Naam",
+    "birthday": "Verjaardag",
+    "role": "Rol",
+    "interests": "Interesses",
+    "email": "E-mail",
+    "yearsOld": "jaar oud"
   },
   "calendar": {
     "months": {
@@ -216,6 +222,13 @@
     "role": "Rol",
     "interests": "Interesses",
     "settings": "Instellingen",
-    "logout": "Uitloggen"
+    "logout": "Uitloggen",
+    "roles": {
+      "parent": "Ouder",
+      "child": "Kind",
+      "teenager": "Tiener",
+      "grandparent": "Grootouder",
+      "other": "Anders"
+    }
   }
 }

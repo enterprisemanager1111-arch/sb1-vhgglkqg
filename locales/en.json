@@ -28,7 +28,13 @@
     "fillAllFields": "Please fill in all fields",
     "permissionRequired": "Permission Required",
     "copied": "Copied!",
-    "navigationError": "Navigation error"
+    "navigationError": "Navigation error",
+    "name": "Name",
+    "birthday": "Birthday",
+    "role": "Role",
+    "interests": "Interests",
+    "email": "Email",
+    "yearsOld": "years old"
   },
   "settings": {
     "language": {
@@ -307,7 +313,14 @@
   "profile": {
     "title": "My Profile",
     "settings": "Settings",
-    "logout": "Logout"
+    "logout": "Logout",
+    "roles": {
+      "parent": "Parent",
+      "child": "Child",
+      "teenager": "Teenager",
+      "grandparent": "Grandparent",
+      "other": "Other"
+    }
   },
   "onboarding": {
     "stepIndicator": "Step {{current}} of {{total}}",

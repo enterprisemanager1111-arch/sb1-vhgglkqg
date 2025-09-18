@@ -12,12 +12,14 @@ import { router } from 'expo-router';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
 import { ChevronLeft, ChevronRight, Globe, Check } from 'lucide-react-native';
 import { supportedLanguages, useLanguage } from '@/contexts/LanguageContext';
+import { useLoading } from '@/contexts/LoadingContext';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function LanguageSelection() {
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const { currentLanguage, changeLanguage, t } = useLanguage();
+  const { showLoading, hideLoading } = useLoading();
   
   const buttonScale = useSharedValue(1);
 
@@ -27,13 +29,17 @@ export default function LanguageSelection() {
   }, [currentLanguage]);
 
   const handleContinue = async () => {
+    showLoading(t('common.redirecting') || 'Redirecting...');
+    
     try {
       // Language is already saved when selected - just navigate
       // Don't save any onboarding data to avoid overwriting personal info
       console.log('DEBUG: Language page - navigating to personal without saving onboarding data');
+      hideLoading();
       router.push('/(onboarding)/personal');
     } catch (error) {
       console.error('Error navigating to personal page:', error);
+      hideLoading();
       alert('Navigation error');
     }
   };

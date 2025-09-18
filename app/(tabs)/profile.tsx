@@ -69,6 +69,18 @@ export default function UserProfile() {
   const { user, profile, signOut, updateProfile } = useAuth();
   const { currentFamily, familyMembers, userRole } = useFamily();
   const { currentLanguage, changeLanguage, t } = useLanguage();
+  
+  // Get locale for date formatting
+  const getLocale = () => {
+    switch (currentLanguage.code) {
+      case 'de': return 'de-DE';
+      case 'fr': return 'fr-FR';
+      case 'es': return 'es-ES';
+      case 'it': return 'it-IT';
+      case 'nl': return 'nl-NL';
+      default: return 'en-US';
+    }
+  };
   const { tasks, getCompletedTasks } = useFamilyTasks();
   const { items, getCompletedItems } = useFamilyShoppingItems();
 
@@ -585,7 +597,7 @@ export default function UserProfile() {
                 <Text style={styles.profileEmail}>{userEmail}</Text>
                 {profile?.birth_date && (
                   <Text style={styles.profileBirthday}>
-                    🎂 {formatBirthDate(profile.birth_date, false)}
+                    🎂 {formatBirthDate(profile.birth_date, false, getLocale())}
                   </Text>
                 )}
               </View>

@@ -20,6 +20,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { FamilyProvider } from '@/contexts/FamilyContext';
 import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
+import { LoadingProvider } from '@/contexts/LoadingContext';
 import CustomSplashScreen from '@/components/SplashScreen';
 
 // Prevent splash screen from auto-hiding
@@ -75,19 +76,21 @@ export default function RootLayout() {
 
   return (
     <LanguageProvider>
-      <OnboardingProvider>
-        <AuthProvider>
-          <FamilyProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="(onboarding)" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="+not-found" options={{ headerShown: false }} />
-          </Stack>
-          <StatusBar style="auto" />
-          </FamilyProvider>
-        </AuthProvider>
-      </OnboardingProvider>
+      <LoadingProvider>
+        <OnboardingProvider>
+          <AuthProvider>
+            <FamilyProvider>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="index" />
+              <Stack.Screen name="(onboarding)" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="+not-found" options={{ headerShown: false }} />
+            </Stack>
+            <StatusBar style="auto" />
+            </FamilyProvider>
+          </AuthProvider>
+        </OnboardingProvider>
+      </LoadingProvider>
     </LanguageProvider>
   );
 }

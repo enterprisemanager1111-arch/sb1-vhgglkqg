@@ -104,7 +104,13 @@
     "fillAllFields": "Veuillez remplir tous les champs",
     "permissionRequired": "Autorisation requise",
     "copied": "Copié !",
-    "navigationError": "Erreur de navigation"
+    "navigationError": "Erreur de navigation",
+    "name": "Nom",
+    "birthday": "Anniversaire",
+    "role": "Rôle",
+    "interests": "Intérêts",
+    "email": "E-mail",
+    "yearsOld": "ans"
   },
   "settings": {
     "language": {
@@ -369,6 +375,13 @@
   "profile": {
     "title": "Mon Profil",
     "settings": "Paramètres",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "roles": {
+      "parent": "Parent",
+      "child": "Enfant",
+      "teenager": "Adolescent",
+      "grandparent": "Grand-parent",
+      "other": "Autre"
+    }
   }
 }

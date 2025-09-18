@@ -244,7 +244,7 @@ export const performDailyBirthdayCheck = async (
 /**
  * Format date for display with locale support
  */
-export const formatBirthDate = (birthDate: string, includeYear: boolean = false, locale: string = 'de-DE'): string => {
+export const formatBirthDate = (birthDate: string, includeYear: boolean = false, locale: string = 'en-US'): string => {
   const date = new Date(birthDate);
   const options: Intl.DateTimeFormatOptions = { 
     day: 'numeric', 

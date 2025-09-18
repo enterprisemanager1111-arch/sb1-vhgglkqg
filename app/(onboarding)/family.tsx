@@ -17,6 +17,7 @@ import { useFamily } from '@/contexts/FamilyContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { sanitizeText, validateName, validateFamilyCode } from '@/utils/sanitization';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useLoading } from '@/contexts/LoadingContext';
 import { useFamilyPoints } from '@/hooks/useFamilyPoints';
 import { useNotifications } from '@/components/NotificationSystem';
 
@@ -24,6 +25,7 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function FamilySetup() {
   const { t } = useLanguage();
+  const { showLoading, hideLoading } = useLoading();
   const [mode, setMode] = useState<'choose' | 'create' | 'join' | 'search'>('choose');
   const [familyName, setFamilyName] = useState('');
   const [joinCode, setJoinCode] = useState('');
@@ -61,6 +63,7 @@ export default function FamilySetup() {
       return;
     }
     setLoading(true);
+    showLoading('Creating family...');
     try {
       const sanitizedName = sanitizeText(familyName, 50);
       const result = await createFamily(sanitizedName);
@@ -96,6 +99,7 @@ export default function FamilySetup() {
       Alert.alert('Error', error.message || 'Could not create family');
     } finally {
       setLoading(false);
+      hideLoading();
     }
   };
 
@@ -115,6 +119,7 @@ export default function FamilySetup() {
     }
     
     setLoading(true);
+    showLoading('Joining family...');
     
     try {
       await joinFamily(codeValidation.sanitized);
@@ -152,6 +157,7 @@ export default function FamilySetup() {
       Alert.alert('Error', error.message || 'Could not join family');
     } finally {
       setLoading(false);
+      hideLoading();
     }
   };
 
@@ -162,6 +168,7 @@ export default function FamilySetup() {
     }
 
     setSearchLoading(true);
+    showLoading('Searching families...');
     try {
       const results = await searchFamilies(searchTerm);
       setSearchResults(results);
@@ -169,6 +176,7 @@ export default function FamilySetup() {
       Alert.alert('Error', error.message || 'Search failed');
     } finally {
       setSearchLoading(false);
+      hideLoading();
     }
   };
 

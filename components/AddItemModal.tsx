@@ -18,6 +18,7 @@ import Animated, {
   runOnJS
 } from 'react-native-reanimated';
 import { X, ChevronLeft, Calendar, SquareCheck as CheckSquare, ShoppingCart, Plus, Clock, ChevronDown, User } from 'lucide-react-native';
+import { useLoading } from '@/contexts/LoadingContext';
 import { router } from 'expo-router';
 import { useFamilyTasks } from '@/hooks/useFamilyTasks';
 import { useFamilyShoppingItems } from '@/hooks/useFamilyShoppingItems';
@@ -77,6 +78,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
   const [currentView, setCurrentView] = useState<'menu' | 'task' | 'shopping' | 'calendar'>('menu');
   const [form, setForm] = useState<QuickCreateForm>(defaultForm);
   const [loading, setLoading] = useState(false);
+  const { showLoading, hideLoading } = useLoading();
   
   const { createTask } = useFamilyTasks();
   const { createItem } = useFamilyShoppingItems();
@@ -132,6 +134,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
     }
 
     setLoading(true);
+    showLoading('Creating task...');
     try {
       const dueDate = form.taskDueDate ? new Date(form.taskDueDate).toISOString() : undefined;
       
@@ -154,6 +157,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
       Alert.alert('Fehler', error.message || 'Aufgabe konnte nicht erstellt werden');
     } finally {
       setLoading(false);
+      hideLoading();
     }
   };
 
@@ -165,6 +169,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
     }
 
     setLoading(true);
+    showLoading('Adding item...');
     try {
       await createItem({
         name: form.itemName.trim(),
@@ -181,6 +186,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
       Alert.alert('Fehler', error.message || 'Artikel konnte nicht hinzugefügt werden');
     } finally {
       setLoading(false);
+      hideLoading();
     }
   };
 
@@ -210,6 +216,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
     }
 
     setLoading(true);
+    showLoading('Creating event...');
     try {
       // Parse DD.MM.YYYY format
       const [day, month, year] = form.eventDate.split('.').map(Number);
@@ -222,6 +229,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
           eventDateTime.getFullYear() !== year) {
         Alert.alert('Fehler', 'Ungültiges Datum. Bitte überprüfen Sie Ihre Eingabe.');
         setLoading(false);
+        hideLoading();
         return;
       }
       
@@ -238,6 +246,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
       if (eventDateTime < now) {
         Alert.alert('Fehler', 'Das Datum darf nicht in der Vergangenheit liegen');
         setLoading(false);
+        hideLoading();
         return;
       }
 
@@ -261,6 +270,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
       Alert.alert('Fehler', error.message || 'Termin konnte nicht erstellt werden');
     } finally {
       setLoading(false);
+      hideLoading();
     }
   };
 
