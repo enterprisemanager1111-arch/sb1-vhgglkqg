@@ -32,7 +32,11 @@ const DatePickerModal = ({
   onClose: () => void; 
   onDateSelect: (date: Date) => void; 
 }) => {
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
+  
+  // Debug logging for date picker modal
+  console.log('DatePickerModal rendered with language:', currentLanguage.code);
+  console.log('Cancel button text:', t('common.cancel'));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear() - 25);
   const [selectedMonth, setSelectedMonth] = useState(1);
   const [selectedDay, setSelectedDay] = useState(1);
@@ -48,10 +52,91 @@ const DatePickerModal = ({
       years.push(year);
     }
     
-    // Generate months
+    // Generate months with translations
     const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      currentLanguage.code === 'en' ? 'January' : 
+      currentLanguage.code === 'de' ? 'Januar' : 
+      currentLanguage.code === 'nl' ? 'Januari' : 
+      currentLanguage.code === 'fr' ? 'Janvier' : 
+      currentLanguage.code === 'es' ? 'Enero' : 
+      currentLanguage.code === 'it' ? 'Gennaio' : 'January',
+
+      currentLanguage.code === 'en' ? 'February' : 
+      currentLanguage.code === 'de' ? 'Februar' : 
+      currentLanguage.code === 'nl' ? 'Februari' : 
+      currentLanguage.code === 'fr' ? 'Février' : 
+      currentLanguage.code === 'es' ? 'Febrero' : 
+      currentLanguage.code === 'it' ? 'Febbraio' : 'February',
+
+      currentLanguage.code === 'en' ? 'March' : 
+      currentLanguage.code === 'de' ? 'März' : 
+      currentLanguage.code === 'nl' ? 'Maart' : 
+      currentLanguage.code === 'fr' ? 'Mars' : 
+      currentLanguage.code === 'es' ? 'Marzo' : 
+      currentLanguage.code === 'it' ? 'Marzo' : 'March',
+
+      currentLanguage.code === 'en' ? 'April' : 
+      currentLanguage.code === 'de' ? 'April' : 
+      currentLanguage.code === 'nl' ? 'April' : 
+      currentLanguage.code === 'fr' ? 'Avril' : 
+      currentLanguage.code === 'es' ? 'Abril' : 
+      currentLanguage.code === 'it' ? 'Aprile' : 'April',
+
+      currentLanguage.code === 'en' ? 'May' : 
+      currentLanguage.code === 'de' ? 'Mai' : 
+      currentLanguage.code === 'nl' ? 'Mei' : 
+      currentLanguage.code === 'fr' ? 'Mai' : 
+      currentLanguage.code === 'es' ? 'Mayo' : 
+      currentLanguage.code === 'it' ? 'Maggio' : 'May',
+
+      currentLanguage.code === 'en' ? 'June' : 
+      currentLanguage.code === 'de' ? 'Juni' : 
+      currentLanguage.code === 'nl' ? 'Juni' : 
+      currentLanguage.code === 'fr' ? 'Juin' : 
+      currentLanguage.code === 'es' ? 'Junio' : 
+      currentLanguage.code === 'it' ? 'Giugno' : 'June',
+
+      currentLanguage.code === 'en' ? 'July' : 
+      currentLanguage.code === 'de' ? 'Juli' : 
+      currentLanguage.code === 'nl' ? 'Juli' : 
+      currentLanguage.code === 'fr' ? 'Juillet' : 
+      currentLanguage.code === 'es' ? 'Julio' : 
+      currentLanguage.code === 'it' ? 'Luglio' : 'July',
+
+      currentLanguage.code === 'en' ? 'August' : 
+      currentLanguage.code === 'de' ? 'August' : 
+      currentLanguage.code === 'nl' ? 'Augustus' : 
+      currentLanguage.code === 'fr' ? 'Août' : 
+      currentLanguage.code === 'es' ? 'Agosto' : 
+      currentLanguage.code === 'it' ? 'Agosto' : 'August',
+
+      currentLanguage.code === 'en' ? 'September' : 
+      currentLanguage.code === 'de' ? 'September' : 
+      currentLanguage.code === 'nl' ? 'September' : 
+      currentLanguage.code === 'fr' ? 'Septembre' : 
+      currentLanguage.code === 'es' ? 'Septiembre' : 
+      currentLanguage.code === 'it' ? 'Settembre' : 'September',
+
+      currentLanguage.code === 'en' ? 'October' : 
+      currentLanguage.code === 'de' ? 'Oktober' : 
+      currentLanguage.code === 'nl' ? 'Oktober' : 
+      currentLanguage.code === 'fr' ? 'Octobre' : 
+      currentLanguage.code === 'es' ? 'Octubre' : 
+      currentLanguage.code === 'it' ? 'Ottobre' : 'October',
+
+      currentLanguage.code === 'en' ? 'November' : 
+      currentLanguage.code === 'de' ? 'November' : 
+      currentLanguage.code === 'nl' ? 'November' : 
+      currentLanguage.code === 'fr' ? 'Novembre' : 
+      currentLanguage.code === 'es' ? 'Noviembre' : 
+      currentLanguage.code === 'it' ? 'Novembre' : 'November',
+
+      currentLanguage.code === 'en' ? 'December' : 
+      currentLanguage.code === 'de' ? 'Dezember' : 
+      currentLanguage.code === 'nl' ? 'December' : 
+      currentLanguage.code === 'fr' ? 'Décembre' : 
+      currentLanguage.code === 'es' ? 'Diciembre' : 
+      currentLanguage.code === 'it' ? 'Dicembre' : 'December'
     ];
     monthNames.forEach((month, index) => {
       months.push({ label: month, value: index + 1 });
@@ -81,12 +166,28 @@ const DatePickerModal = ({
     >
       <View style={styles.modalOverlay}>
         <View style={styles.datePickerContainer}>
-          <Text style={styles.datePickerTitle}>{t('onboarding.personal.datePicker.title')}</Text>
+          <Text style={styles.datePickerTitle}>
+            {currentLanguage.code === 'en' ? 'Select birth date' : 
+             currentLanguage.code === 'nl' ? 'Selecteer geboortedatum' : 
+             currentLanguage.code === 'de' ? 'Geburtsdatum auswählen' : 
+             currentLanguage.code === 'fr' ? 'Sélectionner la date de naissance' : 
+             currentLanguage.code === 'es' ? 'Seleccionar fecha de nacimiento' : 
+             currentLanguage.code === 'it' ? 'Seleziona data di nascita' : 
+             t('onboarding.personal.datePicker.title') || 'Select birth date'}
+          </Text>
           
           <View style={styles.datePickerContent}>
             {/* Year Selector */}
             <View style={styles.dateSection}>
-              <Text style={styles.dateSectionLabel}>{t('onboarding.personal.datePicker.year')}</Text>
+              <Text style={styles.dateSectionLabel}>
+                {currentLanguage.code === 'en' ? 'Year' : 
+                 currentLanguage.code === 'nl' ? 'Jaar' : 
+                 currentLanguage.code === 'de' ? 'Jahr' : 
+                 currentLanguage.code === 'fr' ? 'Année' : 
+                 currentLanguage.code === 'es' ? 'Año' : 
+                 currentLanguage.code === 'it' ? 'Anno' : 
+                 t('onboarding.personal.datePicker.year') || 'Year'}
+              </Text>
               <ScrollView style={styles.dateScroll} showsVerticalScrollIndicator={false}>
                 {years.map(year => (
                   <Pressable
@@ -104,7 +205,15 @@ const DatePickerModal = ({
             
             {/* Month Selector */}
             <View style={styles.dateSection}>
-              <Text style={styles.dateSectionLabel}>{t('onboarding.personal.datePicker.month')}</Text>
+              <Text style={styles.dateSectionLabel}>
+                {currentLanguage.code === 'en' ? 'Month' : 
+                 currentLanguage.code === 'nl' ? 'Maand' : 
+                 currentLanguage.code === 'de' ? 'Monat' : 
+                 currentLanguage.code === 'fr' ? 'Mois' : 
+                 currentLanguage.code === 'es' ? 'Mes' : 
+                 currentLanguage.code === 'it' ? 'Mese' : 
+                 t('onboarding.personal.datePicker.month') || 'Month'}
+              </Text>
               <ScrollView style={styles.dateScroll} showsVerticalScrollIndicator={false}>
                 {months.map(month => (
                   <Pressable
@@ -122,7 +231,15 @@ const DatePickerModal = ({
             
             {/* Day Selector */}
             <View style={styles.dateSection}>
-              <Text style={styles.dateSectionLabel}>{t('onboarding.personal.datePicker.day')}</Text>
+              <Text style={styles.dateSectionLabel}>
+                {currentLanguage.code === 'en' ? 'Day' : 
+                 currentLanguage.code === 'nl' ? 'Dag' : 
+                 currentLanguage.code === 'de' ? 'Tag' : 
+                 currentLanguage.code === 'fr' ? 'Jour' : 
+                 currentLanguage.code === 'es' ? 'Día' : 
+                 currentLanguage.code === 'it' ? 'Giorno' : 
+                 t('onboarding.personal.datePicker.day') || 'Day'}
+              </Text>
               <ScrollView style={styles.dateScroll} showsVerticalScrollIndicator={false}>
                 {days.map(day => (
                   <Pressable
@@ -141,10 +258,26 @@ const DatePickerModal = ({
           
           <View style={styles.datePickerButtons}>
             <Pressable style={styles.datePickerCancel} onPress={onClose}>
-              <Text style={styles.datePickerCancelText}>{t('common.cancel')}</Text>
+              <Text style={styles.datePickerCancelText}>
+                {currentLanguage.code === 'en' ? 'Cancel' : 
+                 currentLanguage.code === 'nl' ? 'Annuleren' : 
+                 currentLanguage.code === 'de' ? 'Abbrechen' : 
+                 currentLanguage.code === 'fr' ? 'Annuler' : 
+                 currentLanguage.code === 'es' ? 'Cancelar' : 
+                 currentLanguage.code === 'it' ? 'Annulla' : 
+                 t('common.cancel') || 'Cancel'}
+              </Text>
             </Pressable>
             <Pressable style={styles.datePickerConfirm} onPress={handleConfirm}>
-              <Text style={styles.datePickerConfirmText}>{t('onboarding.personal.datePicker.confirm')}</Text>
+              <Text style={styles.datePickerConfirmText}>
+                {currentLanguage.code === 'en' ? 'Confirm' : 
+                 currentLanguage.code === 'nl' ? 'Bevestigen' : 
+                 currentLanguage.code === 'de' ? 'Bestätigen' : 
+                 currentLanguage.code === 'fr' ? 'Confirmer' : 
+                 currentLanguage.code === 'es' ? 'Confirmar' : 
+                 currentLanguage.code === 'it' ? 'Conferma' : 
+                 t('onboarding.personal.datePicker.confirm') || 'Confirm'}
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -163,26 +296,49 @@ export default function PersonalInfoScreen() {
     console.log('DEBUG: PersonalInfoScreen useEffect - Component mounted');
     console.log('DEBUG: Initial onboarding data:', onboardingData);
   }, []);
-  const { t } = useLanguage();
+
+  // Load existing data from context when it becomes available
+  React.useEffect(() => {
+    console.log('DEBUG: Context data changed, updating form state');
+    console.log('DEBUG: Context personalInfo:', onboardingData.personalInfo);
+    
+    if (onboardingData.personalInfo.name && !name) {
+      console.log('DEBUG: Loading name from context:', onboardingData.personalInfo.name);
+      setName(onboardingData.personalInfo.name);
+    }
+    if (onboardingData.personalInfo.birthDate && !birthDate) {
+      console.log('DEBUG: Loading birthDate from context:', onboardingData.personalInfo.birthDate);
+      setBirthDate(onboardingData.personalInfo.birthDate);
+    }
+    if (onboardingData.personalInfo.role && !role) {
+      console.log('DEBUG: Loading role from context:', onboardingData.personalInfo.role);
+      setRole(onboardingData.personalInfo.role);
+    }
+    if (onboardingData.personalInfo.interests && onboardingData.personalInfo.interests.length > 0 && interests.length === 0) {
+      console.log('DEBUG: Loading interests from context:', onboardingData.personalInfo.interests);
+      setInterests(onboardingData.personalInfo.interests);
+    }
+  }, [onboardingData.personalInfo]);
+  const { t, currentLanguage } = useLanguage();
   // Temporarily simplified - removed useLocalizedDate to test if it's causing issues
   const getLocale = () => 'en-US';
   
   // Initialize state with logging
   const [name, setName] = useState(() => {
-    console.log('DEBUG: Initializing name state with empty string');
-    return '';
+    console.log('DEBUG: Initializing name state with:', onboardingData.personalInfo.name || '');
+    return onboardingData.personalInfo.name || '';
   });
   const [birthDate, setBirthDate] = useState(() => {
-    console.log('DEBUG: Initializing birthDate state with empty string');
-    return '';
+    console.log('DEBUG: Initializing birthDate state with:', onboardingData.personalInfo.birthDate || '');
+    return onboardingData.personalInfo.birthDate || '';
   });
   const [role, setRole] = useState(() => {
-    console.log('DEBUG: Initializing role state with empty string');
-    return '';
+    console.log('DEBUG: Initializing role state with:', onboardingData.personalInfo.role || '');
+    return onboardingData.personalInfo.role || '';
   });
   const [interests, setInterests] = useState<string[]>(() => {
-    console.log('DEBUG: Initializing interests state with empty array');
-    return [];
+    console.log('DEBUG: Initializing interests state with:', onboardingData.personalInfo.interests || []);
+    return onboardingData.personalInfo.interests || [];
   });
   
   // Debug state changes - log whenever form data changes
@@ -533,7 +689,15 @@ export default function PersonalInfoScreen() {
         <Pressable style={styles.backButton} onPress={handleBack}>
           <ChevronLeft size={24} color="#161618" strokeWidth={2} />
         </Pressable>
-        <Text style={styles.stepIndicator}>{t('onboarding.stepIndicator', { current: '2', total: '5' })}</Text>
+        <Text style={styles.stepIndicator}>
+          {currentLanguage.code === 'en' ? 'Step 2 of 5' : 
+           currentLanguage.code === 'de' ? 'Schritt 2 von 5' : 
+           currentLanguage.code === 'nl' ? 'Stap 2 van 5' : 
+           currentLanguage.code === 'fr' ? 'Étape 2 sur 5' : 
+           currentLanguage.code === 'es' ? 'Paso 2 de 5' : 
+           currentLanguage.code === 'it' ? 'Passaggio 2 di 5' : 
+           t('onboarding.stepIndicator', { current: '2', total: '5' }) || 'Step 2 of 5'}
+        </Text>
       </View>
 
       {/* Progress Indicator */}
@@ -550,9 +714,23 @@ export default function PersonalInfoScreen() {
         <View style={styles.content}>
           {/* Title */}
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>{t('onboarding.personal.title')}</Text>
+            <Text style={styles.title}>
+              {currentLanguage.code === 'en' ? 'Tell us about yourself' : 
+               currentLanguage.code === 'de' ? 'Erzählen Sie uns von sich' : 
+               currentLanguage.code === 'nl' ? 'Vertel ons over jezelf' : 
+               currentLanguage.code === 'fr' ? 'Parlez-nous de vous' : 
+               currentLanguage.code === 'es' ? 'Cuéntanos sobre ti' : 
+               currentLanguage.code === 'it' ? 'Parlaci di te' : 
+               t('onboarding.personal.title') || 'Tell us about yourself'}
+            </Text>
             <Text style={styles.subtitle}>
-              {t('onboarding.personal.subtitle')}
+              {currentLanguage.code === 'en' ? 'This information helps us tailor Famora perfectly for you' : 
+               currentLanguage.code === 'de' ? 'Diese Informationen helfen uns, Famora perfekt für Sie anzupassen' : 
+               currentLanguage.code === 'nl' ? 'Deze informatie helpt ons Famora perfect voor je aan te passen' : 
+               currentLanguage.code === 'fr' ? 'Ces informations nous aident à adapter Famora parfaitement pour vous' : 
+               currentLanguage.code === 'es' ? 'Esta información nos ayuda a adaptar Famora perfectamente para ti' : 
+               currentLanguage.code === 'it' ? 'Queste informazioni ci aiutano ad adattare Famora perfettamente per te' : 
+               t('onboarding.personal.subtitle') || 'This information helps us tailor Famora perfectly for you'}
             </Text>
           </View>
 
@@ -564,7 +742,15 @@ export default function PersonalInfoScreen() {
             <View style={styles.labelContainer}>
               <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 8 }}>
                 <User size={20} color="#54FE54" strokeWidth={2} />
-                <Text style={styles.inputLabel}>{t('onboarding.personal.name.label')}</Text>
+                <Text style={styles.inputLabel}>
+                  {currentLanguage.code === 'en' ? 'What would you like to be called?' : 
+                   currentLanguage.code === 'de' ? 'Wie möchten Sie genannt werden?' : 
+                   currentLanguage.code === 'nl' ? 'Hoe wil je genoemd worden?' : 
+                   currentLanguage.code === 'fr' ? 'Comment aimeriez-vous être appelé?' : 
+                   currentLanguage.code === 'es' ? '¿Cómo te gustaría que te llamen?' : 
+                   currentLanguage.code === 'it' ? 'Come vorresti essere chiamato?' : 
+                   t('onboarding.personal.name.label') || 'What would you like to be called?'}
+                </Text>
               </View>
               <Pressable 
                 style={styles.tooltipButton}
@@ -576,13 +762,25 @@ export default function PersonalInfoScreen() {
             {showTooltip === 'name' && (
               <View style={styles.tooltip}>
                 <Text style={styles.tooltipText}>
-                  {t('onboarding.personal.name.tooltip')}
+                  {currentLanguage.code === 'en' ? 'Use the name your family usually calls you.' : 
+                   currentLanguage.code === 'de' ? 'Verwenden Sie den Namen, den Ihre Familie normalerweise verwendet.' : 
+                   currentLanguage.code === 'nl' ? 'Gebruik de naam waarmee je familie je gewoonlijk noemt.' : 
+                   currentLanguage.code === 'fr' ? 'Utilisez le nom que votre famille utilise habituellement.' : 
+                   currentLanguage.code === 'es' ? 'Usa el nombre que tu familia suele usar.' : 
+                   currentLanguage.code === 'it' ? 'Usa il nome che la tua famiglia usa di solito.' : 
+                   t('onboarding.personal.name.tooltip') || 'Use the name your family usually calls you.'}
                 </Text>
               </View>
             )}
             <TextInput
               style={styles.textInput}
-              placeholder={t('onboarding.personal.name.placeholder')}
+              placeholder={currentLanguage.code === 'en' ? 'Your first name or nickname' : 
+                           currentLanguage.code === 'de' ? 'Ihr Vorname oder Nickname' : 
+                           currentLanguage.code === 'nl' ? 'Je voornaam of bijnaam' : 
+                           currentLanguage.code === 'fr' ? 'Votre prénom ou surnom' : 
+                           currentLanguage.code === 'es' ? 'Tu nombre o apodo' : 
+                           currentLanguage.code === 'it' ? 'Il tuo nome o soprannome' : 
+                           t('onboarding.personal.name.placeholder') || 'Your first name or nickname'}
               placeholderTextColor="#888888"
               value={name}
               onChangeText={(text) => {
@@ -603,7 +801,15 @@ export default function PersonalInfoScreen() {
             <View style={styles.labelContainer}>
               <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 8 }}>
                 <Calendar size={20} color="#54FE54" strokeWidth={2} />
-                <Text style={styles.inputLabel}>{t('onboarding.personal.birthdate.label')}</Text>
+                <Text style={styles.inputLabel}>
+                  {currentLanguage.code === 'en' ? 'Date of birth' : 
+                   currentLanguage.code === 'de' ? 'Geburtsdatum' : 
+                   currentLanguage.code === 'nl' ? 'Geboortedatum' : 
+                   currentLanguage.code === 'fr' ? 'Date de naissance' : 
+                   currentLanguage.code === 'es' ? 'Fecha de nacimiento' : 
+                   currentLanguage.code === 'it' ? 'Data di nascita' : 
+                   t('onboarding.personal.birthdate.label') || 'Date of birth'}
+                </Text>
               </View>
               <Pressable 
                 style={styles.tooltipButton}
@@ -615,7 +821,13 @@ export default function PersonalInfoScreen() {
             {showTooltip === 'birthday' && (
               <View style={styles.tooltip}>
                 <Text style={styles.tooltipText}>
-                  {t('onboarding.personal.birthdate.tooltip')}
+                  {currentLanguage.code === 'en' ? 'We only use your birth date for birthday notifications. Your data remains private and secure.' : 
+                   currentLanguage.code === 'de' ? 'Wir verwenden dein Geburtsdatum nur für Geburtstags-Benachrichtigungen. Deine Daten bleiben privat und sicher.' : 
+                   currentLanguage.code === 'nl' ? 'We gebruiken je geboortedatum alleen voor verjaardagsmeldingen. Je gegevens blijven privé en veilig.' : 
+                   currentLanguage.code === 'fr' ? 'Nous utilisons uniquement votre date de naissance pour les notifications d\'anniversaire. Vos données restent privées et sécurisées.' : 
+                   currentLanguage.code === 'es' ? 'Solo usamos tu fecha de nacimiento para notificaciones de cumpleaños. Tus datos permanecen privados y seguros.' : 
+                   currentLanguage.code === 'it' ? 'Utilizziamo la tua data di nascita solo per le notifiche di compleanno. I tuoi dati rimangono privati e sicuri.' : 
+                   t('onboarding.personal.birthdate.tooltip') || 'We only use your birth date for birthday notifications. Your data remains private and secure.'}
                 </Text>
               </View>
             )}
@@ -627,7 +839,14 @@ export default function PersonalInfoScreen() {
                 styles.datePickerButtonText,
                 !birthDate && styles.placeholderText
               ]}>
-                {birthDate ? formatBirthDate(birthDate, true, getLocale()) : t('onboarding.personal.datePicker.placeholder')}
+                {birthDate ? formatBirthDate(birthDate, true, getLocale()) : 
+                 (currentLanguage.code === 'en' ? 'Select birth date' : 
+                  currentLanguage.code === 'de' ? 'Geburtsdatum auswählen' : 
+                  currentLanguage.code === 'nl' ? 'Selecteer geboortedatum' : 
+                  currentLanguage.code === 'fr' ? 'Sélectionner la date de naissance' : 
+                  currentLanguage.code === 'es' ? 'Seleccionar fecha de nacimiento' : 
+                  currentLanguage.code === 'it' ? 'Seleziona data di nascita' : 
+                  t('onboarding.personal.datePicker.placeholder') || 'Select birth date')}
               </Text>
               <ChevronDown size={20} color="#666666" strokeWidth={2} />
             </Pressable>
@@ -644,7 +863,15 @@ export default function PersonalInfoScreen() {
             <View style={styles.labelContainer}>
               <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 8 }}>
                 <Heart size={20} color="#54FE54" strokeWidth={2} />
-                <Text style={styles.inputLabel}>{t('onboarding.personal.role.label')}</Text>
+                <Text style={styles.inputLabel}>
+                  {currentLanguage.code === 'en' ? 'What is your role in the family?' : 
+                   currentLanguage.code === 'de' ? 'Was ist Ihre Rolle in der Familie?' : 
+                   currentLanguage.code === 'nl' ? 'Wat is je rol in de familie?' : 
+                   currentLanguage.code === 'fr' ? 'Quel est votre rôle dans la famille?' : 
+                   currentLanguage.code === 'es' ? '¿Cuál es tu papel en la familia?' : 
+                   currentLanguage.code === 'it' ? 'Qual è il tuo ruolo nella famiglia?' : 
+                   t('onboarding.personal.role.label') || 'What is your role in the family?'}
+                </Text>
               </View>
               <Pressable 
                 style={styles.tooltipButton}
@@ -656,7 +883,13 @@ export default function PersonalInfoScreen() {
             {showTooltip === 'role' && (
               <View style={styles.tooltip}>
                 <Text style={styles.tooltipText}>
-                  {t('onboarding.personal.role.tooltip')}
+                  {currentLanguage.code === 'en' ? 'This helps us recommend appropriate features and permissions.' : 
+                   currentLanguage.code === 'de' ? 'Dies hilft uns, passende Funktionen und Berechtigungen zu empfehlen.' : 
+                   currentLanguage.code === 'nl' ? 'Dit helpt ons om geschikte functies en machtigingen aan te bevelen.' : 
+                   currentLanguage.code === 'fr' ? 'Cela nous aide à recommander des fonctionnalités et des autorisations appropriées.' : 
+                   currentLanguage.code === 'es' ? 'Esto nos ayuda a recomendar características y permisos apropiados.' : 
+                   currentLanguage.code === 'it' ? 'Questo ci aiuta a raccomandare funzionalità e autorizzazioni appropriate.' : 
+                   t('onboarding.personal.role.tooltip') || 'This helps us recommend appropriate features and permissions.'}
                 </Text>
               </View>
             )}
@@ -683,7 +916,47 @@ export default function PersonalInfoScreen() {
                     styles.roleLabel,
                     role === option.id && styles.selectedRoleLabel
                   ]}>
-                    {t(option.labelKey)}
+                    {option.id === 'parent' ? 
+                      (currentLanguage.code === 'en' ? 'Parent' : 
+                       currentLanguage.code === 'de' ? 'Elternteil' : 
+                       currentLanguage.code === 'nl' ? 'Ouder' : 
+                       currentLanguage.code === 'fr' ? 'Parent' : 
+                       currentLanguage.code === 'es' ? 'Padre/Madre' : 
+                       currentLanguage.code === 'it' ? 'Genitore' : 
+                       t(option.labelKey) || 'Parent') :
+                     option.id === 'child' ? 
+                      (currentLanguage.code === 'en' ? 'Child' : 
+                       currentLanguage.code === 'de' ? 'Kind' : 
+                       currentLanguage.code === 'nl' ? 'Kind' : 
+                       currentLanguage.code === 'fr' ? 'Enfant' : 
+                       currentLanguage.code === 'es' ? 'Hijo/Hija' : 
+                       currentLanguage.code === 'it' ? 'Figlio/Figlia' : 
+                       t(option.labelKey) || 'Child') :
+                     option.id === 'teenager' ? 
+                      (currentLanguage.code === 'en' ? 'Teenager' : 
+                       currentLanguage.code === 'de' ? 'Teenager' : 
+                       currentLanguage.code === 'nl' ? 'Tiener' : 
+                       currentLanguage.code === 'fr' ? 'Adolescent' : 
+                       currentLanguage.code === 'es' ? 'Adolescente' : 
+                       currentLanguage.code === 'it' ? 'Adolescente' : 
+                       t(option.labelKey) || 'Teenager') :
+                     option.id === 'grandparent' ? 
+                      (currentLanguage.code === 'en' ? 'Grandparent' : 
+                       currentLanguage.code === 'de' ? 'Großeltern' : 
+                       currentLanguage.code === 'nl' ? 'Grootouder' : 
+                       currentLanguage.code === 'fr' ? 'Grand-parent' : 
+                       currentLanguage.code === 'es' ? 'Abuelo/Abuela' : 
+                       currentLanguage.code === 'it' ? 'Nonno/Nonna' : 
+                       t(option.labelKey) || 'Grandparent') :
+                     option.id === 'other' ? 
+                      (currentLanguage.code === 'en' ? 'Other' : 
+                       currentLanguage.code === 'de' ? 'Andere' : 
+                       currentLanguage.code === 'nl' ? 'Andere' : 
+                       currentLanguage.code === 'fr' ? 'Autre' : 
+                       currentLanguage.code === 'es' ? 'Otro' : 
+                       currentLanguage.code === 'it' ? 'Altro' : 
+                       t(option.labelKey) || 'Other') :
+                     t(option.labelKey)}
                   </Text>
                 </Pressable>
               ))}
@@ -692,9 +965,9 @@ export default function PersonalInfoScreen() {
 
           {/* Interests Selection */}
           <View style={styles.inputSection}>
-            <Text style={styles.inputLabel}>{t('onboarding.personal.interests.label')}</Text>
+            <Text style={styles.inputLabel}>{t('onboarding.personal.interests.label') || 'What are your interests? (optional)'}</Text>
             <Text style={styles.inputDescription}>
-              {t('onboarding.personal.interests.subtitle')}
+              {t('onboarding.personal.interests.subtitle') || 'Select up to 5 areas that interest you'}
             </Text>
             <View style={styles.interestGrid}>
               {interestOptions.map((interest) => (
@@ -722,6 +995,7 @@ export default function PersonalInfoScreen() {
       
       {/* Date Picker Modal */}
       <DatePickerModal 
+        key={`date-picker-${currentLanguage.code}`}
         visible={showDatePicker}
         onClose={() => setShowDatePicker(false)}
         onDateSelect={handleDateSelection}
@@ -744,7 +1018,13 @@ export default function PersonalInfoScreen() {
             styles.continueText,
             !isValid && styles.disabledText
           ]}>
-{t('common.continue')}
+{currentLanguage.code === 'en' ? 'Continue' : 
+                     currentLanguage.code === 'de' ? 'Weiter' : 
+                     currentLanguage.code === 'nl' ? 'Doorgaan' : 
+                     currentLanguage.code === 'fr' ? 'Continuer' : 
+                     currentLanguage.code === 'es' ? 'Continuar' : 
+                     currentLanguage.code === 'it' ? 'Continua' : 
+                     t('common.continue') || 'Continue'}
           </Text>
           <ChevronRight size={20} color={isValid ? "#161618" : "#999999"} strokeWidth={2} />
         </AnimatedPressable>

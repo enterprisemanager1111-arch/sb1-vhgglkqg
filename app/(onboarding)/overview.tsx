@@ -116,11 +116,11 @@ export default function OnboardingOverviewScreen() {
         </AnimatedPressable>
         
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>{t('onboarding.overview.title')}</Text>
+          <Text style={styles.headerTitle}>{t('onboarding.overview.title') || 'Onboarding Overview'}</Text>
           {isCompleted && (
             <View style={styles.completedBadge}>
               <Check size={14} color="#FFFFFF" strokeWidth={2} />
-              <Text style={styles.completedBadgeText}>{t('onboarding.overview.completed')}</Text>
+              <Text style={styles.completedBadgeText}>{t('onboarding.overview.completed') || 'Completed'}</Text>
             </View>
           )}
         </View>

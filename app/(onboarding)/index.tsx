@@ -19,7 +19,7 @@ const AnimatedView = Animated.createAnimatedComponent(View);
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function OnboardingWelcome() {
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const buttonScale = useSharedValue(1);
   const iconScale = useSharedValue(1);
   const glowOpacity = useSharedValue(0.6);
@@ -49,7 +49,6 @@ export default function OnboardingWelcome() {
   const handleGetStarted = async () => {
     // Clear any existing onboarding data to start fresh
     try {
-      const { clearOnboardingData } = await import('@/contexts/OnboardingContext');
       // Note: We can't use the hook here, so we'll clear directly in AsyncStorage
       const AsyncStorage = await import('@react-native-async-storage/async-storage');
       await AsyncStorage.default.removeItem('@famora_onboarding_data');
@@ -114,16 +113,46 @@ export default function OnboardingWelcome() {
 
         {/* Brand & Main Message */}
         <View style={styles.messageSection}>
-          <Text style={styles.brandName}>{t('onboarding.welcome.title')}</Text>
-          <Text style={styles.mainTitle}>{t('onboarding.welcome.subtitle')}</Text>
+          <Text style={styles.brandName}>
+            {currentLanguage.code === 'en' ? 'Welcome to Famora' : 
+             currentLanguage.code === 'de' ? 'Willkommen bei Famora' : 
+             currentLanguage.code === 'nl' ? 'Welkom bij Famora' : 
+             currentLanguage.code === 'fr' ? 'Bienvenue à Famora' : 
+             currentLanguage.code === 'es' ? 'Bienvenido a Famora' : 
+             currentLanguage.code === 'it' ? 'Benvenuto in Famora' : 
+             t('onboarding.welcome.title') || 'Welcome to Famora'}
+          </Text>
+          <Text style={styles.mainTitle}>
+            {currentLanguage.code === 'en' ? 'Your digital family organizer' : 
+             currentLanguage.code === 'de' ? 'Ihr digitaler Familienorganisator' : 
+             currentLanguage.code === 'nl' ? 'Je digitale familie-organizer' : 
+             currentLanguage.code === 'fr' ? 'Votre organisateur familial numérique' : 
+             currentLanguage.code === 'es' ? 'Tu organizador familiar digital' : 
+             currentLanguage.code === 'it' ? 'Il tuo organizzatore familiare digitale' : 
+             t('onboarding.welcome.subtitle') || 'Your digital family organizer'}
+          </Text>
           <Text style={styles.subtitle}>
-            {t('onboarding.welcome.description')}
+            {currentLanguage.code === 'en' ? 'Appointments, tasks and reminders – all in one place for the whole family.' : 
+             currentLanguage.code === 'de' ? 'Termine, Aufgaben und Erinnerungen – alles an einem Ort für die ganze Familie.' : 
+             currentLanguage.code === 'nl' ? 'Afspraken, taken en herinneringen – alles op één plek voor het hele gezin.' : 
+             currentLanguage.code === 'fr' ? 'Rendez-vous, tâches et rappels – tout en un seul endroit pour toute la famille.' : 
+             currentLanguage.code === 'es' ? 'Citas, tareas y recordatorios: todo en un lugar para toda la familia.' : 
+             currentLanguage.code === 'it' ? 'Appuntamenti, compiti e promemoria: tutto in un posto per tutta la famiglia.' : 
+             t('onboarding.welcome.description') || 'Appointments, tasks and reminders – all in one place for the whole family.'}
           </Text>
         </View>
 
         {/* Simple Trust Signal */}
         <View style={styles.trustSection}>
-          <Text style={styles.trustText}>{t('onboarding.welcome.setup')}</Text>
+          <Text style={styles.trustText}>
+            {currentLanguage.code === 'en' ? '✨ Set up in 3 minutes' : 
+             currentLanguage.code === 'de' ? '✨ In 3 Minuten eingerichtet' : 
+             currentLanguage.code === 'nl' ? '✨ Ingesteld in 3 minuten' : 
+             currentLanguage.code === 'fr' ? '✨ Configuration en 3 minutes' : 
+             currentLanguage.code === 'es' ? '✨ Configurado en 3 minutos' : 
+             currentLanguage.code === 'it' ? '✨ Configurazione in 3 minuti' : 
+             t('onboarding.welcome.setup') || '✨ Set up in 3 minutes'}
+          </Text>
         </View>
       </View>
 
@@ -135,11 +164,27 @@ export default function OnboardingWelcome() {
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
         >
-          <Text style={styles.startButtonText}>{t('onboarding.welcome.getStarted')}</Text>
+          <Text style={styles.startButtonText}>
+            {currentLanguage.code === 'en' ? 'Get started' : 
+             currentLanguage.code === 'de' ? 'Jetzt starten' : 
+             currentLanguage.code === 'nl' ? 'Aan de slag' : 
+             currentLanguage.code === 'fr' ? 'Commencer' : 
+             currentLanguage.code === 'es' ? 'Empezar' : 
+             currentLanguage.code === 'it' ? 'Inizia' : 
+             t('onboarding.welcome.getStarted') || 'Get started'}
+          </Text>
           <ChevronRight size={20} color="#161618" strokeWidth={2.5} />
         </AnimatedPressable>
         
-        <Text style={styles.footnote}>{t('onboarding.welcome.footnote')}</Text>
+        <Text style={styles.footnote}>
+          {currentLanguage.code === 'en' ? 'Free • No Ads • Family Safe' : 
+           currentLanguage.code === 'de' ? 'Kostenlos • Keine Werbung • Familiensicher' : 
+           currentLanguage.code === 'nl' ? 'Gratis • Geen advertenties • Familie veilig' : 
+           currentLanguage.code === 'fr' ? 'Gratuit • Pas de publicité • Sécurisé pour la famille' : 
+           currentLanguage.code === 'es' ? 'Gratis • Sin anuncios • Seguro para la familia' : 
+           currentLanguage.code === 'it' ? 'Gratuito • Senza pubblicità • Sicuro per la famiglia' : 
+           t('onboarding.welcome.footnote') || 'Free • No Ads • Family Safe'}
+        </Text>
       </View>
     </SafeAreaView>
   );

@@ -182,16 +182,16 @@ export default function UserProfile() {
       await changeLanguage(languageCode);
       
       Alert.alert(
-        t('common.success'),
-        `${t('settings.language.changed')} ${getLanguageName(languageCode)}.`,
-        [{ text: t('common.continue') }]
+        t('common.success') || 'Erfolg',
+        `${t('settings.language.changed') || 'Sprache wurde auf'} ${getLanguageName(languageCode)}.`,
+        [{ text: t('common.continue') || 'Weiter' }]
       );
       setShowLanguageModal(false);
     } catch (error) {
       console.error('Error changing language:', error);
       Alert.alert(
-        t('common.error'),
-        t('settings.language.error')
+        t('common.error') || 'Fehler',
+        t('settings.language.error') || 'Sprache konnte nicht geändert werden.'
       );
     }
   };
@@ -380,7 +380,7 @@ export default function UserProfile() {
         },
         {
           id: 'language',
-          title: t('settings.language.title'),
+          title: t('settings.language.title') || 'Sprache',
           description: getLanguageName(currentLanguage.code),
           icon: <Globe size={18} color="#54FE54" strokeWidth={2} />,
           type: 'navigation',
@@ -803,7 +803,7 @@ export default function UserProfile() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>{t('onboarding.language.title')}</Text>
+            <Text style={styles.modalTitle}>{t('onboarding.language.title') || 'Sprache wählen'}</Text>
             
             <View style={styles.languageList}>
               {supportedLanguages.map((language) => (
@@ -833,7 +833,7 @@ export default function UserProfile() {
               style={styles.modalCancelButton}
               onPress={() => setShowLanguageModal(false)}
             >
-              <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
+              <Text style={styles.modalCancelText}>{t('common.cancel') || 'Abbrechen'}</Text>
             </Pressable>
           </View>
         </View>

@@ -63,7 +63,15 @@ export default function LanguageSelection() {
         <Pressable style={styles.backButton} onPress={handleBack}>
           <ChevronLeft size={24} color="#161618" strokeWidth={2} />
         </Pressable>
-        <Text style={styles.stepIndicator}>{t('onboarding.stepIndicator', { current: '1', total: '5' })}</Text>
+        <Text style={styles.stepIndicator}>
+          {currentLanguage.code === 'en' ? 'Step 1 of 5' : 
+           currentLanguage.code === 'de' ? 'Schritt 1 von 5' : 
+           currentLanguage.code === 'nl' ? 'Stap 1 van 5' : 
+           currentLanguage.code === 'fr' ? 'Étape 1 sur 5' : 
+           currentLanguage.code === 'es' ? 'Paso 1 de 5' : 
+           currentLanguage.code === 'it' ? 'Passaggio 1 di 5' : 
+           t('onboarding.stepIndicator', { current: '1', total: '5' }) || 'Step 1 of 5'}
+        </Text>
       </View>
 
       {/* Progress Indicator */}
@@ -82,8 +90,24 @@ export default function LanguageSelection() {
             <View style={styles.iconContainer}>
               <Globe size={32} color="#54FE54" strokeWidth={2} />
             </View>
-            <Text style={styles.title}>{t('onboarding.language.title')}</Text>
-            <Text style={styles.subtitle}>{t('onboarding.language.subtitle')}</Text>
+            <Text style={styles.title}>
+              {currentLanguage.code === 'en' ? 'Choose your language' : 
+               currentLanguage.code === 'de' ? 'Wählen Sie Ihre Sprache' : 
+               currentLanguage.code === 'nl' ? 'Kies je taal' : 
+               currentLanguage.code === 'fr' ? 'Choisissez votre langue' : 
+               currentLanguage.code === 'es' ? 'Elige tu idioma' : 
+               currentLanguage.code === 'it' ? 'Scegli la tua lingua' : 
+               t('onboarding.language.title') || 'Choose your language'}
+            </Text>
+            <Text style={styles.subtitle}>
+              {currentLanguage.code === 'en' ? 'Select your preferred language for Famora' : 
+               currentLanguage.code === 'de' ? 'Wählen Sie Ihre bevorzugte Sprache für Famora' : 
+               currentLanguage.code === 'nl' ? 'Selecteer je voorkeurstaal voor Famora' : 
+               currentLanguage.code === 'fr' ? 'Sélectionnez votre langue préférée pour Famora' : 
+               currentLanguage.code === 'es' ? 'Selecciona tu idioma preferido para Famora' : 
+               currentLanguage.code === 'it' ? 'Seleziona la tua lingua preferita per Famora' : 
+               t('onboarding.language.subtitle') || 'Select your preferred language for Famora'}
+            </Text>
           </View>
 
           {/* Language Options */}
@@ -131,13 +155,33 @@ export default function LanguageSelection() {
 
           {/* Language Preview */}
           <View style={styles.previewSection}>
-            <Text style={styles.previewTitle}>Preview:</Text>
+            <Text style={styles.previewTitle}>
+              {currentLanguage.code === 'en' ? 'Preview:' : 
+               currentLanguage.code === 'de' ? 'Vorschau:' : 
+               currentLanguage.code === 'nl' ? 'Voorbeeld:' : 
+               currentLanguage.code === 'fr' ? 'Aperçu:' : 
+               currentLanguage.code === 'es' ? 'Vista previa:' : 
+               currentLanguage.code === 'it' ? 'Anteprima:' : 
+               'Preview:'}
+            </Text>
             <View style={styles.previewCard}>
               <Text style={styles.previewText}>
-                {t('onboarding.welcome.title')}
+                {selectedLanguage === 'en' ? 'Welcome to Famora' : 
+                 selectedLanguage === 'de' ? 'Willkommen bei Famora' : 
+                 selectedLanguage === 'nl' ? 'Welkom bij Famora' : 
+                 selectedLanguage === 'fr' ? 'Bienvenue à Famora' : 
+                 selectedLanguage === 'es' ? 'Bienvenido a Famora' : 
+                 selectedLanguage === 'it' ? 'Benvenuto in Famora' : 
+                 'Welcome to Famora'}
               </Text>
               <Text style={styles.previewSubtext}>
-                {t('onboarding.welcome.subtitle')}
+                {selectedLanguage === 'en' ? 'Your digital family organizer' : 
+                 selectedLanguage === 'de' ? 'Ihr digitaler Familienorganisator' : 
+                 selectedLanguage === 'nl' ? 'Je digitale familie-organizer' : 
+                 selectedLanguage === 'fr' ? 'Votre organisateur familial numérique' : 
+                 selectedLanguage === 'es' ? 'Tu organizador familiar digital' : 
+                 selectedLanguage === 'it' ? 'Il tuo organizzatore familiare digitale' : 
+                 'Your digital family organizer'}
               </Text>
             </View>
           </View>
@@ -152,7 +196,15 @@ export default function LanguageSelection() {
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
         >
-          <Text style={styles.continueText}>{t('common.continue')}</Text>
+          <Text style={styles.continueText}>
+            {currentLanguage.code === 'en' ? 'Continue' : 
+             currentLanguage.code === 'de' ? 'Weiter' : 
+             currentLanguage.code === 'nl' ? 'Doorgaan' : 
+             currentLanguage.code === 'fr' ? 'Continuer' : 
+             currentLanguage.code === 'es' ? 'Continuar' : 
+             currentLanguage.code === 'it' ? 'Continua' : 
+             t('common.continue') || 'Continue'}
+          </Text>
           <ChevronRight size={20} color="#161618" strokeWidth={2} />
         </AnimatedPressable>
       </View>

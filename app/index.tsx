@@ -74,8 +74,8 @@ export default function IndexScreen() {
     <View style={styles.container}>
       <SupabaseStatus />
       <View style={styles.loadingContent}>
-        <Text style={styles.loadingText}>{t('common.loading')}</Text>
-        <Text style={styles.loadingSubtext}>{t('common.redirecting')}</Text>
+        <Text style={styles.loadingText}>{t('common.loading') || 'Loading Famora...'}</Text>
+        <Text style={styles.loadingSubtext}>{t('common.redirecting') || 'Redirecting...'}</Text>
       </View>
     </View>
   );

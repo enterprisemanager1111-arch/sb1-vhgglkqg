@@ -48,6 +48,37 @@ const translations = {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+// Helper function to get translation from object
+const getTranslationFromObject = (translations: any, key: string, params?: Record<string, string>): string | null => {
+  try {
+    const keys = key.split('.');
+    let translation: any = translations;
+    
+    for (const k of keys) {
+      if (translation && typeof translation === 'object' && k in translation) {
+        translation = translation[k];
+      } else {
+        return null;
+      }
+    }
+    
+    if (typeof translation === 'string') {
+      // Replace parameters if provided
+      if (params) {
+        Object.entries(params).forEach(([paramKey, paramValue]) => {
+          translation = translation.replace(`{{${paramKey}}}`, paramValue);
+        });
+      }
+      return translation;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error getting translation from object:', error);
+    return null;
+  }
+};
+
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [currentLanguage, setCurrentLanguage] = useState<Language>(supportedLanguages[1]); // Default to English
   const [loading, setLoading] = useState(true);
@@ -59,12 +90,23 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const loadSavedLanguage = async () => {
     try {
-      // Clear any existing preference and start fresh with English
-      await AsyncStorage.removeItem(LANGUAGE_STORAGE_KEY);
-      console.log('Cleared any existing language preference, starting with English');
+      const savedLanguageCode = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
+      if (savedLanguageCode) {
+        const language = supportedLanguages.find(lang => lang.code === savedLanguageCode);
+        if (language) {
+          console.log('Loaded saved language:', language.name);
+          setCurrentLanguage(language);
+        } else {
+          console.log('Invalid saved language code, defaulting to English');
+          setCurrentLanguage(supportedLanguages[1]); // English
+        }
+      } else {
+        console.log('No saved language preference, defaulting to English');
       setCurrentLanguage(supportedLanguages[1]); // English
+      }
     } catch (error) {
       console.error('Error loading saved language:', error);
+      setCurrentLanguage(supportedLanguages[1]); // English as fallback
     } finally {
       setLoading(false);
     }
@@ -82,7 +124,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     try {
       await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, languageCode);
       setCurrentLanguage(language);
-      console.log('Language changed successfully to:', language.name);
+      console.log('Language changed successfully to:', language.name, 'Code:', languageCode);
+      console.log('Current language state updated:', language);
+      
+      // Force a small delay to ensure state updates propagate
+      await new Promise(resolve => setTimeout(resolve, 100));
     } catch (error) {
       console.error('Error saving language preference:', error);
       throw error;
@@ -103,190 +149,54 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const t = (key: string, params?: Record<string, string>): string => {
     try {
       // Debug logging for key translation issues
-      if (key === 'common.continue' || key === 'onboarding.personal.datePicker.title') {
+      if (key === 'common.continue' || key === 'common.cancel' || key === 'onboarding.personal.datePicker.title' || key === 'settings.language.title' || key === 'dashboard.welcome') {
         console.log('Translating key:', key, 'for language:', currentLanguage.code);
       }
-      // Quick fallbacks for common keys
-      if (key === 'common.continue') {
-        if (currentLanguage.code === 'en') return 'Continue';
-        if (currentLanguage.code === 'de') return 'Weiter';
-        if (currentLanguage.code === 'fr') return 'Continuer';
-        if (currentLanguage.code === 'es') return 'Continuar';
-        if (currentLanguage.code === 'it') return 'Continua';
-        if (currentLanguage.code === 'nl') return 'Doorgaan';
-      }
       
-      if (key === 'common.cancel') {
-        if (currentLanguage.code === 'en') return 'Cancel';
-        if (currentLanguage.code === 'de') return 'Abbrechen';
-        if (currentLanguage.code === 'fr') return 'Annuler';
-        if (currentLanguage.code === 'es') return 'Cancelar';
-        if (currentLanguage.code === 'it') return 'Annulla';
-        if (currentLanguage.code === 'nl') return 'Annuleren';
-      }
-      
-      if (key === 'onboarding.personal.datePicker.confirm') {
-        if (currentLanguage.code === 'en') return 'Confirm';
-        if (currentLanguage.code === 'de') return 'Bestätigen';
-        if (currentLanguage.code === 'fr') return 'Confirmer';
-        if (currentLanguage.code === 'es') return 'Confirmar';
-        if (currentLanguage.code === 'it') return 'Conferma';
-        if (currentLanguage.code === 'nl') return 'Bevestigen';
-      }
-      
-      if (key === 'onboarding.personal.datePicker.title') {
-        if (currentLanguage.code === 'en') return 'Select birth date';
-        if (currentLanguage.code === 'de') return 'Geburtsdatum auswählen';
-        if (currentLanguage.code === 'fr') return 'Sélectionner la date de naissance';
-        if (currentLanguage.code === 'es') return 'Seleccionar fecha de nacimiento';
-        if (currentLanguage.code === 'it') return 'Seleziona data di nascita';
-        if (currentLanguage.code === 'nl') return 'Selecteer geboortedatum';
-      }
-      
-      if (key === 'onboarding.personal.datePicker.year') {
-        if (currentLanguage.code === 'en') return 'Year';
-        if (currentLanguage.code === 'de') return 'Jahr';
-        if (currentLanguage.code === 'fr') return 'Année';
-        if (currentLanguage.code === 'es') return 'Año';
-        if (currentLanguage.code === 'it') return 'Anno';
-        if (currentLanguage.code === 'nl') return 'Jaar';
-      }
-      
-      if (key === 'onboarding.personal.datePicker.month') {
-        if (currentLanguage.code === 'en') return 'Month';
-        if (currentLanguage.code === 'de') return 'Monat';
-        if (currentLanguage.code === 'fr') return 'Mois';
-        if (currentLanguage.code === 'es') return 'Mes';
-        if (currentLanguage.code === 'it') return 'Mese';
-        if (currentLanguage.code === 'nl') return 'Maand';
-      }
-      
-      if (key === 'onboarding.personal.datePicker.day') {
-        if (currentLanguage.code === 'en') return 'Day';
-        if (currentLanguage.code === 'de') return 'Tag';
-        if (currentLanguage.code === 'fr') return 'Jour';
-        if (currentLanguage.code === 'es') return 'Día';
-        if (currentLanguage.code === 'it') return 'Giorno';
-        if (currentLanguage.code === 'nl') return 'Dag';
-      }
-      
-      // Quick fallbacks for interests label
-      if (key === 'onboarding.personal.interests.label') {
-        if (currentLanguage.code === 'en') return 'What are your interests? (optional)';
-        if (currentLanguage.code === 'de') return 'Was sind Ihre Interessen? (optional)';
-        if (currentLanguage.code === 'fr') return 'Quels sont vos centres d\'intérêt ? (optionnel)';
-        if (currentLanguage.code === 'es') return '¿Cuáles son tus intereses? (opcional)';
-        if (currentLanguage.code === 'it') return 'Quali sono i tuoi interessi? (opzionale)';
-        if (currentLanguage.code === 'nl') return 'Wat zijn je interesses? (optioneel)';
-      }
-      
-      // Quick fallbacks for interests subtitle
-      if (key === 'onboarding.personal.interests.subtitle') {
-        if (currentLanguage.code === 'en') return 'Select up to 5 areas that interest you';
-        if (currentLanguage.code === 'de') return 'Wählen Sie bis zu 5 Bereiche aus, die Sie interessieren';
-        if (currentLanguage.code === 'fr') return 'Sélectionnez jusqu\'à 5 domaines qui vous intéressent';
-        if (currentLanguage.code === 'es') return 'Selecciona hasta 5 áreas que te interesan';
-        if (currentLanguage.code === 'it') return 'Seleziona fino a 5 aree che ti interessano';
-        if (currentLanguage.code === 'nl') return 'Selecteer maximaal 5 gebieden die je interesseren';
-      }
-      
-      // Personal info labels
-      if (key === 'onboarding.personal.name.label') {
-        if (currentLanguage.code === 'en') return 'What would you like to be called?';
-        if (currentLanguage.code === 'de') return 'Wie möchten Sie genannt werden?';
-        if (currentLanguage.code === 'fr') return 'Comment aimeriez-vous être appelé?';
-        if (currentLanguage.code === 'es') return '¿Cómo te gustaría que te llamen?';
-        if (currentLanguage.code === 'it') return 'Come vorresti essere chiamato?';
-        if (currentLanguage.code === 'nl') return 'Hoe wil je genoemd worden?';
-      }
-      
-      if (key === 'onboarding.personal.birthdate.label') {
-        if (currentLanguage.code === 'en') return 'Date of birth';
-        if (currentLanguage.code === 'de') return 'Geburtsdatum';
-        if (currentLanguage.code === 'fr') return 'Date de naissance';
-        if (currentLanguage.code === 'es') return 'Fecha de nacimiento';
-        if (currentLanguage.code === 'it') return 'Data di nascita';
-        if (currentLanguage.code === 'nl') return 'Geboortedatum';
-      }
-      
-      if (key === 'onboarding.personal.role.label') {
-        if (currentLanguage.code === 'en') return 'What is your role in the family?';
-        if (currentLanguage.code === 'de') return 'Was ist Ihre Rolle in der Familie?';
-        if (currentLanguage.code === 'fr') return 'Quel est votre rôle dans la famille?';
-        if (currentLanguage.code === 'es') return '¿Cuál es tu papel en la familia?';
-        if (currentLanguage.code === 'it') return 'Qual è il tuo ruolo nella famiglia?';
-        if (currentLanguage.code === 'nl') return 'Wat is je rol in het gezin?';
-      }
-      
-      if (key === 'onboarding.personal.datePicker.placeholder') {
-        if (currentLanguage.code === 'en') return 'Select birth date';
-        if (currentLanguage.code === 'de') return 'Geburtsdatum auswählen';
-        if (currentLanguage.code === 'fr') return 'Sélectionner la date de naissance';
-        if (currentLanguage.code === 'es') return 'Seleccionar fecha de nacimiento';
-        if (currentLanguage.code === 'it') return 'Seleziona data di nascita';
-        if (currentLanguage.code === 'nl') return 'Selecteer geboortedatum';
-      }
-      
-      if (key === 'onboarding.personal.name.placeholder') {
-        if (currentLanguage.code === 'en') return 'Your first name or nickname';
-        if (currentLanguage.code === 'de') return 'Ihr Vorname oder Nickname';
-        if (currentLanguage.code === 'fr') return 'Votre prénom ou surnom';
-        if (currentLanguage.code === 'es') return 'Tu nombre o apodo';
-        if (currentLanguage.code === 'it') return 'Il tuo nome o soprannome';
-        if (currentLanguage.code === 'nl') return 'Je voornaam of bijnaam';
-      }
-      
+      // Get translations for current language first
       const languageTranslations = translations[currentLanguage.code as keyof typeof translations] as any;
       
       if (!languageTranslations) {
         console.warn(`No translations found for language: ${currentLanguage.code}`);
+        // Try English as fallback
+        const englishTranslations = translations.en as any;
+        if (englishTranslations) {
+          console.log('Falling back to English translations');
+          return getTranslationFromObject(englishTranslations, key, params) || key;
+        }
         return key;
       }
       
-      // Support nested keys like 'onboarding.welcome.title'
-      const keys = key.split('.');
-      let translation: any = languageTranslations;
+      // Try to get translation from current language
+      let translation = getTranslationFromObject(languageTranslations, key, params);
       
-      for (const k of keys) {
-        if (translation && typeof translation === 'object' && k in translation) {
-          translation = translation[k];
-        } else {
-          // Fallback to English if current language doesn't have the key
-          if (currentLanguage.code !== 'en') {
-            const englishTranslations = translations.en as any;
-            let englishTranslation: any = englishTranslations;
-            const keysCopy = key.split('.');
-            for (const ek of keysCopy) {
-              if (englishTranslation && typeof englishTranslation === 'object' && ek in englishTranslation) {
-                englishTranslation = englishTranslation[ek];
-              } else {
-                console.warn(`Translation key not found: ${key} (tried fallback to English)`);
-                return key;
-              }
-            }
-            if (typeof englishTranslation === 'string') {
-              translation = englishTranslation;
-              break;
-            }
+      // Debug the translation lookup
+      if (key === 'dashboard.welcome' || key === 'common.cancel') {
+        console.log('Looking up key:', key, 'in language:', currentLanguage.code);
+        console.log('Available translations keys:', Object.keys(languageTranslations));
+        console.log('Translation result:', translation);
+        if (key === 'common.cancel') {
+          console.log('Common section exists:', !!languageTranslations.common);
+          if (languageTranslations.common) {
+            console.log('Common section keys:', Object.keys(languageTranslations.common));
+            console.log('Cancel key value:', languageTranslations.common.cancel);
           }
-          console.warn(`Translation key not found: ${key} in language: ${currentLanguage.code}`);
-          return key;
         }
       }
       
-      // Ensure we have a string
-      if (typeof translation !== 'string') {
-        return key;
+      // If not found in current language, try English fallback
+      if (!translation && currentLanguage.code !== 'en') {
+            const englishTranslations = translations.en as any;
+        if (englishTranslations) {
+          translation = getTranslationFromObject(englishTranslations, key, params);
+          if (translation) {
+            console.log(`Using English fallback for key: ${key}`);
+          }
+        }
       }
-
-    // Replace parameters if provided
-    if (params) {
-      Object.entries(params).forEach(([paramKey, paramValue]) => {
-        translation = translation.replace(`{{${paramKey}}}`, paramValue);
-      });
-    }
-
-    return translation;
+      
+      // Return translation or key if not found
+      return translation || key;
     } catch (error) {
       console.error('Translation error for key:', key, error);
       return key;

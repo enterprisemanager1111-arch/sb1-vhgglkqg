@@ -80,6 +80,7 @@ export default function FamilySetup() {
         await awardPoints({
           activity_type: 'member_added',
           description: `Family "${sanitizedName}" created`,
+          points_earned: 50,
           metadata: {
             family_name: sanitizedName,
             family_code: result.code,
@@ -129,6 +130,7 @@ export default function FamilySetup() {
         await awardPoints({
           activity_type: 'member_added',
           description: 'Joined family',
+          points_earned: 30,
           metadata: {
             family_code: codeValidation.sanitized,
             action: 'joined'
@@ -232,7 +234,7 @@ export default function FamilySetup() {
           <Pressable style={styles.backButton} onPress={handleBack}>
             <ChevronLeft size={24} color="#161618" strokeWidth={2} />
           </Pressable>
-          <Text style={styles.stepIndicator}>{t('onboarding.stepIndicator', { current: '4', total: '5' })}</Text>
+          <Text style={styles.stepIndicator}>{t('onboarding.stepIndicator', { current: '4', total: '5' }) || 'Step 4 of 5'}</Text>
         </View>
 
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.successContainer}>
@@ -255,7 +257,7 @@ export default function FamilySetup() {
             </View>
           </View>
 
-          <View style={styles.codeInfo}>
+          <View style={styles.titleContainer}>
             <Text style={styles.infoText}>
               💡 Tip: Your family members can enter this code in the app 
               to join your family. You can find the code anytime in settings.
@@ -285,7 +287,7 @@ export default function FamilySetup() {
         <Pressable style={styles.backButton} onPress={handleBack}>
           <ChevronLeft size={24} color="#161618" strokeWidth={2} />
         </Pressable>
-        <Text style={styles.stepIndicator}>{t('onboarding.stepIndicator', { current: '4', total: '4' })}</Text>
+        <Text style={styles.stepIndicator}>{t('onboarding.stepIndicator', { current: '4', total: '4' }) || 'Step 4 of 4'}</Text>
       </View>
 
       {/* Progress Indicator */}

@@ -90,7 +90,7 @@ export default function Tasks() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>{t('tasks.loading')}</Text>
+          <Text style={styles.loadingText}>{t('tasks.loading') || 'Loading tasks...'}</Text>
         </View>
       </SafeAreaView>
     );
@@ -124,7 +124,7 @@ export default function Tasks() {
 
   const handleAddTask = async () => {
     if (!newTask.trim()) {
-      Alert.alert(t('common.error'), t('tasks.error.empty'));
+      Alert.alert(t('common.error') || 'Error', t('tasks.error.empty') || 'Task cannot be empty');
       return;
     }
 
@@ -241,7 +241,7 @@ export default function Tasks() {
       >
         {/* Header */}
         <AnimatedView style={[styles.header, headerAnimatedStyle]}>
-          <Text style={styles.title}>{t('tasks.title')}</Text>
+          <Text style={styles.title}>{t('tasks.title') || 'Tasks'}</Text>
           <View style={styles.headerStats}>
             <Text style={styles.statText}>{completedTasks.length} {t('tasks.stats.completed')}</Text>
             <Text style={styles.pointsText}>{totalPoints} {t('tasks.stats.pointsCollected')}</Text>
@@ -279,7 +279,7 @@ export default function Tasks() {
           <View style={styles.addTaskContainer}>
             <TextInput
               style={styles.taskInput}
-              placeholder={t('tasks.add.placeholder')}
+              placeholder={t('tasks.add.placeholder') || 'Add a new task...'}
               value={newTask}
               onChangeText={setNewTask}
               placeholderTextColor="#888888"

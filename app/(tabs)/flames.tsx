@@ -151,7 +151,7 @@ export default function FlamesScreen() {
           <View style={styles.loadingFlame}>
             <Flame size={32} color="#54FE54" strokeWidth={2} />
           </View>
-          <Text style={styles.loadingText}>{t('flames.loading')}</Text>
+          <Text style={styles.loadingText}>{t('flames.loading') || 'Loading flames...'}</Text>
         </View>
       </SafeAreaView>
     );
@@ -162,10 +162,10 @@ export default function FlamesScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorTitle}>{t('flames.error.title')}</Text>
+          <Text style={styles.errorTitle}>{t('flames.error.title') || 'Error'}</Text>
           <Text style={styles.errorText}>{pointsError}</Text>
           <Pressable style={styles.retryButton} onPress={refreshData}>
-            <Text style={styles.retryButtonText}>{t('flames.error.retry')}</Text>
+            <Text style={styles.retryButtonText}>{t('flames.error.retry') || 'Try again'}</Text>
           </Pressable>
         </View>
       </SafeAreaView>

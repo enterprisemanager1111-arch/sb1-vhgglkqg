@@ -5,47 +5,47 @@ export const useLocalizedDate = () => {
 
   const getMonthNames = () => {
     return [
-      t('calendar.months.january'),
-      t('calendar.months.february'),
-      t('calendar.months.march'),
-      t('calendar.months.april'),
-      t('calendar.months.may'),
-      t('calendar.months.june'),
-      t('calendar.months.july'),
-      t('calendar.months.august'),
-      t('calendar.months.september'),
-      t('calendar.months.october'),
-      t('calendar.months.november'),
-      t('calendar.months.december'),
+      t('calendar.months.january') || 'January',
+      t('calendar.months.february') || 'February',
+      t('calendar.months.march') || 'March',
+      t('calendar.months.april') || 'April',
+      t('calendar.months.may') || 'May',
+      t('calendar.months.june') || 'June',
+      t('calendar.months.july') || 'July',
+      t('calendar.months.august') || 'August',
+      t('calendar.months.september') || 'September',
+      t('calendar.months.october') || 'October',
+      t('calendar.months.november') || 'November',
+      t('calendar.months.december') || 'December',
     ];
   };
 
   const getMonthNamesShort = () => {
     return [
-      t('calendar.monthsShort.january'),
-      t('calendar.monthsShort.february'),
-      t('calendar.monthsShort.march'),
-      t('calendar.monthsShort.april'),
-      t('calendar.monthsShort.may'),
-      t('calendar.monthsShort.june'),
-      t('calendar.monthsShort.july'),
-      t('calendar.monthsShort.august'),
-      t('calendar.monthsShort.september'),
-      t('calendar.monthsShort.october'),
-      t('calendar.monthsShort.november'),
-      t('calendar.monthsShort.december'),
+      t('calendar.monthsShort.january') || 'Jan',
+      t('calendar.monthsShort.february') || 'Feb',
+      t('calendar.monthsShort.march') || 'Mar',
+      t('calendar.monthsShort.april') || 'Apr',
+      t('calendar.monthsShort.may') || 'May',
+      t('calendar.monthsShort.june') || 'Jun',
+      t('calendar.monthsShort.july') || 'Jul',
+      t('calendar.monthsShort.august') || 'Aug',
+      t('calendar.monthsShort.september') || 'Sep',
+      t('calendar.monthsShort.october') || 'Oct',
+      t('calendar.monthsShort.november') || 'Nov',
+      t('calendar.monthsShort.december') || 'Dec',
     ];
   };
 
   const getDayNames = () => {
     return [
-      t('calendar.days.sunday'),
-      t('calendar.days.monday'),
-      t('calendar.days.tuesday'),
-      t('calendar.days.wednesday'),
-      t('calendar.days.thursday'),
-      t('calendar.days.friday'),
-      t('calendar.days.saturday'),
+      t('calendar.days.sunday') || 'Sunday',
+      t('calendar.days.monday') || 'Monday',
+      t('calendar.days.tuesday') || 'Tuesday',
+      t('calendar.days.wednesday') || 'Wednesday',
+      t('calendar.days.thursday') || 'Thursday',
+      t('calendar.days.friday') || 'Friday',
+      t('calendar.days.saturday') || 'Saturday',
     ];
   };
 

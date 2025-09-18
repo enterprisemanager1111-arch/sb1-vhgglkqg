@@ -147,12 +147,32 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
   const saveOnboardingData = async (newData: OnboardingData) => {
     try {
+      console.log('DEBUG: saveOnboardingData called with newData:', newData);
+      console.log('DEBUG: newData.personalInfo:', newData?.personalInfo);
       console.log('DEBUG: Attempting to save to AsyncStorage...');
+      
+      // Check if newData is valid
+      if (!newData || typeof newData !== 'object') {
+        console.error('ERROR: newData is invalid:', newData);
+        throw new Error('Invalid data structure provided to saveOnboardingData');
+      }
+      
       const dataToSave = JSON.stringify(newData);
       console.log('DEBUG: Data to save (JSON):', dataToSave);
+      console.log('DEBUG: JSON length:', dataToSave.length);
+      
+      if (dataToSave === '{}' || dataToSave.length < 10) {
+        console.error('ERROR: Data appears to be empty or invalid');
+        console.error('ERROR: Original newData object:', newData);
+        throw new Error('Attempted to save empty or invalid data');
+      }
       
       await AsyncStorage.setItem(ONBOARDING_STORAGE_KEY, dataToSave);
       console.log('DEBUG: Successfully saved to AsyncStorage');
+      
+      // Verify the save
+      const savedData = await AsyncStorage.getItem(ONBOARDING_STORAGE_KEY);
+      console.log('DEBUG: Verification - data actually saved:', savedData);
       
       setOnboardingData(newData);
       console.log('DEBUG: Successfully updated state');
@@ -165,53 +185,28 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
   const updatePersonalInfo = async (info: Partial<OnboardingData['personalInfo']>) => {
     console.log('DEBUG: updatePersonalInfo called with:', info);
-    console.log('DEBUG: Current onboarding data before update:', onboardingData.personalInfo);
+    console.log('DEBUG: Loading state:', loading);
+    console.log('DEBUG: Current onboarding data state:', onboardingData);
+    console.log('DEBUG: Current personal info before update:', onboardingData.personalInfo);
     
-    try {
-      // Get the current state (in case it's out of sync)
-      const currentStoredData = await AsyncStorage.getItem(ONBOARDING_STORAGE_KEY);
-      let currentData = onboardingData;
-      
-      if (currentStoredData) {
-        currentData = JSON.parse(currentStoredData);
-        console.log('DEBUG: Using stored data as base:', currentData.personalInfo);
-      }
-      
-      // Merge the new info with existing data
-      const updatedPersonalInfo = {
-        ...currentData.personalInfo,
-        ...info
-      };
-      
-      const updatedData = {
-        ...currentData,
-        personalInfo: updatedPersonalInfo,
-      };
-      
-      console.log('DEBUG: Personal info to be saved:', updatedPersonalInfo);
-      console.log('DEBUG: Full updated data to save:', updatedData);
-      
-      // Save to AsyncStorage first
-      const dataToSave = JSON.stringify(updatedData);
-      await AsyncStorage.setItem(ONBOARDING_STORAGE_KEY, dataToSave);
-      console.log('DEBUG: Successfully saved to AsyncStorage');
-      
-      // Update React state
-      setOnboardingData(updatedData);
-      console.log('DEBUG: Successfully updated React state');
-      
-      // Verify what was actually saved
-      const savedData = await AsyncStorage.getItem(ONBOARDING_STORAGE_KEY);
-      if (savedData) {
-        const parsed = JSON.parse(savedData);
-        console.log('DEBUG: Verified saved personal info in storage:', parsed.personalInfo);
-      }
-      
-      console.log('DEBUG: Personal info successfully saved to local storage!');
-    } catch (error) {
-      console.error('ERROR: Failed to save personal info:', error);
-      throw error;
+    // Wait for loading to complete if still loading
+    if (loading) {
+      console.log('DEBUG: Context still loading, waiting...');
+      // Wait a bit for loading to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
+    
+    // Use current context state as base data
+    const updatedData = {
+      ...onboardingData,
+      personalInfo: { ...onboardingData.personalInfo, ...info },
+    };
+    
+    console.log('DEBUG: Personal info to be saved:', updatedData.personalInfo);
+    console.log('DEBUG: Full updated data to save:', updatedData);
+    console.log('DEBUG: JSON.stringify of data to save:', JSON.stringify(updatedData));
+    
+    await saveOnboardingData(updatedData);
   };
 
   const updatePreferences = async (prefs: Partial<OnboardingData['preferences']>) => {

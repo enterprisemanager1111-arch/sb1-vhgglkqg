@@ -48,7 +48,23 @@ export default function HomeDashboard() {
   const [showNotificationCenter, setShowNotificationCenter] = useState(false);
   const { user, profile } = useAuth();
   const { isInFamily, loading: familyLoading, currentFamily, familyMembers, refreshFamily } = useFamily();
-  const { t } = useLanguage();
+  const { t, currentLanguage, loading: languageLoading } = useLanguage();
+  
+  // Debug language loading
+  React.useEffect(() => {
+    console.log('Dashboard - Language loading:', languageLoading);
+    console.log('Dashboard - Current language:', currentLanguage);
+    console.log('Dashboard - Translation test:', t('dashboard.welcome'));
+    
+    // Test if translation is working
+    const testTranslation = t('dashboard.welcome');
+    if (testTranslation === 'dashboard.welcome') {
+      console.warn('Translation not working - showing key instead of translation');
+    } else {
+      console.log('Translation working correctly:', testTranslation);
+    }
+  }, [languageLoading, currentLanguage, t]);
+  
   const { tasks, getCompletedTasks, getPendingTasks, refreshTasks } = useFamilyTasks();
   const { items, getCompletedItems: getCompletedShoppingItems, refreshItems } = useFamilyShoppingItems();
   const { events, getUpcomingEvents, refreshEvents } = useFamilyCalendarEvents();
@@ -131,11 +147,11 @@ export default function HomeDashboard() {
   }
 
   // Show loading while family data is being fetched
-  if (familyLoading) {
+  if (familyLoading || languageLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>{t('dashboard.loading')}</Text>
+          <Text style={styles.loadingText}>{t('dashboard.loading') || 'Loading dashboard...'}</Text>
         </View>
       </SafeAreaView>
     );
@@ -179,33 +195,33 @@ export default function HomeDashboard() {
   const quickAccessModules = [
     {
       id: 'shopping',
-      title: t('dashboard.shopping'),
+      title: t('dashboard.shopping') || 'Shopping list',
       icon: <ShoppingCart size={24} color="#54FE54" strokeWidth={2} />,
-      subtitle: `${items.filter(i => !i.completed).length} ${t('dashboard.items')}`,
+      subtitle: `${items.filter(i => !i.completed).length} ${t('dashboard.items') || 'items'}`,
       onPress: () => router.push('/(tabs)/shopping'),
       available: true,
     },
     {
       id: 'calendar',
-      title: t('dashboard.calendar'),
+      title: t('dashboard.calendar') || 'Calendar',
       icon: <Calendar size={24} color="#54FE54" strokeWidth={2} />,
-      subtitle: `${upcomingEvents.length} ${t('dashboard.appointments')}`,
+      subtitle: `${upcomingEvents.length} ${t('dashboard.appointments') || 'appointments'}`,
       onPress: () => router.push('/(tabs)/calendar'),
       available: true,
     },
     {
       id: 'tasks',
-      title: t('dashboard.tasks'),
+      title: t('dashboard.tasks') || 'Tasks',
       icon: <CheckSquare size={24} color="#54FE54" strokeWidth={2} />,
-      subtitle: pendingTasks.length > 0 ? `${pendingTasks.length} ${t('dashboard.open')}` : t('dashboard.allDone'),
+      subtitle: pendingTasks.length > 0 ? `${pendingTasks.length} ${t('dashboard.open') || 'open'}` : t('dashboard.allDone') || 'All done',
       onPress: () => router.push('/(tabs)/tasks'),
       available: true,
     },
     {
       id: 'flames',
-      title: t('dashboard.flames'),
+      title: t('dashboard.flames') || 'Flames',
       icon: <Flame size={24} color="#54FE54" strokeWidth={2} />,
-      subtitle: `${displayPoints} ${t('dashboard.points')}`,
+      subtitle: `${displayPoints} ${t('dashboard.points') || 'points'}`,
       onPress: () => router.push('/(tabs)/flames'),
       available: true,
     },
@@ -277,8 +293,24 @@ export default function HomeDashboard() {
           
           {/* Text Content Below Profile Picture */}
           <View style={styles.textContent}>
-            <Text style={styles.text1}>{t('dashboard.welcome')}</Text>
-            <Text style={styles.text2}>{t('dashboard.welcome')}</Text>
+            <Text style={styles.text1}>
+              {currentLanguage.code === 'en' ? 'Welcome back to your family' : 
+               currentLanguage.code === 'de' ? 'Willkommen zurück in deiner Familie' : 
+               currentLanguage.code === 'nl' ? 'Welkom terug bij je familie' : 
+               currentLanguage.code === 'fr' ? 'Bienvenue dans votre famille' : 
+               currentLanguage.code === 'es' ? 'Bienvenido de vuelta a tu familia' : 
+               currentLanguage.code === 'it' ? 'Bentornato nella tua famiglia' : 
+               t('dashboard.welcome') || 'Welcome back to your family'}
+            </Text>
+            <Text style={styles.text2}>
+              {currentLanguage.code === 'en' ? 'Welcome back to your family' : 
+               currentLanguage.code === 'de' ? 'Willkommen zurück in deiner Familie' : 
+               currentLanguage.code === 'nl' ? 'Welkom terug bij je familie' : 
+               currentLanguage.code === 'fr' ? 'Bienvenue dans votre famille' : 
+               currentLanguage.code === 'es' ? 'Bienvenido de vuelta a tu familia' : 
+               currentLanguage.code === 'it' ? 'Bentornato nella tua famiglia' : 
+               t('dashboard.welcome') || 'Welcome back to your family'}
+            </Text>
           </View>
         </AnimatedView>
 
@@ -319,7 +351,15 @@ export default function HomeDashboard() {
 
         {/* Schnellzugriff-Module (2x2 Grid) */}
         <AnimatedView style={[styles.section, quickAccessAnimatedStyle]}>
-          <Text style={styles.sectionTitle}>{t('dashboard.quickAccess')}</Text>
+          <Text style={styles.sectionTitle}>
+            {currentLanguage.code === 'en' ? 'Quick access' : 
+             currentLanguage.code === 'de' ? 'Schnellzugriff' : 
+             currentLanguage.code === 'nl' ? 'Snelle toegang' : 
+             currentLanguage.code === 'fr' ? 'Accès rapide' : 
+             currentLanguage.code === 'es' ? 'Acceso rápido' : 
+             currentLanguage.code === 'it' ? 'Accesso rapido' : 
+             t('dashboard.quickAccess') || 'Quick access'}
+          </Text>
           <View style={styles.quickAccessGrid}>
             {quickAccessModules.map((module) => (
               <Pressable
@@ -358,12 +398,12 @@ export default function HomeDashboard() {
         {/* Aktuelle Aufgaben/Nächste Schritte */}
         <AnimatedView style={[styles.section, tasksAnimatedStyle]}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{t('dashboard.nextSteps')}</Text>
+            <Text style={styles.sectionTitle}>{t('dashboard.nextSteps') || 'Next steps'}</Text>
             <Pressable 
               style={styles.seeAllButton}
               onPress={() => router.push('/(tabs)/tasks')}
             >
-              <Text style={styles.seeAllText}>{t('dashboard.showAll')}</Text>
+              <Text style={styles.seeAllText}>{t('dashboard.showAll') || 'Show all'}</Text>
               <ChevronRight size={16} color="#666666" strokeWidth={2} />
             </Pressable>
           </View>
