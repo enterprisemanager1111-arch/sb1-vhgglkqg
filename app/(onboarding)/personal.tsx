@@ -625,12 +625,12 @@ export default function PersonalInfoScreen() {
     
     // Basic validation for required fields
     if (!currentName || currentName.trim().length < 1) {
-      alert('Please enter your name to continue');
+      alert(t('onboarding.personal.validation.nameRequired') || 'Please enter your name to continue');
       return;
     }
     
     if (!currentRole) {
-      alert('Please select your role to continue');
+      alert(t('onboarding.personal.validation.roleRequired') || 'Please select your role to continue');
       return;
     }
     

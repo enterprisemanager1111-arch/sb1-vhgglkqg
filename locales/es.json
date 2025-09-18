@@ -67,6 +67,10 @@
         "signup": "Registrarse",
         "loggingIn": "Iniciando sesión...",
         "signingUp": "Registrándose..."
+      },
+      "errors": {
+        "loginTimeout": "El inicio de sesión está tardando demasiado. Por favor, verifica tu conexión a Internet.",
+        "passwordMismatch": "Las contraseñas no coinciden"
       }
     },
     "family": {
@@ -96,7 +100,11 @@
     "add": "Agregar",
     "create": "Crear",
     "update": "Actualizar",
-    "retry": "Intentar de nuevo"
+    "retry": "Intentar de nuevo",
+    "fillAllFields": "Por favor, completa todos los campos",
+    "permissionRequired": "Permiso requerido",
+    "copied": "¡Copiado!",
+    "navigationError": "Error de navegación"
   },
   "settings": {
     "language": {

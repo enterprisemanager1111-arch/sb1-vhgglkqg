@@ -24,7 +24,11 @@
     "update": "Update",
     "retry": "Try again",
     "saving": "Saving...",
-    "redirecting": "Redirecting..."
+    "redirecting": "Redirecting...",
+    "fillAllFields": "Please fill in all fields",
+    "permissionRequired": "Permission Required",
+    "copied": "Copied!",
+    "navigationError": "Navigation error"
   },
   "settings": {
     "language": {
@@ -364,7 +368,12 @@
         "confirm": "Confirm",
         "placeholder": "Select birth date"
       },
-      "ageDisplay": "{{age}} years • {{zodiac}}"
+      "ageDisplay": "{{age}} years • {{zodiac}}",
+      "validation": {
+        "nameRequired": "Please enter your name to continue",
+        "roleRequired": "Please select your role to continue",
+        "saveError": "Error saving information: {{error}}. Please try again."
+      }
     },
     "overview": {
       "title": "Onboarding Overview",
@@ -438,7 +447,9 @@
         "emailNotConfirmed": "Please confirm your email address via the link in the email.",
         "tooManyRequests": "Too many attempts. Please wait a moment and try again.",
         "passwordRequirement": "Password must be at least 6 characters.",
-        "emailInvalid": "Please enter a valid email address."
+        "emailInvalid": "Please enter a valid email address.",
+        "loginTimeout": "Login is taking too long. Please check your internet connection.",
+        "passwordMismatch": "Passwords do not match"
       },
       "success": {
         "accountCreated": "Account created successfully!"

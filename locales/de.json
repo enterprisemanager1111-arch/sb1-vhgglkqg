@@ -24,7 +24,11 @@
     "update": "Aktualisieren",
     "retry": "Erneut versuchen",
     "saving": "Wird gespeichert...",
-    "redirecting": "Weiterleitung..."
+    "redirecting": "Weiterleitung...",
+    "fillAllFields": "Bitte füllen Sie alle Felder aus",
+    "permissionRequired": "Berechtigung erforderlich",
+    "copied": "Kopiert!",
+    "navigationError": "Navigationsfehler"
   },
   "settings": {
     "language": {
@@ -351,7 +355,12 @@
         "confirm": "Bestätigen",
         "placeholder": "Geburtsdatum auswählen"
       },
-      "ageDisplay": "{{age}} Jahre • {{zodiac}}"
+      "ageDisplay": "{{age}} Jahre • {{zodiac}}",
+      "validation": {
+        "nameRequired": "Bitte geben Sie Ihren Namen ein, um fortzufahren",
+        "roleRequired": "Bitte wählen Sie Ihre Rolle aus, um fortzufahren",
+        "saveError": "Fehler beim Speichern der Informationen: {{error}}. Bitte versuchen Sie es erneut."
+      }
     },
     "overview": {
       "title": "Onboarding Übersicht",
@@ -511,7 +520,9 @@
         "emailNotConfirmed": "Bitte bestätigen Sie Ihre E-Mail-Adresse über den Link in der E-Mail.",
         "tooManyRequests": "Zu viele Versuche. Bitte warten Sie einen Moment und versuchen Sie es erneut.",
         "passwordRequirement": "Das Passwort muss mindestens 6 Zeichen haben.",
-        "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein."
+        "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+        "loginTimeout": "Anmeldung dauert zu lange. Bitte überprüfen Sie Ihre Internetverbindung.",
+        "passwordMismatch": "Passwörter stimmen nicht überein"
       },
       "success": {
         "accountCreated": "Konto wurde erfolgreich erstellt!"

@@ -67,6 +67,10 @@
         "signup": "S'inscrire",
         "loggingIn": "Connexion...",
         "signingUp": "Inscription..."
+      },
+      "errors": {
+        "loginTimeout": "La connexion prend trop de temps. Veuillez vérifier votre connexion Internet.",
+        "passwordMismatch": "Les mots de passe ne correspondent pas"
       }
     },
     "family": {
@@ -96,7 +100,11 @@
     "add": "Ajouter",
     "create": "Créer",
     "update": "Mettre à jour",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "fillAllFields": "Veuillez remplir tous les champs",
+    "permissionRequired": "Autorisation requise",
+    "copied": "Copié !",
+    "navigationError": "Erreur de navigation"
   },
   "settings": {
     "language": {

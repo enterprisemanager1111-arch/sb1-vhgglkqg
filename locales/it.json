@@ -67,6 +67,10 @@
         "signup": "Registrati",
         "loggingIn": "Accesso...",
         "signingUp": "Registrazione..."
+      },
+      "errors": {
+        "loginTimeout": "L'accesso sta impiegando troppo tempo. Controlla la tua connessione Internet.",
+        "passwordMismatch": "Le password non corrispondono"
       }
     },
     "family": {
@@ -96,7 +100,11 @@
     "add": "Aggiungi",
     "create": "Crea",
     "update": "Aggiorna",
-    "retry": "Riprova"
+    "retry": "Riprova",
+    "fillAllFields": "Si prega di compilare tutti i campi",
+    "permissionRequired": "Autorizzazione richiesta",
+    "copied": "Copiato!",
+    "navigationError": "Errore di navigazione"
   },
   "settings": {
     "language": {

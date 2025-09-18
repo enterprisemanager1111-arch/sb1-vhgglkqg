@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Profile {
   id: string;
@@ -32,6 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const { t } = useLanguage();
 
   // Load user profile
   const loadProfile = async (userId: string) => {
@@ -256,7 +258,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Anmeldung dauert zu lange. Bitte überprüfen Sie Ihre Internetverbindung.')), 15000);
+      setTimeout(() => reject(new Error(t('onboarding.auth.errors.loginTimeout') || 'Login is taking too long. Please check your internet connection.')), 15000);
     });
 
     const { error } = await Promise.race([authPromise, timeoutPromise]) as any;

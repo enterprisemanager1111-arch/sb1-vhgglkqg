@@ -107,27 +107,27 @@ export default function OnboardingAuth() {
     const sanitizedConfirmPassword = sanitizeInput(confirmPassword);
     
     if (!sanitizedEmail || !sanitizedPassword || (!isLogin && !sanitizedConfirmPassword)) {
-      showNotification('error', 'Please fill in all fields');
+      showNotification('error', t('common.fillAllFields') || 'Please fill in all fields');
       return;
     }
 
     if (!validateEmail(sanitizedEmail)) {
-      showNotification('error', 'Please enter a valid email address');
+      showNotification('error', t('onboarding.auth.errors.invalidEmail') || 'Please enter a valid email address');
       return;
     }
 
     if (!isLogin && sanitizedPassword.length < 6) {
-      showNotification('error', 'Password must be at least 6 characters');
+      showNotification('error', t('onboarding.auth.errors.passwordTooShort') || 'Password must be at least 6 characters');
       return;
     }
     
     if (!isLogin && sanitizedPassword.length > 128) {
-      showNotification('error', 'Password can be at most 128 characters');
+      showNotification('error', t('onboarding.auth.errors.passwordTooLong') || 'Password can be at most 128 characters');
       return;
     }
 
     if (!isLogin && sanitizedPassword !== sanitizedConfirmPassword) {
-      showNotification('error', 'Passwords do not match');
+      showNotification('error', t('onboarding.auth.errors.passwordMismatch') || 'Passwords do not match');
       return;
     }
 
