@@ -1,29 +1,30 @@
 {
-  "nav": {
-    "home": "Home",
-    "family": "Family",
-    "flames": "Flames",
-    "profile": "Profile"
-  },
-  "common": {
-    "continue": "Continue",
+    "nav": {
+      "home": "Home",
+      "family": "Family",
+      "flames": "Flames",
+      "profile": "Profile"
+    },
+    "common": {
+      "continue": "Continue",
     "cancel": "Cancel",
     "save": "Save",
     "skip": "Skip",
-    "back": "Back",
-    "loading": "Loading Famora...",
-    "error": "Error",
-    "success": "Success",
-    "yes": "Yes",
-    "no": "No",
-    "ok": "OK",
-    "delete": "Delete",
-    "edit": "Edit",
-    "add": "Add",
-    "create": "Create",
-    "update": "Update",
-    "retry": "Try again",
-    "saving": "Saving...",
+    "familyMember": "A family member",
+      "back": "Back",
+      "loading": "Loading Famora...",
+      "error": "Error",
+      "success": "Success",
+      "yes": "Yes",
+      "no": "No",
+      "ok": "OK",
+      "delete": "Delete",
+      "edit": "Edit",
+      "add": "Add",
+      "create": "Create",
+      "update": "Update",
+      "retry": "Try again",
+      "saving": "Saving...",
     "redirecting": "Redirecting...",
     "fillAllFields": "Please fill in all fields",
     "permissionRequired": "Permission Required",
@@ -35,291 +36,465 @@
     "interests": "Interests",
     "email": "Email",
     "yearsOld": "years old"
-  },
-  "settings": {
-    "language": {
-      "title": "Language",
-      "changed": "Language changed to",
-      "restart": "Please restart the app to see the changes.",
-      "error": "Language could not be changed."
-    }
-  },
-  "dashboard": {
-    "welcome": "Welcome back to your family",
-    "family": {
-      "manage": "Manage family"
     },
-    "quickAccess": "Quick access",
-    "nextSteps": "Next steps",
-    "showAll": "Show all",
-    "todayOverview": "Today overview",
-    "progress": "Progress",
-    "completedToday": "Completed today",
-    "thisWeek": "This week",
-    "nextAppointment": "Next appointment:",
-    "noUpcoming": "No upcoming appointments",
-    "allTasksDone": "All tasks done!",
-    "greatJob": "Great! Create new tasks or relax.",
-    "loading": "Loading dashboard...",
-    "shopping": "Shopping list",
-    "calendar": "Calendar",
-    "tasks": "Tasks",
-    "flames": "Flames",
-    "items": "items",
-    "appointments": "appointments",
-    "open": "open",
-    "allDone": "All done",
-    "points": "points"
-  },
-  "flames": {
-    "title": "Flames & Points",
-    "subtitle": "family points collected",
-    "loading": "Loading flames...",
-    "error": {
-      "title": "Error loading",
-      "retry": "Try again"
-    },
-    "period": {
-      "week": "Week",
-      "month": "Month",
-      "all": "Total"
-    },
-    "family": {
-      "level": "Family Level",
-      "points": "Family Points",
-      "progress": "Family Progress",
-      "progressPoints": "points to Level",
-      "maxLevel": "Maximum level reached! 👑",
-      "nextLevel": "Next Level:"
-    },
-    "leaderboard": {
-      "title": "Leaderboard",
-      "thisWeek": "This Week",
-      "thisMonth": "This Month",
-      "total": "Total",
-      "you": "(You)",
-      "achievements": "Achievements",
-      "activities": "Activities",
-      "pointsToFirst": "to 1st place",
-      "points": "Points"
-    },
-    "activities": {
-      "title": "Recent Activities",
-      "empty": "No activities yet",
-      "emptySubtitle": "Complete tasks and earn points!",
-      "unknown": "Unknown"
-    },
-    "achievements": {
-      "title": "Family Achievements",
-      "unlocked": "Unlocked"
-    },
-    "goal": {
-      "title": "New Family Goal",
-      "name": "Goal Name",
-      "namePlaceholder": "e.g. 50 tasks this week",
-      "points": "Goal Points",
-      "pointsPlaceholder": "100",
-      "cancel": "Cancel",
-      "create": "Create",
-      "error": {
-        "name": "Please enter a goal name",
-        "points": "Please enter a valid point value",
-        "create": "Goal could not be created:"
-      },
-      "description": "Achieve points as a family",
-      "created": "created a new goal:"
-    }
-  },
-  "tasks": {
-    "title": "Family Tasks",
-    "loading": "Loading tasks...",
-    "error": {
-      "loading": "Error loading tasks",
-      "toggle": "Task status could not be changed:",
-      "create": "Task could not be created:",
-      "delete": "Task could not be deleted:",
-      "empty": "Please enter a task description"
-    },
-    "stats": {
-      "completed": "completed",
-      "pointsCollected": "points collected"
-    },
-    "leaderboard": {
-      "title": "Family Leaderboard"
-    },
-    "add": {
-      "title": "Add new task",
-      "placeholder": "Enter task description..."
-    },
-    "filter": {
-      "all": "All Tasks",
-      "categories": {
-        "all": "All",
-        "household": "Household",
-        "personal": "Personal Tasks",
-        "work": "Work",
-        "family": "Family Tasks"
+    "settings": {
+      "language": {
+        "title": "Language",
+        "changed": "Language changed to",
+        "restart": "Please restart the app to see the changes.",
+        "error": "Language could not be changed."
       }
     },
-    "list": {
-      "pending": "To do",
-      "completed": "Recently completed",
-      "completedNotice": "✨ Completed tasks are automatically deleted after 24 hours",
-      "timeRemaining": "{{hours}}h remaining visible",
-      "unassigned": "Unassigned",
-      "unknown": "Unknown"
+    "dashboard": {
+      "welcome": "Welcome back to your family",
+      "family": {
+        "manage": "Manage family"
+      },
+      "quickAccess": "Quick access",
+      "nextSteps": "Next steps",
+      "showAll": "Show all",
+      "todayOverview": "Today overview",
+      "progress": "Progress",
+      "completedToday": "Completed today",
+      "thisWeek": "This week",
+      "nextAppointment": "Next appointment:",
+      "noUpcoming": "No upcoming appointments",
+      "allTasksDone": "All tasks done!",
+      "greatJob": "Great! Create new tasks or relax.",
+      "loading": "Loading dashboard...",
+      "shopping": "Shopping list",
+      "calendar": "Calendar",
+      "tasks": "Tasks",
+      "flames": "Flames",
+      "items": "items",
+      "appointments": "appointments",
+      "open": "open",
+      "allDone": "All done",
+      "points": "points"
     },
-    "delete": {
-      "title": "Delete task",
-      "message": "Do you really want to delete this task?"
+    "flames": {
+      "title": "Flames & Points",
+      "subtitle": "family points collected",
+      "loading": "Loading flames...",
+      "error": {
+        "title": "Error loading",
+        "retry": "Try again"
+      },
+      "period": {
+        "week": "Week",
+        "month": "Month",
+        "all": "Total"
+      },
+      "family": {
+        "level": "Family Level",
+        "points": "Family Points",
+        "progress": "Family Progress",
+        "progressPoints": "points to Level",
+        "maxLevel": "Maximum level reached! 👑",
+        "nextLevel": "Next Level:"
+      },
+      "leaderboard": {
+        "title": "Leaderboard",
+        "thisWeek": "This Week",
+        "thisMonth": "This Month",
+        "total": "Total",
+        "you": "(You)",
+        "achievements": "Achievements",
+        "activities": "Activities",
+        "pointsToFirst": "to 1st place",
+        "points": "Points"
+      },
+      "activities": {
+        "title": "Recent Activities",
+        "empty": "No activities yet",
+        "emptySubtitle": "Complete tasks and earn points!",
+        "unknown": "Unknown"
+      },
+      "achievements": {
+        "title": "Family Achievements",
+        "unlocked": "Unlocked"
+      },
+      "goal": {
+        "title": "New Family Goal",
+        "name": "Goal Name",
+        "namePlaceholder": "e.g. 50 tasks this week",
+        "points": "Goal Points",
+        "pointsPlaceholder": "100",
+        "cancel": "Cancel",
+        "create": "Create",
+        "error": {
+          "name": "Please enter a goal name",
+          "points": "Please enter a valid point value",
+          "create": "Goal could not be created:"
+        },
+        "description": "Achieve points as a family",
+        "created": "created a new goal:"
+      }
     },
-    "notifications": {
-      "completed": "Task completed: {{task}}",
-      "memberCompleted": "completed \"{{task}}\""
+    "tasks": {
+      "title": "Family Tasks",
+      "loading": "Loading tasks...",
+      "error": {
+        "loading": "Error loading tasks",
+        "toggle": "Task status could not be changed:",
+        "create": "Task could not be created:",
+        "delete": "Task could not be deleted:",
+        "empty": "Please enter a task description"
+      },
+      "stats": {
+        "completed": "completed",
+        "pointsCollected": "points collected"
+      },
+      "leaderboard": {
+        "title": "Family Leaderboard"
+      },
+      "add": {
+        "title": "Add new task",
+        "placeholder": "Enter task description..."
+      },
+      "filter": {
+        "all": "All Tasks",
+        "categories": {
+          "all": "All",
+          "household": "Household",
+          "personal": "Personal Tasks",
+          "work": "Work",
+          "family": "Family Tasks"
+        }
+      },
+      "list": {
+        "pending": "To do",
+        "completed": "Recently completed",
+        "completedNotice": "✨ Completed tasks are automatically deleted after 24 hours",
+        "timeRemaining": "{{hours}}h remaining visible",
+        "unassigned": "Unassigned",
+        "unknown": "Unknown"
+      },
+      "delete": {
+        "title": "Delete task",
+        "message": "Do you really want to delete this task?"
+      },
+      "notifications": {
+        "completed": "Task completed: {{task}}",
+        "memberCompleted": "completed \"{{task}}\""
+      },
+      "empty": {
+        "title": "No tasks yet",
+        "description": "Create your first task and collect points for completed tasks!",
+        "button": "Create task"
+      }
     },
-    "empty": {
-      "title": "No tasks yet",
-      "description": "Create your first task and collect points for completed tasks!",
-      "button": "Create task"
-    }
-  },
-  "zodiac": {
-    "aquarius": "♒ Aquarius",
-    "pisces": "♓ Pisces",
-    "aries": "♈ Aries",
-    "taurus": "♉ Taurus",
-    "gemini": "♊ Gemini",
-    "cancer": "♋ Cancer",
-    "leo": "♌ Leo",
-    "virgo": "♍ Virgo",
-    "libra": "♎ Libra",
-    "scorpio": "♏ Scorpio",
-    "sagittarius": "♐ Sagittarius",
-    "capricorn": "♑ Capricorn"
-  },
-  "calendar": {
-    "title": "Calendar",
-    "loading": "Loading calendar...",
-    "error": {
-      "loading": "Error loading calendar",
-      "delete": "Event could not be deleted:"
+    "zodiac": {
+      "aquarius": "♒ Aquarius",
+      "pisces": "♓ Pisces",
+      "aries": "♈ Aries",
+      "taurus": "♉ Taurus",
+      "gemini": "♊ Gemini",
+      "cancer": "♋ Cancer",
+      "leo": "♌ Leo",
+      "virgo": "♍ Virgo",
+      "libra": "♎ Libra",
+      "scorpio": "♏ Scorpio",
+      "sagittarius": "♐ Sagittarius",
+      "capricorn": "♑ Capricorn"
     },
-    "today": "today",
-    "thisWeek": "This week",
-    "noEvents": "No events for this day",
-    "addEvent": "Add event",
-    "eventsFor": "Events for {{date}}. {{month}}",
-    "upcoming": "This week",
-    "pointsEarned": "+10 points earned",
-    "unknown": "Unknown",
-    "delete": {
-      "title": "Delete event",
-      "message": "Do you really want to delete this event?"
+    "calendar": {
+      "title": "Calendar",
+      "loading": "Loading calendar...",
+      "error": {
+        "loading": "Error loading calendar",
+        "delete": "Event could not be deleted:"
+      },
+      "today": "today",
+      "thisWeek": "This week",
+      "noEvents": "No events for this day",
+      "addEvent": "Add event",
+      "eventsFor": "Events for {{date}}. {{month}}",
+      "upcoming": "This week",
+      "pointsEarned": "+10 points earned",
+      "unknown": "Unknown",
+      "delete": {
+        "title": "Delete event",
+        "message": "Do you really want to delete this event?"
+      },
+      "empty": {
+        "title": "No events yet",
+        "description": "Create your first family event and plan activities together!",
+        "button": "Create event"
+      },
+      "months": {
+        "january": "January",
+        "february": "February",
+        "march": "March",
+        "april": "April",
+        "may": "May",
+        "june": "June",
+        "july": "July",
+        "august": "August",
+        "september": "September",
+        "october": "October",
+        "november": "November",
+        "december": "December"
+      },
+      "monthsShort": {
+        "january": "Jan",
+        "february": "Feb",
+        "march": "Mar",
+        "april": "Apr",
+        "may": "May",
+        "june": "Jun",
+        "july": "Jul",
+        "august": "Aug",
+        "september": "Sep",
+        "october": "Oct",
+        "november": "Nov",
+        "december": "Dec"
+      },
+      "days": {
+        "sunday": "Su",
+        "monday": "Mo",
+        "tuesday": "Tu",
+        "wednesday": "We",
+        "thursday": "Th",
+        "friday": "Fr",
+        "saturday": "Sa"
+      }
     },
-    "empty": {
-      "title": "No events yet",
-      "description": "Create your first family event and plan activities together!",
-      "button": "Create event"
+    "shopping": {
+      "title": "Shopping List",
+      "loading": "Loading shopping list...",
+      "error": {
+        "loading": "Error loading shopping list",
+        "toggle": "Item status could not be changed:",
+        "delete": "Item could not be deleted:"
+      },
+      "stats": {
+        "completed": "of {{total}} completed",
+        "stillToBuy": "Still to buy",
+        "bought": "Bought",
+        "progress": "Progress"
+      },
+      "categories": {
+        "all": "All items",
+        "dairy": "Dairy",
+        "produce": "Produce",
+        "meat": "Meat",
+        "bakery": "Bakery",
+        "pantry": "Pantry"
+      },
+      "list": {
+        "shopping": "Shopping",
+        "bought": "Recently bought",
+        "completedNotice": "✨ Bought items are automatically deleted after 24 hours",
+        "timeRemaining": "{{hours}}h remaining visible",
+        "unknown": "Unknown"
+      },
+      "delete": {
+        "title": "Delete item",
+        "message": "Do you really want to delete this item?"
+      },
+      "notifications": {
+        "bought": "Bought: {{item}}",
+        "memberBought": "bought \"{{item}}\""
+      },
+      "empty": {
+        "title": "Shopping list is empty",
+        "description": "Add your first items to the shopping list and share it with your family!",
+        "button": "Add item"
+      }
     },
-    "months": {
-      "january": "January",
-      "february": "February",
-      "march": "March",
-      "april": "April",
-      "may": "May",
-      "june": "June",
-      "july": "July",
-      "august": "August",
-      "september": "September",
-      "october": "October",
-      "november": "November",
-      "december": "December"
+    "family": {
+      "prompt": {
+        "title": "Join Family",
+        "description": "You are not part of a family yet. Join a family or create a new one.",
+        "joinButton": "Join Family",
+        "createButton": "Create Family"
+      }
     },
-    "monthsShort": {
-      "january": "Jan",
-      "february": "Feb",
-      "march": "Mar",
-      "april": "Apr",
-      "may": "May",
-      "june": "Jun",
-      "july": "Jul",
-      "august": "Aug",
-      "september": "Sep",
-      "october": "Oct",
-      "november": "Nov",
-      "december": "Dec"
-    },
-    "days": {
-      "sunday": "Su",
-      "monday": "Mo",
-      "tuesday": "Tu",
-      "wednesday": "We",
-      "thursday": "Th",
-      "friday": "Fr",
-      "saturday": "Sa"
-    }
-  },
-  "shopping": {
-    "title": "Shopping List",
-    "loading": "Loading shopping list...",
-    "error": {
-      "loading": "Error loading shopping list",
-      "toggle": "Item status could not be changed:",
-      "delete": "Item could not be deleted:"
-    },
-    "stats": {
-      "completed": "of {{total}} completed",
-      "stillToBuy": "Still to buy",
-      "bought": "Bought",
-      "progress": "Progress"
-    },
-    "categories": {
-      "all": "All items",
-      "dairy": "Dairy",
-      "produce": "Produce",
-      "meat": "Meat",
-      "bakery": "Bakery",
-      "pantry": "Pantry"
-    },
-    "list": {
-      "shopping": "Shopping",
-      "bought": "Recently bought",
-      "completedNotice": "✨ Bought items are automatically deleted after 24 hours",
-      "timeRemaining": "{{hours}}h remaining visible",
-      "unknown": "Unknown"
-    },
-    "delete": {
-      "title": "Delete item",
-      "message": "Do you really want to delete this item?"
-    },
-    "notifications": {
-      "bought": "Bought: {{item}}",
-      "memberBought": "bought \"{{item}}\""
-    },
-    "empty": {
-      "title": "Shopping list is empty",
-      "description": "Add your first items to the shopping list and share it with your family!",
-      "button": "Add item"
-    }
-  },
-  "family": {
-    "prompt": {
-      "title": "Join Family",
-      "description": "You are not part of a family yet. Join a family or create a new one.",
-      "joinButton": "Join Family",
-      "createButton": "Create Family"
-    }
-  },
-  "profile": {
-    "title": "My Profile",
-    "settings": "Settings",
+    "profile": {
+      "title": "My Profile",
+  "settings": "Settings",
     "logout": "Logout",
+    "sections": {
+      "account": "Account & Profile",
+      "family": "Family",
+      "notifications": "Notifications",
+      "privacy": "Privacy & Security",
+      "support": "Help & Support",
+      "accountActions": "Account Actions"
+    },
+    "items": {
+      "autoSync": "Automatic Synchronization",
+      "autoSyncDesc": "Automatically update data",
+      "usageStats": "Usage Statistics",
+      "usageStatsDesc": "Share anonymous data to improve the app",
+      "inviteFamily": "Invite Family",
+      "inviteFamilyDesc": "Add new members to the family",
+      "help": "Help & FAQ",
+      "helpDesc": "Frequently asked questions and guides",
+      "about": "About Famora",
+      "aboutDesc": "Version, privacy policy and legal information",
+      "dataExport": "Export Data",
+      "dataExportDesc": "Download personal data",
+      "clearCache": "Clear Cache",
+      "clearCacheDesc": "Reset app data for better performance",
+      "editProfile": "Edit Profile",
+      "editProfileDesc": "Name, date of birth and profile picture",
+      "changePassword": "Change Password",
+      "changePasswordDesc": "Update your password",
+      "biometricAuth": "Biometric Login",
+      "biometricAuthDesc": "Use fingerprint or Face ID",
+      "darkMode": "Dark Mode",
+      "darkModeDesc": "Customize app appearance",
+      "familyRole": "Family Role",
+      "familySettings": "Family Settings",
+      "familySettingsDesc": "Manage roles, permissions and family"
+    },
+    "alerts": {
+      "passwordError": "New password must be at least 6 characters",
+      "exportError": "Data could not be exported",
+      "supportError": "Support contact could not be opened",
+      "cacheSuccess": "App cache has been cleared",
+      "cacheError": "Cache could not be cleared",
+      "exportTitle": "Export Data",
+      "exportDescription": "Your personal Famora data will be exported as a JSON file. This includes your profile, family information and activity statistics.",
+      "exportInfoTitle": "Exported Data:",
+      "exportInfoItems": [
+        "Profile and personal information",
+        "Family information and members",
+        "Tasks and completed activities",
+        "Shopping lists and items",
+        "Calendar events",
+        "Points and achievements"
+      ],
+      "passwordSuccess": "Password changed successfully",
+      "biometricEnabled": "Biometrics enabled",
+      "biometricDisabled": "Biometrics disabled",
+      "biometricEnabledDesc": "You can now log in with fingerprint or Face ID",
+      "biometricDisabledDesc": "Biometric login has been disabled",
+      "cacheTitle": "Clear Cache",
+      "cacheMessage": "Do you want to clear the app cache? This can improve performance.",
+      "cancel": "Cancel",
+      "logoutTitle": "Logout",
+      "logoutMessage": "Do you really want to logout?",
+      "logoutCancel": "Cancel",
+      "logoutConfirm": "Logout",
+      "permissionNotificationDesc": "Please allow notifications in system settings"
+    },
+    "modals": {
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "exportData": "Export Data"
+    },
     "roles": {
       "parent": "Parent",
       "child": "Child",
       "teenager": "Teenager",
       "grandparent": "Grandparent",
-      "other": "Other"
+      "other": "Other",
+      "admin": "Administrator",
+      "member": "Member",
+      "family": "Family"
+    }
+  },
+  "tabs": {
+    "addNew": "Add New",
+    "modal": {
+      "newTask": "New Task",
+      "newShoppingItem": "Shopping Item", 
+      "newAppointment": "New Appointment",
+      "taskDescription": "Create family task and collect points",
+      "shoppingDescription": "Add item to shared shopping list",
+      "appointmentDescription": "Plan family appointment and notify everyone",
+      "taskTitle": "Task Title",
+      "taskTitlePlaceholder": "e.g. Clean kitchen",
+      "taskDescriptionPlaceholder": "Task details...",
+      "category": "Category",
+      "assignee": "Assignee",
+      "noOne": "No one",
+      "dueDate": "Due Date",
+      "pointsInfo": "🔥 This task brings 15 points",
+      "createTask": "Create Task",
+      "creatingTask": "Creating Task...",
+      "taskCreated": "Task created!",
+      "taskError": "Task could not be created",
+      "itemName": "Item Name",
+      "itemNamePlaceholder": "e.g. Milk, Bread",
+      "shoppingPointsInfo": "🛒 This item brings 20 points",
+      "addToShoppingList": "Add to Shopping List",
+      "addingItem": "Adding Item...",
+      "itemAdded": "Item added to shopping list!",
+      "itemError": "Item could not be added",
+      "eventTitle": "Event Title",
+      "eventTitlePlaceholder": "e.g. Family evening, Birthday",
+      "eventDate": "Event Date",
+      "eventTime": "Event Time",
+      "eventDescription": "Event Description",
+      "eventDescriptionPlaceholder": "Event details...",
+      "createEvent": "Create Event",
+      "creatingEvent": "Creating Event...",
+      "eventCreated": "Event created!",
+      "eventError": "Event could not be created",
+      "eventPointsInfo": "Fixed points: 10 points"
+    },
+    "shopping": {
+      "emptyTitle": "Shopping list is empty",
+      "emptyDescription": "Add your first items to the shopping list and share them with your family!",
+      "addItem": "Add Item"
+    },
+    "calendar": {
+      "addEvent": "Add Event"
+    },
+    "family": {
+      "title": "Your Family",
+      "member": "Member",
+      "members": "Members",
+      "online": "online",
+      "weeklyProgress": "Weekly Progress",
+      "togetherWeCan": "Together we can do it!",
+      "completed": "Completed",
+      "appointments": "Appointments",
+      "upcoming": "upcoming",
+      "familyOverview": "Family Overview",
+      "familyMembers": "Family Members",
+      "showAll": "Show all",
+      "admin": "Admin",
+      "points": "Points",
+      "tasks": "Tasks",
+      "assignTask": "Assign Task",
+      "inviteMember": "Invite Member",
+      "expandFamily": "Expand Family",
+      "invite": "Invite",
+      "familyInsights": "Family Insights",
+      "thisWeek": "This Week",
+      "greatTeamwork": "Great teamwork!",
+      "familyCompletedTasks": "Your family completed {count} tasks this week and planned {events} new appointments.",
+      "membersActive": "{count} members are currently active!",
+      "pointsCollected": "{points} points collected",
+      "inviteFamily": "Invite Family",
+      "shareCode": "Share this code with family members so they can join your family."
+    },
+    "dashboard": {
+      "todayOverview": "Today's Overview"
+    },
+    "flames": {
+      "achievements": "Family Achievements",
+      "firstTask": "First Task",
+      "firstTaskDesc": "First task successfully completed",
+      "teamPlayer": "Team Player",
+      "teamPlayerDesc": "10 tasks successfully completed",
+      "streakMaster": "Streak Master",
+      "streakMasterDesc": "7 days active in a row",
+      "familyHero": "Family Hero",
+      "familyHeroDesc": "100+ points collected",
+      "organizer": "Organizer",
+      "organizerDesc": "5 events created",
+      "helper": "Helper",
+      "helperDesc": "20 purchases completed",
+      "first100": "First 100",
+      "first100Desc": "100 points reached",
+      "halftime": "Halftime!",
+      "halftimeDesc": "500 points reached"
     }
   },
   "onboarding": {
@@ -476,6 +651,6 @@
       "family": {
         "title": "Set up family"
       }
-    }
+}
   }
 }

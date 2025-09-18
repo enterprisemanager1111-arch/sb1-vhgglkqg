@@ -54,6 +54,7 @@ interface SettingsItem {
 
 export default function UserProfile() {
   const [refreshing, setRefreshing] = useState(false);
+  const { t, currentLanguage, changeLanguage } = useLanguage();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkModeEnabled, setDarkModeEnabled] = useState(false);
   const [autoSyncEnabled, setAutoSyncEnabled] = useState(true);
@@ -68,7 +69,6 @@ export default function UserProfile() {
 
   const { user, profile, signOut, updateProfile } = useAuth();
   const { currentFamily, familyMembers, userRole } = useFamily();
-  const { currentLanguage, changeLanguage, t } = useLanguage();
   
   // Get locale for date formatting
   const getLocale = () => {
@@ -131,17 +131,17 @@ export default function UserProfile() {
 
   const handlePasswordChange = async () => {
     if (!currentPassword || !newPassword || !confirmNewPassword) {
-      Alert.alert('Fehler', 'Bitte füllen Sie alle Felder aus');
+      Alert.alert(t('common.error'), t('common.fillAllFields'));
       return;
     }
     
     if (newPassword !== confirmNewPassword) {
-      Alert.alert('Fehler', 'Neue Passwörter stimmen nicht überein');
+      Alert.alert(t('common.error'), t('onboarding.auth.errors.passwordMismatch'));
       return;
     }
     
     if (newPassword.length < 6) {
-      Alert.alert('Fehler', 'Neues Passwort muss mindestens 6 Zeichen haben');
+      Alert.alert(t('common.error'), t('profile.alerts.passwordError'));
       return;
     }
     
@@ -152,7 +152,7 @@ export default function UserProfile() {
       
       if (error) throw error;
       
-      Alert.alert('Erfolg', 'Passwort wurde erfolgreich geändert');
+      Alert.alert(t('common.success'), t('profile.alerts.passwordSuccess'));
       setShowPasswordModal(false);
       setCurrentPassword('');
       setNewPassword('');
@@ -180,12 +180,12 @@ export default function UserProfile() {
       
       await Share.share({
         message: `Famora Datenexport für ${userName}\n\nExportiert am: ${new Date().toLocaleDateString('de-DE')}\n\nDaten: ${dataString}`,
-        title: 'Famora Datenexport',
+        title: t('profile.alerts.exportTitle'),
       });
       
       setShowDataExportModal(false);
     } catch (error) {
-      Alert.alert('Fehler', 'Daten konnten nicht exportiert werden');
+      Alert.alert(t('common.error'), t('profile.alerts.exportError'));
     }
   };
 
@@ -255,12 +255,12 @@ export default function UserProfile() {
 
   const clearAppCache = async () => {
     Alert.alert(
-      'Cache leeren',
-      'Möchten Sie den App-Cache leeren? Dies kann die Leistung verbessern.',
+      t('profile.alerts.cacheTitle'),
+      t('profile.alerts.cacheMessage'),
       [
-        { text: 'Abbrechen', style: 'cancel' },
+        { text: t('profile.alerts.cancel'), style: 'cancel' },
         {
-          text: 'Cache leeren',
+          text: t('profile.alerts.cacheTitle'),
           onPress: async () => {
             try {
               // Clear AsyncStorage cache (except user preferences)
@@ -271,9 +271,9 @@ export default function UserProfile() {
               );
               await AsyncStorage.multiRemove(cacheKeys);
               
-              Alert.alert('Erfolg', 'App-Cache wurde geleert');
+              Alert.alert(t('common.success'), t('profile.alerts.cacheSuccess'));
             } catch (error) {
-              Alert.alert('Fehler', 'Cache konnte nicht geleert werden');
+              Alert.alert(t('common.error'), t('profile.alerts.cacheError'));
             }
           }
         }
@@ -284,29 +284,29 @@ export default function UserProfile() {
   const settingsSections: SettingsSection[] = [
     {
       id: 'account',
-      title: 'Konto & Profil',
+      title: t('profile.sections.account'),
       icon: <User size={20} color="#54FE54" strokeWidth={2} />,
       items: [
         {
           id: 'edit-profile',
-          title: 'Profil bearbeiten',
-          description: 'Name, Geburtsdatum und Profilbild',
+          title: t('profile.items.editProfile'),
+          description: t('profile.items.editProfileDesc'),
           icon: <Edit3 size={18} color="#54FE54" strokeWidth={2} />,
           type: 'navigation',
           onPress: () => router.push('/(onboarding)/profile'),
         },
         {
           id: 'account-settings',
-          title: 'Passwort ändern',
-          description: 'Ihr Passwort aktualisieren',
+          title: t('profile.items.changePassword'),
+          description: t('profile.items.changePasswordDesc'),
           icon: <Shield size={18} color="#54FE54" strokeWidth={2} />,
           type: 'action',
           onPress: () => setShowPasswordModal(true),
         },
         {
           id: 'biometric-auth',
-          title: 'Biometrische Anmeldung',
-          description: 'Fingerabdruck oder Face ID verwenden',
+          title: t('profile.items.biometricAuth'),
+          description: t('profile.items.biometricAuthDesc'),
           icon: <Smartphone size={18} color="#54FE54" strokeWidth={2} />,
           type: 'toggle',
           value: biometricsEnabled,
@@ -314,10 +314,10 @@ export default function UserProfile() {
             setBiometricsEnabled(value);
             await savePreference('@biometrics_enabled', value);
             Alert.alert(
-              value ? 'Biometrie aktiviert' : 'Biometrie deaktiviert',
+              value ? t('profile.alerts.biometricEnabled') : t('profile.alerts.biometricDisabled'),
               value 
-                ? 'Sie können sich jetzt mit Fingerabdruck oder Face ID anmelden'
-                : 'Biometrische Anmeldung wurde deaktiviert'
+                ? t('profile.alerts.biometricEnabledDesc')
+                : t('profile.alerts.biometricDisabledDesc')
             );
           },
         },
@@ -325,12 +325,12 @@ export default function UserProfile() {
     },
     {
       id: 'preferences',
-      title: 'Einstellungen',
+      title: t('profile.sections.notifications'),
       icon: <Settings size={20} color="#54FE54" strokeWidth={2} />,
       items: [
         {
           id: 'notifications',
-          title: 'Benachrichtigungen',
+          title: t('profile.sections.notifications'),
           description: 'Push-Nachrichten für Familienaktivitäten',
           icon: <Bell size={18} color="#54FE54" strokeWidth={2} />,
           type: 'toggle',
@@ -344,7 +344,7 @@ export default function UserProfile() {
               try {
                 const { status } = await Notifications.requestPermissionsAsync();
                 if (status !== 'granted') {
-                  Alert.alert('Berechtigung erforderlich', 'Bitte erlauben Sie Benachrichtigungen in den Systemeinstellungen');
+                  Alert.alert(t('common.permissionRequired'), t('profile.alerts.permissionNotificationDesc'));
                   setNotificationsEnabled(false);
                   await savePreference('@notifications_enabled', false);
                 }
@@ -356,8 +356,8 @@ export default function UserProfile() {
         },
         {
           id: 'dark-mode',
-          title: 'Dunkler Modus',
-          description: 'App-Erscheinungsbild anpassen',
+          title: t('profile.items.darkMode'),
+          description: t('profile.items.darkModeDesc'),
           icon: <Moon size={18} color="#54FE54" strokeWidth={2} />,
           type: 'toggle',
           value: darkModeEnabled,
@@ -368,8 +368,8 @@ export default function UserProfile() {
         },
         {
           id: 'auto-sync',
-          title: 'Automatische Synchronisation',
-          description: 'Daten automatisch aktualisieren',
+          title: t('profile.items.autoSync'),
+          description: t('profile.items.autoSyncDesc'),
           icon: <Activity size={18} color="#54FE54" strokeWidth={2} />,
           type: 'toggle',
           value: autoSyncEnabled,
@@ -380,8 +380,8 @@ export default function UserProfile() {
         },
         {
           id: 'analytics',
-          title: 'Nutzungsstatistiken',
-          description: 'Anonyme Daten zur App-Verbesserung teilen',
+          title: t('profile.items.usageStats'),
+          description: t('profile.items.usageStatsDesc'),
           icon: <Target size={18} color="#54FE54" strokeWidth={2} />,
           type: 'toggle',
           value: analyticsEnabled,
@@ -403,29 +403,29 @@ export default function UserProfile() {
     },
     {
       id: 'family',
-      title: 'Familie & Sharing',
+      title: t('profile.sections.family'),
       icon: <Crown size={20} color="#54FE54" strokeWidth={2} />,
       items: [
         {
           id: 'family-role',
-          title: 'Familien-Rolle',
-          description: `${userRole === 'admin' ? 'Administrator' : 'Mitglied'} in ${currentFamily?.name || 'Familie'}`,
+          title: t('profile.items.familyRole'),
+          description: `${userRole === 'admin' ? t('profile.roles.admin') : t('profile.roles.member')} in ${currentFamily?.name || t('profile.roles.family')}`,
           icon: userRole === 'admin' ? <Crown size={18} color="#54FE54" strokeWidth={2} /> : <User size={18} color="#54FE54" strokeWidth={2} />,
           type: 'navigation',
           onPress: () => router.push('/(tabs)/family'),
         },
         {
           id: 'invite-family',
-          title: 'Familie einladen',
-          description: 'Neue Mitglieder zur Familie hinzufügen',
+          title: t('profile.items.inviteFamily'),
+          description: t('profile.items.inviteFamilyDesc'),
           icon: <Share2 size={18} color="#54FE54" strokeWidth={2} />,
           type: 'navigation',
           onPress: () => router.push('/family/invite'),
         },
         {
           id: 'family-settings',
-          title: 'Familieneinstellungen',
-          description: 'Rollen, Berechtigungen und Familie verwalten',
+          title: t('profile.items.familySettings'),
+          description: t('profile.items.familySettingsDesc'),
           icon: <Settings size={18} color="#54FE54" strokeWidth={2} />,
           type: 'navigation',
           onPress: () => router.push('/family/settings'),
@@ -434,21 +434,21 @@ export default function UserProfile() {
     },
     {
       id: 'support',
-      title: 'Hilfe & Support',
+      title: t('profile.sections.support'),
       icon: <HelpCircle size={20} color="#54FE54" strokeWidth={2} />,
       items: [
         {
           id: 'help',
-          title: 'Hilfe & FAQ',
-          description: 'Häufige Fragen und Anleitungen',
+          title: t('profile.items.help'),
+          description: t('profile.items.helpDesc'),
           icon: <HelpCircle size={18} color="#54FE54" strokeWidth={2} />,
           type: 'navigation',
           onPress: contactSupport,
         },
         {
           id: 'about',
-          title: 'Über Famora',
-          description: 'Version, Datenschutz und Impressum',
+          title: t('profile.items.about'),
+          description: t('profile.items.aboutDesc'),
           icon: <Info size={18} color="#54FE54" strokeWidth={2} />,
           type: 'navigation',
           onPress: () => {
@@ -465,16 +465,16 @@ export default function UserProfile() {
         },
         {
           id: 'data-export',
-          title: 'Daten exportieren',
-          description: 'Persönliche Daten herunterladen',
+          title: t('profile.items.dataExport'),
+          description: t('profile.items.dataExportDesc'),
           icon: <Download size={18} color="#54FE54" strokeWidth={2} />,
           type: 'navigation',
           onPress: () => setShowDataExportModal(true),
         },
         {
           id: 'clear-cache',
-          title: 'Cache leeren',
-          description: 'App-Daten zurücksetzen für bessere Performance',
+          title: t('profile.items.clearCache'),
+          description: t('profile.items.clearCacheDesc'),
           icon: <Trash2 size={18} color="#54FE54" strokeWidth={2} />,
           type: 'action',
           onPress: clearAppCache,
@@ -483,7 +483,7 @@ export default function UserProfile() {
     },
     {
       id: 'account-actions',
-      title: 'Konto-Aktionen',
+      title: t('profile.sections.accountActions'),
       icon: <Trash2 size={20} color="#FF0000" strokeWidth={2} />,
       items: [
         {
@@ -501,12 +501,12 @@ export default function UserProfile() {
 
   async function handleLogout() {
     Alert.alert(
-      'Abmelden',
-      'Möchten Sie sich wirklich abmelden?',
+      t('profile.alerts.logoutTitle'),
+      t('profile.alerts.logoutMessage'),
       [
-        { text: 'Abbrechen', style: 'cancel' },
+        { text: t('profile.alerts.logoutCancel'), style: 'cancel' },
         {
-          text: 'Abmelden',
+          text: t('profile.alerts.logoutConfirm'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -519,7 +519,7 @@ export default function UserProfile() {
               }, 100);
             } catch (error) {
               console.error('Logout error:', error);
-              Alert.alert('Fehler', 'Abmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.');
+              Alert.alert(t('common.error'), 'Abmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.');
             }
           },
         },
@@ -772,7 +772,7 @@ export default function UserProfile() {
               />
               <TextInput
                 style={styles.modalInput}
-                placeholder="Neues Passwort"
+                placeholder={t('profile.modals.newPassword')}
                 secureTextEntry
                 value={newPassword}
                 onChangeText={setNewPassword}
@@ -780,7 +780,7 @@ export default function UserProfile() {
               />
               <TextInput
                 style={styles.modalInput}
-                placeholder="Neues Passwort bestätigen"
+                placeholder={t('profile.modals.confirmPassword')}
                 secureTextEntry
                 value={confirmNewPassword}
                 onChangeText={setConfirmNewPassword}
@@ -860,7 +860,7 @@ export default function UserProfile() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Daten exportieren</Text>
+            <Text style={styles.modalTitle}>{t('profile.modals.exportData')}</Text>
             <Text style={styles.modalDescription}>
               Ihre persönlichen Famora-Daten werden als JSON-Datei exportiert. 
               Dies umfasst Ihr Profil, Familieninformationen und Aktivitätsstatistiken.

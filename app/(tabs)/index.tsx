@@ -458,7 +458,7 @@ export default function HomeDashboard() {
           </View>
         </AnimatedView>
 
-        {/* Heute im Überblick */}
+        {/* {t('tabs.dashboard.todayOverview')} */}
         <AnimatedView style={[styles.section, tasksAnimatedStyle]}>
           <Text style={styles.sectionTitle}>{t('dashboard.todayOverview')}</Text>
           <View style={styles.overviewCard}>

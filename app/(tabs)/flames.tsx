@@ -212,7 +212,7 @@ export default function FlamesScreen() {
       setNewGoalTarget('100');
       setShowGoalModal(false);
       
-      showMemberActivity(profile?.name || 'Ein Familienmitglied', `${t('flames.goal.created')} ${newGoalTitle}`);
+      showMemberActivity(profile?.name || t('common.familyMember'), `${t('flames.goal.created')} ${newGoalTitle}`);
       hideLoading();
     } catch (error: any) {
       Alert.alert(t('common.error'), t('flames.goal.error.create') + ' ' + error.message);

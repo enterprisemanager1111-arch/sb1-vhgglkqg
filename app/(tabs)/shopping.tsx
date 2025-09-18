@@ -16,6 +16,7 @@ import { Plus, CircleCheck as CheckCircle, Circle, ShoppingCart, Trash2, User } 
 
 import { useFamily } from '@/contexts/FamilyContext';
 import { useFamilyShoppingItems } from '@/hooks/useFamilyShoppingItems';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { NotificationSystem, useNotifications } from '@/components/NotificationSystem';
 import EmptyState from '@/components/EmptyState';
 import FamilyPrompt from '@/components/FamilyPrompt';
@@ -39,6 +40,7 @@ const getCategoryLabel = (category: string) => {
 
 export default function Shopping() {
   const [isLoaded, setIsLoaded] = useState(false);
+  const { t } = useLanguage();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'dairy' | 'produce' | 'meat' | 'bakery' | 'pantry'>('all');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -192,9 +194,9 @@ export default function Shopping() {
       <SafeAreaView style={styles.container}>
         <EmptyState
           icon={<ShoppingCart size={40} color="#54FE54" strokeWidth={1.5} />}
-          title="Einkaufsliste ist leer"
-          description="Fügen Sie Ihre ersten Artikel zur Einkaufsliste hinzu und teilen Sie sie mit Ihrer Familie!"
-          buttonText="Artikel hinzufügen"
+          title={t('tabs.shopping.emptyTitle')}
+          description={t('tabs.shopping.emptyDescription')}
+          buttonText={t('tabs.shopping.addItem')}
           onButtonPress={() => setShowAddModal(true)}
         />
       </SafeAreaView>

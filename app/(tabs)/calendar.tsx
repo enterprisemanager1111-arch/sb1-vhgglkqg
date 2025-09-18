@@ -15,6 +15,7 @@ import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, MapPi
 
 import { useFamily } from '@/contexts/FamilyContext';
 import { useFamilyCalendarEvents } from '@/hooks/useFamilyCalendarEvents';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { NotificationSystem, useNotifications } from '@/components/NotificationSystem';
 import EmptyState from '@/components/EmptyState';
 import FamilyPrompt from '@/components/FamilyPrompt';
@@ -25,6 +26,7 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function Calendar() {
   const [isLoaded, setIsLoaded] = useState(false);
+  const { t } = useLanguage();
   const [refreshing, setRefreshing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -491,7 +493,7 @@ export default function Calendar() {
                   onPress={() => setShowAddModal(true)}
                 >
                   <Plus size={16} color="#54FE54" strokeWidth={2} />
-                  <Text style={styles.addEventButtonText}>Termin hinzufügen</Text>
+                  <Text style={styles.addEventButtonText}>{t('tabs.calendar.addEvent')}</Text>
                 </Pressable>
               </View>
             )}

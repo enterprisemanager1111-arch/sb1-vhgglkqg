@@ -25,6 +25,7 @@ import { useFamilyShoppingItems } from '@/hooks/useFamilyShoppingItems';
 import { useFamilyCalendarEvents } from '@/hooks/useFamilyCalendarEvents';
 import { useFamily } from '@/contexts/FamilyContext';
 import { useNotifications } from '@/components/NotificationSystem';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedView = Animated.createAnimatedComponent(View);
@@ -85,6 +86,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
   const { createEvent } = useFamilyCalendarEvents();
   const { familyMembers } = useFamily();
   const { showPointsEarned, showMemberActivity } = useNotifications();
+  const { t } = useLanguage();
   
   // Animation values
   const overlayOpacity = useSharedValue(0);
@@ -129,7 +131,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
   // Create Task
   const handleCreateTask = async () => {
     if (!form.taskTitle.trim()) {
-      Alert.alert('Fehler', 'Bitte geben Sie einen Titel ein');
+      Alert.alert(t('common.error'), t('common.fillAllFields'));
       return;
     }
 
@@ -148,13 +150,13 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
         due_date: dueDate,
       });
 
-      showPointsEarned(5, `Neue Aufgabe erstellt: ${form.taskTitle}`);
+      showPointsEarned(5, `${t('tabs.modal.taskCreated')}: ${form.taskTitle}`);
       showMemberActivity('Ein Familienmitglied', `hat eine neue Aufgabe erstellt: ${form.taskTitle}`);
       
-      Alert.alert('Erfolg', 'Aufgabe wurde erstellt!');
+      Alert.alert(t('common.success'), t('tabs.modal.taskCreated'));
       handleClose();
     } catch (error: any) {
-      Alert.alert('Fehler', error.message || 'Aufgabe konnte nicht erstellt werden');
+      Alert.alert(t('common.error'), error.message || t('tabs.modal.taskError'));
     } finally {
       setLoading(false);
       hideLoading();
@@ -180,10 +182,10 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
 
       showMemberActivity('Ein Familienmitglied', `hat "${form.itemName}" zur Einkaufsliste hinzugefügt`);
       
-      Alert.alert('Erfolg', 'Artikel wurde zur Einkaufsliste hinzugefügt!');
+      Alert.alert(t('common.success'), t('tabs.modal.itemAdded'));
       handleClose();
     } catch (error: any) {
-      Alert.alert('Fehler', error.message || 'Artikel konnte nicht hinzugefügt werden');
+      Alert.alert(t('common.error'), error.message || t('tabs.modal.itemError'));
     } finally {
       setLoading(false);
       hideLoading();
@@ -259,15 +261,15 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
         attendees: [],
       });
 
-      showPointsEarned(10, `Termin erstellt: ${form.eventTitle}`);
+      showPointsEarned(10, `${t('tabs.modal.eventCreated')}: ${form.eventTitle}`);
       showMemberActivity('Ein Familienmitglied', `hat einen neuen Termin erstellt: ${form.eventTitle}`);
       
-      Alert.alert('Erfolg', 'Termin wurde erstellt!');
+      Alert.alert(t('common.success'), t('tabs.modal.eventCreated'));
       handleClose();
       setForm(defaultForm);
     } catch (error: any) {
       console.error('Error creating event:', error);
-      Alert.alert('Fehler', error.message || 'Termin konnte nicht erstellt werden');
+      Alert.alert(t('common.error'), error.message || t('tabs.modal.eventError'));
     } finally {
       setLoading(false);
       hideLoading();
@@ -290,10 +292,10 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
   };
 
   const taskCategories = [
-    { value: 'household', label: 'Haushalt' },
-    { value: 'personal', label: 'Persönlich' },
-    { value: 'work', label: 'Arbeit' },
-    { value: 'family', label: 'Familie' },
+    { value: 'household', label: t('onboarding.personal.categories.household') },
+    { value: 'personal', label: t('onboarding.personal.categories.personal') },
+    { value: 'work', label: t('onboarding.personal.categories.work') },
+    { value: 'family', label: t('onboarding.personal.categories.family') },
   ];
 
   const shoppingCategories = [
@@ -326,10 +328,10 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
             
             <View style={styles.headerContent}>
               <Text style={styles.headerTitle}>
-                {currentView === 'menu' ? 'Neues hinzufügen' :
-                 currentView === 'task' ? 'Neue Aufgabe' :
-                 currentView === 'shopping' ? 'Einkaufsartikel' :
-                 'Neuer Termin'}
+                {currentView === 'menu' ? t('tabs.addNew') :
+                 currentView === 'task' ? t('tabs.modal.newTask') :
+                 currentView === 'shopping' ? t('tabs.modal.newShoppingItem') :
+                 t('tabs.modal.newAppointment')}
               </Text>
             </View>
             
@@ -349,9 +351,9 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                   <View style={styles.menuIcon}>
                     <CheckSquare size={28} color="#54FE54" strokeWidth={2} />
                   </View>
-                  <Text style={styles.menuTitle}>Neue Aufgabe</Text>
+                  <Text style={styles.menuTitle}>{t('tabs.modal.newTask')}</Text>
                   <Text style={styles.menuDescription}>
-                    Familienaufgabe erstellen und Punkte sammeln
+                    {t('tabs.modal.taskDescription')}
                   </Text>
                 </Pressable>
 
@@ -362,9 +364,9 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                   <View style={styles.menuIcon}>
                     <ShoppingCart size={28} color="#54FE54" strokeWidth={2} />
                   </View>
-                  <Text style={styles.menuTitle}>Einkaufsartikel</Text>
+                  <Text style={styles.menuTitle}>{t('tabs.modal.newShoppingItem')}</Text>
                   <Text style={styles.menuDescription}>
-                    Artikel zur gemeinsamen Einkaufsliste hinzufügen
+                    {t('tabs.modal.shoppingDescription')}
                   </Text>
                 </Pressable>
 
@@ -375,9 +377,9 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                   <View style={styles.menuIcon}>
                     <Calendar size={28} color="#54FE54" strokeWidth={2} />
                   </View>
-                  <Text style={styles.menuTitle}>Neuer Termin</Text>
+                  <Text style={styles.menuTitle}>{t('tabs.modal.newAppointment')}</Text>
                   <Text style={styles.menuDescription}>
-                    Familientermin planen und alle benachrichtigen
+                    {t('tabs.modal.appointmentDescription')}
                   </Text>
                 </Pressable>
               </View>
@@ -386,10 +388,10 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
             {currentView === 'task' && (
               <View style={styles.formContainer}>
                 <View style={styles.formSection}>
-                  <Text style={styles.formLabel}>Aufgaben-Titel *</Text>
+                  <Text style={styles.formLabel}>{t('tabs.modal.taskTitle')} *</Text>
                   <TextInput
                     style={styles.formInput}
-                    placeholder="z.B. Küche putzen"
+                    placeholder={t('tabs.modal.taskTitlePlaceholder')}
                     value={form.taskTitle}
                     onChangeText={(value) => updateForm('taskTitle', value)}
                     placeholderTextColor="#888888"
@@ -400,7 +402,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                   <Text style={styles.formLabel}>Beschreibung (optional)</Text>
                   <TextInput
                     style={[styles.formInput, styles.textArea]}
-                    placeholder="Details zur Aufgabe..."
+                    placeholder={t('tabs.modal.taskDescriptionPlaceholder')}
                     value={form.taskDescription}
                     onChangeText={(value) => updateForm('taskDescription', value)}
                     placeholderTextColor="#888888"
@@ -410,7 +412,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                 </View>
 
                 <View style={styles.formSection}>
-                  <Text style={styles.formLabel}>Kategorie</Text>
+                  <Text style={styles.formLabel}>{t('tabs.modal.category')}</Text>
                   <View style={styles.categoryGrid}>
                     {taskCategories.map((category) => (
                       <Pressable
@@ -433,7 +435,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                 </View>
 
                 <View style={styles.formSection}>
-                  <Text style={styles.formLabel}>Zuweisen an (optional)</Text>
+                  <Text style={styles.formLabel}>{t('tabs.modal.assignee')} (optional)</Text>
                   <View style={styles.assigneeContainer}>
                     <Pressable
                       style={[
@@ -446,7 +448,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                         styles.assigneeText,
                         !form.taskAssignee && styles.selectedAssigneeText
                       ]}>
-                        Niemand
+{t('tabs.modal.noOne')}
                       </Text>
                     </Pressable>
                     {familyMembers.map((member) => (
@@ -470,8 +472,8 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                 </View>
 
                 <View style={styles.formRow}>
-                  <View style={styles.formSection}>
-                    <Text style={styles.formLabel}>Fälligkeitsdatum (optional)</Text>
+                <View style={styles.formSection}>
+                  <Text style={styles.formLabel}>{t('tabs.modal.dueDate')} (optional)</Text>
                     <TextInput
                       style={styles.formInput}
                       placeholder={getCurrentDate()}
@@ -483,7 +485,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                 </View>
 
                 <View style={styles.pointsInfo}>
-                  <Text style={styles.pointsInfoText}>🔥 Diese Aufgabe bringt 15 Punkte</Text>
+                  <Text style={styles.pointsInfoText}>{t('tabs.modal.pointsInfo')}</Text>
                 </View>
 
                 <Pressable
@@ -493,7 +495,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                 >
                   <CheckSquare size={20} color={form.taskTitle.trim() ? "#161618" : "#999999"} strokeWidth={2} />
                   <Text style={[styles.createButtonText, !form.taskTitle.trim() && styles.disabledText]}>
-                    {loading ? 'Erstelle Aufgabe...' : 'Aufgabe erstellen'}
+{loading ? t('tabs.modal.creatingTask') : t('tabs.modal.createTask')}
                   </Text>
                 </Pressable>
               </View>
@@ -502,10 +504,10 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
             {currentView === 'shopping' && (
               <View style={styles.formContainer}>
                 <View style={styles.formSection}>
-                  <Text style={styles.formLabel}>Artikel-Name *</Text>
+                  <Text style={styles.formLabel}>{t('tabs.modal.itemName')} *</Text>
                   <TextInput
                     style={styles.formInput}
-                    placeholder="z.B. Milch, Brot, Bananen"
+                    placeholder={t('tabs.modal.itemNamePlaceholder')}
                     value={form.itemName}
                     onChangeText={(value) => updateForm('itemName', value)}
                     placeholderTextColor="#888888"
@@ -513,7 +515,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                 </View>
 
                 <View style={styles.formSection}>
-                  <Text style={styles.formLabel}>Kategorie</Text>
+                  <Text style={styles.formLabel}>{t('tabs.modal.category')}</Text>
                   <View style={styles.categoryGrid}>
                     {shoppingCategories.map((category) => (
                       <Pressable
@@ -547,7 +549,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                 </View>
 
                 <View style={styles.pointsInfo}>
-                  <Text style={styles.pointsInfoText}>🛒 Dieser Artikel bringt 20 Punkte</Text>
+                  <Text style={styles.pointsInfoText}>{t('tabs.modal.shoppingPointsInfo')}</Text>
                 </View>
 
                 <Pressable
@@ -557,7 +559,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                 >
                   <ShoppingCart size={20} color={form.itemName.trim() ? "#161618" : "#999999"} strokeWidth={2} />
                   <Text style={[styles.createButtonText, !form.itemName.trim() && styles.disabledText]}>
-                    {loading ? 'Füge hinzu...' : 'Zur Liste hinzufügen'}
+{loading ? t('tabs.modal.addingItem') : t('tabs.modal.addToShoppingList')}
                   </Text>
                 </Pressable>
               </View>
@@ -566,10 +568,10 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
             {currentView === 'calendar' && (
               <View style={styles.formContainer}>
                 <View style={styles.formSection}>
-                  <Text style={styles.formLabel}>Termin-Titel *</Text>
+                  <Text style={styles.formLabel}>{t('tabs.modal.eventTitle')} *</Text>
                   <TextInput
                     style={styles.formInput}
-                    placeholder="z.B. Familienabend, Geburtstag"
+                    placeholder={t('tabs.modal.eventTitlePlaceholder')}
                     value={form.eventTitle}
                     onChangeText={(value) => updateForm('eventTitle', value)}
                     placeholderTextColor="#888888"
@@ -577,10 +579,10 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                 </View>
 
                 <View style={styles.formSection}>
-                  <Text style={styles.formLabel}>Beschreibung (optional)</Text>
+                  <Text style={styles.formLabel}>{t('tabs.modal.eventDescription')} (optional)</Text>
                   <TextInput
                     style={[styles.formInput, styles.textArea]}
-                    placeholder="Was ist geplant..."
+                    placeholder={t('tabs.modal.eventDescriptionPlaceholder')}
                     value={form.eventDescription}
                     onChangeText={(value) => updateForm('eventDescription', value)}
                     placeholderTextColor="#888888"
@@ -591,7 +593,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
 
                 <View style={styles.formRow}>
                   <View style={[styles.formSection, { flex: 2 }]}>
-                    <Text style={styles.formLabel}>Datum *</Text>
+                    <Text style={styles.formLabel}>{t('tabs.modal.eventDate')} *</Text>
                     <TextInput
                       style={styles.formInput}
                       placeholder="DD.MM.YYYY (z.B. 19.09.2025)"
@@ -602,7 +604,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                   </View>
                   
                   <View style={[styles.formSection, { flex: 1 }]}>
-                    <Text style={styles.formLabel}>Uhrzeit</Text>
+                    <Text style={styles.formLabel}>{t('tabs.modal.eventTime')}</Text>
                     <TextInput
                       style={styles.formInput}
                       placeholder="HH:MM"
@@ -625,7 +627,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                 </View>
 
                 <View style={styles.pointsInfo}>
-                  <Text style={styles.pointsInfoText}>📅 Feste Punkte: 10 Punkte</Text>
+                  <Text style={styles.pointsInfoText}>📅 {t('tabs.modal.eventPointsInfo')}</Text>
                 </View>
 
                 <Pressable
@@ -635,7 +637,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                 >
                   <Calendar size={20} color={(form.eventTitle.trim() && form.eventDate) ? "#161618" : "#999999"} strokeWidth={2} />
                   <Text style={[styles.createButtonText, (!form.eventTitle.trim() || !form.eventDate) && styles.disabledText]}>
-                    {loading ? 'Erstelle Termin...' : 'Termin erstellen'}
+{loading ? t('tabs.modal.creatingEvent') : t('tabs.modal.createEvent')}
                   </Text>
                 </Pressable>
               </View>
