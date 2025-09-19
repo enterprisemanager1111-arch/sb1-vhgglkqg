@@ -270,19 +270,19 @@ export const useResponsive = () => {
     isMobile: ResponsiveUtils.isMobile(),
     isTablet: ResponsiveUtils.isTablet(),
     isDesktop: ResponsiveUtils.isDesktop(),
-    getResponsiveValue: ResponsiveUtils.getResponsiveValue,
-    scaleFontSize: ResponsiveUtils.scaleFontSize,
-    scaleWidth: ResponsiveUtils.scaleWidth,
-    scaleHeight: ResponsiveUtils.scaleHeight,
-    getResponsivePadding: ResponsiveUtils.getResponsivePadding,
-    getGridColumns: ResponsiveUtils.getGridColumns,
-    getCardWidth: ResponsiveUtils.getCardWidth,
-    getFontSizes: ResponsiveUtils.getFontSizes,
-    getSpacing: ResponsiveUtils.getSpacing,
-    getBorderRadius: ResponsiveUtils.getBorderRadius,
-    getShadow: ResponsiveUtils.getShadow,
-    getSafeAreaInsets: ResponsiveUtils.getSafeAreaInsets,
-    getLayoutDimensions: ResponsiveUtils.getLayoutDimensions,
+    getResponsiveValue: ResponsiveUtils.getResponsiveValue.bind(ResponsiveUtils),
+    scaleFontSize: ResponsiveUtils.scaleFontSize.bind(ResponsiveUtils),
+    scaleWidth: ResponsiveUtils.scaleWidth.bind(ResponsiveUtils),
+    scaleHeight: ResponsiveUtils.scaleHeight.bind(ResponsiveUtils),
+    getResponsivePadding: ResponsiveUtils.getResponsivePadding.bind(ResponsiveUtils),
+    getGridColumns: ResponsiveUtils.getGridColumns.bind(ResponsiveUtils),
+    getCardWidth: ResponsiveUtils.getCardWidth.bind(ResponsiveUtils),
+    getFontSizes: ResponsiveUtils.getFontSizes.bind(ResponsiveUtils),
+    getSpacing: ResponsiveUtils.getSpacing.bind(ResponsiveUtils),
+    getBorderRadius: ResponsiveUtils.getBorderRadius.bind(ResponsiveUtils),
+    getShadow: ResponsiveUtils.getShadow.bind(ResponsiveUtils),
+    getSafeAreaInsets: ResponsiveUtils.getSafeAreaInsets.bind(ResponsiveUtils),
+    getLayoutDimensions: ResponsiveUtils.getLayoutDimensions.bind(ResponsiveUtils),
   };
 };
 
@@ -295,7 +295,7 @@ export const createResponsiveStyle = <T extends Record<string, any>>(
   Object.keys(styles).forEach((key) => {
     const style = styles[key];
     if (typeof style === 'object' && style !== null) {
-      responsiveStyles[key] = {
+      (responsiveStyles as any)[key] = {
         ...style,
         // Auto-scale common properties
         fontSize: style.fontSize ? ResponsiveUtils.scaleFontSize(style.fontSize) : undefined,
@@ -310,7 +310,7 @@ export const createResponsiveStyle = <T extends Record<string, any>>(
         height: style.height && typeof style.height === 'number' ? ResponsiveUtils.scaleHeight(style.height) : style.height,
       };
     } else {
-      responsiveStyles[key] = style;
+      (responsiveStyles as any)[key] = style;
     }
   });
   
@@ -324,17 +324,19 @@ export const {
   isMobile,
   isTablet,
   isDesktop,
-  getResponsiveValue,
-  scaleFontSize,
-  scaleWidth,
-  scaleHeight,
-  getResponsivePadding,
-  getGridColumns,
-  getCardWidth,
-  getFontSizes,
-  getSpacing,
-  getBorderRadius,
-  getShadow,
-  getSafeAreaInsets,
-  getLayoutDimensions,
 } = ResponsiveUtils;
+
+// Export bound methods to preserve 'this' context
+export const getResponsiveValue = ResponsiveUtils.getResponsiveValue.bind(ResponsiveUtils);
+export const scaleFontSize = ResponsiveUtils.scaleFontSize.bind(ResponsiveUtils);
+export const scaleWidth = ResponsiveUtils.scaleWidth.bind(ResponsiveUtils);
+export const scaleHeight = ResponsiveUtils.scaleHeight.bind(ResponsiveUtils);
+export const getResponsivePadding = ResponsiveUtils.getResponsivePadding.bind(ResponsiveUtils);
+export const getGridColumns = ResponsiveUtils.getGridColumns.bind(ResponsiveUtils);
+export const getCardWidth = ResponsiveUtils.getCardWidth.bind(ResponsiveUtils);
+export const getFontSizes = ResponsiveUtils.getFontSizes.bind(ResponsiveUtils);
+export const getSpacing = ResponsiveUtils.getSpacing.bind(ResponsiveUtils);
+export const getBorderRadius = ResponsiveUtils.getBorderRadius.bind(ResponsiveUtils);
+export const getShadow = ResponsiveUtils.getShadow.bind(ResponsiveUtils);
+export const getSafeAreaInsets = ResponsiveUtils.getSafeAreaInsets.bind(ResponsiveUtils);
+export const getLayoutDimensions = ResponsiveUtils.getLayoutDimensions.bind(ResponsiveUtils);

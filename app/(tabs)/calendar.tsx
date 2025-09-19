@@ -87,7 +87,7 @@ export default function Calendar() {
           <View style={styles.loadingIcon}>
             <CalendarIcon size={32} color="#54FE54" strokeWidth={2} />
           </View>
-          <Text style={styles.loadingText}>Kalender wird geladen...</Text>
+          <Text style={styles.loadingText}>{t('calendar.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -98,10 +98,10 @@ export default function Calendar() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorTitle}>Fehler beim Laden des Kalenders</Text>
+          <Text style={styles.errorTitle}>{t('calendar.error.loading')}</Text>
           <Text style={styles.errorText}>{eventsError}</Text>
           <Pressable style={styles.retryButton} onPress={refreshEvents}>
-            <Text style={styles.retryButtonText}>Erneut versuchen</Text>
+            <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -121,19 +121,19 @@ export default function Calendar() {
 
   const handleDeleteEvent = async (eventId: string) => {
     Alert.alert(
-      'Termin löschen',
-      'Möchten Sie diesen Termin wirklich löschen?',
+      t('calendar.delete.title'),
+      t('calendar.delete.message'),
       [
-        { text: 'Abbrechen', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Löschen',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
               await deleteEvent(eventId);
-              showMemberActivity('Ein Familienmitglied', 'hat einen Termin gelöscht');
+              showMemberActivity(t('common.familyMember'), 'deleted an event');
             } catch (error: any) {
-              Alert.alert('Fehler', 'Termin konnte nicht gelöscht werden: ' + error.message);
+              Alert.alert(t('common.error'), t('calendar.error.delete') + ' ' + error.message);
             }
           },
         },
@@ -142,16 +142,16 @@ export default function Calendar() {
   };
 
   const monthNames = [
-    'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-    'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'
+    t('calendar.months.january'), t('calendar.months.february'), t('calendar.months.march'), t('calendar.months.april'), t('calendar.months.may'), t('calendar.months.june'),
+    t('calendar.months.july'), t('calendar.months.august'), t('calendar.months.september'), t('calendar.months.october'), t('calendar.months.november'), t('calendar.months.december')
   ];
 
   const monthNamesShort = [
-    'Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'
+    t('calendar.monthsShort.january'), t('calendar.monthsShort.february'), t('calendar.monthsShort.march'), t('calendar.monthsShort.april'), t('calendar.monthsShort.may'), t('calendar.monthsShort.june'),
+    t('calendar.monthsShort.july'), t('calendar.monthsShort.august'), t('calendar.monthsShort.september'), t('calendar.monthsShort.october'), t('calendar.monthsShort.november'), t('calendar.monthsShort.december')
   ];
 
-  const dayNamesShort = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+  const dayNamesShort = [t('calendar.days.sunday'), t('calendar.days.monday'), t('calendar.days.tuesday'), t('calendar.days.wednesday'), t('calendar.days.thursday'), t('calendar.days.friday'), t('calendar.days.saturday')];
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -278,9 +278,9 @@ export default function Calendar() {
       <SafeAreaView style={styles.container}>
         <EmptyState
           icon={<CalendarIcon size={40} color="#54FE54" strokeWidth={1.5} />}
-          title="Noch keine Termine"
-          description="Erstellen Sie Ihren ersten Familientermin und planen Sie gemeinsame Aktivitäten!"
-          buttonText="Termin erstellen"
+          title={t('calendar.empty.title')}
+          description={t('calendar.empty.description')}
+          buttonText={t('calendar.empty.button')}
           onButtonPress={() => setShowAddModal(true)}
         />
       </SafeAreaView>
@@ -313,7 +313,7 @@ export default function Calendar() {
               <Text style={styles.monthTitle}>
                 {monthNames[selectedDate.getMonth()]}, {selectedDate.getDate()}
               </Text>
-              <Text style={styles.taskCountText}>{todayEvents.length} Termine heute</Text>
+              <Text style={styles.taskCountText}>{todayEvents.length} {t('calendar.today')}</Text>
             </View>
             <Pressable 
               style={styles.addButton}
@@ -329,7 +329,7 @@ export default function Calendar() {
           <View style={styles.weekView}>
             {weekDays.map((date, index) => {
               const dayNumber = date.getDate();
-              const dayName = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'][date.getDay()];
+              const dayName = dayNamesShort[date.getDay()];
               const isToday = isTodayWeek(date);
               const isSelected = isSelectedWeek(date);
               const hasEvents = hasEventWeek(date);
@@ -431,7 +431,7 @@ export default function Calendar() {
         <AnimatedView style={[styles.section, eventsAnimatedStyle]}>
           <View style={styles.sectionHeader}>
             <CalendarIcon size={20} color="#161618" strokeWidth={1.5} />
-            <Text style={styles.sectionTitle}>Termine für {selectedDate.getDate()}. {monthNames[selectedDate.getMonth()]}</Text>
+            <Text style={styles.sectionTitle}>{t('calendar.eventsFor', { date: selectedDate.getDate().toString(), month: monthNames[selectedDate.getMonth()] })}</Text>
           </View>
 
           <View style={styles.eventsList}>
@@ -467,11 +467,11 @@ export default function Calendar() {
                       <View style={styles.eventMetaItem}>
                         <User size={12} color="#666666" strokeWidth={1.5} />
                         <Text style={styles.eventCreator}>
-                          {event.creator_profile?.name || 'Unbekannt'}
+                          {event.creator_profile?.name || t('calendar.unknown')}
                         </Text>
                       </View>
                       <View style={styles.eventPoints}>
-                        <Text style={styles.eventPointsText}>+10 Punkte erhalten</Text>
+                        <Text style={styles.eventPointsText}>{t('calendar.pointsEarned')}</Text>
                       </View>
                     </View>
                   </View>
@@ -487,13 +487,13 @@ export default function Calendar() {
             ) : (
               <View style={styles.emptyDayContainer}>
                 <CalendarIcon size={24} color="#E0E0E0" strokeWidth={1.5} />
-                <Text style={styles.emptyDayText}>Keine Termine für diesen Tag</Text>
+                <Text style={styles.emptyDayText}>{t('calendar.noEventsForDay') || 'No events for this day'}</Text>
                 <Pressable 
                   style={styles.addEventButton}
                   onPress={() => setShowAddModal(true)}
                 >
                   <Plus size={16} color="#54FE54" strokeWidth={2} />
-                  <Text style={styles.addEventButtonText}>{t('tabs.calendar.addEvent')}</Text>
+                  <Text style={styles.addEventButtonText}>{t('calendar.addEvent')}</Text>
                 </Pressable>
               </View>
             )}
@@ -505,7 +505,7 @@ export default function Calendar() {
           <AnimatedView style={[styles.section, eventsAnimatedStyle]}>
             <View style={styles.sectionHeader}>
               <Clock size={20} color="#161618" strokeWidth={1.5} />
-              <Text style={styles.sectionTitle}>Diese Woche</Text>
+              <Text style={styles.sectionTitle}>{t('calendar.thisWeek')}</Text>
             </View>
             
             <View style={styles.upcomingEventsList}>

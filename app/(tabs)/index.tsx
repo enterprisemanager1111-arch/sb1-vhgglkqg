@@ -46,6 +46,8 @@ export default function HomeDashboard() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showNotificationCenter, setShowNotificationCenter] = useState(false);
+  const [showAddItemModal, setShowAddItemModal] = useState(false);
+  
   const { user, profile } = useAuth();
   const { isInFamily, loading: familyLoading, currentFamily, familyMembers, refreshFamily } = useFamily();
   const { t, currentLanguage, loading: languageLoading } = useLanguage();
@@ -226,9 +228,6 @@ export default function HomeDashboard() {
       available: true,
     },
   ];
-
-
-  const [showAddItemModal, setShowAddItemModal] = useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
