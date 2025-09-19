@@ -24,7 +24,7 @@ export default function OnboardingOverviewScreen() {
   const backButtonScale = useSharedValue(1);
   const resetButtonScale = useSharedValue(1);
   
-  const steps = getOnboardingSteps();
+  const steps = getOnboardingSteps(t);
   const completionPercentage = getCompletionPercentage();
   const isCompleted = completionPercentage === 100;
 

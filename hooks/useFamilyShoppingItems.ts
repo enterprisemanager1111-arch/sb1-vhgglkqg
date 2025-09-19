@@ -211,12 +211,13 @@ export const useFamilyShoppingItems = (): UseFamilyShoppingItemsReturn => {
         console.error('Error cleaning up completed shopping items:', error);
       } else {
         console.log('Cleaned up shopping items older than 24 hours');
-        await loadItems(); // Refresh the list
+        // Don't call loadItems here to avoid infinite loop
+        // The real-time subscription will handle refreshing the data
       }
     } catch (error) {
       console.error('Error in cleanup process:', error);
     }
-  }, [currentFamily, loadItems]);
+  }, [currentFamily]);
 
   // Run cleanup on mount and every hour
   useEffect(() => {

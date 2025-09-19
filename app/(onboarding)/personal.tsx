@@ -377,12 +377,11 @@ export default function PersonalInfoScreen() {
 
   // Add a ref to track if state is being properly maintained
   const stateRef = React.useRef({ name, birthDate, role, interests });
-  const [forceUpdateCounter, setForceUpdateCounter] = React.useState(0);
   
   React.useEffect(() => {
     stateRef.current = { name, birthDate, role, interests };
     console.log('DEBUG: State ref updated:', stateRef.current);
-    setForceUpdateCounter(prev => prev + 1); // Force re-render to update debug panel
+    // Removed setForceUpdateCounter to prevent infinite loop
   }, [name, birthDate, role, interests]);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTooltip, setShowTooltip] = useState<string | null>(null);

@@ -158,25 +158,19 @@ export const getLevelProgress = (totalPoints: number): { current: number; next: 
     percentage: Math.min(100, Math.max(0, percentage))
   };
 };
-// Achievements configuration
-export const ACHIEVEMENTS_CONFIG = {
+// Base achievements configuration (without translations)
+const BASE_ACHIEVEMENTS_CONFIG = {
   first_task: {
-    title: 'Erste Aufgabe',
-    description: 'Erste Task erfolgreich erledigt',
     points_reward: 10,
     condition: (activities: PointsActivity[]) => 
       activities.filter(a => a.activity_type === 'task_completed').length >= 1
   },
   team_player: {
-    title: 'Team Player',
-    description: '10 Tasks erfolgreich erledigt',
     points_reward: 25,
     condition: (activities: PointsActivity[]) => 
       activities.filter(a => a.activity_type === 'task_completed').length >= 10
   },
   streak_master: {
-    title: 'Streak Master',
-    description: '7 Tage in Folge aktiv',
     points_reward: 50,
     condition: (activities: PointsActivity[]) => {
       // Check for 7 consecutive days of activity
@@ -196,39 +190,135 @@ export const ACHIEVEMENTS_CONFIG = {
     }
   },
   family_hero: {
-    title: 'Familien-Hero',
-    description: '100+ Punkte gesammelt',
     points_reward: 100,
     condition: (activities: PointsActivity[]) => 
       activities.reduce((sum, a) => sum + a.points_earned, 0) >= 100
   },
   organizer: {
-    title: 'Organisator',
-    description: '5 Events erstellt',
     points_reward: 30,
     condition: (activities: PointsActivity[]) => 
       activities.filter(a => a.activity_type === 'event_created').length >= 5
   },
   helper: {
-    title: 'Helfer',
-    description: '20 Einkäufe erledigt',
     points_reward: 40,
     condition: (activities: PointsActivity[]) => 
       activities.filter(a => a.activity_type === 'shopping_item_completed').length >= 20
   },
   milestone_100: {
-    title: 'Erste 100',
-    description: '100 Punkte erreicht',
     points_reward: 50,
     condition: (activities: PointsActivity[]) => 
       activities.reduce((sum, a) => sum + a.points_earned, 0) >= 100
   },
   milestone_500: {
-    title: 'Halbzeit!',
-    description: '500 Punkte erreicht',
     points_reward: 100,
     condition: (activities: PointsActivity[]) => 
       activities.reduce((sum, a) => sum + a.points_earned, 0) >= 500
+  },
+} as const;
+
+// Function to get translated achievements configuration
+export const getAchievementsConfig = (t: (key: string) => string) => {
+  return {
+    first_task: {
+      title: t('profile.achievements.first_task.title'),
+      description: t('profile.achievements.first_task.description'),
+      points_reward: BASE_ACHIEVEMENTS_CONFIG.first_task.points_reward,
+      condition: BASE_ACHIEVEMENTS_CONFIG.first_task.condition
+    },
+    team_player: {
+      title: t('profile.achievements.team_player.title'),
+      description: t('profile.achievements.team_player.description'),
+      points_reward: BASE_ACHIEVEMENTS_CONFIG.team_player.points_reward,
+      condition: BASE_ACHIEVEMENTS_CONFIG.team_player.condition
+    },
+    streak_master: {
+      title: t('profile.achievements.streak_master.title'),
+      description: t('profile.achievements.streak_master.description'),
+      points_reward: BASE_ACHIEVEMENTS_CONFIG.streak_master.points_reward,
+      condition: BASE_ACHIEVEMENTS_CONFIG.streak_master.condition
+    },
+    family_hero: {
+      title: t('profile.achievements.family_hero.title'),
+      description: t('profile.achievements.family_hero.description'),
+      points_reward: BASE_ACHIEVEMENTS_CONFIG.family_hero.points_reward,
+      condition: BASE_ACHIEVEMENTS_CONFIG.family_hero.condition
+    },
+    organizer: {
+      title: t('profile.achievements.organizer.title'),
+      description: t('profile.achievements.organizer.description'),
+      points_reward: BASE_ACHIEVEMENTS_CONFIG.organizer.points_reward,
+      condition: BASE_ACHIEVEMENTS_CONFIG.organizer.condition
+    },
+    helper: {
+      title: t('profile.achievements.helper.title'),
+      description: t('profile.achievements.helper.description'),
+      points_reward: BASE_ACHIEVEMENTS_CONFIG.helper.points_reward,
+      condition: BASE_ACHIEVEMENTS_CONFIG.helper.condition
+    },
+    milestone_100: {
+      title: t('profile.achievements.milestone_100.title'),
+      description: t('profile.achievements.milestone_100.description'),
+      points_reward: BASE_ACHIEVEMENTS_CONFIG.milestone_100.points_reward,
+      condition: BASE_ACHIEVEMENTS_CONFIG.milestone_100.condition
+    },
+    milestone_500: {
+      title: t('profile.achievements.milestone_500.title'),
+      description: t('profile.achievements.milestone_500.description'),
+      points_reward: BASE_ACHIEVEMENTS_CONFIG.milestone_500.points_reward,
+      condition: BASE_ACHIEVEMENTS_CONFIG.milestone_500.condition
+    },
+  } as const;
+};
+
+// Legacy export for backward compatibility (will use English as fallback)
+export const ACHIEVEMENTS_CONFIG = {
+  first_task: {
+    title: 'First Task',
+    description: 'First task successfully completed',
+    points_reward: BASE_ACHIEVEMENTS_CONFIG.first_task.points_reward,
+    condition: BASE_ACHIEVEMENTS_CONFIG.first_task.condition
+  },
+  team_player: {
+    title: 'Team Player',
+    description: '10 tasks successfully completed',
+    points_reward: BASE_ACHIEVEMENTS_CONFIG.team_player.points_reward,
+    condition: BASE_ACHIEVEMENTS_CONFIG.team_player.condition
+  },
+  streak_master: {
+    title: 'Streak Master',
+    description: '7 days in a row active',
+    points_reward: BASE_ACHIEVEMENTS_CONFIG.streak_master.points_reward,
+    condition: BASE_ACHIEVEMENTS_CONFIG.streak_master.condition
+  },
+  family_hero: {
+    title: 'Family Hero',
+    description: '100+ points collected',
+    points_reward: BASE_ACHIEVEMENTS_CONFIG.family_hero.points_reward,
+    condition: BASE_ACHIEVEMENTS_CONFIG.family_hero.condition
+  },
+  organizer: {
+    title: 'Organizer',
+    description: '5 events created',
+    points_reward: BASE_ACHIEVEMENTS_CONFIG.organizer.points_reward,
+    condition: BASE_ACHIEVEMENTS_CONFIG.organizer.condition
+  },
+  helper: {
+    title: 'Helper',
+    description: '20 shopping items completed',
+    points_reward: BASE_ACHIEVEMENTS_CONFIG.helper.points_reward,
+    condition: BASE_ACHIEVEMENTS_CONFIG.helper.condition
+  },
+  milestone_100: {
+    title: 'First 100',
+    description: '100 points reached',
+    points_reward: BASE_ACHIEVEMENTS_CONFIG.milestone_100.points_reward,
+    condition: BASE_ACHIEVEMENTS_CONFIG.milestone_100.condition
+  },
+  milestone_500: {
+    title: 'Halfway!',
+    description: '500 points reached',
+    points_reward: BASE_ACHIEVEMENTS_CONFIG.milestone_500.points_reward,
+    condition: BASE_ACHIEVEMENTS_CONFIG.milestone_500.condition
   },
 } as const;
 

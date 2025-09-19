@@ -297,7 +297,12 @@
       "logoutMessage": "Wilt u echt uitloggen?",
       "logoutCancel": "Annuleren",
       "logoutConfirm": "Uitloggen",
-      "permissionNotificationDesc": "Sta meldingen toe in de systeeminstellingen"
+      "permissionNotificationDesc": "Sta meldingen toe in de systeeminstellingen",
+      "passwordChangeError": "Wachtwoord kon niet worden gewijzigd",
+      "supportContact": "Contact Ondersteuning",
+      "supportEmailSent": "Stuur een e-mail naar:",
+      "copyEmail": "E-mail Kopiëren",
+      "emailCopied": "E-mailadres gekopieerd"
     },
     "roles": {
       "parent": "Ouder",
@@ -308,7 +313,88 @@
       "admin": "Beheerder",
       "member": "Lid",
       "family": "Familie"
+    },
+    "stats": {
+      "points": "Punten",
+      "tasks": "Taken",
+      "months": "Maanden",
+      "memberSince": "Lid sinds",
+      "family": "Familie"
+    },
+    "about": {
+      "title": "Over Famora",
+      "version": "Versie: 1.0.0",
+      "build": "Build: {{year}}.{{month}}",
+      "description": "Famora - Je digitale familieorganisatie",
+      "developed": "Ontwikkeld met ❤️ voor families",
+      "privacy": "Privacybeleid"
+    },
+    "export": {
+      "description": "Je persoonlijke Famora-gegevens worden geëxporteerd als JSON-bestand. Dit omvat je profiel, familie-informatie en activiteitsstatistieken.",
+      "exportedData": "Geëxporteerde gegevens:",
+      "profileInfo": "Profiel en persoonlijke informatie",
+      "familyRole": "Familierol en lidmaatschap",
+      "completedTasks": "Voltooide taken (aantal)",
+      "shoppingActivities": "Boodschappenlijst activiteiten",
+      "usageStats": "App-gebruiksstatistieken",
+      "exportButton": "Exporteren"
+    },
+    "notifications": {
+      "description": "Push-meldingen voor familieactiviteiten"
+    },
+    "achievements": {
+      "first_task": {
+        "title": "Eerste Taak",
+        "description": "Eerste taak succesvol voltooid"
+      },
+      "team_player": {
+        "title": "Teamspeler",
+        "description": "10 taken succesvol voltooid"
+      },
+      "streak_master": {
+        "title": "Streak Meester",
+        "description": "7 dagen achter elkaar actief"
+      },
+      "family_hero": {
+        "title": "Familie Held",
+        "description": "100+ punten verzameld"
+      },
+      "organizer": {
+        "title": "Organisator",
+        "description": "5 evenementen gemaakt"
+      },
+      "helper": {
+        "title": "Helper",
+        "description": "20 boodschappen voltooid"
+      },
+      "milestone_100": {
+        "title": "Eerste 100",
+        "description": "100 punten bereikt"
+      },
+      "milestone_500": {
+        "title": "Halverwege!",
+        "description": "500 punten bereikt"
+      }
+    },
+    "logout": {
+      "title": "Uitloggen",
+      "description": "Uitloggen van dit apparaat"
     }
+  },
+  "familyPrompt": {
+    "title": "Familie Instellen",
+    "description": "Maak je familie aan of sluit je aan bij een bestaande om samen georganiseerd te blijven.",
+    "createFamily": "Familie Aanmaken",
+    "joinFamily": "Bij Familie Aansluiten",
+    "setupLater": "Later instellen"
+  },
+  "onboarding": {
+    "familySetup": {
+      "title": "Familie Instellen",
+      "description": "Familie aanmaken of aansluiten bij bestaande"
+    },
+    "family-setup-title": "Familie Instellen",
+    "family-setup-description": "Familie aanmaken of aansluiten bij bestaande"
   },
   "tabs": {
     "addNew": "Nieuw Toevoegen",
@@ -358,6 +444,7 @@
     },
     "family": {
       "title": "Uw Familie",
+      "defaultName": "Familie",
       "member": "Lid",
       "members": "Leden",
       "online": "online",

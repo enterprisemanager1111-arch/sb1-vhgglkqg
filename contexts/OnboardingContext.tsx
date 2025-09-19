@@ -28,7 +28,7 @@ interface OnboardingContextType {
   updateAuthInfo: (auth: Partial<OnboardingData['authInfo']>) => Promise<void>;
   clearOnboardingData: () => Promise<void>;
   completeStep: (stepId: string, details?: Record<string, any>) => Promise<void>;
-  getOnboardingSteps: () => OnboardingStep[];
+  getOnboardingSteps: (t?: (key: string) => string) => OnboardingStep[];
   getCompletionPercentage: () => number;
   loading: boolean;
 }
@@ -92,8 +92,8 @@ const ONBOARDING_STEPS: Omit<OnboardingStep, 'status' | 'completedAt' | 'details
   },
   {
     id: 'family-setup',
-    title: 'Familie einrichten',
-    description: 'Familie erstellen oder einer bestehenden beitreten',
+    title: 'family-setup-title', // Translation key
+    description: 'family-setup-description', // Translation key
     category: 'family',
     icon: 'users'
   }
@@ -293,12 +293,23 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     await saveOnboardingData(updatedData);
   };
 
-  const getOnboardingSteps = (): OnboardingStep[] => {
+  const getOnboardingSteps = (t?: (key: string) => string): OnboardingStep[] => {
     return ONBOARDING_STEPS.map(stepTemplate => {
       const completedStep = onboardingData.completedSteps.find(s => s.id === stepTemplate.id);
       
+      // Translate the step if translation function is provided
+      const translatedStep = t ? {
+        ...stepTemplate,
+        title: t(stepTemplate.title) || stepTemplate.title,
+        description: t(stepTemplate.description) || stepTemplate.description
+      } : stepTemplate;
+      
       if (completedStep) {
-        return completedStep;
+        return {
+          ...completedStep,
+          title: t ? (t(stepTemplate.title) || stepTemplate.title) : completedStep.title,
+          description: t ? (t(stepTemplate.description) || stepTemplate.description) : completedStep.description
+        };
       }
       
       // Determine status based on current progress
@@ -312,7 +323,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       }
       
       return {
-        ...stepTemplate,
+        ...translatedStep,
         status,
         icon: stepTemplate.icon as any
       };

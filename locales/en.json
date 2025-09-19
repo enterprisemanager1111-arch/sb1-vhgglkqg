@@ -379,12 +379,33 @@
       "logoutMessage": "Do you really want to logout?",
       "logoutCancel": "Cancel",
       "logoutConfirm": "Logout",
-      "permissionNotificationDesc": "Please allow notifications in system settings"
+      "permissionNotificationDesc": "Please allow notifications in system settings",
+      "passwordChangeError": "Password could not be changed",
+      "supportContact": "Contact Support",
+      "supportEmailSent": "Send an email to:",
+      "copyEmail": "Copy Email",
+      "emailCopied": "Email address copied",
+      "cameraPermissionDenied": "Camera permission denied",
+      "libraryPermissionDenied": "Photo library permission denied",
+      "imagePickerError": "Error selecting image",
+      "userNotLoggedIn": "User not logged in",
+      "uploadError": "Error uploading image",
+      "profileUpdateError": "Error updating profile",
+      "profilePictureUpdated": "Profile picture updated successfully"
     },
     "modals": {
       "newPassword": "New Password",
       "confirmPassword": "Confirm New Password",
       "exportData": "Export Data"
+    },
+    "imagePicker": {
+      "title": "Change Profile Picture",
+      "subtitle": "Choose how you want to update your profile picture",
+      "camera": "Take Photo",
+      "cameraDescription": "Use camera to take a new photo",
+      "library": "Choose from Library",
+      "libraryDescription": "Select from your photo library",
+      "uploading": "Uploading..."
     },
     "roles": {
       "parent": "Parent",
@@ -395,7 +416,80 @@
       "admin": "Administrator",
       "member": "Member",
       "family": "Family"
+    },
+    "stats": {
+      "points": "Points",
+      "tasks": "Tasks",
+      "months": "Months",
+      "memberSince": "Member since",
+      "family": "Family"
+    },
+    "about": {
+      "title": "About Famora",
+      "version": "Version: 1.0.0",
+      "build": "Build: {{year}}.{{month}}",
+      "description": "Famora - Your digital family organization",
+      "developed": "Developed with ❤️ for families",
+      "privacy": "Privacy Policy"
+    },
+    "export": {
+      "description": "Your personal Famora data will be exported as a JSON file. This includes your profile, family information and activity statistics.",
+      "exportedData": "Exported Data:",
+      "profileInfo": "Profile and personal information",
+      "familyRole": "Family role and membership",
+      "completedTasks": "Completed tasks (count)",
+      "shoppingActivities": "Shopping list activities",
+      "usageStats": "App usage statistics",
+      "exportButton": "Export"
+    },
+    "notifications": {
+      "description": "Push notifications for family activities"
+    },
+    "achievements": {
+      "first_task": {
+        "title": "First Task",
+        "description": "First task successfully completed"
+      },
+      "team_player": {
+        "title": "Team Player",
+        "description": "10 tasks successfully completed"
+      },
+      "streak_master": {
+        "title": "Streak Master",
+        "description": "7 days in a row active"
+      },
+      "family_hero": {
+        "title": "Family Hero",
+        "description": "100+ points collected"
+      },
+      "organizer": {
+        "title": "Organizer",
+        "description": "5 events created"
+      },
+      "helper": {
+        "title": "Helper",
+        "description": "20 shopping items completed"
+      },
+      "milestone_100": {
+        "title": "First 100",
+        "description": "100 points reached"
+      },
+      "milestone_500": {
+        "title": "Halfway!",
+        "description": "500 points reached"
+      }
+    },
+    "logout": {
+      "title": "Sign Out",
+      "description": "Sign out from this device"
     }
+  },
+  "familyPrompt": {
+    "title": "Set up Family",
+    "description": "Create your family or join an existing one to stay organized together.",
+    "createFamily": "Create Family",
+    "joinFamily": "Join Family",
+    "setupLater": "Set up later"
   },
   "tabs": {
     "addNew": "Add New",
@@ -447,6 +541,7 @@
     },
     "family": {
       "title": "Your Family",
+      "defaultName": "Family",
       "member": "Member",
       "members": "Members",
       "online": "online",
@@ -651,6 +746,12 @@
       "family": {
         "title": "Set up family"
       }
-}
+    },
+    "familySetup": {
+      "title": "Set up Family",
+      "description": "Create family or join an existing one"
+    },
+    "family-setup-title": "Set up Family",
+    "family-setup-description": "Create family or join an existing one"
   }
 }

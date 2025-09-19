@@ -200,7 +200,7 @@ export default function FamilyMembers() {
               if (a.role !== 'admin' && b.role === 'admin') return 1;
               return (a.profiles?.name || '').localeCompare(b.profiles?.name || '');
             })
-            .map((member) => (
+            .map((member, index) => (
               <View key={member.id} style={styles.memberCard}>
                 {/* Member Avatar and Info */}
                 <View style={styles.memberLeft}>

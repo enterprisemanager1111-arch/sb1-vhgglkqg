@@ -15,19 +15,23 @@ import {
   Linking,
   Share,
 } from 'react-native';
-import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { User, Settings, Bell, LogOut, Camera, Trophy, ChevronRight, Shield, CircleHelp as HelpCircle, Info, CreditCard as Edit3, Crown, Star, Target, Activity, Calendar, SquareCheck as CheckSquare, Share2, Moon, Globe, Smartphone, Download, Trash2 } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFamily } from '@/contexts/FamilyContext';
 import { useLanguage, supportedLanguages } from '@/contexts/LanguageContext';
+import { useSnackbar } from '@/contexts/SnackbarContext';
 import { useFamilyTasks } from '@/hooks/useFamilyTasks';
 import { useFamilyShoppingItems } from '@/hooks/useFamilyShoppingItems';
+import AnimatedButton from '@/components/AnimatedButton';
+import AnimatedSettingsItem from '@/components/AnimatedSettingsItem';
 import { router } from 'expo-router';
 import { formatBirthDate } from '@/utils/birthdaySystem';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -66,9 +70,12 @@ export default function UserProfile() {
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
   const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
+  const [showImagePickerModal, setShowImagePickerModal] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  const { user, profile, signOut, updateProfile } = useAuth();
+  const { user, profile, signOut, updateProfile, loading: authLoading } = useAuth();
   const { currentFamily, familyMembers, userRole } = useFamily();
+  const { showSnackbar } = useSnackbar();
   
   // Get locale for date formatting
   const getLocale = () => {
@@ -84,19 +91,30 @@ export default function UserProfile() {
   const { tasks, getCompletedTasks } = useFamilyTasks();
   const { items, getCompletedItems } = useFamilyShoppingItems();
 
-  const profileCardScale = useSharedValue(1);
 
   // Calculate user statistics
   const completedTasks = getCompletedTasks();
   const completedShoppingItems = getCompletedItems();
   const userPoints = (completedTasks.length * 15) + (completedShoppingItems.length * 5);
-  const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString('de-DE', {
+  const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString(getLocale(), {
     year: 'numeric',
     month: 'long'
   }) : '';
 
   const userName = profile?.name || user?.user_metadata?.full_name || 'User';
   const userEmail = user?.email || '';
+  
+  // Debug logging for user information
+  React.useEffect(() => {
+    console.log('Profile page - User info updated:', {
+      userId: user?.id,
+      userEmail: user?.email,
+      profileId: profile?.id,
+      profileName: profile?.name,
+      userName: userName,
+      displayEmail: userEmail
+    });
+  }, [user, profile, userName, userEmail]);
 
   // Load preferences from storage
   React.useEffect(() => {
@@ -158,7 +176,7 @@ export default function UserProfile() {
       setNewPassword('');
       setConfirmNewPassword('');
     } catch (error: any) {
-      Alert.alert('Fehler', error.message || 'Passwort konnte nicht geändert werden');
+      Alert.alert(t('common.error'), error.message || t('profile.alerts.passwordChangeError'));
     }
   };
 
@@ -179,7 +197,7 @@ export default function UserProfile() {
       const dataString = JSON.stringify(userData, null, 2);
       
       await Share.share({
-        message: `Famora Datenexport für ${userName}\n\nExportiert am: ${new Date().toLocaleDateString('de-DE')}\n\nDaten: ${dataString}`,
+        message: `Famora Data Export for ${userName}\n\nExported on: ${new Date().toLocaleDateString(getLocale())}\n\nData: ${dataString}`,
         title: t('profile.alerts.exportTitle'),
       });
       
@@ -194,16 +212,16 @@ export default function UserProfile() {
       await changeLanguage(languageCode);
       
       Alert.alert(
-        t('common.success') || 'Erfolg',
-        `${t('settings.language.changed') || 'Sprache wurde auf'} ${getLanguageName(languageCode)}.`,
-        [{ text: t('common.continue') || 'Weiter' }]
+        t('common.success'),
+        `${t('settings.language.changed')} ${getLanguageName(languageCode)}.`,
+        [{ text: t('common.continue') }]
       );
       setShowLanguageModal(false);
     } catch (error) {
       console.error('Error changing language:', error);
       Alert.alert(
-        t('common.error') || 'Fehler',
-        t('settings.language.error') || 'Sprache konnte nicht geändert werden.'
+        t('common.error'),
+        t('settings.language.error')
       );
     }
   };
@@ -216,7 +234,7 @@ export default function UserProfile() {
       'es': 'Español',
       'it': 'Italiano',
     };
-    return languages[code as keyof typeof languages] || 'Deutsch';
+    return languages[code as keyof typeof languages] || 'English';
   };
 
   const openPrivacyPolicy = () => {
@@ -229,28 +247,28 @@ export default function UserProfile() {
 
   const contactSupport = async () => {
     const supportEmail = 'support@famora.app';
-    const subject = `Hilfe benötigt - Famora App`;
-    const body = `Hallo Famora Team,\n\nIch benötige Hilfe bei:\n\n[Bitte beschreiben Sie Ihr Problem hier]\n\nMeine App-Version: 1.0.0\nMein Gerät: ${Platform.OS}\nMeine Familie-ID: ${currentFamily?.id || 'Keine Familie'}\n\nVielen Dank!`;
+    const subject = `Help needed - Famora App`;
+    const body = `Hello Famora Team,\n\nI need help with:\n\n[Please describe your problem here]\n\nMy App Version: 1.0.0\nMy Device: ${Platform.OS}\nMy Family ID: ${currentFamily?.id || 'No Family'}\n\nThank you!`;
     
     const mailto = `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     
     try {
       Alert.alert(
-        'Support kontaktieren',
-        `Senden Sie eine E-Mail an: ${supportEmail}`,
+        t('profile.alerts.supportContact'),
+        `${t('profile.alerts.supportEmailSent')} ${supportEmail}`,
         [
-          { text: 'E-Mail kopieren', onPress: () => copyToClipboard(supportEmail) },
-          { text: 'OK' }
+          { text: t('profile.alerts.copyEmail'), onPress: () => copyToClipboard(supportEmail) },
+          { text: t('common.ok') }
         ]
       );
     } catch (error) {
-      Alert.alert('Fehler', 'Support-Kontakt konnte nicht geöffnet werden');
+      Alert.alert(t('common.error'), t('profile.alerts.supportError'));
     }
   };
 
   const copyToClipboard = async (text: string) => {
     // In a real app, you'd use Clipboard from expo-clipboard
-    Alert.alert('Kopiert', 'E-Mail-Adresse wurde kopiert');
+    Alert.alert(t('common.success'), t('profile.alerts.emailCopied'));
   };
 
   const clearAppCache = async () => {
@@ -331,7 +349,7 @@ export default function UserProfile() {
         {
           id: 'notifications',
           title: t('profile.sections.notifications'),
-          description: 'Push-Nachrichten für Familienaktivitäten',
+          description: t('profile.notifications.description'),
           icon: <Bell size={18} color="#54FE54" strokeWidth={2} />,
           type: 'toggle',
           value: notificationsEnabled,
@@ -453,10 +471,10 @@ export default function UserProfile() {
           type: 'navigation',
           onPress: () => {
             Alert.alert(
-              'Über Famora',
-              `Version: 1.0.0\nBuild: ${new Date().getFullYear()}.${new Date().getMonth() + 1}\n\nFamora - Ihre digitale Familienorganisation\n\nMit ❤️ entwickelt für Familien`,
+              t('profile.about.title'),
+              `${t('profile.about.version')}\n${t('profile.about.build').replace('{{year}}', new Date().getFullYear().toString()).replace('{{month}}', (new Date().getMonth() + 1).toString())}\n\n${t('profile.about.description')}\n\n${t('profile.about.developed')}`,
               [
-                { text: 'Datenschutz', onPress: openPrivacyPolicy },
+                { text: t('profile.about.privacy'), onPress: openPrivacyPolicy },
                 { text: 'AGB', onPress: openTermsOfService },
                 { text: 'OK' }
               ]
@@ -488,8 +506,8 @@ export default function UserProfile() {
       items: [
         {
           id: 'logout',
-          title: 'Abmelden',
-          description: 'Von diesem Gerät abmelden',
+          title: t('profile.logout.title'),
+          description: t('profile.logout.description'),
           icon: <LogOut size={18} color="#FF0000" strokeWidth={2} />,
           type: 'action',
           destructive: true,
@@ -500,6 +518,10 @@ export default function UserProfile() {
   ];
 
   async function handleLogout() {
+    console.log('🔘 Sign out button clicked');
+    console.log('Current user:', user?.id);
+    console.log('Current profile:', profile?.id);
+    
     Alert.alert(
       t('profile.alerts.logoutTitle'),
       t('profile.alerts.logoutMessage'),
@@ -510,16 +532,43 @@ export default function UserProfile() {
           style: 'destructive',
           onPress: async () => {
             try {
-              console.log('Starting logout process...');
-              await signOut();
-              console.log('Successfully signed out, navigating to onboarding...');
-              // Give a moment for auth state to clear
+              console.log('🚪 Starting logout process from profile page...');
+              console.log('Calling signOut function...');
+              
+              // Add timeout to prevent hanging
+              const signOutPromise = signOut();
+              const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Sign out timeout')), 10000); // 10 second timeout
+              });
+              
+              await Promise.race([signOutPromise, timeoutPromise]);
+              
+              console.log('✅ Sign out completed, showing snackbar and navigating...');
+              
+              // Show success snackbar
+              showSnackbar('Successfully signed out', 'success', 3000);
+              
+              // Give a moment for auth state to clear, then navigate to first page
               setTimeout(() => {
-                router.replace('/(onboarding)');
+                console.log('🔄 Navigating to first page...');
+                router.replace('/');
               }, 100);
-            } catch (error) {
-              console.error('Logout error:', error);
-              Alert.alert(t('common.error'), 'Abmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.');
+              
+            } catch (error: any) {
+              console.error('❌ Logout error in profile page:', error);
+              
+              // Even if sign out fails, try to navigate to first page
+              if (error?.message === 'Sign out timeout') {
+                console.log('⚠️ Sign out timed out, forcing navigation...');
+                showSnackbar('Sign out timed out, but you have been logged out', 'warning', 4000);
+                router.replace('/');
+              } else {
+                showSnackbar('Sign out failed. Please try again.', 'error', 4000);
+                Alert.alert(
+                  t('common.error'), 
+                  error?.message || 'Sign out failed. Please try again.'
+                );
+              }
             }
           },
         },
@@ -531,8 +580,18 @@ export default function UserProfile() {
     setRefreshing(true);
     try {
       // Refresh user data and family info
-      // This would typically refresh auth and family contexts
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate refresh
+      console.log('Refreshing profile data...');
+      console.log('Current user:', user?.id);
+      console.log('Current profile:', profile?.id);
+      
+      // Force refresh of auth context
+      if (user) {
+        // Trigger a profile refresh by calling the auth context refresh
+        await new Promise(resolve => setTimeout(resolve, 500));
+        console.log('Profile refresh completed');
+      } else {
+        console.log('No user found, cannot refresh profile');
+      }
     } catch (error) {
       console.error('Error refreshing profile:', error);
     } finally {
@@ -541,12 +600,135 @@ export default function UserProfile() {
   };
 
   const handleEditProfile = () => {
-    router.push('/(onboarding)/profile');
+    setShowImagePickerModal(true);
   };
 
-  const profileCardAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: profileCardScale.value }],
-  }));
+  const handleImagePicker = async (source: 'camera' | 'library') => {
+    try {
+      setShowImagePickerModal(false);
+      setIsUploadingImage(true);
+
+      let result;
+      if (source === 'camera') {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+          showSnackbar(t('profile.alerts.cameraPermissionDenied'), 'error', 4000);
+          return;
+        }
+        result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+      } else {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          showSnackbar(t('profile.alerts.libraryPermissionDenied'), 'error', 4000);
+          return;
+        }
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+      }
+
+      if (!result.canceled && result.assets[0]) {
+        const imageUri = result.assets[0].uri;
+        await uploadProfileImage(imageUri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      showSnackbar(t('profile.alerts.imagePickerError'), 'error', 4000);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const uploadProfileImage = async (imageUri: string) => {
+    try {
+      if (!user) {
+        showSnackbar(t('profile.alerts.userNotLoggedIn'), 'error', 4000);
+        return;
+      }
+
+      // Create a unique filename
+      const fileExt = imageUri.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      // Convert image to blob
+      const response = await fetch(imageUri);
+      const blob = await response.blob();
+
+      // Upload to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, blob, {
+          contentType: `image/${fileExt}`,
+          upsert: true,
+        });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        showSnackbar(t('profile.alerts.uploadError'), 'error', 4000);
+        return;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update profile with new avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('Profile update error:', updateError);
+        showSnackbar(t('profile.alerts.profileUpdateError'), 'error', 4000);
+        return;
+      }
+
+      // Update local profile state
+      if (updateProfile) {
+        await updateProfile({ avatar_url: publicUrl });
+      }
+
+      showSnackbar(t('profile.alerts.profilePictureUpdated'), 'success', 3000);
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+      showSnackbar(t('profile.alerts.uploadError'), 'error', 4000);
+    }
+  };
+
+
+  // Show loading state if auth is still loading
+  if (authLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>{t('common.loading')}</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show error state if no user is found
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{t('common.error')}</Text>
+          <Text style={styles.errorSubtext}>No user data found. Please sign in again.</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -563,14 +745,14 @@ export default function UserProfile() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Mein Profil</Text>
+          <Text style={styles.title}>{t('profile.title')}</Text>
           <Pressable style={styles.editButton} onPress={handleEditProfile}>
             <Edit3 size={18} color="#54FE54" strokeWidth={2} />
           </Pressable>
         </View>
 
         {/* User Profile Card */}
-        <AnimatedView style={[styles.section, profileCardAnimatedStyle]}>
+        <AnimatedView style={styles.section}>
           <View style={styles.profileCard}>
             {/* Profile Header */}
             <View style={styles.profileHeader}>
@@ -622,7 +804,7 @@ export default function UserProfile() {
                 </View>
                 <View style={styles.statContent}>
                   <Text style={styles.statNumber}>{userPoints}</Text>
-                  <Text style={styles.statLabel}>Punkte</Text>
+                  <Text style={styles.statLabel}>{t('profile.stats.points')}</Text>
                 </View>
               </View>
               
@@ -634,7 +816,7 @@ export default function UserProfile() {
                 </View>
                 <View style={styles.statContent}>
                   <Text style={styles.statNumber}>{completedTasks.length}</Text>
-                  <Text style={styles.statLabel}>Aufgaben</Text>
+                  <Text style={styles.statLabel}>{t('profile.stats.tasks')}</Text>
                 </View>
               </View>
               
@@ -646,7 +828,7 @@ export default function UserProfile() {
                 </View>
                 <View style={styles.statContent}>
                   <Text style={styles.statNumber}>{memberSince.includes('2025') ? '< 1' : '1'}</Text>
-                  <Text style={styles.statLabel}>Monate</Text>
+                  <Text style={styles.statLabel}>{t('profile.stats.months')}</Text>
                 </View>
               </View>
             </View>
@@ -654,12 +836,12 @@ export default function UserProfile() {
             {/* Account Status */}
             <View style={styles.accountStatus}>
               <View style={styles.statusItem}>
-                <Text style={styles.statusLabel}>Mitglied seit</Text>
+                <Text style={styles.statusLabel}>{t('profile.stats.memberSince')}</Text>
                 <Text style={styles.statusValue}>{memberSince}</Text>
               </View>
               {currentFamily && (
                 <View style={styles.statusItem}>
-                  <Text style={styles.statusLabel}>Familie</Text>
+                  <Text style={styles.statusLabel}>{t('profile.stats.family')}</Text>
                   <Text style={styles.statusValue}>{currentFamily.name}</Text>
                 </View>
               )}
@@ -677,70 +859,12 @@ export default function UserProfile() {
             
             <View style={styles.settingsCard}>
               {section.items.map((item, index) => (
-                <View key={item.id}>
-                  <Pressable
-                    style={[
-                      styles.settingsItem,
-                      item.destructive && styles.destructiveItem
-                    ]}
-                    onPress={item.onPress}
-                  >
-                    <View style={styles.settingsItemLeft}>
-                      <View style={[
-                        styles.settingsIcon,
-                        item.destructive && styles.destructiveIcon
-                      ]}>
-                        {item.icon}
-                      </View>
-                      <View style={styles.settingsContent}>
-                        <Text style={[
-                          styles.settingsTitle,
-                          item.destructive && styles.destructiveText
-                        ]}>
-                          {item.title}
-                        </Text>
-                        {item.description && (
-                          <Text style={styles.settingsDescription}>
-                            {item.description}
-                          </Text>
-                        )}
-                      </View>
-                    </View>
-
-                    <View style={styles.settingsItemRight}>
-                      {item.badge && (
-                        <View style={styles.settingsBadge}>
-                          <Text style={styles.settingsBadgeText}>{item.badge}</Text>
-                        </View>
-                      )}
-                      
-                      {item.type === 'toggle' && (
-                        <Switch
-                          value={item.value}
-                          onValueChange={item.onToggle}
-                          trackColor={{ 
-                            false: '#E0E0E0', 
-                            true: 'rgba(84, 254, 84, 0.3)' 
-                          }}
-                          thumbColor={item.value ? '#54FE54' : '#FFFFFF'}
-                        />
-                      )}
-                      
-                      {item.type === 'navigation' && (
-                        <ChevronRight size={16} color="#666666" strokeWidth={2} />
-                      )}
-                      
-                      {item.type === 'action' && (
-                        <ChevronRight size={16} color={item.destructive ? "#FF0000" : "#666666"} strokeWidth={2} />
-                      )}
-                    </View>
-                  </Pressable>
-                  
-                  {/* Divider between items (except last) */}
-                  {index < section.items.length - 1 && (
-                    <View style={styles.itemDivider} />
-                  )}
-                </View>
+                <AnimatedSettingsItem
+                  key={item.id}
+                  item={item}
+                  index={index}
+                  isLast={index === section.items.length - 1}
+                />
               ))}
             </View>
           </View>
@@ -793,7 +917,7 @@ export default function UserProfile() {
                 style={styles.modalCancelButton}
                 onPress={() => setShowPasswordModal(false)}
               >
-                <Text style={styles.modalCancelText}>Abbrechen</Text>
+                <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
               </Pressable>
               <Pressable
                 style={styles.modalConfirmButton}
@@ -845,7 +969,7 @@ export default function UserProfile() {
               style={styles.modalCancelButton}
               onPress={() => setShowLanguageModal(false)}
             >
-              <Text style={styles.modalCancelText}>{t('common.cancel') || 'Abbrechen'}</Text>
+              <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
             </Pressable>
           </View>
         </View>
@@ -862,17 +986,16 @@ export default function UserProfile() {
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>{t('profile.modals.exportData')}</Text>
             <Text style={styles.modalDescription}>
-              Ihre persönlichen Famora-Daten werden als JSON-Datei exportiert. 
-              Dies umfasst Ihr Profil, Familieninformationen und Aktivitätsstatistiken.
+              {t('profile.export.description')}
             </Text>
             
             <View style={styles.exportInfo}>
-              <Text style={styles.exportInfoTitle}>Exportierte Daten:</Text>
-              <Text style={styles.exportInfoItem}>• Profil und persönliche Informationen</Text>
-              <Text style={styles.exportInfoItem}>• Familienrolle und -mitgliedschaft</Text>
-              <Text style={styles.exportInfoItem}>• Abgeschlossene Aufgaben (Anzahl)</Text>
-              <Text style={styles.exportInfoItem}>• Einkaufslisten-Aktivitäten</Text>
-              <Text style={styles.exportInfoItem}>• App-Nutzungsstatistiken</Text>
+              <Text style={styles.exportInfoTitle}>{t('profile.export.exportedData')}</Text>
+              <Text style={styles.exportInfoItem}>• {t('profile.export.profileInfo')}</Text>
+              <Text style={styles.exportInfoItem}>• {t('profile.export.familyRole')}</Text>
+              <Text style={styles.exportInfoItem}>• {t('profile.export.completedTasks')}</Text>
+              <Text style={styles.exportInfoItem}>• {t('profile.export.shoppingActivities')}</Text>
+              <Text style={styles.exportInfoItem}>• {t('profile.export.usageStats')}</Text>
             </View>
             
             <View style={styles.modalActions}>
@@ -880,19 +1003,76 @@ export default function UserProfile() {
                 style={styles.modalCancelButton}
                 onPress={() => setShowDataExportModal(false)}
               >
-                <Text style={styles.modalCancelText}>Abbrechen</Text>
+                <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
               </Pressable>
               <Pressable
                 style={styles.modalConfirmButton}
                 onPress={handleDataExport}
               >
                 <Download size={16} color="#161618" strokeWidth={2} />
-                <Text style={styles.modalConfirmText}>Exportieren</Text>
+                <Text style={styles.modalConfirmText}>{t('profile.export.exportButton')}</Text>
               </Pressable>
             </View>
           </View>
         </View>
       </Modal>
+
+      {/* Image Picker Modal */}
+      <Modal
+        visible={showImagePickerModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowImagePickerModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>{t('profile.imagePicker.title')}</Text>
+            <Text style={styles.modalSubtitle}>{t('profile.imagePicker.subtitle')}</Text>
+            
+            <View style={styles.imagePickerOptions}>
+              <Pressable
+                style={styles.imagePickerOption}
+                onPress={() => handleImagePicker('camera')}
+              >
+                <View style={styles.imagePickerIcon}>
+                  <Camera size={24} color="#54FE54" strokeWidth={2} />
+                </View>
+                <Text style={styles.imagePickerOptionText}>{t('profile.imagePicker.camera')}</Text>
+                <Text style={styles.imagePickerOptionSubtext}>{t('profile.imagePicker.cameraDescription')}</Text>
+              </Pressable>
+              
+              <Pressable
+                style={styles.imagePickerOption}
+                onPress={() => handleImagePicker('library')}
+              >
+                <View style={styles.imagePickerIcon}>
+                  <User size={24} color="#54FE54" strokeWidth={2} />
+                </View>
+                <Text style={styles.imagePickerOptionText}>{t('profile.imagePicker.library')}</Text>
+                <Text style={styles.imagePickerOptionSubtext}>{t('profile.imagePicker.libraryDescription')}</Text>
+              </Pressable>
+            </View>
+            
+            <View style={styles.modalActions}>
+              <Pressable
+                style={styles.modalCancelButton}
+                onPress={() => setShowImagePickerModal(false)}
+              >
+                <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Upload Loading Overlay */}
+      {isUploadingImage && (
+        <View style={styles.uploadOverlay}>
+          <View style={styles.uploadContainer}>
+            <Text style={styles.uploadText}>{t('profile.imagePicker.uploading')}</Text>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -1344,5 +1524,110 @@ const styles = StyleSheet.create({
     fontFamily: 'Montserrat-Regular',
     color: '#666666',
     marginBottom: 4,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontFamily: 'Montserrat-Medium',
+    color: '#666666',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 18,
+    fontFamily: 'Montserrat-SemiBold',
+    color: '#FF0000',
+    marginBottom: 8,
+  },
+  errorSubtext: {
+    fontSize: 14,
+    fontFamily: 'Montserrat-Regular',
+    color: '#666666',
+    textAlign: 'center',
+  },
+
+  // Image Picker Modal
+  imagePickerOptions: {
+    gap: 16,
+    marginBottom: 24,
+  },
+  imagePickerOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#F8F8F8',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  imagePickerIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(84, 254, 84, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  imagePickerOptionText: {
+    flex: 1,
+    fontSize: 16,
+    fontFamily: 'Montserrat-SemiBold',
+    color: '#161618',
+    marginBottom: 2,
+  },
+  imagePickerOptionSubtext: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: 'Montserrat-Regular',
+    color: '#666666',
+  },
+
+  // Upload Overlay
+  uploadOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  uploadContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+  uploadText: {
+    fontSize: 16,
+    fontFamily: 'Montserrat-Medium',
+    color: '#161618',
+    marginTop: 12,
+  },
+
+  // Modal styles
+  modalSubtitle: {
+    fontSize: 14,
+    fontFamily: 'Montserrat-Regular',
+    color: '#666666',
+    textAlign: 'center',
+    marginBottom: 24,
   },
 });

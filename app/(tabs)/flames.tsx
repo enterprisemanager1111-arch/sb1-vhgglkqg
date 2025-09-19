@@ -26,7 +26,7 @@ import { useFamily } from '@/contexts/FamilyContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLoading } from '@/contexts/LoadingContext';
-import { useFamilyPoints, POINTS_CONFIG, ACHIEVEMENTS_CONFIG } from '@/hooks/useFamilyPoints';
+import { useFamilyPoints, POINTS_CONFIG, getAchievementsConfig } from '@/hooks/useFamilyPoints';
 import { getCurrentLevel, getNextLevel, getLevelProgress, FAMILY_LEVELS } from '@/hooks/useFamilyPoints';
 import { NotificationSystem, useNotifications } from '@/components/NotificationSystem';
 import FamilyPrompt from '@/components/FamilyPrompt';
@@ -522,7 +522,7 @@ export default function FlamesScreen() {
           </View>
           
           <View style={styles.achievementsGrid}>
-            {Object.entries(ACHIEVEMENTS_CONFIG).map(([type, config]) => {
+            {Object.entries(getAchievementsConfig(t)).map(([type, config]) => {
               // Check family-wide achievements instead of user-specific
               const isUnlocked = (() => {
                 switch (type) {

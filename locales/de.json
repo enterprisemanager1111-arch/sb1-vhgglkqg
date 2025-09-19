@@ -371,12 +371,33 @@
       "logoutMessage": "Möchten Sie sich wirklich abmelden?",
       "logoutCancel": "Abbrechen",
       "logoutConfirm": "Abmelden",
-      "permissionNotificationDesc": "Bitte erlauben Sie Benachrichtigungen in den Systemeinstellungen"
+      "permissionNotificationDesc": "Bitte erlauben Sie Benachrichtigungen in den Systemeinstellungen",
+      "passwordChangeError": "Passwort konnte nicht geändert werden",
+      "supportContact": "Support kontaktieren",
+      "supportEmailSent": "Senden Sie eine E-Mail an:",
+      "copyEmail": "E-Mail kopieren",
+      "emailCopied": "E-Mail-Adresse wurde kopiert",
+      "cameraPermissionDenied": "Kamera-Berechtigung verweigert",
+      "libraryPermissionDenied": "Foto-Bibliothek-Berechtigung verweigert",
+      "imagePickerError": "Fehler beim Auswählen des Bildes",
+      "userNotLoggedIn": "Benutzer nicht angemeldet",
+      "uploadError": "Fehler beim Hochladen des Bildes",
+      "profileUpdateError": "Fehler beim Aktualisieren des Profils",
+      "profilePictureUpdated": "Profilbild erfolgreich aktualisiert"
     },
     "modals": {
       "newPassword": "Neues Passwort",
       "confirmPassword": "Neues Passwort bestätigen",
       "exportData": "Daten exportieren"
+    },
+    "imagePicker": {
+      "title": "Profilbild ändern",
+      "subtitle": "Wählen Sie aus, wie Sie Ihr Profilbild aktualisieren möchten",
+      "camera": "Foto aufnehmen",
+      "cameraDescription": "Kamera verwenden, um ein neues Foto aufzunehmen",
+      "library": "Aus Bibliothek wählen",
+      "libraryDescription": "Aus Ihrer Fotobibliothek auswählen",
+      "uploading": "Wird hochgeladen..."
     },
     "roles": {
       "parent": "Elternteil",
@@ -387,7 +408,80 @@
       "admin": "Administrator",
       "member": "Mitglied",
       "family": "Familie"
+    },
+    "stats": {
+      "points": "Punkte",
+      "tasks": "Aufgaben",
+      "months": "Monate",
+      "memberSince": "Mitglied seit",
+      "family": "Familie"
+    },
+    "about": {
+      "title": "Über Famora",
+      "version": "Version: 1.0.0",
+      "build": "Build: {{year}}.{{month}}",
+      "description": "Famora - Ihre digitale Familienorganisation",
+      "developed": "Mit ❤️ entwickelt für Familien",
+      "privacy": "Datenschutz"
+    },
+    "export": {
+      "description": "Ihre persönlichen Famora-Daten werden als JSON-Datei exportiert. Dies umfasst Ihr Profil, Familieninformationen und Aktivitätsstatistiken.",
+      "exportedData": "Exportierte Daten:",
+      "profileInfo": "Profil und persönliche Informationen",
+      "familyRole": "Familienrolle und -mitgliedschaft",
+      "completedTasks": "Abgeschlossene Aufgaben (Anzahl)",
+      "shoppingActivities": "Einkaufslisten-Aktivitäten",
+      "usageStats": "App-Nutzungsstatistiken",
+      "exportButton": "Exportieren"
+    },
+    "notifications": {
+      "description": "Push-Nachrichten für Familienaktivitäten"
+    },
+    "achievements": {
+      "first_task": {
+        "title": "Erste Aufgabe",
+        "description": "Erste Task erfolgreich erledigt"
+      },
+      "team_player": {
+        "title": "Team Player",
+        "description": "10 Tasks erfolgreich erledigt"
+      },
+      "streak_master": {
+        "title": "Streak Master",
+        "description": "7 Tage in Folge aktiv"
+      },
+      "family_hero": {
+        "title": "Familien-Hero",
+        "description": "100+ Punkte gesammelt"
+      },
+      "organizer": {
+        "title": "Organisator",
+        "description": "5 Events erstellt"
+      },
+      "helper": {
+        "title": "Helfer",
+        "description": "20 Einkäufe erledigt"
+      },
+      "milestone_100": {
+        "title": "Erste 100",
+        "description": "100 Punkte erreicht"
+      },
+      "milestone_500": {
+        "title": "Halbzeit!",
+        "description": "500 Punkte erreicht"
+      }
+    },
+    "logout": {
+      "title": "Abmelden",
+      "description": "Von diesem Gerät abmelden"
     }
+  },
+  "familyPrompt": {
+    "title": "Familie einrichten",
+    "description": "Erstellen Sie Ihre Familie oder treten Sie einer bestehenden bei, um gemeinsam organisiert zu bleiben.",
+    "createFamily": "Familie erstellen",
+    "joinFamily": "Familie beitreten",
+    "setupLater": "Später einrichten"
   },
   "tabs": {
     "addNew": "Neues hinzufügen",
@@ -439,6 +533,7 @@
     },
     "family": {
       "title": "Ihre Familie",
+      "defaultName": "Familie",
       "member": "Mitglied",
       "members": "Mitglieder",
       "online": "online",
@@ -726,6 +821,12 @@
           "login": "Willkommen zurück!"
         }
       }
-    }
+    },
+    "familySetup": {
+      "title": "Familie einrichten",
+      "description": "Familie erstellen oder einer bestehenden beitreten"
+    },
+    "family-setup-title": "Familie einrichten",
+    "family-setup-description": "Familie erstellen oder einer bestehenden beitreten"
   }
 }

@@ -21,7 +21,9 @@ import { FamilyProvider } from '@/contexts/FamilyContext';
 import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { LoadingProvider } from '@/contexts/LoadingContext';
+import { SnackbarProvider } from '@/contexts/SnackbarContext';
 import CustomSplashScreen from '@/components/SplashScreen';
+import { ResponsiveProvider } from '@/contexts/ResponsiveContext';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -75,22 +77,26 @@ export default function RootLayout() {
   }
 
   return (
-    <LanguageProvider>
-      <LoadingProvider>
-        <OnboardingProvider>
-          <AuthProvider>
-            <FamilyProvider>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="(onboarding)" />
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="+not-found" options={{ headerShown: false }} />
-            </Stack>
-            <StatusBar style="auto" />
-            </FamilyProvider>
-          </AuthProvider>
-        </OnboardingProvider>
-      </LoadingProvider>
-    </LanguageProvider>
+    <ResponsiveProvider>
+      <LanguageProvider>
+        <LoadingProvider>
+          <SnackbarProvider>
+            <OnboardingProvider>
+              <AuthProvider>
+                <FamilyProvider>
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="index" />
+                  <Stack.Screen name="(onboarding)" />
+                  <Stack.Screen name="(tabs)" />
+                  <Stack.Screen name="+not-found" options={{ headerShown: false }} />
+                </Stack>
+                <StatusBar style="auto" />
+                </FamilyProvider>
+              </AuthProvider>
+            </OnboardingProvider>
+          </SnackbarProvider>
+        </LoadingProvider>
+      </LanguageProvider>
+    </ResponsiveProvider>
   );
 }

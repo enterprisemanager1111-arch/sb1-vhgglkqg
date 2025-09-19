@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useLanguage } from '@/contexts/LanguageContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Profile {
   id: string;
@@ -100,7 +101,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.error('Error creating profile:', error);
         console.error('Error details:', error.message, error.code, error.details);
-        throw error;
+        
+        // Provide more specific error messages for common database issues
+        if (error.message?.includes('column "role" does not exist')) {
+          throw new Error('Database schema error: Missing role column. Please run database migrations.');
+        } else if (error.message?.includes('column "interests" does not exist')) {
+          throw new Error('Database schema error: Missing interests column. Please run database migrations.');
+        } else if (error.message?.includes('duplicate key value')) {
+          throw new Error('Profile already exists for this user. Please try signing in instead.');
+        } else if (error.message?.includes('foreign key constraint')) {
+          throw new Error('User account not found. Please try signing up again.');
+        } else {
+          throw new Error(`Profile creation failed: ${error.message}`);
+        }
       } else {
         console.log('Profile created successfully:', data);
         setProfile(data);
@@ -143,14 +156,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
       
-      console.log('Auth state change:', event, 'User ID:', session?.user?.id);
+      console.log('🔄 Auth state change:', event, 'User ID:', session?.user?.id);
+      console.log('Session exists:', !!session);
+      console.log('User exists:', !!session?.user);
       
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
+        console.log('👤 User logged in, loading profile...');
         await loadProfile(session.user.id);
       } else {
+        console.log('🚪 User logged out, clearing profile...');
         setProfile(null);
       }
 
@@ -166,50 +183,79 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string, birthDate?: string, role?: string, interests?: string[]) => {
-    console.log('SignUp called with:', { email, fullName, birthDate, role, interests });
+    console.log('🚀 SignUp called with:', { email, fullName, birthDate, role, interests });
     
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-        },
-      },
-    });
+    // Enhanced validation with better error messages
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error('Please enter a valid email address');
+    }
 
-    if (error) throw error;
+    if (password.length < 6) {
+      throw new Error('Password must be at least 6 characters');
+    }
+
+    try {
+      console.log('🌐 Attempting to connect to Supabase...');
+      console.log('📡 Supabase URL:', process.env.EXPO_PUBLIC_SUPABASE_URL);
+      
+      // Test connection first
+      const { data: testData, error: testError } = await supabase.auth.getSession();
+      if (testError && testError.message.includes('fetch')) {
+        console.error('❌ Network connection test failed:', testError);
+        throw new Error('Unable to connect to the server. Please check your internet connection and try again.');
+      }
+      
+      console.log('✅ Connection test passed, proceeding with signup...');
+      
+      // Add timeout for signup operations
+      const signupPromise = supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+        },
+      });
+
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Signup is taking too long. Please check your internet connection and try again.')), 60000); // 60 seconds for signup
+      });
+
+      const { data, error } = await Promise.race([signupPromise, timeoutPromise]) as any;
+
+      if (error) {
+        // Provide more specific error messages for signup
+        if (error.message?.includes('User already registered') || error.message?.includes('user_already_exists')) {
+          throw new Error('This email is already registered. Try signing in instead.');
+        } else if (error.message?.includes('Invalid email')) {
+          throw new Error('Please enter a valid email address.');
+        } else if (error.message?.includes('Password should be at least')) {
+          throw new Error('Password must be at least 6 characters.');
+        } else if (error.message?.includes('Too many requests')) {
+          throw new Error('Too many signup attempts. Please wait a moment and try again.');
+        } else {
+          throw error;
+        }
+      }
 
     if (data.user) {
       console.log('User created successfully:', data.user.id);
       
-      // Wait a moment for the database trigger to create the profile
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check and ensure profile exists (database trigger should have created it)
+      // Wait briefly for the database trigger to create the profile, then update it
       try {
-        let profile = null;
-        let retries = 0;
-        const maxRetries = 3;
+        // Wait a short moment for the trigger to create the basic profile
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Retry logic to wait for profile creation
-        while (!profile && retries < maxRetries) {
-          const { data: existingProfile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', data.user.id)
-            .maybeSingle();
-          
-          profile = existingProfile;
-          
-          if (!profile) {
-            retries++;
-            console.log(`Profile not found, retry ${retries}/${maxRetries}`);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
-        }
-
-        if (!profile) {
+        // Check if profile exists (should be created by trigger)
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .maybeSingle();
+        
+        if (!existingProfile) {
           console.log('Database trigger failed, creating profile manually for user:', data.user.id);
           await createProfile(data.user, fullName, birthDate, role, interests);
         } else {
@@ -234,13 +280,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const errorMessage = profileError instanceof Error ? profileError.message : 'Unknown error';
         console.error('Detailed error:', errorMessage);
         
-        // Don't sign out the user, but throw error to show in UI
-        throw new Error(`Profile setup failed: ${errorMessage}. Your account was created, but there was an issue setting up your profile. Please try signing in.`);
+        // Provide specific guidance for common issues
+        if (errorMessage.includes('column "role" does not exist') || errorMessage.includes('column "interests" does not exist')) {
+          throw new Error('Database schema is outdated. Please contact support or try again later.');
+        } else if (errorMessage.includes('duplicate key value')) {
+          throw new Error('Account already exists. Please try signing in instead.');
+        } else {
+          // Don't sign out the user, but throw error to show in UI
+          throw new Error(`Profile setup failed: ${errorMessage}. Your account was created, but there was an issue setting up your profile. Please try signing in.`);
+        }
+      }
+    }
+    } catch (error: any) {
+      console.log(error);
+      // Handle network and other errors
+      if (error.message?.includes('Signup is taking too long')) {
+        throw new Error('Signup is taking too long. Please check your internet connection and try again.');
+      } else if (error.message?.includes('fetch') || error.message?.includes('Network')) {
+        throw new Error('Network error: Unable to connect to the server. Please check your internet connection and try again.');
+      } else if (error.message?.includes('timeout')) {
+        throw new Error('Connection timeout. Please check your internet connection and try again.');
+      } else {
+        throw error;
       }
     }
   };
 
   const signIn = async (email: string, password: string) => {
+    console.log('🚀 SignIn called with:', { email });
+    
     // Enhanced validation with better error messages
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -251,35 +319,90 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error('Password must be at least 6 characters');
     }
 
-    // Add timeout for auth operations
-    const authPromise = supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      console.log('🌐 Attempting to connect to Supabase...');
+      console.log('📡 Supabase URL:', process.env.EXPO_PUBLIC_SUPABASE_URL);
+      
+      // Test connection first
+      const { data: testData, error: testError } = await supabase.auth.getSession();
+      if (testError && testError.message.includes('fetch')) {
+        console.error('❌ Network connection test failed:', testError);
+        throw new Error('Unable to connect to the server. Please check your internet connection and try again.');
+      }
+      
+      console.log('✅ Connection test passed, proceeding with signin...');
+      
+      // Add timeout for auth operations
+      const authPromise = supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error(t('onboarding.auth.errors.loginTimeout') || 'Login is taking too long. Please check your internet connection.')), 15000);
-    });
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error(t('onboarding.auth.errors.loginTimeout') || 'Login is taking too long. Please check your internet connection.')), 15000);
+      });
 
-    const { error } = await Promise.race([authPromise, timeoutPromise]) as any;
+      const { error } = await Promise.race([authPromise, timeoutPromise]) as any;
 
-    if (error) throw error;
+      if (error) {
+        console.error('❌ SignIn error:', error);
+        throw error;
+      }
+      
+      console.log('✅ SignIn successful!');
+    } catch (error: any) {
+      console.error('❌ SignIn failed:', error);
+      throw error;
+    }
   };
 
   const signOut = async () => {
-    console.log('Starting signOut process...');
-    const { error } = await supabase.auth.signOut();
+    console.log('🚪 Starting signOut process...');
+    console.log('Current user before signout:', user?.id);
+    console.log('Current session before signout:', session?.access_token ? 'exists' : 'null');
     
-    if (error) {
-      console.error('SignOut error:', error);
-      throw error;
+    try {
+      // Try Supabase sign out first
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('❌ Supabase SignOut error:', error);
+        // Don't throw error immediately, try to clear local state anyway
+      } else {
+        console.log('✅ Successfully signed out from Supabase');
+      }
+      
+    } catch (supabaseError) {
+      console.error('❌ Supabase SignOut failed:', supabaseError);
+      // Continue with local cleanup even if Supabase fails
     }
-
-    console.log('Successfully signed out from Supabase');
-    setProfile(null);
-    setSession(null);
-    setUser(null);
-    console.log('Auth state cleared');
+    
+    // Always clear local state regardless of Supabase result
+    try {
+      console.log('🧹 Clearing local auth state...');
+      setProfile(null);
+      setSession(null);
+      setUser(null);
+      console.log('✅ Auth state cleared locally');
+      
+      // Force clear AsyncStorage
+      try {
+        const keys = await AsyncStorage.getAllKeys();
+        const authKeys = keys.filter(key => key.includes('supabase') || key.includes('auth'));
+        if (authKeys.length > 0) {
+          await AsyncStorage.multiRemove(authKeys);
+          console.log('✅ AsyncStorage auth keys cleared:', authKeys);
+        }
+      } catch (storageError) {
+        console.warn('⚠️ Could not clear AsyncStorage:', storageError);
+      }
+      
+      console.log('✅ Sign out process completed');
+      
+    } catch (localError) {
+      console.error('❌ Local cleanup failed:', localError);
+      throw localError;
+    }
   };
 
   const updateProfile = async (updates: Partial<Pick<Profile, 'name' | 'birth_date' | 'avatar_url' | 'role' | 'interests'>>) => {

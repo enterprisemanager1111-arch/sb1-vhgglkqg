@@ -1,6 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
+import Animated, { 
+  useSharedValue, 
+  withSpring, 
+  useAnimatedStyle,
+  withSequence,
+  withDelay,
+  interpolate,
+  withTiming
+} from 'react-native-reanimated';
 import { ChevronRight, Plus } from 'lucide-react-native';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -26,29 +34,51 @@ export default function FeatureCard({
 }: FeatureCardProps) {
   const cardScale = useSharedValue(1);
   const quickActionScale = useSharedValue(1);
+  const cardRotation = useSharedValue(0);
+  const iconScale = useSharedValue(1);
+  const glowIntensity = useSharedValue(0);
 
   const cardAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: cardScale.value }],
+    transform: [
+      { scale: cardScale.value },
+      { rotate: `${cardRotation.value}deg` }
+    ],
+    shadowOpacity: interpolate(glowIntensity.value, [0, 1], [0.1, 0.4]),
+    shadowRadius: interpolate(glowIntensity.value, [0, 1], [4, 16]),
   }));
 
   const quickActionAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: quickActionScale.value }],
   }));
 
+  const iconAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: iconScale.value }],
+  }));
+
   const handleCardPressIn = () => {
-    cardScale.value = withSpring(0.95, { damping: 15, stiffness: 200 });
+    cardScale.value = withSpring(0.96, { damping: 12, stiffness: 300 });
+    cardRotation.value = withSpring(1, { damping: 15, stiffness: 200 });
+    iconScale.value = withSpring(1.1, { damping: 10, stiffness: 400 });
+    glowIntensity.value = withTiming(1, { duration: 200 });
   };
 
   const handleCardPressOut = () => {
     cardScale.value = withSpring(1, { damping: 20, stiffness: 150 });
+    cardRotation.value = withSpring(0, { damping: 15, stiffness: 200 });
+    iconScale.value = withSpring(1, { damping: 15, stiffness: 200 });
+    glowIntensity.value = withTiming(0, { duration: 300 });
   };
 
   const handleQuickActionPressIn = () => {
-    quickActionScale.value = withSpring(0.9, { damping: 15, stiffness: 200 });
+    quickActionScale.value = withSequence(
+      withSpring(0.8, { damping: 8, stiffness: 400 }),
+      withSpring(1.1, { damping: 12, stiffness: 300 }),
+      withSpring(1, { damping: 15, stiffness: 200 })
+    );
   };
 
   const handleQuickActionPressOut = () => {
-    quickActionScale.value = withSpring(1, { damping: 20, stiffness: 150 });
+    // Already handled in press in
   };
 
   return (
@@ -64,9 +94,9 @@ export default function FeatureCard({
       disabled={disabled || loading}
     >
       {/* Main Icon */}
-      <View style={[styles.iconContainer, disabled && styles.disabledIcon]}>
+      <Animated.View style={[styles.iconContainer, disabled && styles.disabledIcon, iconAnimatedStyle]}>
         {icon}
-      </View>
+      </Animated.View>
 
       {/* Content */}
       <View style={styles.content}>

@@ -450,7 +450,12 @@
       "logoutMessage": "Voulez-vous vraiment vous déconnecter ?",
       "logoutCancel": "Annuler",
       "logoutConfirm": "Déconnexion",
-      "permissionNotificationDesc": "Veuillez autoriser les notifications dans les paramètres système"
+      "permissionNotificationDesc": "Veuillez autoriser les notifications dans les paramètres système",
+      "passwordChangeError": "Le mot de passe n'a pas pu être modifié",
+      "supportContact": "Contacter le Support",
+      "supportEmailSent": "Envoyez un e-mail à :",
+      "copyEmail": "Copier l'E-mail",
+      "emailCopied": "Adresse e-mail copiée"
     },
     "roles": {
       "parent": "Parent",
@@ -461,7 +466,88 @@
       "admin": "Administrateur",
       "member": "Membre",
       "family": "Famille"
+    },
+    "stats": {
+      "points": "Points",
+      "tasks": "Tâches",
+      "months": "Mois",
+      "memberSince": "Membre depuis",
+      "family": "Famille"
+    },
+    "about": {
+      "title": "À propos de Famora",
+      "version": "Version: 1.0.0",
+      "build": "Build: {{year}}.{{month}}",
+      "description": "Famora - Votre organisation familiale numérique",
+      "developed": "Développé avec ❤️ pour les familles",
+      "privacy": "Politique de confidentialité"
+    },
+    "export": {
+      "description": "Vos données personnelles Famora seront exportées sous forme de fichier JSON. Cela inclut votre profil, les informations familiales et les statistiques d'activité.",
+      "exportedData": "Données exportées :",
+      "profileInfo": "Profil et informations personnelles",
+      "familyRole": "Rôle familial et adhésion",
+      "completedTasks": "Tâches terminées (nombre)",
+      "shoppingActivities": "Activités de liste de courses",
+      "usageStats": "Statistiques d'utilisation de l'app",
+      "exportButton": "Exporter"
+    },
+    "notifications": {
+      "description": "Notifications push pour les activités familiales"
+    },
+    "achievements": {
+      "first_task": {
+        "title": "Première Tâche",
+        "description": "Première tâche terminée avec succès"
+      },
+      "team_player": {
+        "title": "Joueur d'Équipe",
+        "description": "10 tâches terminées avec succès"
+      },
+      "streak_master": {
+        "title": "Maître de Série",
+        "description": "7 jours consécutifs actifs"
+      },
+      "family_hero": {
+        "title": "Héros de la Famille",
+        "description": "100+ points collectés"
+      },
+      "organizer": {
+        "title": "Organisateur",
+        "description": "5 événements créés"
+      },
+      "helper": {
+        "title": "Aide",
+        "description": "20 articles d'achat terminés"
+      },
+      "milestone_100": {
+        "title": "Premier 100",
+        "description": "100 points atteints"
+      },
+      "milestone_500": {
+        "title": "À mi-chemin !",
+        "description": "500 points atteints"
+      }
+    },
+    "logout": {
+      "title": "Se déconnecter",
+      "description": "Se déconnecter de cet appareil"
     }
+  },
+  "familyPrompt": {
+    "title": "Configurer la Famille",
+    "description": "Créez votre famille ou rejoignez une existante pour rester organisés ensemble.",
+    "createFamily": "Créer une Famille",
+    "joinFamily": "Rejoindre une Famille",
+    "setupLater": "Configurer plus tard"
+  },
+  "onboarding": {
+    "familySetup": {
+      "title": "Configurer la Famille",
+      "description": "Créer une famille ou rejoindre une existante"
+    },
+    "family-setup-title": "Configurer la Famille",
+    "family-setup-description": "Créer une famille ou rejoindre une existante"
   },
   "tabs": {
     "addNew": "Ajouter Nouveau",
@@ -511,6 +597,7 @@
     },
     "family": {
       "title": "Votre Famille",
+      "defaultName": "Famille",
       "member": "Membre",
       "members": "Membres",
       "online": "en ligne",

@@ -219,6 +219,16 @@ export const ComponentStyles = {
   },
 };
 
+// === RESPONSIVE BREAKPOINTS ===
+export const Breakpoints = {
+  xs: 0,
+  sm: 576,
+  md: 768,
+  lg: 992,
+  xl: 1200,
+  xxl: 1400,
+} as const;
+
 // === LAYOUT KONSTANTEN ===
 export const Layout = {
   screenPadding: DesignTokens.spacing['2xl'],     // 24px
@@ -236,5 +246,73 @@ export const Layout = {
     mobile: 1,
     tablet: 2,
     desktop: 3,
+  },
+  
+  // Responsive Layout
+  responsive: {
+    // Breakpoints
+    breakpoints: Breakpoints,
+    
+    // Container widths
+    containerWidths: {
+      mobile: '100%',
+      tablet: '90%',
+      desktop: '80%',
+      maxWidth: 1200,
+    },
+    
+    // Padding variations
+    padding: {
+      mobile: {
+        horizontal: 16,
+        vertical: 12,
+        section: 24,
+      },
+      tablet: {
+        horizontal: 24,
+        vertical: 16,
+        section: 32,
+      },
+      desktop: {
+        horizontal: 32,
+        vertical: 20,
+        section: 40,
+      },
+    },
+    
+    // Grid configurations
+    grid: {
+      mobile: {
+        columns: 1,
+        gap: 16,
+        padding: 16,
+      },
+      tablet: {
+        columns: 2,
+        gap: 20,
+        padding: 24,
+      },
+      desktop: {
+        columns: 3,
+        gap: 24,
+        padding: 32,
+      },
+    },
+    
+    // Typography scaling
+    typography: {
+      mobile: {
+        scale: 1,
+        lineHeight: 1.4,
+      },
+      tablet: {
+        scale: 1.1,
+        lineHeight: 1.5,
+      },
+      desktop: {
+        scale: 1.2,
+        lineHeight: 1.6,
+      },
+    },
   },
 };

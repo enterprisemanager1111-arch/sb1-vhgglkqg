@@ -3,10 +3,12 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
 import { Users, Plus, Hash } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function FamilyPrompt() {
+  const { t } = useLanguage();
   const createButtonScale = useSharedValue(1);
   const joinButtonScale = useSharedValue(1);
 
@@ -40,9 +42,9 @@ export default function FamilyPrompt() {
         <Users size={48} color="#54FE54" strokeWidth={2} />
       </View>
       
-      <Text style={styles.title}>Familie einrichten</Text>
+      <Text style={styles.title}>{t('familyPrompt.title')}</Text>
       <Text style={styles.description}>
-        Erstellen Sie Ihre Familie oder treten Sie einer bestehenden bei, um gemeinsam organisiert zu bleiben.
+        {t('familyPrompt.description')}
       </Text>
       
       <View style={styles.buttonContainer}>
@@ -53,7 +55,7 @@ export default function FamilyPrompt() {
           onPressOut={handleCreatePressOut}
         >
           <Plus size={20} color="#161618" strokeWidth={2} />
-          <Text style={styles.buttonText}>Familie erstellen</Text>
+          <Text style={styles.buttonText}>{t('familyPrompt.createFamily')}</Text>
         </AnimatedPressable>
 
         <AnimatedPressable
@@ -63,7 +65,7 @@ export default function FamilyPrompt() {
           onPressOut={handleJoinPressOut}
         >
           <Hash size={20} color="#666666" strokeWidth={2} />
-          <Text style={[styles.buttonText, styles.joinButtonText]}>Familie beitreten</Text>
+          <Text style={[styles.buttonText, styles.joinButtonText]}>{t('familyPrompt.joinFamily')}</Text>
         </AnimatedPressable>
       </View>
       
@@ -71,7 +73,7 @@ export default function FamilyPrompt() {
         style={styles.skipButton}
         onPress={() => {/* Kann später implementiert werden */}}
       >
-        <Text style={styles.skipText}>Später einrichten</Text>
+        <Text style={styles.skipText}>{t('familyPrompt.setupLater')}</Text>
       </Pressable>
     </View>
   );

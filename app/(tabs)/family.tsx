@@ -173,8 +173,8 @@ export default function FamilyDashboard() {
         <AnimatedView style={[styles.header, headerAnimatedStyle]}>
           <View style={styles.headerTop}>
             <View style={styles.familyInfo}>
-              <Text style={styles.familyGreeting}>Ihre Familie</Text>
-              <Text style={styles.familyName}>{currentFamily?.name || 'Familie'}</Text>
+              <Text style={styles.familyGreeting}>{t('family.title')}</Text>
+              <Text style={styles.familyName}>{currentFamily?.name || t('family.defaultName')}</Text>
             </View>
             <View style={styles.headerActions}>
               <View style={styles.realTimeIndicator}>
