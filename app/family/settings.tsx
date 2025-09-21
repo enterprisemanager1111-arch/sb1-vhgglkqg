@@ -15,6 +15,7 @@ import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-na
 import { ArrowLeft, CreditCard as Edit3, Share2, Shield, Trash2, Bell, Lock, Users, Settings as SettingsIcon, Copy, RefreshCw, Eye, EyeOff, Crown, UserX, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useFamily } from '@/contexts/FamilyContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -38,6 +39,7 @@ interface SettingItem {
 }
 
 export default function FamilySettings() {
+  const { t } = useLanguage();
   const [showFamilyCode, setShowFamilyCode] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
@@ -52,12 +54,12 @@ export default function FamilySettings() {
   const settingSections: SettingSection[] = [
     {
       id: 'general',
-      title: 'Allgemein',
+      title: 'General',
       items: [
         {
           id: 'edit-name',
-          title: 'Familienname bearbeiten',
-          description: 'Ändern Sie den Namen Ihrer Familie',
+          title: 'Edit Name',
+          description: 'Change your family name',
           icon: <Edit3 size={20} color="#54FE54" strokeWidth={2} />,
           type: 'action',
           onPress: () => {
@@ -68,7 +70,7 @@ export default function FamilySettings() {
         },
         {
           id: 'family-code',
-          title: 'Familiencode anzeigen',
+          title: 'Show Code',
           description: `Code: ${showFamilyCode ? currentFamily?.code : '••••••'}`,
           icon: showFamilyCode ? <Eye size={20} color="#00D4FF" strokeWidth={2} /> : <EyeOff size={20} color="#666666" strokeWidth={2} />,
           type: 'action',
@@ -76,16 +78,16 @@ export default function FamilySettings() {
         },
         {
           id: 'copy-code',
-          title: 'Code kopieren',
-          description: 'Familiencode in Zwischenablage kopieren',
+          title: 'Copy Code',
+          description: 'Copy family code to clipboard',
           icon: <Copy size={20} color="#FFB800" strokeWidth={2} />,
           type: 'action',
           onPress: handleCopyCode,
         },
         {
           id: 'regenerate-code',
-          title: 'Neuen Code generieren',
-          description: 'Erstellt einen neuen Einladungscode',
+          title: 'Regenerate Code',
+          description: 'Generate a new family code',
           icon: <RefreshCw size={20} color="#FF6B6B" strokeWidth={2} />,
           type: 'action',
           onPress: handleRegenerateCode,
@@ -95,12 +97,12 @@ export default function FamilySettings() {
     },
     {
       id: 'privacy',
-      title: 'Privatsphäre & Sicherheit',
+      title: 'Privacy',
       items: [
         {
           id: 'notifications',
-          title: 'Benachrichtigungen',
-          description: 'Push-Benachrichtigungen für Familienaktivitäten',
+          title: 'Notifications',
+          description: 'Manage family notifications',
           icon: <Bell size={20} color="#54FE54" strokeWidth={2} />,
           type: 'toggle',
           value: true,
@@ -108,8 +110,8 @@ export default function FamilySettings() {
         },
         {
           id: 'privacy-mode',
-          title: 'Privatsphäre-Modus',
-          description: 'Begrenzte Sichtbarkeit für persönliche Daten',
+          title: 'Privacy Mode',
+          description: 'Control family data visibility',
           icon: <Shield size={20} color="#00D4FF" strokeWidth={2} />,
           type: 'toggle',
           value: false,
@@ -117,8 +119,8 @@ export default function FamilySettings() {
         },
         {
           id: 'admin-approval',
-          title: 'Admin-Genehmigung für neue Mitglieder',
-          description: 'Neue Mitglieder müssen von Admins bestätigt werden',
+          title: 'Admin Approval',
+          description: 'Require admin approval for new members',
           icon: <Crown size={20} color="#FFB800" strokeWidth={2} />,
           type: 'toggle',
           value: false,
@@ -129,21 +131,21 @@ export default function FamilySettings() {
     },
     {
       id: 'advanced',
-      title: 'Erweitert',
+      title: 'Advanced',
       items: [
         {
           id: 'member-permissions',
-          title: 'Mitgliederberechtungen',
-          description: 'Verwalten Sie Rollen und Berechtigungen',
+          title: 'Member Permissions',
+          description: 'Manage member access levels',
           icon: <Users size={20} color="#666666" strokeWidth={2} />,
           type: 'navigation',
-          onPress: () => router.push('/family/permissions'),
+          onPress: () => router.push('/(tabs)/family'),
           requiresAdmin: true,
         },
         {
           id: 'data-export',
-          title: 'Daten exportieren',
-          description: 'Ihre Familiendaten herunterladen',
+          title: 'Data Export',
+          description: 'Export family data',
           icon: <Share2 size={20} color="#666666" strokeWidth={2} />,
           type: 'action',
           onPress: handleDataExport,
@@ -153,12 +155,12 @@ export default function FamilySettings() {
     },
     {
       id: 'danger',
-      title: 'Gefahrenzone',
+      title: 'Danger Zone',
       items: [
         {
           id: 'leave-family',
-          title: 'Familie verlassen',
-          description: 'Diese Familie verlassen',
+          title: 'Leave Family',
+          description: 'Leave this family',
           icon: <UserX size={20} color="#FF0000" strokeWidth={2} />,
           type: 'action',
           onPress: () => setShowLeaveModal(true),
@@ -166,8 +168,8 @@ export default function FamilySettings() {
         },
         {
           id: 'delete-family',
-          title: 'Familie löschen',
-          description: 'Familie dauerhaft löschen (nicht rückgängig machbar)',
+          title: 'Delete Family',
+          description: 'Permanently delete this family',
           icon: <Trash2 size={20} color="#FF0000" strokeWidth={2} />,
           type: 'action',
           onPress: () => setShowDeleteModal(true),
@@ -180,23 +182,23 @@ export default function FamilySettings() {
 
   async function handleCopyCode() {
     // Copy family code to clipboard
-    Alert.alert('Kopiert!', 'Familiencode wurde in die Zwischenablage kopiert.');
+    Alert.alert('Copied!', 'Family code copied to clipboard');
   }
 
   async function handleRegenerateCode() {
     Alert.alert(
-      'Neuen Code generieren',
-      'Dadurch wird der aktuelle Einladungscode ungültig. Fortfahren?',
+      'Regenerate Code',
+      'Are you sure you want to generate a new family code? The old code will no longer work.',
       [
-        { text: 'Abbrechen', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Generieren',
+          text: 'Generate',
           onPress: async () => {
             try {
               const newCode = await generateNewCode();
-              Alert.alert('Neuer Code', `Ihr neuer Familiencode lautet: ${newCode}`);
+              Alert.alert('New Code', `Your new family code is: ${newCode}`);
             } catch (error: any) {
-              Alert.alert('Fehler', error.message);
+              Alert.alert(t('common.error'), error.message);
             }
           },
         },
@@ -206,16 +208,16 @@ export default function FamilySettings() {
 
   function handleDataExport() {
     Alert.alert(
-      'Daten exportieren',
-      'Diese Funktion wird in einer zukünftigen Version verfügbar sein.',
-      [{ text: 'OK' }]
+      'Data Export',
+      'Data export feature is coming soon!',
+      [{ text: t('common.ok') }]
     );
   }
 
   const handleEditFamilyName = async () => {
     if (newFamilyName.trim() && newFamilyName.trim() !== currentFamily?.name) {
       // Update family name logic
-      Alert.alert('Gespeichert', 'Familienname wurde aktualisiert.');
+      Alert.alert('Saved', 'Family name updated successfully');
     }
     setShowNameEditModal(false);
   };
@@ -223,25 +225,25 @@ export default function FamilySettings() {
   const handleLeaveFamily = async () => {
     try {
       await leaveFamily();
-      Alert.alert('Familie verlassen', 'Sie haben die Familie erfolgreich verlassen.');
+      Alert.alert('Leave Family', 'You have successfully left the family');
       router.replace('/(tabs)');
     } catch (error: any) {
-      Alert.alert('Fehler', error.message);
+      Alert.alert(t('common.error'), error.message);
     }
   };
 
   const handleDeleteFamily = () => {
     Alert.alert(
-      'Familie löschen',
-      'Diese Aktion ist nicht rückgängig machbar. Alle Daten werden gelöscht.',
+      'Delete Family',
+      'Are you sure you want to permanently delete this family? This action cannot be undone.',
       [
-        { text: 'Abbrechen', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Löschen',
+          text: 'Delete',
           style: 'destructive',
           onPress: () => {
             // Delete family logic
-            Alert.alert('Gelöscht', 'Familie wurde gelöscht.');
+            Alert.alert('Deleted', 'Family has been permanently deleted');
           },
         },
       ]
@@ -270,7 +272,7 @@ export default function FamilySettings() {
           <ArrowLeft size={24} color="#161618" strokeWidth={2} />
         </AnimatedPressable>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Familieneinstellungen</Text>
+          <Text style={styles.headerTitle}>Family Settings</Text>
           <Text style={styles.headerSubtitle}>{currentFamily?.name}</Text>
         </View>
         <View style={styles.headerRight} />
@@ -335,13 +337,13 @@ export default function FamilySettings() {
                             styles.actionButtonText,
                             item.destructive && styles.destructiveButtonText
                           ]}>
-                            Ausführen
+                            Execute
                           </Text>
                         </Pressable>
                       )}
                       {item.type === 'navigation' && (
                         <Pressable style={styles.navigationButton} onPress={item.onPress}>
-                          <Text style={styles.navigationButtonText}>Öffnen</Text>
+                          <Text style={styles.navigationButtonText}>Open</Text>
                         </Pressable>
                       )}
                     </View>
@@ -361,12 +363,12 @@ export default function FamilySettings() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
-            <Text style={styles.modalTitle}>Familienname bearbeiten</Text>
+            <Text style={styles.modalTitle}>Edit Name</Text>
             <TextInput
               style={styles.modalInput}
               value={newFamilyName}
               onChangeText={setNewFamilyName}
-              placeholder="Neuer Familienname"
+              placeholder="New Family Name"
               autoFocus
             />
             <View style={styles.modalActions}>
@@ -374,13 +376,13 @@ export default function FamilySettings() {
                 style={styles.modalButton}
                 onPress={() => setShowNameEditModal(false)}
               >
-                <Text style={styles.modalButtonText}>Abbrechen</Text>
+                <Text style={styles.modalButtonText}>{t('common.cancel')}</Text>
               </Pressable>
               <Pressable
                 style={[styles.modalButton, styles.primaryModalButton]}
                 onPress={handleEditFamilyName}
               >
-                <Text style={styles.primaryModalButtonText}>Speichern</Text>
+                <Text style={styles.primaryModalButtonText}>{t('common.save')}</Text>
               </Pressable>
             </View>
           </View>
@@ -399,17 +401,16 @@ export default function FamilySettings() {
             <View style={styles.warningIcon}>
               <AlertTriangle size={32} color="#FF6B6B" strokeWidth={2} />
             </View>
-            <Text style={styles.modalTitle}>Familie verlassen</Text>
+            <Text style={styles.modalTitle}>Leave Family</Text>
             <Text style={styles.modalText}>
-              Sind Sie sicher, dass Sie diese Familie verlassen möchten? 
-              Sie verlieren den Zugriff auf alle geteilten Daten.
+              Are you sure you want to leave this family? This action cannot be undone.
             </Text>
             <View style={styles.modalActions}>
               <Pressable
                 style={styles.modalButton}
                 onPress={() => setShowLeaveModal(false)}
               >
-                <Text style={styles.modalButtonText}>Abbrechen</Text>
+                <Text style={styles.modalButtonText}>{t('common.cancel')}</Text>
               </Pressable>
               <Pressable
                 style={[styles.modalButton, styles.destructiveModalButton]}
@@ -418,7 +419,7 @@ export default function FamilySettings() {
                   handleLeaveFamily();
                 }}
               >
-                <Text style={styles.destructiveModalButtonText}>Verlassen</Text>
+                <Text style={styles.destructiveModalButtonText}>Leave</Text>
               </Pressable>
             </View>
           </View>
@@ -437,17 +438,16 @@ export default function FamilySettings() {
             <View style={styles.warningIcon}>
               <Trash2 size={32} color="#FF0000" strokeWidth={2} />
             </View>
-            <Text style={styles.modalTitle}>Familie löschen</Text>
+            <Text style={styles.modalTitle}>{t('family.settings.deleteFamily')}</Text>
             <Text style={styles.modalText}>
-              Diese Aktion löscht die Familie dauerhaft. Alle Daten, 
-              Mitglieder und Inhalte gehen verloren.
+              {t('family.settings.deleteFamilyConfirmation')}
             </Text>
             <View style={styles.modalActions}>
               <Pressable
                 style={styles.modalButton}
                 onPress={() => setShowDeleteModal(false)}
               >
-                <Text style={styles.modalButtonText}>Abbrechen</Text>
+                <Text style={styles.modalButtonText}>{t('common.cancel')}</Text>
               </Pressable>
               <Pressable
                 style={[styles.modalButton, styles.destructiveModalButton]}
@@ -456,7 +456,7 @@ export default function FamilySettings() {
                   handleDeleteFamily();
                 }}
               >
-                <Text style={styles.destructiveModalButtonText}>Löschen</Text>
+                <Text style={styles.destructiveModalButtonText}>{t('family.settings.delete')}</Text>
               </Pressable>
             </View>
           </View>

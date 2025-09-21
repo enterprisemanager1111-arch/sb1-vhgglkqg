@@ -888,7 +888,7 @@ export default function UserProfile() {
             <View style={styles.modalForm}>
               <TextInput
                 style={styles.modalInput}
-                placeholder="Aktuelles Passwort"
+                placeholder={t('profile.currentPassword')}
                 secureTextEntry
                 value={currentPassword}
                 onChangeText={setCurrentPassword}

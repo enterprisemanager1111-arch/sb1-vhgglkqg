@@ -69,7 +69,7 @@ function Notification({ type, message, visible, onClose }: NotificationProps) {
 }
 
 export default function OnboardingAuth() {
-  const { t } = useLanguage();
+  const { t, loading: languageLoading } = useLanguage();
   const { onboardingData, completeStep, updateAuthInfo, loading: onboardingLoading, updatePersonalInfo } = useOnboarding();
   const { signIn, signUp } = useAuth();
   const { showLoading, hideLoading } = useLoading();
@@ -239,6 +239,17 @@ export default function OnboardingAuth() {
     buttonScale.value = withSpring(1);
   };
 
+  // Don't render until language is loaded
+  if (languageLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          <Text>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F3F3F5" />
@@ -283,7 +294,7 @@ export default function OnboardingAuth() {
             <Mail size={20} color="#666666" strokeWidth={1.5} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Email address"
+              placeholder={t('common.email')}
               placeholderTextColor="#888888"
               value={email}
               onChangeText={setEmail}
@@ -298,7 +309,7 @@ export default function OnboardingAuth() {
             <Lock size={20} color="#666666" strokeWidth={1.5} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, styles.passwordInput]}
-              placeholder="Password"
+              placeholder={t('common.password')}
               placeholderTextColor="#888888"
               value={password}
               onChangeText={setPassword}

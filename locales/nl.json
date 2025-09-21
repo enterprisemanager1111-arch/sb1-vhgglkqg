@@ -93,6 +93,7 @@
         "signup": "Maak je Famora-account aan"
       },
       "form": {
+        "fullName": "Volledige naam",
         "email": "E-mailadres",
         "password": "Wachtwoord",
         "confirmPassword": "Bevestig wachtwoord"
@@ -180,8 +181,10 @@
     "role": "Rol",
     "interests": "Interesses",
     "email": "E-mail",
-    "yearsOld": "jaar oud"
-  },
+    "yearsOld": "jaar oud",
+    "optional": "optioneel",
+    "password": "Wachtwoord"
+    },
   "calendar": {
     "months": {
       "january": "Januari",
@@ -230,7 +233,8 @@
       "notifications": "Meldingen",
       "privacy": "Privacy en Beveiliging",
       "support": "Hulp en Ondersteuning",
-      "accountActions": "Account Acties"
+      "accountActions": "Account Acties",
+      "currentPassword": "Huidig wachtwoord"
     },
     "items": {
       "autoSync": "Automatische Synchronisatie",
@@ -340,7 +344,19 @@
       "exportButton": "Exporteren"
     },
     "notifications": {
-      "description": "Push-meldingen voor familieactiviteiten"
+      "title": "Meldingen",
+      "markAllRead": "Alles als gelezen markeren",
+      "empty": {
+        "title": "Geen meldingen",
+        "description": "Uw familieactiviteiten en belangrijke updates verschijnen hier"
+      },
+      "description": "Push-meldingen voor familieactiviteiten",
+      "timeAgo": {
+        "justNow": "Net nu",
+        "minutesAgo": "{count}m geleden",
+        "hoursAgo": "{count}u geleden",
+        "daysAgo": "{count}d geleden"
+      }
     },
     "achievements": {
       "first_task": {
@@ -432,7 +448,16 @@
       "createEvent": "Afspraak Maken",
       "creatingEvent": "Afspraak maken...",
       "eventCreated": "Afspraak gemaakt!",
-      "eventError": "Afspraak kon niet worden gemaakt"
+      "eventError": "Afspraak kon niet worden gemaakt",
+      "description": "Beschrijving",
+      "shoppingCategories": {
+        "general": "Algemeen",
+        "dairy": "Zuivel",
+        "produce": "Fruit en groenten",
+        "meat": "Vlees",
+        "bakery": "Bakkerij",
+        "pantry": "Voorraadkast"
+      }
     },
     "shopping": {
       "emptyTitle": "Boodschappenlijst is leeg",
@@ -448,6 +473,7 @@
       "member": "Lid",
       "members": "Leden",
       "online": "online",
+      "live": "Live",
       "weeklyProgress": "Wekelijks Voortgang",
       "togetherWeCan": "Samen kunnen we het!",
       "completed": "Voltooid",
@@ -470,7 +496,97 @@
       "membersActive": "{count} leden zijn momenteel actief!",
       "pointsCollected": "{points} punten verzameld",
       "inviteFamily": "Familie Uitnodigen",
-      "shareCode": "Deel deze code met familieleden zodat ze zich bij uw familie kunnen aansluiten."
+      "shareCode": "Deel deze code met familieleden zodat ze zich bij uw familie kunnen aansluiten.",
+      "copied": "Gekopieerd!",
+      "copyCode": "Code Kopiëren",
+      "newFamilyName": "Nieuwe familienaam",
+      "inviteCode": "Uitnodigingscode",
+      "copyError": "Kon code niet naar klembord kopiëren",
+      "settings": {
+        "title": "Familie Instellingen",
+        "sections": {
+          "general": "Algemeen",
+          "privacy": "Privacy en Beveiliging",
+          "advanced": "Geavanceerd",
+          "danger": "Gevaarzone"
+        },
+        "editName": "Familienaam bewerken",
+        "editNameDescription": "Wijzig de naam van uw familie",
+        "showCode": "Familiecode tonen",
+        "code": "Code",
+        "copyCode": "Code kopiëren",
+        "copyCodeDescription": "Familiecode naar klembord kopiëren",
+        "regenerateCode": "Nieuwe code genereren",
+        "regenerateCodeDescription": "Maakt een nieuwe uitnodigingscode",
+        "notifications": "Meldingen",
+        "notificationsDescription": "Push-meldingen voor familieactiviteiten",
+        "privacyMode": "Privacy-modus",
+        "privacyModeDescription": "Beperkte zichtbaarheid voor persoonlijke gegevens",
+        "adminApproval": "Admin-goedkeuring voor nieuwe leden",
+        "adminApprovalDescription": "Nieuwe leden moeten door admins worden bevestigd",
+        "memberPermissions": "Lidmachtigingen",
+        "memberPermissionsDescription": "Beheer rollen en machtigingen",
+        "dataExport": "Gegevens exporteren",
+        "dataExportDescription": "Download uw familiedata",
+        "leaveFamily": "Familie verlaten",
+        "leaveFamilyDescription": "Deze familie verlaten",
+        "deleteFamily": "Familie verwijderen",
+        "deleteFamilyDescription": "Familie permanent verwijderen (niet omkeerbaar)",
+        "copied": "Gekopieerd!",
+        "copiedMessage": "Familiecode is naar klembord gekopieerd",
+        "regenerateCodeWarning": "Dit maakt de huidige uitnodigingscode ongeldig. Doorgaan?",
+        "generate": "Genereren",
+        "newCode": "Nieuwe code",
+        "newCodeMessage": "Uw nieuwe familiecode is: {code}",
+        "dataExportComingSoon": "Deze functie zal beschikbaar zijn in een toekomstige versie.",
+        "saved": "Opgeslagen",
+        "familyNameUpdated": "Familienaam is bijgewerkt",
+        "leaveFamilySuccess": "U heeft de familie succesvol verlaten",
+        "deleteFamilyWarning": "Deze actie is niet omkeerbaar. Alle gegevens worden verwijderd.",
+        "delete": "Verwijderen",
+        "deleted": "Verwijderd",
+        "familyDeleted": "Familie is verwijderd",
+        "execute": "Uitvoeren",
+        "open": "Openen",
+        "leave": "Verlaten",
+        "leaveFamilyConfirmation": "Weet u zeker dat u deze familie wilt verlaten? U verliest toegang tot alle gedeelde gegevens.",
+        "deleteFamilyConfirmation": "Deze actie verwijdert de familie permanent. Alle gegevens, leden en inhoud gaan verloren."
+      },
+      "join": {
+        "errors": {
+          "familyNotFound": "Familie niet gevonden. Controleer de code.",
+          "alreadyMember": "U bent al lid van deze familie.",
+          "alreadyInAnotherFamily": "U bent al lid van een andere familie. Verlaat deze eerst."
+        }
+      },
+      "family": {
+      "members": "leden",
+      "familyMembers": "Gezinsleden",
+      "defaultName": "Mijn Gezin",
+      "inviteFamily": "Gezin uitnodigen",
+      "inviteFamilyDesc": "Nieuwe leden toevoegen",
+      "shareCode": "Deel deze code met gezinsleden om hen uit te nodigen om lid te worden van je gezin.",
+      "stats": {
+        "completed": "van {total} taken"
+      }
+    },
+    "onboarding": {
+        "createFamily": "Familie Aanmaken",
+        "createFamilyDescription": "Maak een nieuwe familie aan en nodig andere leden uit",
+        "joinFamily": "Lid Worden van Familie",
+        "joinFamilyDescription": "Word lid van een bestaande familie met een uitnodigingscode",
+        "searchFamily": "Familie Zoeken",
+        "creating": "Familie aanmaken...",
+        "joining": "Lid worden...",
+        "searching": "Zoeken...",
+        "joinSuccess": "Succesvol lid geworden!",
+        "joinSuccessMessage": "U bent nu lid van de familie.",
+        "joinSuccessMessageWithName": "U bent nu lid van \"{name}\".",
+        "joinError": "Kon geen lid worden van de familie",
+        "didntReceiveCode": "Geen code ontvangen?",
+        "askFamilyMember": "Vraag een familielid om je de familiecodes uit de instellingen te sturen.",
+        "useTestCode": "Testcode gebruiken (TEST01)"
+      }
     },
     "dashboard": {
       "todayOverview": "Overzicht van Vandaag"

@@ -62,6 +62,12 @@
         "signup": "Crear cuenta",
         "login": "¡Bienvenido de vuelta!"
       },
+      "form": {
+        "fullName": "Nombre completo",
+        "email": "Dirección de correo electrónico",
+        "password": "Contraseña",
+        "confirmPassword": "Confirmar contraseña"
+      },
       "buttons": {
         "login": "Iniciar sesión",
         "signup": "Registrarse",
@@ -111,8 +117,10 @@
     "role": "Rol",
     "interests": "Intereses",
     "email": "Correo electrónico",
-    "yearsOld": "años"
-  },
+    "yearsOld": "años",
+    "optional": "opcional",
+    "password": "Contraseña"
+    },
   "settings": {
     "language": {
       "title": "Idioma",
@@ -383,7 +391,8 @@
       "notifications": "Notificaciones",
       "privacy": "Privacidad y Seguridad",
       "support": "Ayuda y Soporte",
-      "accountActions": "Acciones de Cuenta"
+      "accountActions": "Acciones de Cuenta",
+      "currentPassword": "Contraseña actual"
     },
     "items": {
       "autoSync": "Sincronización Automática",
@@ -493,7 +502,19 @@
       "exportButton": "Exportar"
     },
     "notifications": {
-      "description": "Notificaciones push para actividades familiares"
+      "title": "Notificaciones",
+      "markAllRead": "Marcar todo como leído",
+      "empty": {
+        "title": "Sin notificaciones",
+        "description": "Sus actividades familiares y actualizaciones importantes aparecerán aquí"
+      },
+      "description": "Notificaciones push para actividades familiares",
+      "timeAgo": {
+        "justNow": "Ahora mismo",
+        "minutesAgo": "hace {count}m",
+        "hoursAgo": "hace {count}h",
+        "daysAgo": "hace {count}d"
+      }
     },
     "achievements": {
       "first_task": {
@@ -585,7 +606,16 @@
       "createEvent": "Crear Evento",
       "creatingEvent": "Creando evento...",
       "eventCreated": "¡Evento creado!",
-      "eventError": "No se pudo crear el evento"
+      "eventError": "No se pudo crear el evento",
+      "description": "Descripción",
+      "shoppingCategories": {
+        "general": "General",
+        "dairy": "Lácteos",
+        "produce": "Frutas y verduras",
+        "meat": "Carne",
+        "bakery": "Panadería",
+        "pantry": "Despensa"
+      }
     },
     "shopping": {
       "emptyTitle": "La lista de compras está vacía",
@@ -601,6 +631,7 @@
       "member": "Miembro",
       "members": "Miembros",
       "online": "en línea",
+      "live": "En vivo",
       "weeklyProgress": "Progreso Semanal",
       "togetherWeCan": "¡Juntos podemos hacerlo!",
       "completed": "Completado",
@@ -623,7 +654,97 @@
       "membersActive": "¡{count} miembros están actualmente activos!",
       "pointsCollected": "{points} puntos recolectados",
       "inviteFamily": "Invitar Familia",
-      "shareCode": "Comparta este código con los miembros de la familia para que puedan unirse a su familia."
+      "shareCode": "Comparta este código con los miembros de la familia para que puedan unirse a su familia.",
+      "copied": "¡Copiado!",
+      "copyCode": "Copiar Código",
+      "newFamilyName": "Nuevo nombre de familia",
+      "inviteCode": "Código de invitación",
+      "copyError": "No se pudo copiar el código al portapapeles",
+      "settings": {
+        "title": "Configuración de Familia",
+        "sections": {
+          "general": "General",
+          "privacy": "Privacidad y Seguridad",
+          "advanced": "Avanzado",
+          "danger": "Zona de Peligro"
+        },
+        "editName": "Editar nombre de familia",
+        "editNameDescription": "Cambiar el nombre de su familia",
+        "showCode": "Mostrar código de familia",
+        "code": "Código",
+        "copyCode": "Copiar código",
+        "copyCodeDescription": "Copiar código de familia al portapapeles",
+        "regenerateCode": "Generar nuevo código",
+        "regenerateCodeDescription": "Crea un nuevo código de invitación",
+        "notifications": "Notificaciones",
+        "notificationsDescription": "Notificaciones push para actividades familiares",
+        "privacyMode": "Modo privacidad",
+        "privacyModeDescription": "Visibilidad limitada para datos personales",
+        "adminApproval": "Aprobación admin para nuevos miembros",
+        "adminApprovalDescription": "Los nuevos miembros deben ser confirmados por admins",
+        "memberPermissions": "Permisos de miembros",
+        "memberPermissionsDescription": "Gestionar roles y permisos",
+        "dataExport": "Exportar datos",
+        "dataExportDescription": "Descargar sus datos familiares",
+        "leaveFamily": "Dejar familia",
+        "leaveFamilyDescription": "Dejar esta familia",
+        "deleteFamily": "Eliminar familia",
+        "deleteFamilyDescription": "Eliminar familia permanentemente (no reversible)",
+        "copied": "¡Copiado!",
+        "copiedMessage": "El código de familia ha sido copiado al portapapeles",
+        "regenerateCodeWarning": "Esto invalidará el código de invitación actual. ¿Continuar?",
+        "generate": "Generar",
+        "newCode": "Nuevo código",
+        "newCodeMessage": "Su nuevo código de familia es: {code}",
+        "dataExportComingSoon": "Esta función estará disponible en una versión futura.",
+        "saved": "Guardado",
+        "familyNameUpdated": "El nombre de familia ha sido actualizado",
+        "leaveFamilySuccess": "Ha dejado la familia exitosamente",
+        "deleteFamilyWarning": "Esta acción no es reversible. Todos los datos serán eliminados.",
+        "delete": "Eliminar",
+        "deleted": "Eliminado",
+        "familyDeleted": "La familia ha sido eliminada",
+        "execute": "Ejecutar",
+        "open": "Abrir",
+        "leave": "Dejar",
+        "leaveFamilyConfirmation": "¿Está seguro de que quiere dejar esta familia? Perderá acceso a todos los datos compartidos.",
+        "deleteFamilyConfirmation": "Esta acción elimina la familia permanentemente. Todos los datos, miembros y contenido se perderán."
+      },
+      "join": {
+        "errors": {
+          "familyNotFound": "Familia no encontrada. Por favor verifique el código.",
+          "alreadyMember": "Ya es miembro de esta familia.",
+          "alreadyInAnotherFamily": "Ya es miembro de otra familia. Por favor déjela primero."
+        }
+      },
+      "family": {
+      "members": "miembros",
+      "familyMembers": "Miembros de la familia",
+      "defaultName": "Mi Familia",
+      "inviteFamily": "Invitar familia",
+      "inviteFamilyDesc": "Agregar nuevos miembros",
+      "shareCode": "Comparte este código con los miembros de la familia para invitarlos a unirse a tu familia.",
+      "stats": {
+        "completed": "de {total} tareas"
+      }
+    },
+    "onboarding": {
+        "createFamily": "Crear Familia",
+        "createFamilyDescription": "Crear una nueva familia e invitar a otros miembros",
+        "joinFamily": "Unirse a Familia",
+        "joinFamilyDescription": "Unirse a una familia existente con un código de invitación",
+        "searchFamily": "Buscar Familia",
+        "creating": "Creando familia...",
+        "joining": "Uniéndose...",
+        "searching": "Buscando...",
+        "joinSuccess": "¡Se unió exitosamente!",
+        "joinSuccessMessage": "Ahora es miembro de la familia.",
+        "joinSuccessMessageWithName": "Ahora es miembro de \"{name}\".",
+        "joinError": "No se pudo unir a la familia",
+        "didntReceiveCode": "¿No recibiste un código?",
+        "askFamilyMember": "Pide a un miembro de la familia que te envíe el código familiar desde la configuración.",
+        "useTestCode": "Usar código de prueba (TEST01)"
+      }
     },
     "dashboard": {
       "todayOverview": "Resumen de Hoy"

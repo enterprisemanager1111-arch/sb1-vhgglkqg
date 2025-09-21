@@ -35,7 +35,9 @@
     "role": "Role",
     "interests": "Interests",
     "email": "Email",
-    "yearsOld": "years old"
+    "yearsOld": "years old",
+    "optional": "optional",
+    "password": "Password"
     },
     "settings": {
       "language": {
@@ -321,7 +323,8 @@
       "notifications": "Notifications",
       "privacy": "Privacy & Security",
       "support": "Help & Support",
-      "accountActions": "Account Actions"
+      "accountActions": "Account Actions",
+      "currentPassword": "Current Password"
     },
     "items": {
       "autoSync": "Automatic Synchronization",
@@ -443,7 +446,19 @@
       "exportButton": "Export"
     },
     "notifications": {
-      "description": "Push notifications for family activities"
+      "title": "Notifications",
+      "markAllRead": "Mark all as read",
+      "empty": {
+        "title": "No notifications",
+        "description": "Your family activities and important updates will appear here"
+      },
+      "description": "Push notifications for family activities",
+      "timeAgo": {
+        "justNow": "Just now",
+        "minutesAgo": "{count}m ago",
+        "hoursAgo": "{count}h ago",
+        "daysAgo": "{count}d ago"
+      }
     },
     "achievements": {
       "first_task": {
@@ -529,7 +544,16 @@
       "creatingEvent": "Creating Event...",
       "eventCreated": "Event created!",
       "eventError": "Event could not be created",
-      "eventPointsInfo": "Fixed points: 10 points"
+      "eventPointsInfo": "Fixed points: 10 points",
+      "description": "Description",
+      "shoppingCategories": {
+        "general": "General",
+        "dairy": "Dairy",
+        "produce": "Fruits & Vegetables",
+        "meat": "Meat",
+        "bakery": "Bakery",
+        "pantry": "Pantry"
+      }
     },
     "shopping": {
       "emptyTitle": "Shopping list is empty",
@@ -545,6 +569,7 @@
       "member": "Member",
       "members": "Members",
       "online": "online",
+      "live": "Live",
       "weeklyProgress": "Weekly Progress",
       "togetherWeCan": "Together we can do it!",
       "completed": "Completed",
@@ -567,7 +592,86 @@
       "membersActive": "{count} members are currently active!",
       "pointsCollected": "{points} points collected",
       "inviteFamily": "Invite Family",
-      "shareCode": "Share this code with family members so they can join your family."
+      "shareCode": "Share this code with family members so they can join your family.",
+      "copied": "Copied!",
+      "copyCode": "Copy Code",
+      "newFamilyName": "New Family Name",
+      "inviteCode": "Invite Code",
+      "copyError": "Failed to copy code to clipboard",
+      "settings": {
+        "title": "Family Settings",
+        "sections": {
+          "general": "General",
+          "privacy": "Privacy & Security",
+          "advanced": "Advanced",
+          "danger": "Danger Zone"
+        },
+        "editName": "Edit Family Name",
+        "editNameDescription": "Change your family name",
+        "showCode": "Show Family Code",
+        "code": "Code",
+        "copyCode": "Copy Code",
+        "copyCodeDescription": "Copy family code to clipboard",
+        "regenerateCode": "Generate New Code",
+        "regenerateCodeDescription": "Creates a new invitation code",
+        "notifications": "Notifications",
+        "notificationsDescription": "Push notifications for family activities",
+        "privacyMode": "Privacy Mode",
+        "privacyModeDescription": "Limited visibility for personal data",
+        "adminApproval": "Admin Approval for New Members",
+        "adminApprovalDescription": "New members must be confirmed by admins",
+        "memberPermissions": "Member Permissions",
+        "memberPermissionsDescription": "Manage roles and permissions",
+        "dataExport": "Export Data",
+        "dataExportDescription": "Download your family data",
+        "leaveFamily": "Leave Family",
+        "leaveFamilyDescription": "Leave this family",
+        "deleteFamily": "Delete Family",
+        "deleteFamilyDescription": "Permanently delete family (not reversible)",
+        "copied": "Copied!",
+        "copiedMessage": "Family code has been copied to clipboard",
+        "regenerateCodeWarning": "This will invalidate the current invitation code. Continue?",
+        "generate": "Generate",
+        "newCode": "New Code",
+        "newCodeMessage": "Your new family code is: {code}",
+        "dataExportComingSoon": "This feature will be available in a future version.",
+        "saved": "Saved",
+        "familyNameUpdated": "Family name has been updated",
+        "leaveFamilySuccess": "You have successfully left the family",
+        "deleteFamilyWarning": "This action is not reversible. All data will be deleted.",
+        "delete": "Delete",
+        "deleted": "Deleted",
+        "familyDeleted": "Family has been deleted",
+        "execute": "Execute",
+        "open": "Open",
+        "leave": "Leave",
+        "leaveFamilyConfirmation": "Are you sure you want to leave this family? You will lose access to all shared data.",
+        "deleteFamilyConfirmation": "This action deletes the family permanently. All data, members and content will be lost."
+      },
+      "join": {
+        "errors": {
+          "familyNotFound": "Family not found. Please check the code.",
+          "alreadyMember": "You are already a member of this family.",
+          "alreadyInAnotherFamily": "You are already a member of another family. Please leave it first."
+        }
+      },
+      "onboarding": {
+        "createFamily": "Create Family",
+        "createFamilyDescription": "Create a new family and invite other members",
+        "joinFamily": "Join Family",
+        "joinFamilyDescription": "Join an existing family with an invitation code",
+        "searchFamily": "Search Family",
+        "creating": "Creating family...",
+        "joining": "Joining...",
+        "searching": "Searching...",
+        "joinSuccess": "Successfully joined!",
+        "joinSuccessMessage": "You are now a member of the family.",
+        "joinSuccessMessageWithName": "You are now a member of \"{name}\".",
+        "joinError": "Could not join family",
+        "didntReceiveCode": "Didn't receive a code?",
+        "askFamilyMember": "Ask a family member to send you the family code from settings.",
+        "useTestCode": "Use test code (TEST01)"
+      }
     },
     "dashboard": {
       "todayOverview": "Today's Overview"
@@ -705,6 +809,7 @@
         "signup": "Create your Famora account"
       },
       "form": {
+        "fullName": "Full name",
         "email": "Email address",
         "password": "Password",
         "confirmPassword": "Confirm password"
@@ -742,9 +847,6 @@
           "signup": "Create account",
           "login": "Welcome back!"
         }
-      },
-      "family": {
-        "title": "Set up family"
       }
     },
     "familySetup": {

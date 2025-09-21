@@ -9,6 +9,7 @@ import {
   Share,
   Alert,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
 import {
   ArrowLeft,
@@ -53,8 +54,8 @@ Lade die App herunter und gib den Code ein, um beizutreten!`;
   const inviteMethods: InviteMethod[] = [
     {
       id: 'copy',
-      title: 'Code kopieren',
-      description: 'Kopiere den Einladungscode in die Zwischenablage',
+      title: 'Copy Code',
+      description: 'Copy the invitation code to clipboard',
       icon: <Copy size={24} color="#54FE54" strokeWidth={2} />,
       color: '#54FE54',
       bgColor: 'rgba(84, 254, 84, 0.1)',
@@ -109,11 +110,14 @@ Lade die App herunter und gib den Code ein, um beizutreten!`;
 
   async function handleCopyCode() {
     try {
-      // Copy code to clipboard - in React Native you'd use Clipboard
-      setCopiedCode(true);
-      setTimeout(() => setCopiedCode(false), 2000);
-      Alert.alert('Kopiert!', 'Familiencode wurde in die Zwischenablage kopiert.');
+      if (currentFamily?.code) {
+        await Clipboard.setStringAsync(currentFamily.code);
+        setCopiedCode(true);
+        setTimeout(() => setCopiedCode(false), 2000);
+        Alert.alert('Kopiert!', 'Familiencode wurde in die Zwischenablage kopiert.');
+      }
     } catch (error) {
+      console.error('Failed to copy code:', error);
       Alert.alert('Fehler', 'Code konnte nicht kopiert werden.');
     }
   }
@@ -192,8 +196,8 @@ Lade die App herunter und gib den Code ein, um beizutreten!`;
           <ArrowLeft size={24} color="#161618" strokeWidth={2} />
         </AnimatedPressable>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Familie einladen</Text>
-          <Text style={styles.headerSubtitle}>Neue Mitglieder hinzufügen</Text>
+          <Text style={styles.headerTitle}>Invite Family</Text>
+          <Text style={styles.headerSubtitle}>Add new members</Text>
         </View>
         <View style={styles.headerRight} />
       </View>
@@ -220,7 +224,7 @@ Lade die App herunter und gib den Code ein, um beizutreten!`;
               </Pressable>
             </View>
             <Text style={styles.codeDescription}>
-              Teilen Sie diesen Code mit Familienmitgliedern, damit sie beitreten können.
+              Share this code with family members to invite them to join your family.
             </Text>
           </View>
         </View>

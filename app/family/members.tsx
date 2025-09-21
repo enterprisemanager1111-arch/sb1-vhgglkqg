@@ -15,6 +15,7 @@ import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-na
 import { ArrowLeft, Search, Plus, Crown, Shield, UserX, MoveVertical as MoreVertical, Mail, Phone, Calendar, CreditCard as Edit3, Trash2 } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useFamily } from '@/contexts/FamilyContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -33,6 +34,7 @@ export default function FamilyMembers() {
   const [showMemberActions, setShowMemberActions] = useState(false);
   
   const { familyMembers, userRole, currentFamily } = useFamily();
+  const { t } = useLanguage();
   const backButtonScale = useSharedValue(1);
 
   const filteredMembers = familyMembers.filter(member =>
@@ -156,8 +158,8 @@ export default function FamilyMembers() {
           <ArrowLeft size={24} color="#161618" strokeWidth={2} />
         </AnimatedPressable>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Familienmitglieder</Text>
-          <Text style={styles.headerSubtitle}>{familyMembers.length} Mitglieder</Text>
+          <Text style={styles.headerTitle}>Family Members</Text>
+          <Text style={styles.headerSubtitle}>{familyMembers.length} members</Text>
         </View>
         <Pressable style={styles.addButton}>
           <Plus size={24} color="#54FE54" strokeWidth={2} />

@@ -66,7 +66,7 @@ const getTranslationFromObject = (translations: any, key: string, params?: Recor
       // Replace parameters if provided
       if (params) {
         Object.entries(params).forEach(([paramKey, paramValue]) => {
-          translation = translation.replace(`{{${paramKey}}}`, paramValue);
+          translation = translation.replace(`{${paramKey}}`, paramValue);
         });
       }
       return translation;
@@ -102,7 +102,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         }
       } else {
         console.log('No saved language preference, defaulting to English');
-      setCurrentLanguage(supportedLanguages[1]); // English
+        setCurrentLanguage(supportedLanguages[1]); // English
       }
     } catch (error) {
       console.error('Error loading saved language:', error);
@@ -148,9 +148,16 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   // Translation function with nested key support
   const t = (key: string, params?: Record<string, string>): string => {
     try {
-      // Debug logging for key translation issues
-      if (key === 'common.continue' || key === 'common.cancel' || key === 'onboarding.personal.datePicker.title' || key === 'settings.language.title' || key === 'dashboard.welcome') {
-        console.log('Translating key:', key, 'for language:', currentLanguage.code);
+      // If still loading, use default English fallback
+      if (loading) {
+        const englishTranslations = translations.en as any;
+        if (englishTranslations) {
+          const fallbackTranslation = getTranslationFromObject(englishTranslations, key, params);
+          if (fallbackTranslation) {
+            return fallbackTranslation;
+          }
+        }
+        return key;
       }
       
       // Get translations for current language first
@@ -170,28 +177,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       // Try to get translation from current language
       let translation = getTranslationFromObject(languageTranslations, key, params);
       
-      // Debug the translation lookup
-      if (key === 'dashboard.welcome' || key === 'common.cancel') {
-        console.log('Looking up key:', key, 'in language:', currentLanguage.code);
-        console.log('Available translations keys:', Object.keys(languageTranslations));
-        console.log('Translation result:', translation);
-        if (key === 'common.cancel') {
-          console.log('Common section exists:', !!languageTranslations.common);
-          if (languageTranslations.common) {
-            console.log('Common section keys:', Object.keys(languageTranslations.common));
-            console.log('Cancel key value:', languageTranslations.common.cancel);
-          }
-        }
-      }
-      
       // If not found in current language, try English fallback
       if (!translation && currentLanguage.code !== 'en') {
             const englishTranslations = translations.en as any;
         if (englishTranslations) {
           translation = getTranslationFromObject(englishTranslations, key, params);
-          if (translation) {
-            console.log(`Using English fallback for key: ${key}`);
-          }
         }
       }
       

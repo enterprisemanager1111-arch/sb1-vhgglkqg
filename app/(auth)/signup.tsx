@@ -12,6 +12,7 @@ import { Link, router } from 'expo-router';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
 import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -25,6 +26,7 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   
   const { signUp } = useAuth();
+  const { t, loading: languageLoading } = useLanguage();
   
   const signupButtonScale = useSharedValue(1);
 
@@ -76,6 +78,17 @@ export default function SignUp() {
     signupButtonScale.value = withSpring(1);
   };
 
+  // Don't render until language is loaded
+  if (languageLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          <Text>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
@@ -92,7 +105,7 @@ export default function SignUp() {
             <User size={20} color="#666666" strokeWidth={1.5} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Full name"
+              placeholder={t('common.name')}
               placeholderTextColor="#888888"
               value={fullName}
               onChangeText={setFullName}
@@ -105,7 +118,7 @@ export default function SignUp() {
             <Mail size={20} color="#666666" strokeWidth={1.5} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Email address"
+              placeholder={t('common.email')}
               placeholderTextColor="#888888"
               value={email}
               onChangeText={setEmail}
@@ -120,7 +133,7 @@ export default function SignUp() {
             <Lock size={20} color="#666666" strokeWidth={1.5} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, styles.passwordInput]}
-              placeholder="Password"
+              placeholder={t('common.password')}
               placeholderTextColor="#888888"
               value={password}
               onChangeText={setPassword}

@@ -16,6 +16,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { X, CircleCheck as CheckCircle, Calendar, ShoppingCart, Users, Flame, Trophy, Clock, CheckCheck, Activity } from 'lucide-react-native';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -66,21 +67,21 @@ const NotificationIcon = ({ type }: { type: NotificationItem['type'] }) => {
   }
 };
 
-const formatTimeAgo = (timestamp: string): string => {
+const formatTimeAgo = (timestamp: string, t: (key: string) => string): string => {
   const now = new Date();
   const time = new Date(timestamp);
   const diffInMinutes = Math.floor((now.getTime() - time.getTime()) / (1000 * 60));
   
-  if (diffInMinutes < 1) return 'Gerade eben';
-  if (diffInMinutes < 60) return `vor ${diffInMinutes}m`;
+  if (diffInMinutes < 1) return t('notifications.timeAgo.justNow') || 'Just now';
+  if (diffInMinutes < 60) return t('notifications.timeAgo.minutesAgo', { count: diffInMinutes }) || `${diffInMinutes}m ago`;
   
   const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `vor ${diffInHours}h`;
+  if (diffInHours < 24) return t('notifications.timeAgo.hoursAgo', { count: diffInHours }) || `${diffInHours}h ago`;
   
   const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 7) return `vor ${diffInDays}d`;
+  if (diffInDays < 7) return t('notifications.timeAgo.daysAgo', { count: diffInDays }) || `${diffInDays}d ago`;
   
-  return time.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
+  return time.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
 };
 
 export default function NotificationCenter({
@@ -90,6 +91,7 @@ export default function NotificationCenter({
   onMarkAsRead,
   onMarkAllAsRead
 }: NotificationCenterProps) {
+  const { t, loading: languageLoading } = useLanguage();
   const overlayOpacity = useSharedValue(0);
   const modalTranslateY = useSharedValue(-50);
   const modalOpacity = useSharedValue(0);
@@ -122,6 +124,11 @@ export default function NotificationCenter({
   const unreadCount = notifications.filter(n => !n.read).length;
   const hasUnread = unreadCount > 0;
 
+  // Don't render if language is still loading
+  if (languageLoading) {
+    return null;
+  }
+
   return (
     <Modal
       visible={visible}
@@ -136,7 +143,7 @@ export default function NotificationCenter({
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <Text style={styles.headerTitle}>Benachrichtigungen</Text>
+              <Text style={styles.headerTitle}>{t('notifications.title')}</Text>
               {hasUnread && (
                 <View style={styles.unreadBadge}>
                   <Text style={styles.unreadBadgeText}>{unreadCount}</Text>
@@ -148,7 +155,7 @@ export default function NotificationCenter({
               {hasUnread && (
                 <Pressable style={styles.markAllReadButton} onPress={onMarkAllAsRead}>
                   <CheckCheck size={16} color="#54FE54" strokeWidth={2} />
-                  <Text style={styles.markAllReadText}>Alle lesen</Text>
+                  <Text style={styles.markAllReadText}>{t('notifications.markAllRead')}</Text>
                 </Pressable>
               )}
               
@@ -193,7 +200,7 @@ export default function NotificationCenter({
                           {notification.title}
                         </Text>
                         <Text style={styles.notificationTime}>
-                          {formatTimeAgo(notification.timestamp)}
+                          {formatTimeAgo(notification.timestamp, t)}
                         </Text>
                       </View>
                       
@@ -220,9 +227,9 @@ export default function NotificationCenter({
                 <View style={styles.emptyIcon}>
                   <Activity size={32} color="#E0E0E0" strokeWidth={1.5} />
                 </View>
-                <Text style={styles.emptyTitle}>Keine Benachrichtigungen</Text>
+                <Text style={styles.emptyTitle}>{t('notifications.empty.title')}</Text>
                 <Text style={styles.emptyDescription}>
-                  Hier erscheinen Ihre Familienaktivitäten und wichtige Updates
+                  {t('notifications.empty.description')}
                 </Text>
               </View>
             )}
@@ -232,7 +239,7 @@ export default function NotificationCenter({
           {notifications.length > 0 && (
             <View style={styles.footer}>
               <Pressable style={styles.footerButton} onPress={handleClose}>
-                <Text style={styles.footerButtonText}>Schließen</Text>
+                <Text style={styles.footerButtonText}>{t('common.close')}</Text>
               </Pressable>
             </View>
           )}

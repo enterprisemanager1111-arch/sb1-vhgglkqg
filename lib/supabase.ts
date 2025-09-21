@@ -23,16 +23,17 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: AsyncStorage,
+    storage: Platform.OS === 'web' ? undefined : AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    detectSessionInUrl: Platform.OS === 'web',
     flowType: 'pkce',
     debug: __DEV__,
   },
   global: {
     headers: {
       'X-Client-Info': 'famora-mobile',
+      'apikey': supabaseAnonKey,
     },
   },
   db: {
@@ -47,5 +48,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     },
   }),
 });
+
+// Debug logging for Supabase client
+if (__DEV__) {
+  console.log('🔧 Supabase client initialized:');
+  console.log('URL:', supabaseUrl);
+  console.log('Key length:', supabaseAnonKey?.length);
+  console.log('Platform:', Platform.OS);
+}
 
 export default supabase;

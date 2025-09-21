@@ -294,7 +294,7 @@ export default function FlamesScreen() {
                 </Text>
               </View>
               <View style={styles.userStatsPoints}>
-                <Text style={styles.userStatsPointsNumber}>{familyTotalPoints.toLocaleString('de-DE')}</Text>
+                <Text style={styles.userStatsPointsNumber}>{familyTotalPoints.toLocaleString()}</Text>
                 <Text style={styles.userStatsPointsLabel}>{t('flames.family.points')}</Text>
               </View>
             </View>

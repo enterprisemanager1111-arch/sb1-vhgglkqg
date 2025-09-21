@@ -62,6 +62,12 @@
         "signup": "Créer un compte",
         "login": "Bon retour!"
       },
+      "form": {
+        "fullName": "Nom complet",
+        "email": "Adresse e-mail",
+        "password": "Mot de passe",
+        "confirmPassword": "Confirmer le mot de passe"
+      },
       "buttons": {
         "login": "Se connecter",
         "signup": "S'inscrire",
@@ -111,8 +117,10 @@
     "role": "Rôle",
     "interests": "Intérêts",
     "email": "E-mail",
-    "yearsOld": "ans"
-  },
+    "yearsOld": "ans",
+    "optional": "optionnel",
+    "password": "Mot de passe"
+    },
   "settings": {
     "language": {
       "title": "Langue",
@@ -383,7 +391,8 @@
       "notifications": "Notifications",
       "privacy": "Confidentialité et Sécurité",
       "support": "Aide et Support",
-      "accountActions": "Actions du Compte"
+      "accountActions": "Actions du Compte",
+      "currentPassword": "Mot de passe actuel"
     },
     "items": {
       "autoSync": "Synchronisation Automatique",
@@ -493,7 +502,19 @@
       "exportButton": "Exporter"
     },
     "notifications": {
-      "description": "Notifications push pour les activités familiales"
+      "title": "Notifications",
+      "markAllRead": "Tout marquer comme lu",
+      "empty": {
+        "title": "Aucune notification",
+        "description": "Vos activités familiales et mises à jour importantes apparaîtront ici"
+      },
+      "description": "Notifications push pour les activités familiales",
+      "timeAgo": {
+        "justNow": "À l'instant",
+        "minutesAgo": "il y a {count}m",
+        "hoursAgo": "il y a {count}h",
+        "daysAgo": "il y a {count}j"
+      }
     },
     "achievements": {
       "first_task": {
@@ -585,7 +606,16 @@
       "createEvent": "Créer l'Événement",
       "creatingEvent": "Création de l'événement...",
       "eventCreated": "Événement créé !",
-      "eventError": "L'événement n'a pas pu être créé"
+      "eventError": "L'événement n'a pas pu être créé",
+      "description": "Description",
+      "shoppingCategories": {
+        "general": "Général",
+        "dairy": "Produits laitiers",
+        "produce": "Fruits et légumes",
+        "meat": "Viande",
+        "bakery": "Boulangerie",
+        "pantry": "Garde-manger"
+      }
     },
     "shopping": {
       "emptyTitle": "La liste de courses est vide",
@@ -601,6 +631,7 @@
       "member": "Membre",
       "members": "Membres",
       "online": "en ligne",
+      "live": "En direct",
       "weeklyProgress": "Progrès Hebdomadaire",
       "togetherWeCan": "Ensemble nous pouvons le faire !",
       "completed": "Terminé",
@@ -623,7 +654,97 @@
       "membersActive": "{count} membres sont actuellement actifs !",
       "pointsCollected": "{points} points collectés",
       "inviteFamily": "Inviter la Famille",
-      "shareCode": "Partagez ce code avec les membres de la famille pour qu'ils puissent rejoindre votre famille."
+      "shareCode": "Partagez ce code avec les membres de la famille pour qu'ils puissent rejoindre votre famille.",
+      "copied": "Copié !",
+      "copyCode": "Copier le Code",
+      "newFamilyName": "Nouveau nom de famille",
+      "inviteCode": "Code d'invitation",
+      "copyError": "Impossible de copier le code dans le presse-papiers",
+      "settings": {
+        "title": "Paramètres de Famille",
+        "sections": {
+          "general": "Général",
+          "privacy": "Confidentialité et Sécurité",
+          "advanced": "Avancé",
+          "danger": "Zone de Danger"
+        },
+        "editName": "Modifier le nom de famille",
+        "editNameDescription": "Changez le nom de votre famille",
+        "showCode": "Afficher le code de famille",
+        "code": "Code",
+        "copyCode": "Copier le code",
+        "copyCodeDescription": "Copier le code de famille dans le presse-papiers",
+        "regenerateCode": "Générer un nouveau code",
+        "regenerateCodeDescription": "Crée un nouveau code d'invitation",
+        "notifications": "Notifications",
+        "notificationsDescription": "Notifications push pour les activités familiales",
+        "privacyMode": "Mode confidentialité",
+        "privacyModeDescription": "Visibilité limitée pour les données personnelles",
+        "adminApproval": "Approbation admin pour nouveaux membres",
+        "adminApprovalDescription": "Les nouveaux membres doivent être confirmés par les admins",
+        "memberPermissions": "Permissions des membres",
+        "memberPermissionsDescription": "Gérer les rôles et permissions",
+        "dataExport": "Exporter les données",
+        "dataExportDescription": "Télécharger vos données familiales",
+        "leaveFamily": "Quitter la famille",
+        "leaveFamilyDescription": "Quitter cette famille",
+        "deleteFamily": "Supprimer la famille",
+        "deleteFamilyDescription": "Supprimer définitivement la famille (non réversible)",
+        "copied": "Copié !",
+        "copiedMessage": "Le code de famille a été copié dans le presse-papiers",
+        "regenerateCodeWarning": "Cela invalidera le code d'invitation actuel. Continuer ?",
+        "generate": "Générer",
+        "newCode": "Nouveau code",
+        "newCodeMessage": "Votre nouveau code de famille est : {code}",
+        "dataExportComingSoon": "Cette fonctionnalité sera disponible dans une future version.",
+        "saved": "Enregistré",
+        "familyNameUpdated": "Le nom de famille a été mis à jour",
+        "leaveFamilySuccess": "Vous avez quitté la famille avec succès",
+        "deleteFamilyWarning": "Cette action n'est pas réversible. Toutes les données seront supprimées.",
+        "delete": "Supprimer",
+        "deleted": "Supprimé",
+        "familyDeleted": "La famille a été supprimée",
+        "execute": "Exécuter",
+        "open": "Ouvrir",
+        "leave": "Quitter",
+        "leaveFamilyConfirmation": "Êtes-vous sûr de vouloir quitter cette famille ? Vous perdrez l'accès à toutes les données partagées.",
+        "deleteFamilyConfirmation": "Cette action supprime définitivement la famille. Toutes les données, membres et contenus seront perdus."
+      },
+      "join": {
+        "errors": {
+          "familyNotFound": "Famille non trouvée. Veuillez vérifier le code.",
+          "alreadyMember": "Vous êtes déjà membre de cette famille.",
+          "alreadyInAnotherFamily": "Vous êtes déjà membre d'une autre famille. Veuillez la quitter d'abord."
+        }
+      },
+      "family": {
+      "members": "membres",
+      "familyMembers": "Membres de la famille",
+      "defaultName": "Ma Famille",
+      "inviteFamily": "Inviter la famille",
+      "inviteFamilyDesc": "Ajouter de nouveaux membres",
+      "shareCode": "Partagez ce code avec les membres de la famille pour les inviter à rejoindre votre famille.",
+      "stats": {
+        "completed": "sur {total} tâches"
+      }
+    },
+    "onboarding": {
+        "createFamily": "Créer une Famille",
+        "createFamilyDescription": "Créer une nouvelle famille et inviter d'autres membres",
+        "joinFamily": "Rejoindre une Famille",
+        "joinFamilyDescription": "Rejoindre une famille existante avec un code d'invitation",
+        "searchFamily": "Rechercher une Famille",
+        "creating": "Création de la famille...",
+        "joining": "Adhésion...",
+        "searching": "Recherche...",
+        "joinSuccess": "Adhésion réussie !",
+        "joinSuccessMessage": "Vous êtes maintenant membre de la famille.",
+        "joinSuccessMessageWithName": "Vous êtes maintenant membre de \"{name}\".",
+        "joinError": "Impossible de rejoindre la famille",
+        "didntReceiveCode": "Vous n'avez pas reçu de code ?",
+        "askFamilyMember": "Demandez à un membre de la famille de vous envoyer le code de famille depuis les paramètres.",
+        "useTestCode": "Utiliser le code de test (TEST01)"
+      }
     },
     "dashboard": {
       "todayOverview": "Aperçu d'Aujourd'hui"

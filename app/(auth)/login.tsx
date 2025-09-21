@@ -12,6 +12,7 @@ import { Link, router } from 'expo-router';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
 import { User, Lock, Eye, EyeOff } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -22,6 +23,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   
   const { signIn } = useAuth();
+  const { t, loading: languageLoading } = useLanguage();
   
   const loginButtonScale = useSharedValue(1);
 
@@ -54,6 +56,17 @@ export default function Login() {
     loginButtonScale.value = withSpring(1);
   };
 
+  // Don't render until language is loaded
+  if (languageLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          <Text>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
@@ -70,7 +83,7 @@ export default function Login() {
             <User size={20} color="#666666" strokeWidth={1.5} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Email address"
+              placeholder={t('common.email')}
               placeholderTextColor="#888888"
               value={email}
               onChangeText={setEmail}
@@ -85,7 +98,7 @@ export default function Login() {
             <Lock size={20} color="#666666" strokeWidth={1.5} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, styles.passwordInput]}
-              placeholder="Password"
+              placeholder={t('common.password')}
               placeholderTextColor="#888888"
               value={password}
               onChangeText={setPassword}

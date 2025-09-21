@@ -10,6 +10,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
 import { ChevronLeft, ChevronRight, Users, Plus, Hash, Copy, Check, CircleHelp as HelpCircle, Search } from 'lucide-react-native';
@@ -63,7 +64,7 @@ export default function FamilySetup() {
       return;
     }
     setLoading(true);
-    showLoading('Creating family...');
+    showLoading(t('family.onboarding.creating'));
     try {
       const sanitizedName = sanitizeText(familyName, 50);
       const result = await createFamily(sanitizedName);
@@ -119,7 +120,7 @@ export default function FamilySetup() {
     }
     
     setLoading(true);
-    showLoading('Joining family...');
+    showLoading(t('family.onboarding.joining'));
     
     try {
       await joinFamily(codeValidation.sanitized);
@@ -149,12 +150,12 @@ export default function FamilySetup() {
       }
       
       Alert.alert(
-        'Successfully joined!',
-        'You are now a member of the family.',
-        [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
+        t('family.onboarding.joinSuccess'),
+        t('family.onboarding.joinSuccessMessage'),
+        [{ text: t('common.ok'), onPress: () => router.replace('/(tabs)') }]
       );
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Could not join family');
+      Alert.alert(t('common.error'), error.message || t('family.onboarding.joinError'));
     } finally {
       setLoading(false);
       hideLoading();
@@ -168,7 +169,7 @@ export default function FamilySetup() {
     }
 
     setSearchLoading(true);
-    showLoading('Searching families...');
+    showLoading(t('family.onboarding.searching'));
     try {
       const results = await searchFamilies(searchTerm);
       setSearchResults(results);
@@ -184,12 +185,12 @@ export default function FamilySetup() {
     try {
       await joinFamily(family.code);
       Alert.alert(
-        'Successfully joined!',
-        `You are now a member of "${family.name}".`,
-        [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
+        t('family.onboarding.joinSuccess'),
+        t('family.onboarding.joinSuccessMessageWithName', { name: family.name }),
+        [{ text: t('common.ok'), onPress: () => router.replace('/(tabs)') }]
       );
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Could not join family');
+      Alert.alert(t('common.error'), error.message || t('family.onboarding.joinError'));
     }
   };
 
@@ -215,9 +216,14 @@ export default function FamilySetup() {
     }
   };
 
-  const copyCodeToClipboard = () => {
-    // In a real app, you'd use Clipboard from react-native or expo-clipboard
-    Alert.alert('Code copied!', 'The family code has been copied to clipboard.');
+  const copyCodeToClipboard = async () => {
+    try {
+      await Clipboard.setStringAsync(createdCode);
+      Alert.alert('Code copied!', 'The family code has been copied to clipboard.');
+    } catch (error) {
+      console.error('Failed to copy code:', error);
+      Alert.alert('Error', 'Failed to copy code to clipboard.');
+    }
   };
 
   const buttonAnimatedStyle = useAnimatedStyle(() => ({
@@ -332,9 +338,9 @@ export default function FamilySetup() {
                 <View style={styles.choiceIcon}>
                   <Plus size={32} color="#54FE54" strokeWidth={2} />
                 </View>
-                <Text style={styles.choiceTitle}>Create Family</Text>
+                <Text style={styles.choiceTitle}>{t('family.onboarding.createFamily')}</Text>
                 <Text style={styles.choiceDescription}>
-                  Create a new family and invite other members
+                  {t('family.onboarding.createFamilyDescription')}
                 </Text>
               </Pressable>
 
@@ -345,9 +351,9 @@ export default function FamilySetup() {
                 <View style={styles.choiceIcon}>
                   <Hash size={32} color="#54FE54" strokeWidth={2} />
                 </View>
-                <Text style={styles.choiceTitle}>Join Family</Text>
+                <Text style={styles.choiceTitle}>{t('family.onboarding.joinFamily')}</Text>
                 <Text style={styles.choiceDescription}>
-                  Join an existing family with an invitation code
+                  {t('family.onboarding.joinFamilyDescription')}
                 </Text>
               </Pressable>
 
@@ -461,7 +467,7 @@ export default function FamilySetup() {
 
               {searchLoading && (
                 <View style={styles.searchLoadingContainer}>
-                  <Text style={styles.searchLoadingText}>Searching...</Text>
+                  <Text style={styles.searchLoadingText}>{t('family.onboarding.searching')}</Text>
                 </View>
               )}
 
@@ -516,10 +522,9 @@ export default function FamilySetup() {
               </View>
 
               <View style={styles.infoBox}>
-                <Text style={styles.infoTitle}>Didn't receive a code?</Text>
+                <Text style={styles.infoTitle}>{t('family.onboarding.didntReceiveCode')}</Text>
                 <Text style={styles.infoText}>
-                  Ask a family member to send you the family code 
-                  from settings.
+                  {t('family.onboarding.askFamilyMember')}
                 </Text>
                 <Pressable 
                   style={styles.testCodeButton}
@@ -528,7 +533,7 @@ export default function FamilySetup() {
                     setJoinCode('TEST01');
                   }}
                 >
-                  <Text style={styles.testCodeText}>Use test code (TEST01)</Text>
+                  <Text style={styles.testCodeText}>{t('family.onboarding.useTestCode')}</Text>
                 </Pressable>
               </View>
             </View>
@@ -566,10 +571,10 @@ export default function FamilySetup() {
                 ? styles.disabledText : null
             ]}>
               {loading 
-                ? (mode === 'create' ? 'Creating family...' : 
-                   mode === 'join' ? 'Joining...' : 'Searching...') 
-                : (mode === 'create' ? 'Create Family' : 
-                   mode === 'join' ? 'Join Family' : 'Search Family')
+                ? (mode === 'create' ? t('family.onboarding.creating') : 
+                   mode === 'join' ? t('family.onboarding.joining') : t('family.onboarding.searching')) 
+                : (mode === 'create' ? t('family.onboarding.createFamily') : 
+                   mode === 'join' ? t('family.onboarding.joinFamily') : t('family.onboarding.searchFamily'))
               }
             </Text>
             {!loading && mode !== 'search' && <ChevronRight size={20} color="#161618" strokeWidth={2} />}

@@ -321,9 +321,9 @@ export default function HomeDashboard() {
                 <Users size={24} color="#54FE54" strokeWidth={2} />
               </View>
               <View style={styles.familySummaryInfo}>
-                <Text style={styles.familySummaryName}>{currentFamily?.name || 'Meine Familie'}</Text>
+                <Text style={styles.familySummaryName}>{currentFamily?.name || 'My Family'}</Text>
                 <View style={styles.familySummaryMeta}>
-                  <Text style={styles.familySummaryMembers}>{familyMembers.length} Mitglieder</Text>
+                  <Text style={styles.familySummaryMembers}>{familyMembers.length} members</Text>
                   <View style={styles.familySummaryDivider} />
                   <Text style={styles.familySummaryOnline}>
                     {Math.floor(familyMembers.length * 0.6)} online

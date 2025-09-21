@@ -10,7 +10,9 @@ import {
   Image,
   Dimensions,
   Modal,
+  Alert,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import Animated, {
   useSharedValue,
   withSpring,
@@ -36,7 +38,9 @@ export default function FamilyDashboard() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
 
-  const { isInFamily, currentFamily, familyMembers, loading: familyLoading, refreshFamily, error } = useFamily();
+  const { isInFamily, currentFamily, familyMembers, loading: familyLoading, refreshFamily, retryConnection, error } = useFamily();
+  
+  
   const { user, profile } = useAuth();
   const { recentActivities } = useFamilyPoints();
   const { t } = useLanguage();
@@ -98,21 +102,8 @@ export default function FamilyDashboard() {
     if (!currentFamily?.code) return;
     
     try {
-      // Try modern clipboard API first
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(currentFamily.code);
-      } else {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = currentFamily.code;
-        textArea.style.position = 'fixed';
-        textArea.style.opacity = '0';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-      }
+      // Copy to clipboard using Expo Clipboard
+      await Clipboard.setStringAsync(currentFamily.code);
       
       // Show success feedback
       setCopySuccess(true);
@@ -122,7 +113,10 @@ export default function FamilyDashboard() {
       
     } catch (error) {
       console.error('Failed to copy code:', error);
-      // Could show an error state here
+      Alert.alert(
+        t('common.error') || 'Error',
+        t('tabs.family.copyError') || 'Failed to copy code to clipboard'
+      );
     }
   };
 
@@ -131,23 +125,37 @@ export default function FamilyDashboard() {
   };
 
   // Calculate simple stats
-  const stats = useMemo(() => ({
-    totalMembers: familyMembers.length,
-    onlineMembers: Math.max(1, Math.floor(familyMembers.length * 0.7)), // More realistic online status
-    weeklyProgress: familyMembers.length > 0 ? Math.min(95, 60 + (familyMembers.length * 10)) : 0,
-    completedTasks: familyMembers.length * 2, // 2 tasks per member on average
-    totalTasks: familyMembers.length * 3, // 3 tasks per member target
-    upcomingEvents: Math.max(1, familyMembers.length), // At least 1 event per member
-  }), [familyMembers.length]);
+  const stats = useMemo(() => {
+    console.log('📊 Calculating stats with familyMembers:', familyMembers.length, familyMembers);
+    return {
+      totalMembers: familyMembers.length,
+      onlineMembers: Math.max(1, Math.floor(familyMembers.length * 0.7)), // More realistic online status
+      weeklyProgress: familyMembers.length > 0 ? Math.min(95, 60 + (familyMembers.length * 10)) : 0,
+      completedTasks: familyMembers.length * 2, // 2 tasks per member on average
+      totalTasks: familyMembers.length * 3, // 3 tasks per member target
+      upcomingEvents: Math.max(1, familyMembers.length), // At least 1 event per member
+    };
+  }, [familyMembers.length]);
   // Show error state if there's an error
   if (error) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorTitle}>Fehler beim Laden</Text>
+          <Text style={styles.errorTitle}>{t('common.error')}</Text>
           <Text style={styles.errorText}>{error}</Text>
-          <Pressable style={styles.retryButton} onPress={() => refreshFamily()}>
-            <Text style={styles.retryButtonText}>Erneut versuchen</Text>
+          
+          {/* Add helpful instructions for connectivity issues */}
+          {error.includes('Connection failed') && (
+            <View style={styles.helpContainer}>
+              <Text style={styles.helpTitle}>Troubleshooting Tips:</Text>
+              <Text style={styles.helpText}>• Check your internet connection</Text>
+              <Text style={styles.helpText}>• Make sure your Supabase project is active</Text>
+              <Text style={styles.helpText}>• Try refreshing the page</Text>
+            </View>
+          )}
+          
+          <Pressable style={styles.retryButton} onPress={() => retryConnection()}>
+            <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -173,13 +181,13 @@ export default function FamilyDashboard() {
         <AnimatedView style={[styles.header, headerAnimatedStyle]}>
           <View style={styles.headerTop}>
             <View style={styles.familyInfo}>
-              <Text style={styles.familyGreeting}>{t('family.title')}</Text>
-              <Text style={styles.familyName}>{currentFamily?.name || t('family.defaultName')}</Text>
+              <Text style={styles.familyGreeting}>{t('tabs.family.title')}</Text>
+              <Text style={styles.familyName}>{currentFamily?.name || t('tabs.family.defaultName')}</Text>
             </View>
             <View style={styles.headerActions}>
               <View style={styles.realTimeIndicator}>
                 <View style={styles.onlineDot} />
-                <Text style={styles.realTimeText}>Live</Text>
+                <Text style={styles.realTimeText}>{t('tabs.family.live')}</Text>
               </View>
             </View>
           </View>
@@ -215,7 +223,7 @@ export default function FamilyDashboard() {
               <View style={styles.heroStatItem}>
                 <CheckCircle size={16} color="#161618" strokeWidth={2} />
                 <Text style={styles.heroStatText}>
-                  {completedTasks} von {totalTasks} Tasks
+                  {completedTasks} of {totalTasks} tasks
                 </Text>
               </View>
               <View style={styles.heroStatItem}>
@@ -278,7 +286,20 @@ export default function FamilyDashboard() {
             style={styles.membersScroll}
             contentContainerStyle={styles.membersScrollContent}
           >
-            {familyMembers.map((member, index) => {
+            {familyMembers.length === 0 ? (
+              <View style={styles.noMembersContainer}>
+                <Text style={styles.noMembersText}>
+                  {familyLoading ? t('tabs.family.loadingMembers') : t('tabs.family.noMembers')}
+                </Text>
+                {!familyLoading && (
+                  <Pressable style={styles.refreshButton} onPress={refreshFamily}>
+                    <Text style={styles.refreshButtonText}>{t('common.refresh')}</Text>
+                  </Pressable>
+                )}
+              </View>
+            ) : (
+              familyMembers.map((member, index) => {
+              
               // Calculate member stats from real data
               const memberActivities = recentActivities.filter(a => a.user_id === member.user_id);
               const memberPoints = memberActivities.reduce((sum, activity) => sum + activity.points_earned, 0);
@@ -350,7 +371,8 @@ export default function FamilyDashboard() {
                   </Pressable>
                 </View>
               );
-            })}
+              })
+            )}
             
             {/* Add Member Card */}
             <Pressable 
@@ -389,13 +411,13 @@ export default function FamilyDashboard() {
               </View>
             </View>
             <Text style={styles.insightDescription}>
-{t('tabs.family.familyCompletedTasks', { count: completedTasks.toString(), events: upcomingEvents.toString() })}
-              {totalMembers > 1 && onlineMembers > 0 && ` ${t('tabs.family.membersActive', { count: onlineMembers.toString() })}`} 🎉
+              {t('tabs.family.familyCompletedTasks', { count: completedTasks.toString(), events: upcomingEvents.toString() })}
+              {totalMembers > 1 && onlineMembers > 0 ? ` ${t('tabs.family.membersActive', { count: onlineMembers.toString() })}` : ''} 🎉
             </Text>
             <View style={styles.insightStats}>
               <View style={styles.insightStatItem}>
                 <Trophy size={14} color="#54FE54" strokeWidth={2} />
-                <Text style={styles.insightStatText}>{completedTasks} Erfolge erreicht</Text>
+                <Text style={styles.insightStatText}>{completedTasks} {t('flames.achievements')} erreicht</Text>
               </View>
               <View style={styles.insightStatItem}>
                 <Sparkles size={14} color="#54FE54" strokeWidth={2} />
@@ -435,7 +457,7 @@ export default function FamilyDashboard() {
 
             {/* Code Display */}
             <View style={styles.codeDisplayContainer}>
-              <Text style={styles.codeLabel}>Einladungscode:</Text>
+              <Text style={styles.codeLabel}>{t('tabs.family.inviteCode')}:</Text>
               <View style={styles.codeDisplay}>
                 <Text style={styles.codeText}>{currentFamily?.code || 'ABC123'}</Text>
               </View>
@@ -449,12 +471,12 @@ export default function FamilyDashboard() {
               {copySuccess ? (
                 <>
                   <Check size={18} color="#FFFFFF" strokeWidth={2} />
-                  <Text style={styles.copyButtonTextSuccess}>Kopiert!</Text>
+                  <Text style={styles.copyButtonTextSuccess}>{t('tabs.family.copied')}</Text>
                 </>
               ) : (
                 <>
                   <Copy size={18} color="#161618" strokeWidth={2} />
-                  <Text style={styles.copyButtonText}>Code kopieren</Text>
+                  <Text style={styles.copyButtonText}>{t('tabs.family.copyCode')}</Text>
                 </>
               )}
             </Pressable>
@@ -516,6 +538,27 @@ const styles = StyleSheet.create({
     color: '#666666',
     textAlign: 'center',
     lineHeight: 20,
+  },
+  helpContainer: {
+    marginTop: 16,
+    padding: 16,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#007AFF',
+  },
+  helpTitle: {
+    fontSize: 16,
+    fontFamily: 'Montserrat-Bold',
+    color: '#333333',
+    marginBottom: 8,
+  },
+  helpText: {
+    fontSize: 14,
+    fontFamily: 'Montserrat-Regular',
+    color: '#666666',
+    marginBottom: 4,
+    lineHeight: 18,
   },
   retryButton: {
     backgroundColor: '#54FE54',
@@ -1129,5 +1172,29 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'Montserrat-Regular',
     color: '#666666',
+  },
+  noMembersContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  noMembersText: {
+    fontSize: 16,
+    fontFamily: 'Montserrat-Medium',
+    color: '#666666',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  refreshButton: {
+    backgroundColor: '#54FE54',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  refreshButtonText: {
+    fontSize: 14,
+    fontFamily: 'Montserrat-Medium',
+    color: '#161618',
   },
 });

@@ -292,19 +292,19 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
   };
 
   const taskCategories = [
-    { value: 'household', label: t('onboarding.personal.categories.household') },
-    { value: 'personal', label: t('onboarding.personal.categories.personal') },
-    { value: 'work', label: t('onboarding.personal.categories.work') },
-    { value: 'family', label: t('onboarding.personal.categories.family') },
+    { value: 'household', label: t('tasks.filter.categories.household') },
+    { value: 'personal', label: t('tasks.filter.categories.personal') },
+    { value: 'work', label: t('tasks.filter.categories.work') },
+    { value: 'family', label: t('tasks.filter.categories.family') },
   ];
 
   const shoppingCategories = [
-    { value: 'general', label: 'Allgemein' },
-    { value: 'dairy', label: 'Milchprodukte' },
-    { value: 'produce', label: 'Obst & Gemüse' },
-    { value: 'meat', label: 'Fleisch' },
-    { value: 'bakery', label: 'Bäckerei' },
-    { value: 'pantry', label: 'Vorratsschrank' },
+    { value: 'general', label: t('tabs.modal.shoppingCategories.general') },
+    { value: 'dairy', label: t('tabs.modal.shoppingCategories.dairy') },
+    { value: 'produce', label: t('tabs.modal.shoppingCategories.produce') },
+    { value: 'meat', label: t('tabs.modal.shoppingCategories.meat') },
+    { value: 'bakery', label: t('tabs.modal.shoppingCategories.bakery') },
+    { value: 'pantry', label: t('tabs.modal.shoppingCategories.pantry') },
   ];
 
   return (
@@ -399,7 +399,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                 </View>
 
                 <View style={styles.formSection}>
-                  <Text style={styles.formLabel}>Beschreibung (optional)</Text>
+                  <Text style={styles.formLabel}>{t('tabs.modal.description')} ({t('common.optional')})</Text>
                   <TextInput
                     style={[styles.formInput, styles.textArea]}
                     placeholder={t('tabs.modal.taskDescriptionPlaceholder')}
