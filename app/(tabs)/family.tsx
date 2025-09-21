@@ -417,7 +417,7 @@ export default function FamilyDashboard() {
             <View style={styles.insightStats}>
               <View style={styles.insightStatItem}>
                 <Trophy size={14} color="#54FE54" strokeWidth={2} />
-                <Text style={styles.insightStatText}>{completedTasks} {t('flames.achievements')} erreicht</Text>
+                <Text style={styles.insightStatText}>{completedTasks} achievements reached</Text>
               </View>
               <View style={styles.insightStatItem}>
                 <Sparkles size={14} color="#54FE54" strokeWidth={2} />

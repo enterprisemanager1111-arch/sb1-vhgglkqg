@@ -394,7 +394,7 @@ export default function HomeDashboard() {
           </View>
         </AnimatedView>
 
-        {/* Aktuelle Aufgaben/Nächste Schritte */}
+        {/* Current Tasks/Next Steps */}
         <AnimatedView style={[styles.section, tasksAnimatedStyle]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{t('dashboard.nextSteps') || 'Next steps'}</Text>

@@ -240,6 +240,32 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
           } else {
             console.log('❌ DEBUG: Second user is NOT in family_members table');
             console.log('❌ DEBUG: This explains why only 1 member is returned!');
+            console.log('🔧 DEBUG: Attempting to add missing second user to family...');
+            
+            // Try to add the missing second user to the family
+            try {
+              const { error: addMemberError } = await supabase
+                .from('family_members')
+                .insert([
+                  {
+                    family_id: family.id,
+                    user_id: expectedSecondUserId,
+                    role: 'member'
+                  }
+                ]);
+              
+              if (addMemberError) {
+                console.error('❌ DEBUG: Failed to add second user to family:', addMemberError);
+              } else {
+                console.log('✅ DEBUG: Successfully added second user to family!');
+                // Reload the family data to include the new member
+                setTimeout(() => {
+                  loadFamilyData();
+                }, 1000);
+              }
+            } catch (addMemberException) {
+              console.error('❌ DEBUG: Exception while adding second user:', addMemberException);
+            }
           }
         } catch (secondUserDebugError) {
           console.error('🔍 DEBUG: Second user check failed:', secondUserDebugError);
@@ -259,6 +285,29 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
             console.log('✅ DEBUG: Second user HAS a profile');
           } else {
             console.log('❌ DEBUG: Second user does NOT have a profile');
+            console.log('🔧 DEBUG: Attempting to create profile for second user...');
+            
+            // Try to create a profile for the second user
+            try {
+              const { error: createProfileError } = await supabase
+                .from('profiles')
+                .insert([
+                  {
+                    id: expectedSecondUserId,
+                    name: 'Family Member 2',
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                  }
+                ]);
+              
+              if (createProfileError) {
+                console.error('❌ DEBUG: Failed to create profile for second user:', createProfileError);
+              } else {
+                console.log('✅ DEBUG: Successfully created profile for second user!');
+              }
+            } catch (createProfileException) {
+              console.error('❌ DEBUG: Exception while creating profile for second user:', createProfileException);
+            }
           }
         } catch (secondUserProfileDebugError) {
           console.error('🔍 DEBUG: Second user profile check failed:', secondUserProfileDebugError);

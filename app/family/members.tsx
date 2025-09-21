@@ -51,7 +51,7 @@ export default function FamilyMembers() {
     if (isAdmin && !isTargetAdmin) {
       actions.push({
         id: 'promote',
-        title: 'Zum Admin machen',
+        title: 'Make Admin',
         icon: <Crown size={18} color="#FFB800" strokeWidth={2} />,
         color: '#FFB800',
         onPress: () => handlePromoteMember(memberId),
@@ -61,7 +61,7 @@ export default function FamilyMembers() {
     if (isAdmin && isTargetAdmin && familyMembers.filter(m => m.role === 'admin').length > 1) {
       actions.push({
         id: 'demote',
-        title: 'Admin-Rechte entziehen',
+        title: 'Remove Admin Rights',
         icon: <Shield size={18} color="#666666" strokeWidth={2} />,
         color: '#666666',
         onPress: () => handleDemoteMember(memberId),
@@ -70,7 +70,7 @@ export default function FamilyMembers() {
 
     actions.push({
       id: 'contact',
-      title: 'Kontaktieren',
+      title: 'Contact',
       icon: <Mail size={18} color="#54FE54" strokeWidth={2} />,
       color: '#54FE54',
       onPress: () => handleContactMember(memberId),
@@ -79,7 +79,7 @@ export default function FamilyMembers() {
     if (isAdmin && !isTargetAdmin) {
       actions.push({
         id: 'remove',
-        title: 'Aus Familie entfernen',
+        title: 'Remove from Family',
         icon: <UserX size={18} color="#FF0000" strokeWidth={2} />,
         color: '#FF0000',
         onPress: () => handleRemoveMember(memberId),
@@ -172,7 +172,7 @@ export default function FamilyMembers() {
           <Search size={20} color="#666666" strokeWidth={2} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Mitglieder suchen..."
+            placeholder="Search members..."
             placeholderTextColor="#888888"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -187,8 +187,8 @@ export default function FamilyMembers() {
           <Text style={styles.familyCode}>#{currentFamily?.code}</Text>
         </View>
         <Text style={styles.familyDescription}>
-          {familyMembers.filter(m => m.role === 'admin').length} Administrator(en) • 
-          {familyMembers.filter(m => m.role === 'member').length} Mitglieder
+          {familyMembers.filter(m => m.role === 'admin').length} Administrator(s) • 
+          {familyMembers.filter(m => m.role === 'member').length} Members
         </Text>
       </View>
 
@@ -240,11 +240,11 @@ export default function FamilyMembers() {
                     </Text>
                     <View style={styles.memberMeta}>
                       <Text style={styles.memberRole}>
-                        {member.role === 'admin' ? 'Administrator' : 'Mitglied'}
+                        {member.role === 'admin' ? 'Administrator' : 'Member'}
                       </Text>
                       <View style={styles.memberStats}>
                         <Text style={styles.memberStatText}>
-                          {Math.floor(Math.random() * 50)} Aufgaben
+                          {Math.floor(Math.random() * 50)} Tasks
                         </Text>
                       </View>
                     </View>
@@ -254,7 +254,7 @@ export default function FamilyMembers() {
                 {/* Member Actions */}
                 <View style={styles.memberRight}>
                   <View style={styles.memberActivity}>
-                    <Text style={styles.activityText}>Aktiv vor 2h</Text>
+                    <Text style={styles.activityText}>Active 2h ago</Text>
                   </View>
                   <Pressable
                     style={styles.memberActionsButton}
@@ -296,7 +296,7 @@ export default function FamilyMembers() {
             <View style={styles.modalHandle} />
             {selectedMember && (
               <>
-                <Text style={styles.modalTitle}>Aktionen</Text>
+                <Text style={styles.modalTitle}>Actions</Text>
                 {getMemberActions(selectedMember).map((action) => (
                   <Pressable
                     key={action.id}

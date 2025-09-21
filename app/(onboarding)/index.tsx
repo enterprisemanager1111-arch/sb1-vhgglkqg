@@ -133,7 +133,7 @@ export default function OnboardingWelcome() {
           </Text>
           <Text style={styles.subtitle}>
             {currentLanguage.code === 'en' ? 'Appointments, tasks and reminders – all in one place for the whole family.' : 
-             currentLanguage.code === 'de' ? 'Termine, Aufgaben und Erinnerungen – alles an einem Ort für die ganze Familie.' : 
+             currentLanguage.code === 'de' ? 'Appointments, tasks and reminders – all in one place for the whole family.' : 
              currentLanguage.code === 'nl' ? 'Afspraken, taken en herinneringen – alles op één plek voor het hele gezin.' : 
              currentLanguage.code === 'fr' ? 'Rendez-vous, tâches et rappels – tout en un seul endroit pour toute la famille.' : 
              currentLanguage.code === 'es' ? 'Citas, tareas y recordatorios: todo en un lugar para toda la familia.' : 

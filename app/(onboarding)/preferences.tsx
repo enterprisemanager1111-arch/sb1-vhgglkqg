@@ -250,7 +250,7 @@ export default function PreferencesSetup() {
                   <Text style={styles.goalDescription}>
                     {goal.id === 'organization' ? 
                       (currentLanguage.code === 'en' ? 'Appointments and tasks at a glance' : 
-                       currentLanguage.code === 'de' ? 'Termine und Aufgaben im Überblick' : 
+                       currentLanguage.code === 'de' ? 'Appointments and tasks at a glance' : 
                        currentLanguage.code === 'nl' ? 'Afspraken en taken in één oogopslag' : 
                        currentLanguage.code === 'fr' ? 'Rendez-vous et tâches en un coup d\'œil' : 
                        currentLanguage.code === 'es' ? 'Citas y tareas de un vistazo' : 
@@ -266,7 +266,7 @@ export default function PreferencesSetup() {
                        t(goal.descriptionKey) || 'Share all important information') :
                      goal.id === 'responsibility' ? 
                       (currentLanguage.code === 'en' ? 'Distribute tasks fairly' : 
-                       currentLanguage.code === 'de' ? 'Aufgaben fair verteilen' : 
+                       currentLanguage.code === 'de' ? 'Distribute tasks fairly' : 
                        currentLanguage.code === 'nl' ? 'Taken eerlijk verdelen' : 
                        currentLanguage.code === 'fr' ? 'Répartir les tâches équitablement' : 
                        currentLanguage.code === 'es' ? 'Distribuir tareas de manera justa' : 
