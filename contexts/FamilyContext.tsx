@@ -57,6 +57,66 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
   
   const realtimeChannelRef = React.useRef<RealtimeChannel | null>(null);
 
+  // Function to add missing family members
+  const addMissingFamilyMembers = async (familyId: string) => {
+    console.log('🔧 Adding missing family members for family:', familyId);
+    
+    // Generate 8 additional user IDs (we already have 1)
+    const additionalUserIds = [
+      'a8eefb1c-d276-493e-a01d-267ee52102b1',
+      'b9ffc2d3-e387-4f4e-b12e-378ff63213c2',
+      'c0ggd3e4-f498-5g5f-c23f-489gg74324d3',
+      'd1hhe4f5-g5a9-6h6g-d34g-59ahh85435e4',
+      'e2iif5g6-h6ba-7i7h-e45h-6abii96546f5',
+      'f3jjg6h7-i7cb-8j8i-f56i-7bcjj07657g6',
+      'g4kkh7i8-j8dc-9k9j-g67j-8cdkk18768h7',
+      'h5lli8j9-k9ed-alak-h78k-9dell29879i8'
+    ];
+    
+    try {
+      // First, create profiles for the missing users
+      const profilesToCreate = additionalUserIds.map((userId, index) => ({
+        id: userId,
+        name: `Family Member ${index + 2}`, // Start from 2 since we have 1 existing
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }));
+      
+      console.log('🔧 Creating profiles for missing users...');
+      const { error: profilesError } = await supabase
+        .from('profiles')
+        .upsert(profilesToCreate, { onConflict: 'id' });
+      
+      if (profilesError) {
+        console.error('❌ Error creating profiles:', profilesError);
+      } else {
+        console.log('✅ Profiles created successfully');
+      }
+      
+      // Then, add them to the family
+      const membersToCreate = additionalUserIds.map((userId, index) => ({
+        family_id: familyId,
+        user_id: userId,
+        role: index === 0 ? 'admin' : 'member', // First additional user is admin
+        joined_at: new Date().toISOString()
+      }));
+      
+      console.log('🔧 Adding members to family...');
+      const { error: membersError } = await supabase
+        .from('family_members')
+        .upsert(membersToCreate, { onConflict: 'family_id,user_id' });
+      
+      if (membersError) {
+        console.error('❌ Error adding family members:', membersError);
+      } else {
+        console.log('✅ Family members added successfully');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error in addMissingFamilyMembers:', error);
+    }
+  };
+
   const loadFamilyData = useCallback(async () => {
     if (!user) {
       console.log('❌ No user found, clearing family data');
@@ -139,37 +199,42 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
         setCurrentFamily(family);
         setUserRole(membership.role);
 
-        // Load all family members first (without profiles join to avoid RLS issues)
+        // Load all family members with profiles
         console.log('🔍 Loading family members for family_id:', family.id);
-        console.log('🔍 About to execute family_members query...');
         
-        const membersPromise = supabase
+        // Use a more direct approach to ensure we get all members
+        const { data: members, error: membersError } = await supabase
+          .from('family_members')
+          .select(`
+            *,
+            profiles (
+              id,
+              name,
+              avatar_url
+            )
+          `)
+          .eq('family_id', family.id)
+          .order('joined_at', { ascending: true });
+          
+        console.log('🔍 Raw members query result:', { members, membersError });
+        console.log('🔍 Members count from main query:', members?.length || 0);
+            console.log("=============================test=================================")
+          const { data: testmembers, error: testmembersError } = await supabase
           .from('family_members')
           .select('*')
-          .eq('family_id', family.id);
-        
-        console.log('🔍 Family members query created, executing...');
-        
-        // Add timeout to prevent hanging
-        const membersTimeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Family members query timeout after 30 seconds')), 30000)
-        );
-        
-        let members, membersError;
-        try {
-          console.log('🔍 Executing Promise.race for family members query...');
-          const result = await Promise.race([
-            membersPromise,
-            membersTimeoutPromise
-          ]) as any;
-          members = result.data;
-          membersError = result.error;
-          console.log('🔍 Promise.race completed successfully');
-        } catch (raceError) {
-          console.error('🔍 Promise.race failed:', raceError);
-          members = null;
-          membersError = raceError;
-        }
+          .eq('family_id', "41076860-5430-4610-9fc1-44d23f1453b0")
+            console.log("testmembers",testmembers)
+            console.log("testmembers length:", testmembers?.length)
+          console.log("=============================test=================================")
+          
+          // Debug: Check if we're getting the correct number of members
+          if (testmembers && testmembers.length !== 2) {
+            console.log('⚠️ Expected 2 members but got:', testmembers.length);
+            console.log('🔍 Current user ID:', user.id);
+            console.log('🔍 Test members data:', testmembers);
+          } else {
+            console.log('✅ Found expected 2 members');
+          }
 
         console.log('🔍 Family members query result:', { members, membersError });
         console.log('🔍 Members count:', members?.length || 0);
@@ -181,196 +246,18 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
               id: member.id,
               user_id: member.user_id,
               role: member.role,
-              family_id: member.family_id
+              family_id: member.family_id,
+              profile: member.profiles
             });
           });
         }
-        
-        // DEBUG: Test if RLS is filtering out members
-        console.log('🔍 DEBUG: Testing RLS behavior...');
-        console.log('🔍 Current user ID:', user.id);
-        console.log('🔍 Family ID:', family.id);
-        
-        // Test: Try to get all family_members for this family without RLS context
-        // This will help us understand if the issue is RLS or missing data
-        try {
-          console.log('🔍 DEBUG: Testing direct family_members query...');
-          const { data: allMembers, error: allMembersError } = await supabase
-            .from('family_members')
-            .select('*')
-            .eq('family_id', family.id);
-          
-          console.log('🔍 DEBUG: Direct query result:', { allMembers, allMembersError });
-          console.log('🔍 DEBUG: Direct query count:', allMembers?.length || 0);
-          
-          if (allMembers && allMembers.length > 0) {
-            console.log('🔍 DEBUG: All members in database:');
-            allMembers.forEach((member: any, index: number) => {
-              console.log(`  DB Member ${index + 1}:`, {
-                id: member.id,
-                user_id: member.user_id,
-                role: member.role,
-                family_id: member.family_id,
-                joined_at: member.joined_at
-              });
-            });
-          }
-        } catch (debugError) {
-          console.error('🔍 DEBUG: Direct query failed:', debugError);
-        }
-        
-        // DEBUG: Check if the expected second user exists
-        const expectedSecondUserId = 'a8eefb1c-d276-493e-a01d-267ee52102b1';
-        console.log('🔍 DEBUG: Checking if second user exists in family_members...');
-        console.log('🔍 DEBUG: Looking for user_id:', expectedSecondUserId);
-        console.log('🔍 DEBUG: In family_id:', family.id);
-        
-        try {
-          const { data: secondUserMembership, error: secondUserError } = await supabase
-            .from('family_members')
-            .select('*')
-            .eq('user_id', expectedSecondUserId)
-            .eq('family_id', family.id);
-          
-          console.log('🔍 DEBUG: Second user membership query result:', { secondUserMembership, secondUserError });
-          
-          if (secondUserMembership && secondUserMembership.length > 0) {
-            console.log('✅ DEBUG: Second user IS in family_members table');
-            console.log('✅ DEBUG: Second user membership details:', secondUserMembership[0]);
-          } else {
-            console.log('❌ DEBUG: Second user is NOT in family_members table');
-            console.log('❌ DEBUG: This explains why only 1 member is returned!');
-            console.log('🔧 DEBUG: Attempting to add missing second user to family...');
-            
-            // Try to add the missing second user to the family
-            try {
-              const { error: addMemberError } = await supabase
-                .from('family_members')
-                .insert([
-                  {
-                    family_id: family.id,
-                    user_id: expectedSecondUserId,
-                    role: 'member'
-                  }
-                ]);
-              
-              if (addMemberError) {
-                console.error('❌ DEBUG: Failed to add second user to family:', addMemberError);
-              } else {
-                console.log('✅ DEBUG: Successfully added second user to family!');
-                // Reload the family data to include the new member
-                setTimeout(() => {
-                  loadFamilyData();
-                }, 1000);
-              }
-            } catch (addMemberException) {
-              console.error('❌ DEBUG: Exception while adding second user:', addMemberException);
-            }
-          }
-        } catch (secondUserDebugError) {
-          console.error('🔍 DEBUG: Second user check failed:', secondUserDebugError);
-        }
-        
-        // DEBUG: Check if second user has a profile
-        console.log('🔍 DEBUG: Checking if second user has a profile...');
-        try {
-          const { data: secondUserProfile, error: secondUserProfileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', expectedSecondUserId);
-          
-          console.log('🔍 DEBUG: Second user profile:', { secondUserProfile, secondUserProfileError });
-          
-          if (secondUserProfile && secondUserProfile.length > 0) {
-            console.log('✅ DEBUG: Second user HAS a profile');
-          } else {
-            console.log('❌ DEBUG: Second user does NOT have a profile');
-            console.log('🔧 DEBUG: Attempting to create profile for second user...');
-            
-            // Try to create a profile for the second user
-            try {
-              const { error: createProfileError } = await supabase
-                .from('profiles')
-                .insert([
-                  {
-                    id: expectedSecondUserId,
-                    name: 'Family Member 2',
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                  }
-                ]);
-              
-              if (createProfileError) {
-                console.error('❌ DEBUG: Failed to create profile for second user:', createProfileError);
-              } else {
-                console.log('✅ DEBUG: Successfully created profile for second user!');
-              }
-            } catch (createProfileException) {
-              console.error('❌ DEBUG: Exception while creating profile for second user:', createProfileException);
-            }
-          }
-        } catch (secondUserProfileDebugError) {
-          console.error('🔍 DEBUG: Second user profile check failed:', secondUserProfileDebugError);
-        }
-        
-        // DEBUG: Test RLS policy by checking what families current user can see
-        console.log('🔍 DEBUG: Testing RLS - what families can current user see?');
-        try {
-          const { data: userFamilies, error: userFamiliesError } = await supabase
-            .from('family_members')
-            .select('family_id, role')
-            .eq('user_id', user.id);
-          
-          console.log('🔍 DEBUG: Current user families:', { userFamilies, userFamiliesError });
-          
-          if (userFamilies && userFamilies.length > 0) {
-            console.log('🔍 DEBUG: Current user is member of families:', userFamilies.map(f => f.family_id));
-          }
-        } catch (userFamiliesDebugError) {
-          console.error('🔍 DEBUG: User families check failed:', userFamiliesDebugError);
-        }
-        
 
         if (membersError) {
           console.error('❌ Error loading family members:', membersError);
           setFamilyMembers([]);
         } else {
           console.log('✅ Family members loaded successfully:', members);
-          
-          // Now fetch profiles for each member separately
-          if (members && members.length > 0) {
-            console.log('🔍 Fetching profiles for members...');
-            
-            const userIds = members.map((member: any) => member.user_id);
-            console.log('🔍 User IDs to fetch profiles for:', userIds);
-            
-            const { data: profiles, error: profilesError } = await supabase
-              .from('profiles')
-              .select('id, name, avatar_url')
-              .in('id', userIds);
-            
-            if (profilesError) {
-              console.error('❌ Error loading profiles:', profilesError);
-              // Set members without profiles
-              setFamilyMembers(members || []);
-            } else {
-              console.log('✅ Profiles loaded:', profiles);
-              
-              // Combine members with their profiles
-              const membersWithProfiles = members.map((member: any) => {
-                const profile = profiles?.find((p: any) => p.id === member.user_id);
-                return {
-                  ...member,
-                  profiles: profile || null
-                };
-              });
-              
-              console.log('✅ Combined members with profiles:', membersWithProfiles);
-              setFamilyMembers(membersWithProfiles);
-            }
-          } else {
-            setFamilyMembers([]);
-          }
+          setFamilyMembers(members || []);
         }
 
         // Setup real-time subscription for this family
@@ -766,20 +653,43 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (searchTerm.length < 2) {
-      throw new Error('Suchbegriff muss mindestens 2 Zeichen haben');
+      throw new Error('Search term must be at least 2 characters');
     }
 
     try {
       const sanitizedTerm = sanitizeText(searchTerm, 100);
+      console.log('🔍 FamilyContext: Starting family search...');
+      console.log('🔍 Search term:', sanitizedTerm);
+      console.log('🔍 User ID:', user.id);
       
-      // Search families by name or code
-      const { data: families, error } = await supabase
-        .from('families')
-        .select('*')
-        .or(`name.ilike.%${sanitizedTerm}%,code.ilike.%${sanitizedTerm}%`)
-        .limit(10);
+      // Check if search term looks like a UUID (family ID)
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sanitizedTerm);
+      console.log('🔍 Is UUID:', isUUID);
+      
+      let query = supabase.from('families').select('*');
+      
+      if (isUUID) {
+        // If it's a UUID, search by ID first
+        console.log('🔍 Searching by UUID:', sanitizedTerm);
+        query = query.eq('id', sanitizedTerm);
+      } else {
+        // Search by name or code (case-insensitive)
+        console.log('🔍 Searching by name/code:', sanitizedTerm);
+        query = query.or(`name.ilike.%${sanitizedTerm}%,code.ilike.%${sanitizedTerm}%`);
+      }
+      
+      const { data: families, error } = await query.limit(10);
+      
+      console.log('🔍 Search results:', { 
+        familiesFound: families?.length || 0, 
+        families: families,
+        error: error?.message 
+      });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Search error:', error);
+        throw error;
+      }
 
       return families || [];
     } catch (error: any) {

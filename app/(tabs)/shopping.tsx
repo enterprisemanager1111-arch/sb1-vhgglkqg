@@ -105,7 +105,7 @@ export default function Shopping() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Lade Einkaufsliste...</Text>
+          <Text style={styles.loadingText}>{t('shopping.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -116,10 +116,10 @@ export default function Shopping() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorTitle}>Fehler beim Laden der Einkaufsliste</Text>
+          <Text style={styles.errorTitle}>{t('shopping.error.title')}</Text>
           <Text style={styles.errorText}>{itemsError}</Text>
           <Pressable style={styles.retryButton} onPress={refreshItems}>
-            <Text style={styles.retryButtonText}>Erneut versuchen</Text>
+            <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -146,16 +146,16 @@ export default function Shopping() {
       
       // Show notification when item is completed
       if (!wasCompleted && item) {
-        showPointsEarned(5, `Gekauft: ${item.name}`);
+        showPointsEarned(5, t('shopping.notifications.bought', { item: item.name }));
         
         // Show member activity notification
         showMemberActivity(
-          item.creator_profile?.name || 'Ein Familienmitglied',
-          `hat "${item.name}" gekauft`
+          item.creator_profile?.name || t('common.familyMember'),
+          t('shopping.notifications.memberBought', { item: item.name })
         );
       }
     } catch (error: any) {
-      Alert.alert('Fehler', 'Artikel-Status konnte nicht geändert werden: ' + error.message);
+      Alert.alert(t('common.error'), t('shopping.error.toggleItem') + ': ' + error.message);
     }
   };
 
@@ -236,7 +236,7 @@ export default function Shopping() {
         <AnimatedView style={[styles.headerStatsContainer, headerAnimatedStyle]}>
           <View style={styles.headerStats}>
             <Text style={styles.statText}>
-              {completedItems.length} von {totalItems} erledigt
+              {t('shopping.stats.completed', { completed: completedItems.length.toString(), total: totalItems.toString() })}
             </Text>
           </View>
         </AnimatedView>
@@ -252,7 +252,7 @@ export default function Shopping() {
             <View style={styles.progressCard}>
               <CheckCircle size={20} color="#54FE54" strokeWidth={1.5} />
               <Text style={styles.progressNumber}>{completedItems.length}</Text>
-              <Text style={styles.progressLabel}>Gekauft</Text>
+              <Text style={styles.progressLabel}>{t('shopping.progress.bought')}</Text>
             </View>
             <View style={styles.progressCard}>
               <Text style={styles.progressPercentage}>
@@ -354,7 +354,7 @@ export default function Shopping() {
                 </Text>
                 <View style={styles.completedNotice}>
                   <Text style={styles.completedNoticeText}>
-                    ✨ Gekaufte Artikel werden automatisch nach 24 Stunden gelöscht
+                    ✨ {t('shopping.completedNotice')}
                   </Text>
                 </View>
                 <View style={styles.itemsList}>

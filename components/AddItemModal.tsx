@@ -151,7 +151,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
       });
 
       showPointsEarned(5, `${t('tabs.modal.taskCreated')}: ${form.taskTitle}`);
-      showMemberActivity('Ein Familienmitglied', `hat eine neue Aufgabe erstellt: ${form.taskTitle}`);
+      showMemberActivity(t('common.familyMember'), t('tasks.notifications.created', { title: form.taskTitle }));
       
       Alert.alert(t('common.success'), t('tabs.modal.taskCreated'));
       handleClose();
@@ -180,7 +180,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
         completed: false,
       });
 
-      showMemberActivity('Ein Familienmitglied', `hat "${form.itemName}" zur Einkaufsliste hinzugefügt`);
+      showMemberActivity(t('common.familyMember'), t('shopping.notifications.itemAdded', { item: form.itemName }));
       
       Alert.alert(t('common.success'), t('tabs.modal.itemAdded'));
       handleClose();
@@ -262,7 +262,7 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
       });
 
       showPointsEarned(10, `${t('tabs.modal.eventCreated')}: ${form.eventTitle}`);
-      showMemberActivity('Ein Familienmitglied', `hat einen neuen Termin erstellt: ${form.eventTitle}`);
+      showMemberActivity(t('common.familyMember'), t('calendar.notifications.created', { title: form.eventTitle }));
       
       Alert.alert(t('common.success'), t('tabs.modal.eventCreated'));
       handleClose();

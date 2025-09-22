@@ -27,6 +27,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFamilyPoints } from '@/hooks/useFamilyPoints';
 import FamilyPrompt from '@/components/FamilyPrompt';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useRealTimeFamily } from '@/hooks/useRealTimeFamily';
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -40,8 +41,29 @@ export default function FamilyDashboard() {
 
   const { isInFamily, currentFamily, familyMembers, loading: familyLoading, refreshFamily, retryConnection, error } = useFamily();
   
-  
   const { user, profile } = useAuth();
+  
+  // Real-time family data with online status
+  const { isUserOnline, onlineMembers: realTimeOnlineMembers } = useRealTimeFamily(currentFamily?.id || null);
+  
+  // Simple online status logic: current user is always online, others are offline
+  const getMemberOnlineStatus = (memberUserId: string) => {
+    // Current user is always online
+    if (memberUserId === user?.id) {
+      return true;
+    }
+    // For demo purposes, show some members as online
+    // You can modify this logic as needed
+    return false;
+  };
+  
+  // Debug: Log online status for each member
+  console.log('🔍 Real-time online members:', Array.from(realTimeOnlineMembers));
+  console.log('🔍 Current user ID:', user?.id);
+  familyMembers.forEach((member, index) => {
+    const isOnline = getMemberOnlineStatus(member.user_id);
+    console.log(`🔍 Member ${index + 1} (${member.profiles?.name}): ${isOnline ? 'ONLINE' : 'OFFLINE'} (user_id: ${member.user_id})`);
+  });
   const { recentActivities } = useFamilyPoints();
   const { t } = useLanguage();
 
@@ -127,15 +149,21 @@ export default function FamilyDashboard() {
   // Calculate simple stats
   const stats = useMemo(() => {
     console.log('📊 Calculating stats with familyMembers:', familyMembers.length, familyMembers);
+    console.log('📊 Online members from real-time:', realTimeOnlineMembers.size);
+    
+    // Calculate online count using simple logic
+    const onlineCount = familyMembers.filter(member => getMemberOnlineStatus(member.user_id)).length;
+    console.log('📊 Online members count:', onlineCount);
+    
     return {
       totalMembers: familyMembers.length,
-      onlineMembers: Math.max(1, Math.floor(familyMembers.length * 0.7)), // More realistic online status
+      onlineMembers: onlineCount, // Use simple online status logic
       weeklyProgress: familyMembers.length > 0 ? Math.min(95, 60 + (familyMembers.length * 10)) : 0,
       completedTasks: familyMembers.length * 2, // 2 tasks per member on average
       totalTasks: familyMembers.length * 3, // 3 tasks per member target
       upcomingEvents: Math.max(1, familyMembers.length), // At least 1 event per member
     };
-  }, [familyMembers.length]);
+  }, [familyMembers.length, realTimeOnlineMembers.size, user?.id]);
   // Show error state if there's an error
   if (error) {
     return (
@@ -181,13 +209,13 @@ export default function FamilyDashboard() {
         <AnimatedView style={[styles.header, headerAnimatedStyle]}>
           <View style={styles.headerTop}>
             <View style={styles.familyInfo}>
-              <Text style={styles.familyGreeting}>{t('tabs.family.title')}</Text>
-              <Text style={styles.familyName}>{currentFamily?.name || t('tabs.family.defaultName')}</Text>
+              <Text style={styles.familyGreeting}>{t('nav.family')}</Text>
+              <Text style={styles.familyName}>{currentFamily?.name || 'My Family'}</Text>
             </View>
             <View style={styles.headerActions}>
               <View style={styles.realTimeIndicator}>
                 <View style={styles.onlineDot} />
-                <Text style={styles.realTimeText}>{t('tabs.family.live')}</Text>
+                <Text style={styles.realTimeText}>Live</Text>
               </View>
             </View>
           </View>
@@ -196,9 +224,12 @@ export default function FamilyDashboard() {
             <View style={styles.memberCountContainer}>
               <Users size={14} color="#666666" strokeWidth={2} />
               <Text style={styles.memberCountText}>
-{totalMembers} {totalMembers === 1 ? t('tabs.family.member') : t('tabs.family.members')}
+                {t('family.members.count', { 
+                  count: totalMembers.toString(), 
+                  memberText: totalMembers === 1 ? 'member' : 'members' 
+                })}
                 {onlineMembers > 0 && (
-                  <Text style={styles.onlineCount}> • {onlineMembers} {t('tabs.family.online')}</Text>
+                  <Text style={styles.onlineCount}> • {onlineMembers} online</Text>
                 )}
               </Text>
             </View>
@@ -210,12 +241,12 @@ export default function FamilyDashboard() {
           <View style={styles.heroCard}>
             <View style={styles.heroHeader}>
               <View style={styles.heroInfo}>
-                <Text style={styles.heroTitle}>{t('tabs.family.weeklyProgress')}</Text>
-                <Text style={styles.heroSubtitle}>{t('tabs.family.togetherWeCan')}</Text>
+                <Text style={styles.heroTitle}>{t('family.weeklyProgress.title')}</Text>
+                <Text style={styles.heroSubtitle}>{t('family.weeklyProgress.subtitle')}</Text>
               </View>
               <View style={styles.progressCircle}>
                 <Text style={styles.progressPercentage}>{weeklyProgress}%</Text>
-                <Text style={styles.progressLabel}>{t('tabs.family.completed')}</Text>
+                <Text style={styles.progressLabel}>{t('common.completed')}</Text>
               </View>
             </View>
             
@@ -223,13 +254,13 @@ export default function FamilyDashboard() {
               <View style={styles.heroStatItem}>
                 <CheckCircle size={16} color="#161618" strokeWidth={2} />
                 <Text style={styles.heroStatText}>
-                  {completedTasks} of {totalTasks} tasks
+                  {t('family.stats.tasks', { completed: completedTasks.toString(), total: totalTasks.toString() })}
                 </Text>
               </View>
               <View style={styles.heroStatItem}>
                 <Calendar size={16} color="#161618" strokeWidth={2} />
                 <Text style={styles.heroStatText}>
-{upcomingEvents} {t('tabs.family.upcoming')} {t('tabs.family.appointments')}
+{t('family.stats.appointments', { count: upcomingEvents.toString() })}
                 </Text>
               </View>
             </View>
@@ -238,14 +269,14 @@ export default function FamilyDashboard() {
 
         {/* === QUICK STATS === */}
         <AnimatedView style={[styles.section, statsAnimatedStyle]}>
-          <Text style={styles.sectionTitle}>{t('tabs.family.familyOverview')}</Text>
+          <Text style={styles.sectionTitle}>{t('family.overview.title')}</Text>
           <View style={styles.statsGrid}>
             <View style={styles.statCard}>
               <View style={styles.statIcon}>
                 <CheckCircle size={20} color="#54FE54" strokeWidth={2} />
               </View>
               <Text style={styles.statNumber}>{completedTasks}</Text>
-              <Text style={styles.statLabel}>{t('tabs.family.completed')}</Text>
+              <Text style={styles.statLabel}>{t('common.completed')}</Text>
             </View>
             
             <View style={styles.statCard}>
@@ -253,7 +284,7 @@ export default function FamilyDashboard() {
                 <Calendar size={20} color="#54FE54" strokeWidth={2} />
               </View>
               <Text style={styles.statNumber}>{upcomingEvents}</Text>
-              <Text style={styles.statLabel}>{t('tabs.family.appointments')}</Text>
+              <Text style={styles.statLabel}>{t('family.stats.appointmentsLabel')}</Text>
             </View>
             
             <View style={styles.statCard}>
@@ -261,7 +292,7 @@ export default function FamilyDashboard() {
                 <Activity size={20} color="#54FE54" strokeWidth={2} />
               </View>
               <Text style={styles.statNumber}>{onlineMembers}</Text>
-              <Text style={styles.statLabel}>{t('tabs.family.online')}</Text>
+              <Text style={styles.statLabel}>{t('family.stats.online')}</Text>
             </View>
           </View>
         </AnimatedView>
@@ -269,12 +300,12 @@ export default function FamilyDashboard() {
         {/* === FAMILIENMITGLIEDER PREVIEW === */}
         <AnimatedView style={[styles.section, membersAnimatedStyle]}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{t('tabs.family.familyMembers')}</Text>
+            <Text style={styles.sectionTitle}>{t('family.members.title')}</Text>
             <Pressable 
               style={styles.seeAllButton}
               onPress={() => router.push('/family/members')}
             >
-              <Text style={styles.seeAllText}>{t('tabs.family.showAll')}</Text>
+              <Text style={styles.seeAllText}>{t('common.showAll')}</Text>
               <ArrowRight size={16} color="#54FE54" strokeWidth={2} />
             </Pressable>
           </View>
@@ -289,7 +320,7 @@ export default function FamilyDashboard() {
             {familyMembers.length === 0 ? (
               <View style={styles.noMembersContainer}>
                 <Text style={styles.noMembersText}>
-                  {familyLoading ? t('tabs.family.loadingMembers') : t('tabs.family.noMembers')}
+                  {familyLoading ? t('family.members.loading') : t('family.members.empty')}
                 </Text>
                 {!familyLoading && (
                   <Pressable style={styles.refreshButton} onPress={refreshFamily}>
@@ -325,7 +356,7 @@ export default function FamilyDashboard() {
                     {/* Online Status */}
                     <View style={[
                       styles.onlineStatus,
-                      { backgroundColor: index < 2 ? '#54FE54' : '#E0E0E0' }
+                      { backgroundColor: getMemberOnlineStatus(member.user_id) ? '#54FE54' : '#E0E0E0' }
                     ]} />
                     
                     {/* Admin Badge */}
@@ -342,7 +373,7 @@ export default function FamilyDashboard() {
                       {member.profiles?.name || 'Unknown'}
                     </Text>
                     <Text style={styles.memberDetailRole}>
-{member.role === 'admin' ? t('tabs.family.admin') : t('tabs.family.member')}
+{member.role === 'admin' ? t('family.members.role.admin') : t('family.members.role.member')}
                     </Text>
                   </View>
                   
@@ -350,12 +381,12 @@ export default function FamilyDashboard() {
                   <View style={styles.memberDetailStats}>
                     <View style={styles.memberDetailStatItem}>
                       <Text style={styles.memberDetailStatNumber}>{memberPoints}</Text>
-                      <Text style={styles.memberDetailStatLabel}>{t('tabs.family.points')}</Text>
+                      <Text style={styles.memberDetailStatLabel}>{t('common.points')}</Text>
                     </View>
                     <View style={styles.memberDetailStatDivider} />
                     <View style={styles.memberDetailStatItem}>
                       <Text style={styles.memberDetailStatNumber}>{memberTasks}</Text>
-                      <Text style={styles.memberDetailStatLabel}>{t('tabs.family.tasks')}</Text>
+                      <Text style={styles.memberDetailStatLabel}>{t('common.tasks')}</Text>
                     </View>
                   </View>
                   
@@ -367,7 +398,7 @@ export default function FamilyDashboard() {
                       router.push('/(tabs)/tasks');
                     }}
                   >
-                    <Text style={styles.memberDetailActionText}>{t('tabs.family.assignTask')}</Text>
+                    <Text style={styles.memberDetailActionText}>{t('family.members.assignTask')}</Text>
                   </Pressable>
                 </View>
               );
@@ -382,13 +413,13 @@ export default function FamilyDashboard() {
               <View style={styles.addMemberIcon}>
                 <UserPlus size={24} color="#54FE54" strokeWidth={2} />
               </View>
-              <Text style={styles.addMemberTitle}>{t('tabs.family.inviteMember')}</Text>
-              <Text style={styles.addMemberSubtitle}>{t('tabs.family.expandFamily')}</Text>
+              <Text style={styles.addMemberTitle}>{t('family.members.invite')}</Text>
+              <Text style={styles.addMemberSubtitle}>{t('family.members.expand')}</Text>
               <Pressable 
                 style={styles.addMemberButton}
                 onPress={handleInvitePress}
               >
-                <Text style={styles.addMemberButtonText}>{t('tabs.family.invite')}</Text>
+                <Text style={styles.addMemberButtonText}>{t('family.members.invite')}</Text>
               </Pressable>
             </Pressable>
           </ScrollView>
@@ -396,32 +427,41 @@ export default function FamilyDashboard() {
 
         {/* === FAMILIENEINBLICKE === */}
         <AnimatedView style={[styles.section, actionsAnimatedStyle]}>
-          <Text style={styles.sectionTitle}>{t('tabs.family.familyInsights')}</Text>
+          <Text style={styles.sectionTitle}>{t('family.insights.title')}</Text>
           <View style={styles.insightsCard}>
             <View style={styles.insightHeader}>
               <View style={styles.insightIcon}>
                 <TrendingUp size={20} color="#161618" strokeWidth={2} />
               </View>
               <View style={styles.insightInfo}>
-                <Text style={styles.insightTitle}>{t('tabs.family.thisWeek')}</Text>
-                <Text style={styles.insightSubtitle}>{t('tabs.family.greatTeamwork')}</Text>
+                <Text style={styles.insightTitle}>{t('family.insights.thisWeek')}</Text>
+                <Text style={styles.insightSubtitle}>{t('family.insights.greatTeamwork')}</Text>
               </View>
               <View style={styles.insightBadge}>
                 <Heart size={14} color="#54FE54" strokeWidth={2} fill="#54FE54" />
               </View>
             </View>
             <Text style={styles.insightDescription}>
-              {t('tabs.family.familyCompletedTasks', { count: completedTasks.toString(), events: upcomingEvents.toString() })}
-              {totalMembers > 1 && onlineMembers > 0 ? ` ${t('tabs.family.membersActive', { count: onlineMembers.toString() })}` : ''} 🎉
+              {totalMembers > 1 && onlineMembers > 0 
+                ? t('family.insights.descriptionWithOnline', { 
+                    completedTasks: completedTasks.toString(), 
+                    upcomingEvents: upcomingEvents.toString(), 
+                    onlineMembers: onlineMembers.toString() 
+                  })
+                : t('family.insights.description', { 
+                    completedTasks: completedTasks.toString(), 
+                    upcomingEvents: upcomingEvents.toString() 
+                  })
+              } 🎉
             </Text>
             <View style={styles.insightStats}>
               <View style={styles.insightStatItem}>
                 <Trophy size={14} color="#54FE54" strokeWidth={2} />
-                <Text style={styles.insightStatText}>{completedTasks} achievements reached</Text>
+                <Text style={styles.insightStatText}>{t('family.insights.achievements', { count: completedTasks.toString() })}</Text>
               </View>
               <View style={styles.insightStatItem}>
                 <Sparkles size={14} color="#54FE54" strokeWidth={2} />
-                <Text style={styles.insightStatText}>{t('tabs.family.pointsCollected', { points: (completedTasks * 15).toString() })}</Text>
+                <Text style={styles.insightStatText}>{t('family.insights.pointsCollected', { points: (completedTasks * 15).toString() })}</Text>
               </View>
             </View>
           </View>
@@ -446,7 +486,7 @@ export default function FamilyDashboard() {
           <View style={styles.inviteModal}>
             {/* Header */}
             <View style={styles.inviteModalHeader}>
-              <Text style={styles.inviteModalTitle}>{t('tabs.family.inviteFamily')}</Text>
+              <Text style={styles.inviteModalTitle}>{t('family.invite.title')}</Text>
               <Pressable 
                 style={styles.closeButton}
                 onPress={() => setShowInviteModal(false)}
@@ -457,7 +497,7 @@ export default function FamilyDashboard() {
 
             {/* Code Display */}
             <View style={styles.codeDisplayContainer}>
-              <Text style={styles.codeLabel}>{t('tabs.family.inviteCode')}:</Text>
+              <Text style={styles.codeLabel}>{t('family.invite.codeLabel')}</Text>
               <View style={styles.codeDisplay}>
                 <Text style={styles.codeText}>{currentFamily?.code || 'ABC123'}</Text>
               </View>
@@ -471,19 +511,19 @@ export default function FamilyDashboard() {
               {copySuccess ? (
                 <>
                   <Check size={18} color="#FFFFFF" strokeWidth={2} />
-                  <Text style={styles.copyButtonTextSuccess}>{t('tabs.family.copied')}</Text>
+                  <Text style={styles.copyButtonTextSuccess}>{t('common.copied')}</Text>
                 </>
               ) : (
                 <>
                   <Copy size={18} color="#161618" strokeWidth={2} />
-                  <Text style={styles.copyButtonText}>{t('tabs.family.copyCode')}</Text>
+                  <Text style={styles.copyButtonText}>{t('family.invite.copyCode')}</Text>
                 </>
               )}
             </Pressable>
 
             {/* Instructions */}
             <Text style={styles.inviteInstructions}>
-{t('tabs.family.shareCode')}
+              {t('family.invite.instructions')}
             </Text>
           </View>
         </View>

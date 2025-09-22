@@ -37,7 +37,13 @@
     "email": "Email",
     "yearsOld": "years old",
     "optional": "optional",
-    "password": "Password"
+    "password": "Password",
+    "completed": "Completed",
+    "points": "Points",
+    "tasks": "Tasks",
+    "showAll": "Show All",
+    "refresh": "Refresh",
+    "copied": "Copied!"
     },
     "settings": {
       "language": {
@@ -172,6 +178,9 @@
         "unassigned": "Unassigned",
         "unknown": "Unknown"
       },
+      "notifications": {
+        "created": "created a new task: {{title}}"
+      },
       "delete": {
         "title": "Delete task",
         "message": "Do you really want to delete this task?"
@@ -224,6 +233,9 @@
         "description": "Create your first family event and plan activities together!",
         "button": "Create event"
       },
+      "notifications": {
+        "created": "created a new event: {{title}}"
+      },
       "months": {
         "january": "January",
         "february": "February",
@@ -266,15 +278,20 @@
       "title": "Shopping List",
       "loading": "Loading shopping list...",
       "error": {
+        "title": "Error loading shopping list",
         "loading": "Error loading shopping list",
+        "toggleItem": "Item status could not be changed",
         "toggle": "Item status could not be changed:",
         "delete": "Item could not be deleted:"
       },
       "stats": {
-        "completed": "of {{total}} completed",
+        "completed": "{{completed}} of {{total}} completed",
         "stillToBuy": "Still to buy",
         "bought": "Bought",
         "progress": "Progress"
+      },
+      "progress": {
+        "bought": "Bought"
       },
       "categories": {
         "all": "All items",
@@ -297,8 +314,10 @@
       },
       "notifications": {
         "bought": "Bought: {{item}}",
-        "memberBought": "bought \"{{item}}\""
+        "memberBought": "bought \"{{item}}\"",
+        "itemAdded": "added \"{{item}}\" to shopping list"
       },
+      "completedNotice": "✨ Bought items are automatically deleted after 24 hours",
       "empty": {
         "title": "Shopping list is empty",
         "description": "Add your first items to the shopping list and share it with your family!",
@@ -311,6 +330,48 @@
         "description": "You are not part of a family yet. Join a family or create a new one.",
         "joinButton": "Join Family",
         "createButton": "Create Family"
+      },
+      "weeklyProgress": {
+        "title": "Weekly Progress",
+        "subtitle": "Together we can achieve more"
+      },
+      "overview": {
+        "title": "Family Overview"
+      },
+      "stats": {
+        "tasks": "{{completed}} of {{total}} tasks",
+        "appointments": "{{count}} upcoming appointments",
+        "appointmentsLabel": "Appointments",
+        "online": "Online"
+      },
+      "members": {
+        "title": "Family Members",
+        "count": "{{count}} {{memberText}}",
+        "loading": "Loading members...",
+        "empty": "No members found",
+        "notFound": "No members found for \"{{query}}\"",
+        "role": {
+          "admin": "Admin",
+          "member": "Member"
+        },
+        "assignTask": "Assign Task",
+        "invite": "Invite Member",
+        "expand": "Expand Family"
+      },
+      "insights": {
+        "title": "Family Insights",
+        "thisWeek": "This Week",
+        "greatTeamwork": "Great teamwork!",
+        "description": "Your family completed {{completedTasks}} tasks and has {{upcomingEvents}} upcoming events.",
+        "descriptionWithOnline": "Your family completed {{completedTasks}} tasks and has {{upcomingEvents}} upcoming events. {{onlineMembers}} members are active.",
+        "achievements": "{{count}} achievements reached",
+        "pointsCollected": "{{points}} points collected"
+      },
+      "invite": {
+        "title": "Invite Family",
+        "codeLabel": "Invite Code:",
+        "copyCode": "Copy Code",
+        "instructions": "Share this code with family members to invite them to join your family."
       }
     },
     "profile": {
@@ -661,6 +722,11 @@
         "joinFamily": "Join Family",
         "joinFamilyDescription": "Join an existing family with an invitation code",
         "searchFamily": "Search Family",
+        "searchFamilyDescription": "Search for a family by name, code, or ID",
+        "searchPlaceholder": "Enter family name, code, or ID...",
+        "searchResults": "Search Results",
+        "noResults": "No families found",
+        "searchHint": "You can search by family name, 6-character code, or family ID",
         "creating": "Creating family...",
         "joining": "Joining...",
         "searching": "Searching...",

@@ -410,7 +410,7 @@ export default function UserProfile() {
         },
         {
           id: 'language',
-          title: t('settings.language.title') || 'Sprache',
+          title: t('settings.language.title') || 'Language',
           description: getLanguageName(currentLanguage.code),
           icon: <Globe size={18} color="#54FE54" strokeWidth={2} />,
           type: 'navigation',
@@ -475,7 +475,7 @@ export default function UserProfile() {
               `${t('profile.about.version')}\n${t('profile.about.build').replace('{{year}}', new Date().getFullYear().toString()).replace('{{month}}', (new Date().getMonth() + 1).toString())}\n\n${t('profile.about.description')}\n\n${t('profile.about.developed')}`,
               [
                 { text: t('profile.about.privacy'), onPress: openPrivacyPolicy },
-                { text: 'AGB', onPress: openTermsOfService },
+                { text: 'Terms of Service', onPress: openTermsOfService },
                 { text: 'OK' }
               ]
             );
@@ -883,12 +883,12 @@ export default function UserProfile() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Passwort ändern</Text>
+            <Text style={styles.modalTitle}>Change Password</Text>
             
             <View style={styles.modalForm}>
               <TextInput
                 style={styles.modalInput}
-                placeholder={t('profile.currentPassword')}
+                placeholder="Current Password"
                 secureTextEntry
                 value={currentPassword}
                 onChangeText={setCurrentPassword}
@@ -896,7 +896,7 @@ export default function UserProfile() {
               />
               <TextInput
                 style={styles.modalInput}
-                placeholder={t('profile.modals.newPassword')}
+                placeholder="New Password"
                 secureTextEntry
                 value={newPassword}
                 onChangeText={setNewPassword}
@@ -904,7 +904,7 @@ export default function UserProfile() {
               />
               <TextInput
                 style={styles.modalInput}
-                placeholder={t('profile.modals.confirmPassword')}
+                placeholder="Confirm New Password"
                 secureTextEntry
                 value={confirmNewPassword}
                 onChangeText={setConfirmNewPassword}
@@ -917,13 +917,13 @@ export default function UserProfile() {
                 style={styles.modalCancelButton}
                 onPress={() => setShowPasswordModal(false)}
               >
-                <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
+                <Text style={styles.modalCancelText}>Cancel</Text>
               </Pressable>
               <Pressable
                 style={styles.modalConfirmButton}
                 onPress={handlePasswordChange}
               >
-                <Text style={styles.modalConfirmText}>Passwort ändern</Text>
+                <Text style={styles.modalConfirmText}>Change Password</Text>
               </Pressable>
             </View>
           </View>
@@ -939,7 +939,7 @@ export default function UserProfile() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>{t('onboarding.language.title') || 'Sprache wählen'}</Text>
+            <Text style={styles.modalTitle}>{t('onboarding.language.title') || 'Select Language'}</Text>
             
             <View style={styles.languageList}>
               {supportedLanguages.map((language) => (

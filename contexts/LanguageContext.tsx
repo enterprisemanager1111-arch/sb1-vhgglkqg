@@ -66,7 +66,7 @@ const getTranslationFromObject = (translations: any, key: string, params?: Recor
       // Replace parameters if provided
       if (params) {
         Object.entries(params).forEach(([paramKey, paramValue]) => {
-          translation = translation.replace(`{${paramKey}}`, paramValue);
+          translation = translation.replace(`{{${paramKey}}}`, paramValue);
         });
       }
       return translation;

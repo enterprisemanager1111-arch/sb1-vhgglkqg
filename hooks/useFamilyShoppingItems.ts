@@ -66,7 +66,7 @@ export const useFamilyShoppingItems = (): UseFamilyShoppingItemsReturn => {
           `)
           .eq('family_id', currentFamily.id)
           .order('created_at', { ascending: false }),
-        5000,
+        10000,
         'Failed to load shopping items'
       );
 

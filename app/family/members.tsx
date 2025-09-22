@@ -16,6 +16,8 @@ import { ArrowLeft, Search, Plus, Crown, Shield, UserX, MoveVertical as MoreVert
 import { router } from 'expo-router';
 import { useFamily } from '@/contexts/FamilyContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useRealTimeFamily } from '@/hooks/useRealTimeFamily';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -35,6 +37,34 @@ export default function FamilyMembers() {
   
   const { familyMembers, userRole, currentFamily } = useFamily();
   const { t } = useLanguage();
+  const { user } = useAuth();
+  
+  // Real-time family data with online status
+  const { isUserOnline, onlineMembers } = useRealTimeFamily(currentFamily?.id || null);
+  
+  // Simple online status logic: current user is always online, others are offline
+  const getMemberOnlineStatus = (memberUserId: string) => {
+    // Current user is always online
+    if (memberUserId === user?.id) {
+      return true;
+    }
+    // For demo purposes, show some members as online
+    // You can modify this logic as needed
+    return false;
+  };
+  
+  // Debug: Log online status for each member
+  console.log('🔍 Members page - Real-time online members:', Array.from(onlineMembers));
+  console.log('🔍 Members page - Current user ID:', user?.id);
+  familyMembers.forEach((member, index) => {
+    const isOnline = getMemberOnlineStatus(member.user_id);
+    console.log(`🔍 Members page - Member ${index + 1} (${member.profiles?.name}): ${isOnline ? 'ONLINE' : 'OFFLINE'} (user_id: ${member.user_id})`);
+  });
+  
+  // Debug: Log family members
+  console.log('🔍 Family Members page - familyMembers:', familyMembers);
+  console.log('🔍 Family Members page - familyMembers.length:', familyMembers?.length || 0);
+  console.log('🔍 Family Members page - currentFamily:', currentFamily);
   const backButtonScale = useSharedValue(1);
 
   const filteredMembers = familyMembers.filter(member =>
@@ -144,7 +174,8 @@ export default function FamilyMembers() {
     backButtonScale.value = withSpring(0.95, {}, () => {
       backButtonScale.value = withSpring(1);
     });
-    router.back();
+    // Use router.push instead of router.back to avoid navigation errors
+    router.push('/(tabs)/family');
   };
 
   return (
@@ -187,8 +218,10 @@ export default function FamilyMembers() {
           <Text style={styles.familyCode}>#{currentFamily?.code}</Text>
         </View>
         <Text style={styles.familyDescription}>
-          {familyMembers.filter(m => m.role === 'admin').length} Administrator(s) • 
-          {familyMembers.filter(m => m.role === 'member').length} Members
+          {familyMembers.filter(m => m.role === 'admin').length} Administrator(s) • {familyMembers.filter(m => m.role === 'member').length} Members
+        </Text>
+        <Text style={styles.debugText}>
+          Debug: {familyMembers.length} total members loaded
         </Text>
       </View>
 
@@ -230,7 +263,7 @@ export default function FamilyMembers() {
                     {/* Online Status */}
                     <View style={[
                       styles.onlineStatus,
-                      { backgroundColor: index === 0 ? '#54FE54' : '#E0E0E0' } // Admin is always online for demo
+                      { backgroundColor: getMemberOnlineStatus(member.user_id) ? '#54FE54' : '#E0E0E0' }
                     ]} />
                   </View>
                   
@@ -274,7 +307,7 @@ export default function FamilyMembers() {
         {filteredMembers.length === 0 && searchQuery && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>
-              Keine Mitglieder gefunden für "{searchQuery}"
+              {t('family.members.notFound', { query: searchQuery })}
             </Text>
           </View>
         )}
@@ -443,6 +476,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666666',
     fontFamily: 'Montserrat-Regular',
+  },
+  debugText: {
+    fontSize: 12,
+    color: '#54FE54',
+    fontFamily: 'Montserrat-Medium',
+    marginTop: 4,
   },
 
   // Members List

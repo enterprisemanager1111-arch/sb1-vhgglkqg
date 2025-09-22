@@ -27,6 +27,12 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 export default function FamilySetup() {
   const { t } = useLanguage();
   const { showLoading, hideLoading } = useLoading();
+  
+  // Helper function to get translation with fallback
+  const getTranslation = (key: string, fallback: string) => {
+    const translation = t(key);
+    return translation === key ? fallback : translation;
+  };
   const [mode, setMode] = useState<'choose' | 'create' | 'join' | 'search'>('choose');
   const [familyName, setFamilyName] = useState('');
   const [joinCode, setJoinCode] = useState('');
@@ -50,6 +56,16 @@ export default function FamilySetup() {
       router.replace('/(tabs)');
     }
   }, [familyLoading, isInFamily]);
+
+  // Reset search state when mode changes
+  useEffect(() => {
+    if (mode === 'search') {
+      // Reset search state when entering search mode
+      setSearchResults([]);
+      setSearchLoading(false);
+      hideLoading();
+    }
+  }, [mode]);
 
   const handleCreateFamily = async () => {
     const validation = validateName(familyName);
@@ -168,14 +184,36 @@ export default function FamilySetup() {
       return;
     }
 
+    // Prevent multiple simultaneous searches
+    if (searchLoading) {
+      console.log('🔍 Search already in progress, ignoring request');
+      return;
+    }
+
+    console.log('🔍 Starting family search for:', searchTerm);
     setSearchLoading(true);
-    showLoading(t('family.onboarding.searching'));
+    showLoading(getTranslation('family.onboarding.searching', 'Searching...'));
+    
     try {
-      const results = await searchFamilies(searchTerm);
+      // Add timeout to prevent hanging
+      const searchPromise = searchFamilies(searchTerm);
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Search timeout')), 10000)
+      );
+      
+      const results = await Promise.race([searchPromise, timeoutPromise]);
+      console.log('🔍 Search completed, results:', results.length);
       setSearchResults(results);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Search failed');
+      console.error('🔍 Search failed:', error);
+      if (error.message === 'Search timeout') {
+        Alert.alert('Error', 'Search timed out. Please try again.');
+      } else {
+        Alert.alert('Error', error.message || 'Search failed');
+      }
+      setSearchResults([]); // Clear previous results on error
     } finally {
+      console.log('🔍 Search finished, hiding loading');
       setSearchLoading(false);
       hideLoading();
     }
@@ -323,7 +361,7 @@ export default function FamilySetup() {
                 : mode === 'create'
                 ? 'Give your family a name'
                 : mode === 'search'
-                ? 'Search for a family to join'
+                ? 'Search for a family by name, code, or ID'
                 : 'Enter the family code'
               }
             </Text>
@@ -338,9 +376,9 @@ export default function FamilySetup() {
                 <View style={styles.choiceIcon}>
                   <Plus size={32} color="#54FE54" strokeWidth={2} />
                 </View>
-                <Text style={styles.choiceTitle}>{t('family.onboarding.createFamily')}</Text>
+                <Text style={styles.choiceTitle}>Create Family</Text>
                 <Text style={styles.choiceDescription}>
-                  {t('family.onboarding.createFamilyDescription')}
+                  Start a new family and invite members
                 </Text>
               </Pressable>
 
@@ -351,9 +389,9 @@ export default function FamilySetup() {
                 <View style={styles.choiceIcon}>
                   <Hash size={32} color="#54FE54" strokeWidth={2} />
                 </View>
-                <Text style={styles.choiceTitle}>{t('family.onboarding.joinFamily')}</Text>
+                <Text style={styles.choiceTitle}>Join Family</Text>
                 <Text style={styles.choiceDescription}>
-                  {t('family.onboarding.joinFamilyDescription')}
+                  Join an existing family with a code
                 </Text>
               </Pressable>
 
@@ -366,7 +404,7 @@ export default function FamilySetup() {
                 </View>
                 <Text style={styles.choiceTitle}>Search Family</Text>
                 <Text style={styles.choiceDescription}>
-                  Search for families by name or code
+                  Search for families by name, code, or ID
                 </Text>
               </Pressable>
 
@@ -425,15 +463,22 @@ export default function FamilySetup() {
               <View style={styles.inputSection}>
                 <View style={styles.labelContainer}>
                   <Search size={20} color="#54FE54" strokeWidth={2} />
-                  <Text style={styles.inputLabel}>Search Family</Text>
+                  <Text style={styles.inputLabel}>
+                    {getTranslation('family.onboarding.searchFamily', 'Search Family')}
+                  </Text>
                 </View>
+                <Text style={styles.inputDescription}>
+                  {getTranslation('family.onboarding.searchFamilyDescription', 'Search for a family by name, code, or ID')}
+                </Text>
                 <View style={styles.searchContainer}>
                   <TextInput
                     style={styles.textInput}
-                    placeholder="Enter family name or code..."
+                    placeholder={getTranslation('family.onboarding.searchPlaceholder', 'Enter family name, code, or ID...')}
                     placeholderTextColor="#888888"
                     value={searchTerm}
                     onChangeText={setSearchTerm}
+                    autoCapitalize="none"
+                    autoCorrect={false}
                   />
                   <Pressable 
                     style={[styles.searchButton, searchTerm.length < 2 && styles.searchButtonDisabled]}
@@ -443,12 +488,17 @@ export default function FamilySetup() {
                     <Search size={18} color={searchTerm.length >= 2 ? "#161618" : "#999999"} strokeWidth={2} />
                   </Pressable>
                 </View>
+                <Text style={styles.searchHint}>
+                  {getTranslation('family.onboarding.searchHint', 'You can search by family name, 6-character code, or family ID')}
+                </Text>
               </View>
 
               {/* Search Results */}
               {searchResults.length > 0 && (
                 <View style={styles.searchResults}>
-                  <Text style={styles.resultsTitle}>Found families:</Text>
+                  <Text style={styles.resultsTitle}>
+                    {getTranslation('family.onboarding.searchResults', 'Search Results')}
+                  </Text>
                   {searchResults.map((family) => (
                     <Pressable
                       key={family.id}
@@ -457,7 +507,10 @@ export default function FamilySetup() {
                     >
                       <View style={styles.familyResultInfo}>
                         <Text style={styles.familyResultName}>{family.name}</Text>
-                        <Text style={styles.familyResultCode}>#{family.code}</Text>
+                        <View style={styles.familyResultDetails}>
+                          <Text style={styles.familyResultCode}>Code: {family.code}</Text>
+                          <Text style={styles.familyResultId}>ID: {family.id.substring(0, 8)}...</Text>
+                        </View>
                       </View>
                       <ChevronRight size={20} color="#54FE54" strokeWidth={2} />
                     </Pressable>
@@ -473,7 +526,9 @@ export default function FamilySetup() {
 
               {searchTerm.length >= 2 && searchResults.length === 0 && !searchLoading && (
                 <View style={styles.noResultsContainer}>
-                  <Text style={styles.noResultsTitle}>No families found</Text>
+                  <Text style={styles.noResultsTitle}>
+                    {getTranslation('family.onboarding.noResults', 'No families found')}
+                  </Text>
                   <Text style={styles.noResultsText}>
                     No family found with "{searchTerm}". 
                     Try a different search term or use an invitation code.
@@ -571,10 +626,10 @@ export default function FamilySetup() {
                 ? styles.disabledText : null
             ]}>
               {loading 
-                ? (mode === 'create' ? t('family.onboarding.creating') : 
-                   mode === 'join' ? t('family.onboarding.joining') : t('family.onboarding.searching')) 
-                : (mode === 'create' ? t('family.onboarding.createFamily') : 
-                   mode === 'join' ? t('family.onboarding.joinFamily') : t('family.onboarding.searchFamily'))
+                ? (mode === 'create' ? 'Creating...' : 
+                   mode === 'join' ? 'Joining...' : 'Searching...') 
+                : (mode === 'create' ? 'Create Family' : 
+                   mode === 'join' ? 'Join Family' : 'Search Family')
               }
             </Text>
             {!loading && mode !== 'search' && <ChevronRight size={20} color="#161618" strokeWidth={2} />}
@@ -1031,5 +1086,32 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#161618',
     fontFamily: 'Montserrat-SemiBold',
+  },
+  
+  // Enhanced Search Styles
+  inputDescription: {
+    fontSize: 14,
+    color: '#666666',
+    fontFamily: 'Montserrat-Regular',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  searchHint: {
+    fontSize: 12,
+    color: '#888888',
+    fontFamily: 'Montserrat-Regular',
+    marginTop: 8,
+    lineHeight: 16,
+    fontStyle: 'italic',
+  },
+  familyResultDetails: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 4,
+  },
+  familyResultId: {
+    fontSize: 12,
+    color: '#888888',
+    fontFamily: 'Montserrat-Regular',
   },
 });

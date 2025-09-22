@@ -86,7 +86,7 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({ error, rese
     
     <Pressable style={styles.retryButton} onPress={resetError}>
       <RefreshCw size={20} color="#161618" strokeWidth={2} />
-      <Text style={styles.retryButtonText}>Erneut versuchen</Text>
+      <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
     </Pressable>
   </View>
 );

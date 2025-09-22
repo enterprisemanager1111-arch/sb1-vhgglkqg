@@ -143,7 +143,9 @@ export const useRealTimeFamily = (familyId: string | null) => {
       // Subscribe to presence (online status)
       .on('presence', { event: 'sync' }, () => {
         const newState = channel.presenceState();
+        console.log('🔍 Presence sync - newState:', newState);
         const onlineUsers = new Set(Object.keys(newState));
+        console.log('🔍 Presence sync - onlineUsers:', Array.from(onlineUsers));
         
         setState(prev => ({
           ...prev,
@@ -173,12 +175,15 @@ export const useRealTimeFamily = (familyId: string | null) => {
 
     // Subscribe and track presence
     channel.subscribe(async (status) => {
+      console.log('🔍 Channel subscription status:', status);
       if (status === 'SUBSCRIBED') {
+        console.log('🔍 Tracking presence for user:', user.id);
         // Track user presence
         await channel.track({
           user_id: user.id,
           online_at: new Date().toISOString(),
         });
+        console.log('🔍 Presence tracked successfully');
       }
     });
 
@@ -215,7 +220,9 @@ export const useRealTimeFamily = (familyId: string | null) => {
 
   // Check if user is online
   const isUserOnline = useCallback((userId: string) => {
-    return state.onlineMembers.has(userId);
+    const isOnline = state.onlineMembers.has(userId);
+    console.log(`🔍 Checking if user ${userId} is online:`, isOnline, 'Online members:', Array.from(state.onlineMembers));
+    return isOnline;
   }, [state.onlineMembers]);
 
   return {
