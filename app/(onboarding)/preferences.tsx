@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
-import { ChevronLeft, ChevronRight, Target, CircleHelp as HelpCircle } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Flag, CircleHelp as HelpCircle } from 'lucide-react-native';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLoading } from '@/contexts/LoadingContext';
@@ -133,15 +133,15 @@ export default function PreferencesSetup() {
 
           {/* Progress Indicator */}
           <View style={styles.progressContainer}>
+            <View style={styles.progressDash} />
+            <View style={styles.progressDash} />
             <View style={[styles.progressDash, styles.activeDash]} />
-            <View style={styles.progressDash} />
-            <View style={styles.progressDash} />
           </View>
 
           {/* Goals Selection */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Target size={20} color="#17f196" strokeWidth={2} />
+              <Flag size={20} color="#17f196" strokeWidth={2} />
               <Text style={styles.sectionTitle}>
                 {currentLanguage.code === 'en' ? 'What would you like to achieve?' : 
                  currentLanguage.code === 'de' ? 'Was möchten Sie erreichen?' : 
@@ -340,6 +340,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
+    marginLeft: 15,
     fontWeight: '600',
     color: '#4A4A4A',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
@@ -373,19 +374,22 @@ const styles = StyleSheet.create({
   },
   goalCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 10,
+    padding: 14,
+    paddingLeft: 25,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    borderColor: '#EfEfEf',
+    elevation: 1,
+    alignItems: 'left',
   },
   selectedGoal: {
     borderColor: '#17f196',
-    backgroundColor: 'rgba(23, 241, 150, 0.1)',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 2,
   },
   goalIcon: {
     fontSize: 32,
@@ -394,21 +398,24 @@ const styles = StyleSheet.create({
   goalLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#4A4A4A',
+    color: '#202020',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    textAlign: 'left',
     marginBottom: 4,
   },
   selectedGoalLabel: {
-    color: '#4A4A4A',
+    color: '#303030',
+    fontWeight: '750',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   goalDescription: {
     fontSize: 13,
-    color: '#666666',
+    color: '#aaaaaa',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     lineHeight: 17,
   },
   selectedGoalDescription: {
-    color: '#666666',
+    color: '#888888',
   },
 
   // Action Buttons
