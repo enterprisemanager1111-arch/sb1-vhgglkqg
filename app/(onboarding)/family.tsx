@@ -9,6 +9,7 @@ import {
   StatusBar,
   ScrollView,
   Alert,
+  Image as RNImage,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
@@ -279,6 +280,11 @@ export default function FamilySetup() {
   if (showCode) {
     return (
       <SafeAreaView style={styles.container}>
+        <RNImage 
+          source={require('@/assets/images/newImg/background.jpg')} 
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        />
         <StatusBar barStyle="dark-content" backgroundColor="#F3F3F5" />
 
         {/* Header */}
@@ -332,6 +338,11 @@ export default function FamilySetup() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <Image 
+        source={require('@/assets/images/newImg/background.jpg')} 
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      />
       <StatusBar barStyle="dark-content" backgroundColor="#F3F3F5" />
 
       {/* Header */}
@@ -645,6 +656,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F3F3F5',
   },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
   
   // Header
   header: {
@@ -669,7 +689,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#666666',
-    fontFamily: 'Montserrat-Medium',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
 
   // Progress
@@ -709,14 +729,14 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: '#161618',
-    fontFamily: 'Montserrat-Bold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -751,14 +771,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     marginBottom: 12,
     textAlign: 'center',
   },
   choiceDescription: {
     fontSize: 15,
     color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -769,7 +789,7 @@ const styles = StyleSheet.create({
   skipText: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
 
   // Form
@@ -789,7 +809,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   tooltipButton: {
     padding: 4,
@@ -802,7 +822,7 @@ const styles = StyleSheet.create({
   tooltipText: {
     fontSize: 13,
     color: '#FFFFFF',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     lineHeight: 18,
   },
   textInput: {
@@ -812,7 +832,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     fontSize: 16,
     color: '#161618',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     borderWidth: 1,
     borderColor: '#E0E0E0',
     shadowColor: '#000000',
@@ -841,13 +861,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     marginBottom: 8,
   },
   infoText: {
     fontSize: 13,
     color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     lineHeight: 18,
   },
 
@@ -871,14 +891,14 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: '#161618',
-    fontFamily: 'Montserrat-Bold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     textAlign: 'center',
     marginBottom: 12,
   },
   successSubtitle: {
     fontSize: 16,
     color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 40,
@@ -892,14 +912,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#666666',
-    fontFamily: 'Montserrat-Medium',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     marginBottom: 12,
   },
   codeDisplay: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 25,
     paddingHorizontal: 24,
     paddingVertical: 20,
     borderWidth: 2,
@@ -915,7 +935,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '700',
     color: '#161618',
-    fontFamily: 'Montserrat-Bold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     letterSpacing: 4,
   },
   copyButton: {
@@ -942,7 +962,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#54FE54',
-    borderRadius: 16,
+    borderRadius: 25,
     paddingVertical: 16,
     gap: 8,
     shadowColor: '#54FE54',
@@ -958,7 +978,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   disabledText: {
     color: '#999999',
@@ -987,7 +1007,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     marginBottom: 12,
   },
   familyResultCard: {
@@ -1013,13 +1033,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     marginBottom: 2,
   },
   familyResultCode: {
     fontSize: 14,
     color: '#54FE54',
-    fontFamily: 'Montserrat-Medium',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   searchLoadingContainer: {
     alignItems: 'center',
@@ -1028,7 +1048,7 @@ const styles = StyleSheet.create({
   searchLoadingText: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   noResultsContainer: {
     alignItems: 'center',
@@ -1041,13 +1061,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     marginBottom: 8,
   },
   noResultsText: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: 16,
@@ -1063,14 +1083,14 @@ const styles = StyleSheet.create({
   testCodeText: {
     fontSize: 12,
     color: '#54FE54',
-    fontFamily: 'Montserrat-Medium',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   finishButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#54FE54',
-    borderRadius: 16,
+    borderRadius: 25,
     paddingVertical: 18,
     paddingHorizontal: 32,
     gap: 8,
@@ -1085,21 +1105,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   
   // Enhanced Search Styles
   inputDescription: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     marginBottom: 16,
     lineHeight: 20,
   },
   searchHint: {
     fontSize: 12,
     color: '#888888',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     marginTop: 8,
     lineHeight: 16,
     fontStyle: 'italic',
@@ -1112,6 +1132,6 @@ const styles = StyleSheet.create({
   familyResultId: {
     fontSize: 12,
     color: '#888888',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
 });

@@ -9,6 +9,7 @@ import {
   StatusBar,
   Dimensions,
   ActivityIndicator,
+  Image as RNImage,
 } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
@@ -252,15 +253,29 @@ export default function OnboardingAuth() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F3F3F5" />
+      <StatusBar barStyle="light-content" backgroundColor="#102118" />
 
-      {/* Notification */}
-      <Notification
-        type={notification.type}
-        message={notification.message}
-        visible={notification.visible}
-        onClose={hideNotification}
-      />
+      {/* Upper Section with Background Image */}
+      <View style={styles.upperSection}>
+        <RNImage 
+          source={require('@/assets/images/newImg/background.jpg')} 
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        />
+        {/* Dark Translucent Overlay */}
+        <View style={styles.darkOverlay} />
+      </View>
+
+      {/* Lower Section - White Card */}
+      <View style={styles.lowerSection}>
+        <View style={styles.contentCard}>
+          {/* Notification */}
+          <Notification
+            type={notification.type}
+            message={notification.message}
+            visible={notification.visible}
+            onClose={hideNotification}
+          />
 
       {/* Progress Indicator */}
       <View style={styles.progressContainer}>
@@ -397,6 +412,8 @@ export default function OnboardingAuth() {
           </View>
 
         </View>
+        </View>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -405,7 +422,46 @@ export default function OnboardingAuth() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F3F5',
+    backgroundColor: '#102118',
+  },
+
+  // Upper Section (Solid Background)
+  upperSection: {
+    height: 200,
+    backgroundColor: '#102118',
+    position: 'relative',
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  darkOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#102118',
+    opacity: 0.87,
+    zIndex: 1,
+  },
+
+  // Lower Section (White Card)
+  lowerSection: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    marginTop: -30,
+  },
+  contentCard: {
+    flex: 1,
+    paddingTop: 24,
   },
   
   // Progress Indicator
@@ -441,14 +497,14 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: '#161618',
-    fontFamily: 'Montserrat-Bold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
     color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     textAlign: 'center',
   },
   form: {
@@ -476,7 +532,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#161618',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   passwordInput: {
     paddingRight: 40,
@@ -502,7 +558,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   authButtonLoading: {
     opacity: 0.8,
@@ -525,13 +581,13 @@ const styles = StyleSheet.create({
   toggleText: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   toggleLink: {
     fontSize: 14,
     fontWeight: '600',
     color: '#54FE54',
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
 
   // Notification
@@ -540,7 +596,7 @@ const styles = StyleSheet.create({
     top: 80,
     left: 24,
     right: 24,
-    borderRadius: 16,
+    borderRadius: 25,
     padding: 18,
     flexDirection: 'row',
     alignItems: 'center',
@@ -569,7 +625,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#FFFFFF',
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     lineHeight: 20,
     letterSpacing: 0.1,
   },

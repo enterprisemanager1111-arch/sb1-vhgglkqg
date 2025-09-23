@@ -11,9 +11,11 @@ import {
   ScrollView,
   Modal,
   Platform,
+  Image as RNImage,
 } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, ChevronRight, User, Calendar, Heart, CircleHelp as HelpCircle, ChevronDown } from 'lucide-react-native';
 import { sanitizeText, validateName } from '@/utils/sanitization';
 import { validateBirthDate, formatBirthDate, calculateAge, getZodiacSignKey } from '@/utils/birthdaySystem';
@@ -389,24 +391,21 @@ export default function PersonalInfoScreen() {
   const buttonScale = useSharedValue(1);
 
   const roleOptions = [
-    { id: 'parent', labelKey: 'onboarding.personal.roles.parent', icon: '👨‍👩‍👧‍👦' },
-    { id: 'child', labelKey: 'onboarding.personal.roles.child', icon: '🧒' },
-    { id: 'teenager', labelKey: 'onboarding.personal.roles.teenager', icon: '🧑‍🎓' },
-    { id: 'grandparent', labelKey: 'onboarding.personal.roles.grandparent', icon: '👴👵' },
-    { id: 'other', labelKey: 'onboarding.personal.roles.other', icon: '👤' },
+    { id: 'parent', label: 'Parent' },
+    { id: 'child', label: 'Child' },
+    { id: 'teenager', label: 'Teenager' },
+    { id: 'grandparent', label: 'Grandparent' },
+    { id: 'other', label: 'Other' },
   ];
 
   const interestOptions = [
-    { id: 'sport', labelKey: 'onboarding.personal.interests.sport' },
-    { id: 'music', labelKey: 'onboarding.personal.interests.music' },
-    { id: 'cooking', labelKey: 'onboarding.personal.interests.cooking' },
-    { id: 'reading', labelKey: 'onboarding.personal.interests.reading' },
-    { id: 'travel', labelKey: 'onboarding.personal.interests.travel' },
-    { id: 'movies', labelKey: 'onboarding.personal.interests.movies' },
-    { id: 'gaming', labelKey: 'onboarding.personal.interests.gaming' },
-    { id: 'art', labelKey: 'onboarding.personal.interests.art' },
-    { id: 'nature', labelKey: 'onboarding.personal.interests.nature' },
-    { id: 'tech', labelKey: 'onboarding.personal.interests.tech' }
+    { id: 'sports', label: 'Sports' },
+    { id: 'music', label: 'Music' },
+    { id: 'cooking', label: 'Cooking' },
+    { id: 'reading', label: 'Reading' },
+    { id: 'travel', label: 'Travel' },
+    { id: 'nature', label: 'Nature' },
+    { id: 'gaming', label: 'Gaming' },
   ];
 
   // Load existing data on mount - but only once to avoid overwriting user input
@@ -500,7 +499,7 @@ export default function PersonalInfoScreen() {
     buttonScale.value = withSpring(1);
   };
 
-  const isValid = name.trim().length > 0 && role;
+  const isValid = role;
 
   // Debug function to check current form state
   const logCurrentState = () => {
@@ -618,11 +617,6 @@ export default function PersonalInfoScreen() {
     });
     
     // Basic validation for required fields
-    if (!currentName || currentName.trim().length < 1) {
-      alert(t('onboarding.personal.validation.nameRequired') || 'Please enter your name to continue');
-      return;
-    }
-    
     if (!currentRole) {
       alert(t('onboarding.personal.validation.roleRequired') || 'Please select your role to continue');
       return;
@@ -633,8 +627,8 @@ export default function PersonalInfoScreen() {
     // Show full-screen loading
     showLoading(t('common.saving') || 'Saving...');
 
-    // Use the exact name you typed (with basic sanitization for safety)
-    const finalName = sanitizeText(currentName, 50);
+    // Use the exact name you typed (with basic sanitization for safety) or empty string if not provided
+    const finalName = currentName ? sanitizeText(currentName, 50) : '';
 
     try {
       console.log('DEBUG: Saving personal info exactly as entered:', {
@@ -767,33 +761,22 @@ export default function PersonalInfoScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F3F3F5" />
+      <StatusBar barStyle="light-content" backgroundColor="#102118" />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={handleBack}>
-          <ChevronLeft size={24} color="#161618" strokeWidth={2} />
-        </Pressable>
-        <Text style={styles.stepIndicator}>
-          {currentLanguage.code === 'en' ? 'Step 2 of 5' : 
-           currentLanguage.code === 'de' ? 'Schritt 2 von 5' : 
-           currentLanguage.code === 'nl' ? 'Stap 2 van 5' : 
-           currentLanguage.code === 'fr' ? 'Étape 2 sur 5' : 
-           currentLanguage.code === 'es' ? 'Paso 2 de 5' : 
-           currentLanguage.code === 'it' ? 'Passaggio 2 di 5' : 
-           t('onboarding.stepIndicator', { current: '2', total: '5' }) || 'Step 2 of 5'}
-        </Text>
+      {/* Upper Section with Background Image */}
+      <View style={styles.upperSection}>
+        <RNImage 
+          source={require('@/assets/images/newImg/background.jpg')} 
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        />
+        {/* Dark Translucent Overlay */}
+        <View style={styles.darkOverlay} />
       </View>
 
-      {/* Progress Indicator */}
-      <View style={styles.progressContainer}>
-        <View style={styles.progressDot} />
-        <View style={[styles.progressDot, styles.activeDot]} />
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-      </View>
-
+        {/* Lower Section - White Card */}
+        <View style={styles.lowerSection}>
+          <View style={styles.contentCard}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Content */}
         <View style={styles.content}>
@@ -809,175 +792,41 @@ export default function PersonalInfoScreen() {
                t('onboarding.personal.title') || 'Tell us about yourself'}
             </Text>
             <Text style={styles.subtitle}>
-              {currentLanguage.code === 'en' ? 'This information helps us tailor Famora perfectly for you' : 
-               currentLanguage.code === 'de' ? 'Diese Informationen helfen uns, Famora perfekt für Sie anzupassen' : 
-               currentLanguage.code === 'nl' ? 'Deze informatie helpt ons Famora perfect voor je aan te passen' : 
-               currentLanguage.code === 'fr' ? 'Ces informations nous aident à adapter Famora parfaitement pour vous' : 
-               currentLanguage.code === 'es' ? 'Esta información nos ayuda a adaptar Famora perfectamente para ti' : 
-               currentLanguage.code === 'it' ? 'Queste informazioni ci aiutano ad adattare Famora perfettamente per te' : 
-               t('onboarding.personal.subtitle') || 'This information helps us tailor Famora perfectly for you'}
+              {currentLanguage.code === 'en' ? 'This information helps us find to build the perfect app for your experience.' : 
+               currentLanguage.code === 'de' ? 'Diese Informationen helfen uns, die perfekte App für Ihre Erfahrung zu erstellen.' : 
+               currentLanguage.code === 'nl' ? 'Deze informatie helpt ons de perfecte app voor jouw ervaring te bouwen.' : 
+               currentLanguage.code === 'fr' ? 'Ces informations nous aident à créer l\'application parfaite pour votre expérience.' : 
+               currentLanguage.code === 'es' ? 'Esta información nos ayuda a construir la aplicación perfecta para tu experiencia.' : 
+               currentLanguage.code === 'it' ? 'Queste informazioni ci aiutano a costruire l\'app perfetta per la tua esperienza.' : 
+               t('onboarding.personal.subtitle') || 'This information helps us find to build the perfect app for your experience.'}
             </Text>
           </View>
 
 
 
 
-          {/* Name Input */}
-          <View style={styles.inputSection}>
-            <View style={styles.labelContainer}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 8 }}>
-                <User size={20} color="#54FE54" strokeWidth={2} />
-                <Text style={styles.inputLabel}>
-                  {currentLanguage.code === 'en' ? 'What would you like to be called?' : 
-                   currentLanguage.code === 'de' ? 'Wie möchten Sie genannt werden?' : 
-                   currentLanguage.code === 'nl' ? 'Hoe wil je genoemd worden?' : 
-                   currentLanguage.code === 'fr' ? 'Comment aimeriez-vous être appelé?' : 
-                   currentLanguage.code === 'es' ? '¿Cómo te gustaría que te llamen?' : 
-                   currentLanguage.code === 'it' ? 'Come vorresti essere chiamato?' : 
-                   t('onboarding.personal.name.label') || 'What would you like to be called?'}
-                </Text>
-              </View>
-              <Pressable 
-                style={styles.tooltipButton}
-                onPress={() => setShowTooltip(showTooltip === 'name' ? null : 'name')}
-              >
-                <HelpCircle size={16} color="#666666" strokeWidth={2} />
-              </Pressable>
-            </View>
-            {showTooltip === 'name' && (
-              <View style={styles.tooltip}>
-                <Text style={styles.tooltipText}>
-                  {currentLanguage.code === 'en' ? 'Use the name your family usually calls you.' : 
-                   currentLanguage.code === 'de' ? 'Verwenden Sie den Namen, den Ihre Familie normalerweise verwendet.' : 
-                   currentLanguage.code === 'nl' ? 'Gebruik de naam waarmee je familie je gewoonlijk noemt.' : 
-                   currentLanguage.code === 'fr' ? 'Utilisez le nom que votre famille utilise habituellement.' : 
-                   currentLanguage.code === 'es' ? 'Usa el nombre que tu familia suele usar.' : 
-                   currentLanguage.code === 'it' ? 'Usa il nome che la tua famiglia usa di solito.' : 
-                   t('onboarding.personal.name.tooltip') || 'Use the name your family usually calls you.'}
-                </Text>
-              </View>
-            )}
-            <TextInput
-              style={styles.textInput}
-              placeholder={currentLanguage.code === 'en' ? 'Your first name or nickname' : 
-                           currentLanguage.code === 'de' ? 'Ihr Vorname oder Nickname' : 
-                           currentLanguage.code === 'nl' ? 'Je voornaam of bijnaam' : 
-                           currentLanguage.code === 'fr' ? 'Votre prénom ou surnom' : 
-                           currentLanguage.code === 'es' ? 'Tu nombre o apodo' : 
-                           currentLanguage.code === 'it' ? 'Il tuo nome o soprannome' : 
-                           t('onboarding.personal.name.placeholder') || 'Your first name or nickname'}
-              placeholderTextColor="#888888"
-              value={name}
-              onChangeText={(text) => {
-                console.log('DEBUG: onChangeText called with:', `"${text}"`);
-                console.log('DEBUG: Previous name state:', `"${name}"`);
-                setName(text);
-                console.log('DEBUG: setName called with:', `"${text}"`);
-                // Force update ref immediately
-                stateRef.current.name = text;
-                console.log('DEBUG: Updated stateRef.current.name to:', `"${text}"`);
-              }}
-              autoComplete="given-name"
-            />
-          </View>
 
-          {/* Birth Date Input */}
-          <View style={styles.inputSection}>
-            <View style={styles.labelContainer}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 8 }}>
-                <Calendar size={20} color="#54FE54" strokeWidth={2} />
-                <Text style={styles.inputLabel}>
-                  {currentLanguage.code === 'en' ? 'Date of birth' : 
-                   currentLanguage.code === 'de' ? 'Geburtsdatum' : 
-                   currentLanguage.code === 'nl' ? 'Geboortedatum' : 
-                   currentLanguage.code === 'fr' ? 'Date de naissance' : 
-                   currentLanguage.code === 'es' ? 'Fecha de nacimiento' : 
-                   currentLanguage.code === 'it' ? 'Data di nascita' : 
-                   t('onboarding.personal.birthdate.label') || 'Date of birth'}
-                </Text>
-              </View>
-              <Pressable 
-                style={styles.tooltipButton}
-                onPress={() => setShowTooltip(showTooltip === 'birthday' ? null : 'birthday')}
-              >
-                <HelpCircle size={16} color="#666666" strokeWidth={2} />
-              </Pressable>
-            </View>
-            {showTooltip === 'birthday' && (
-              <View style={styles.tooltip}>
-                <Text style={styles.tooltipText}>
-                  {currentLanguage.code === 'en' ? 'We only use your birth date for birthday notifications. Your data remains private and secure.' : 
-                   currentLanguage.code === 'de' ? 'Wir verwenden dein Geburtsdatum nur für Geburtstags-Benachrichtigungen. Deine Daten bleiben privat und sicher.' : 
-                   currentLanguage.code === 'nl' ? 'We gebruiken je geboortedatum alleen voor verjaardagsmeldingen. Je gegevens blijven privé en veilig.' : 
-                   currentLanguage.code === 'fr' ? 'Nous utilisons uniquement votre date de naissance pour les notifications d\'anniversaire. Vos données restent privées et sécurisées.' : 
-                   currentLanguage.code === 'es' ? 'Solo usamos tu fecha de nacimiento para notificaciones de cumpleaños. Tus datos permanecen privados y seguros.' : 
-                   currentLanguage.code === 'it' ? 'Utilizziamo la tua data di nascita solo per le notifiche di compleanno. I tuoi dati rimangono privati e sicuri.' : 
-                   t('onboarding.personal.birthdate.tooltip') || 'We only use your birth date for birthday notifications. Your data remains private and secure.'}
-                </Text>
-              </View>
-            )}
-            <Pressable
-              style={styles.datePickerButton}
-              onPress={() => setShowDatePicker(true)}
-            >
-              <Text style={[
-                styles.datePickerButtonText,
-                !birthDate && styles.placeholderText
-              ]}>
-                {birthDate ? formatBirthDate(birthDate, true, getLocale()) : 
-                 (currentLanguage.code === 'en' ? 'Select birth date' : 
-                  currentLanguage.code === 'de' ? 'Geburtsdatum auswählen' : 
-                  currentLanguage.code === 'nl' ? 'Selecteer geboortedatum' : 
-                  currentLanguage.code === 'fr' ? 'Sélectionner la date de naissance' : 
-                  currentLanguage.code === 'es' ? 'Seleccionar fecha de nacimiento' : 
-                  currentLanguage.code === 'it' ? 'Seleziona data di nascita' : 
-                  t('onboarding.personal.datePicker.placeholder') || 'Select birth date')}
-              </Text>
-              <ChevronDown size={20} color="#666666" strokeWidth={2} />
-            </Pressable>
-            
-            {birthDate && (
-              <View style={styles.ageDisplay}>
-                <Text style={styles.ageDisplayText}>{getAgeDisplay()}</Text>
-              </View>
-            )}
+          {/* Progress Indicator */}
+          <View style={styles.progressContainer}>
+            <View style={styles.progressDash} />
+            <View style={[styles.progressDash, styles.activeDash]} />
+            <View style={styles.progressDash} />
           </View>
 
           {/* Role Selection */}
           <View style={styles.inputSection}>
-            <View style={styles.labelContainer}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 8 }}>
-                <Heart size={20} color="#54FE54" strokeWidth={2} />
-                <Text style={styles.inputLabel}>
-                  {currentLanguage.code === 'en' ? 'What is your role in the family?' : 
-                   currentLanguage.code === 'de' ? 'Was ist Ihre Rolle in der Familie?' : 
-                   currentLanguage.code === 'nl' ? 'Wat is je rol in de familie?' : 
-                   currentLanguage.code === 'fr' ? 'Quel est votre rôle dans la famille?' : 
-                   currentLanguage.code === 'es' ? '¿Cuál es tu papel en la familia?' : 
-                   currentLanguage.code === 'it' ? 'Qual è il tuo ruolo nella famiglia?' : 
-                   t('onboarding.personal.role.label') || 'What is your role in the family?'}
-                </Text>
-              </View>
-              <Pressable 
-                style={styles.tooltipButton}
-                onPress={() => setShowTooltip(showTooltip === 'role' ? null : 'role')}
-              >
-                <HelpCircle size={16} color="#666666" strokeWidth={2} />
-              </Pressable>
+            <View style={styles.sectionHeader}>
+              <User size={20} color="#17f196" strokeWidth={2} />
+              <Text style={styles.sectionTitle}>
+                {currentLanguage.code === 'en' ? 'What is your role in the family?' : 
+                 currentLanguage.code === 'de' ? 'Was ist Ihre Rolle in der Familie?' : 
+                 currentLanguage.code === 'nl' ? 'Wat is je rol in de familie?' : 
+                 currentLanguage.code === 'fr' ? 'Quel est votre rôle dans la famille?' : 
+                 currentLanguage.code === 'es' ? '¿Cuál es tu papel en la familia?' : 
+                 currentLanguage.code === 'it' ? 'Qual è il tuo ruolo nella famiglia?' : 
+                 t('onboarding.personal.role.label') || 'What is your role in the family?'}
+              </Text>
             </View>
-            {showTooltip === 'role' && (
-              <View style={styles.tooltip}>
-                <Text style={styles.tooltipText}>
-                  {currentLanguage.code === 'en' ? 'This helps us recommend appropriate features and permissions.' : 
-                   currentLanguage.code === 'de' ? 'Dies hilft uns, passende Funktionen und Berechtigungen zu empfehlen.' : 
-                   currentLanguage.code === 'nl' ? 'Dit helpt ons om geschikte functies en machtigingen aan te bevelen.' : 
-                   currentLanguage.code === 'fr' ? 'Cela nous aide à recommander des fonctionnalités et des autorisations appropriées.' : 
-                   currentLanguage.code === 'es' ? 'Esto nos ayuda a recomendar características y permisos apropiados.' : 
-                   currentLanguage.code === 'it' ? 'Questo ci aiuta a raccomandare funzionalità e autorizzazioni appropriate.' : 
-                   t('onboarding.personal.role.tooltip') || 'This helps us recommend appropriate features and permissions.'}
-                </Text>
-              </View>
-            )}
             <View style={styles.roleGrid}>
               {roleOptions.map((option) => (
                 <Pressable
@@ -996,52 +845,11 @@ export default function PersonalInfoScreen() {
                     console.log('DEBUG: Updated stateRef.current.role to:', option.id);
                   }}
                 >
-                  <Text style={styles.roleEmoji}>{option.icon}</Text>
                   <Text style={[
                     styles.roleLabel,
                     role === option.id && styles.selectedRoleLabel
                   ]}>
-                    {option.id === 'parent' ? 
-                      (currentLanguage.code === 'en' ? 'Parent' : 
-                       currentLanguage.code === 'de' ? 'Elternteil' : 
-                       currentLanguage.code === 'nl' ? 'Ouder' : 
-                       currentLanguage.code === 'fr' ? 'Parent' : 
-                       currentLanguage.code === 'es' ? 'Padre/Madre' : 
-                       currentLanguage.code === 'it' ? 'Genitore' : 
-                       t(option.labelKey) || 'Parent') :
-                     option.id === 'child' ? 
-                      (currentLanguage.code === 'en' ? 'Child' : 
-                       currentLanguage.code === 'de' ? 'Kind' : 
-                       currentLanguage.code === 'nl' ? 'Kind' : 
-                       currentLanguage.code === 'fr' ? 'Enfant' : 
-                       currentLanguage.code === 'es' ? 'Hijo/Hija' : 
-                       currentLanguage.code === 'it' ? 'Figlio/Figlia' : 
-                       t(option.labelKey) || 'Child') :
-                     option.id === 'teenager' ? 
-                      (currentLanguage.code === 'en' ? 'Teenager' : 
-                       currentLanguage.code === 'de' ? 'Teenager' : 
-                       currentLanguage.code === 'nl' ? 'Tiener' : 
-                       currentLanguage.code === 'fr' ? 'Adolescent' : 
-                       currentLanguage.code === 'es' ? 'Adolescente' : 
-                       currentLanguage.code === 'it' ? 'Adolescente' : 
-                       t(option.labelKey) || 'Teenager') :
-                     option.id === 'grandparent' ? 
-                      (currentLanguage.code === 'en' ? 'Grandparent' : 
-                       currentLanguage.code === 'de' ? 'Großeltern' : 
-                       currentLanguage.code === 'nl' ? 'Grootouder' : 
-                       currentLanguage.code === 'fr' ? 'Grand-parent' : 
-                       currentLanguage.code === 'es' ? 'Abuelo/Abuela' : 
-                       currentLanguage.code === 'it' ? 'Nonno/Nonna' : 
-                       t(option.labelKey) || 'Grandparent') :
-                     option.id === 'other' ? 
-                      (currentLanguage.code === 'en' ? 'Other' : 
-                       currentLanguage.code === 'de' ? 'Andere' : 
-                       currentLanguage.code === 'nl' ? 'Andere' : 
-                       currentLanguage.code === 'fr' ? 'Autre' : 
-                       currentLanguage.code === 'es' ? 'Otro' : 
-                       currentLanguage.code === 'it' ? 'Altro' : 
-                       t(option.labelKey) || 'Other') :
-                     t(option.labelKey)}
+                    {option.label}
                   </Text>
                 </Pressable>
               ))}
@@ -1050,10 +858,18 @@ export default function PersonalInfoScreen() {
 
           {/* Interests Selection */}
           <View style={styles.inputSection}>
-            <Text style={styles.inputLabel}>{t('onboarding.personal.interests.label') || 'What are your interests? (optional)'}</Text>
-            <Text style={styles.inputDescription}>
-              {t('onboarding.personal.interests.subtitle') || 'Select up to 5 areas that interest you'}
-            </Text>
+            <View style={styles.sectionHeader}>
+              <Heart size={20} color="#17f196" strokeWidth={2} />
+              <Text style={styles.sectionTitle}>
+                {currentLanguage.code === 'en' ? 'What are your interests?' : 
+                 currentLanguage.code === 'de' ? 'Was sind deine Interessen?' : 
+                 currentLanguage.code === 'nl' ? 'Wat zijn je interesses?' : 
+                 currentLanguage.code === 'fr' ? 'Quels sont vos centres d\'intérêt?' : 
+                 currentLanguage.code === 'es' ? '¿Cuáles son tus intereses?' : 
+                 currentLanguage.code === 'it' ? 'Quali sono i tuoi interessi?' : 
+                 t('onboarding.personal.interests.label') || 'What are your interests?'}
+              </Text>
+            </View>
             <View style={styles.interestGrid}>
               {interestOptions.map((interest) => (
                 <Pressable
@@ -1069,7 +885,7 @@ export default function PersonalInfoScreen() {
                     styles.interestText,
                     interests.includes(interest.id) && styles.selectedInterestText
                   ]}>
-                    {t(interest.labelKey)}
+                    {interest.label}
                   </Text>
                 </Pressable>
               ))}
@@ -1086,33 +902,38 @@ export default function PersonalInfoScreen() {
         onDateSelect={handleDateSelection}
       />
 
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        
-        <AnimatedPressable
-          style={[
-            styles.continueButton,
-            !isValid && styles.disabledButton,
-            buttonAnimatedStyle
-          ]}
-          onPress={handleContinue}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-        >
-          <Text style={[
-            styles.continueText,
-            !isValid && styles.disabledText
-          ]}>
-{currentLanguage.code === 'en' ? 'Continue' : 
-                     currentLanguage.code === 'de' ? 'Weiter' : 
-                     currentLanguage.code === 'nl' ? 'Doorgaan' : 
-                     currentLanguage.code === 'fr' ? 'Continuer' : 
-                     currentLanguage.code === 'es' ? 'Continuar' : 
-                     currentLanguage.code === 'it' ? 'Continua' : 
-                     t('common.continue') || 'Continue'}
-          </Text>
-          <ChevronRight size={20} color={isValid ? "#161618" : "#999999"} strokeWidth={2} />
-        </AnimatedPressable>
+        {/* Action Buttons */}
+        <View style={styles.buttonContainer}>
+          <AnimatedPressable
+            style={[styles.nextButton, buttonAnimatedStyle]}
+            onPress={handleContinue}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+          >
+            <Text style={styles.nextButtonText}>
+              {currentLanguage.code === 'en' ? 'Next' : 
+               currentLanguage.code === 'de' ? 'Weiter' : 
+               currentLanguage.code === 'nl' ? 'Volgende' : 
+               currentLanguage.code === 'fr' ? 'Suivant' : 
+               currentLanguage.code === 'es' ? 'Siguiente' : 
+               currentLanguage.code === 'it' ? 'Avanti' : 
+               t('common.next') || 'Next'}
+            </Text>
+          </AnimatedPressable>
+          
+          <Pressable style={styles.backButton} onPress={handleBack}>
+            <Text style={styles.backButtonText}>
+              {currentLanguage.code === 'en' ? 'Back' : 
+               currentLanguage.code === 'de' ? 'Zurück' : 
+               currentLanguage.code === 'nl' ? 'Terug' : 
+               currentLanguage.code === 'fr' ? 'Retour' : 
+               currentLanguage.code === 'es' ? 'Atrás' : 
+               currentLanguage.code === 'it' ? 'Indietro' : 
+               t('common.back') || 'Back'}
+            </Text>
+          </Pressable>
+        </View>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -1121,7 +942,46 @@ export default function PersonalInfoScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F3F5',
+    backgroundColor: '#102118',
+  },
+
+  // Upper Section (Solid Background)
+  upperSection: {
+    height: 200,
+    backgroundColor: '#102118',
+    position: 'relative',
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  darkOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#102118',
+    opacity: 0.87,
+    zIndex: 1,
+  },
+
+  // Lower Section (White Card)
+  lowerSection: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    marginTop: -30,
+  },
+  contentCard: {
+    flex: 1,
+    paddingTop: 24,
   },
   
   // Header
@@ -1132,16 +992,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 16,
     paddingBottom: 8,
-  },
-  backButton: {
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   stepIndicator: {
     fontSize: 14,
@@ -1155,19 +1005,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 24,
+    paddingVertical: 16,
     gap: 8,
   },
-  progressDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#E0E0E0',
-  },
-  activeDot: {
-    backgroundColor: '#54FE54',
+  progressDash: {
     width: 24,
-    borderRadius: 12,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#eafff6',
+  },
+  activeDash: {
+    backgroundColor: '#55ffb8',
   },
 
   scrollView: {
@@ -1184,24 +1032,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#161618',
-    fontFamily: 'Montserrat-Bold',
+    fontSize: 30,
+    fontWeight: '600',
+    color: '#404040',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+    color: '#AAA',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontWeight: '450',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 17,
   },
 
   // Input Sections
   inputSection: {
     marginBottom: 32,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 8,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#202020',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   labelContainer: {
     flexDirection: 'row',
@@ -1212,13 +1073,14 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
-    color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    color: '#4A4A4A',
+    fontFamily: 'Inter',
   },
   inputDescription: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: 'Inter',
+    fontWeight: '500',
     marginBottom: 16,
     lineHeight: 20,
   },
@@ -1264,35 +1126,33 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: '45%',
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 10,
+    padding: 14,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#E0E0E0',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    borderColor: '#EfEfEf',
     elevation: 1,
   },
   selectedRole: {
-    borderColor: '#54FE54',
-    backgroundColor: 'rgba(84, 254, 84, 0.1)',
-  },
-  roleEmoji: {
-    fontSize: 24,
-    marginBottom: 8,
+    borderColor: '#17f196',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 2,
   },
   roleLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
-    color: '#161618',
-    fontFamily: 'Montserrat-Medium',
+    color: '#4A4A4A',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     textAlign: 'center',
   },
   selectedRoleLabel: {
-    color: '#54FE54',
-    fontWeight: '600',
+    color: '#404040',
+    fontWeight: '750',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
 
   // Interests
@@ -1303,24 +1163,34 @@ const styles = StyleSheet.create({
   },
   interestChip: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderWidth: 1,
+    borderRadius: 7,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1.5,
     borderColor: '#E0E0E0',
+    width: '23%',
+    alignItems: 'center',
   },
   selectedInterest: {
-    backgroundColor: '#54FE54',
-    borderColor: '#54FE54',
+    borderColor: '#17f196',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 2,
   },
   interestText: {
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: '500',
-    color: '#666666',
-    fontFamily: 'Montserrat-Medium',
+    color: '#4A4A4A',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    textAlign: 'center',
   },
   selectedInterestText: {
-    color: '#161618',
+    color: '#404040',
+    fontWeight: '700',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
 
   // Date Picker
@@ -1367,7 +1237,7 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     paddingHorizontal: 20,
   },
@@ -1378,6 +1248,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     maxHeight: '80%',
+    marginBottom: 0,
   },
   datePickerTitle: {
     fontSize: 20,
@@ -1496,5 +1367,47 @@ const styles = StyleSheet.create({
   },
   disabledText: {
     color: '#999999',
+  },
+
+  // New Button Styles
+  buttonContainer: {
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    gap: 16,
+  },
+  nextButton: {
+    width: '100%',
+    height: 56,
+    backgroundColor: '#17f196',
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  nextButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  },
+  backButton: {
+    width: '100%',
+    height: 56,
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#17f196',
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#17f196',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
 });

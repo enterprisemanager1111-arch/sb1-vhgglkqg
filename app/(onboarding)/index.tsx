@@ -7,11 +7,12 @@ import {
   SafeAreaView,
   StatusBar,
   Dimensions,
+  Image as RNImage,
 } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Heart } from 'lucide-react-native';
+import { ChevronRight, Heart, MessageCircle, Leaf, Mail } from 'lucide-react-native';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -82,109 +83,96 @@ export default function OnboardingWelcome() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F3F3F5" />
+      <StatusBar barStyle="light-content" backgroundColor="#17f196" />
 
-      {/* Minimal Progress Indicator */}
-      <View style={styles.progressContainer}>
-        <View style={[styles.progressDot, styles.activeDot]} />
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-      </View>
-
-      {/* Main Content - Centered */}
-      <View style={styles.contentContainer}>
-        {/* Hero Icon with Subtle Glow */}
-        <View style={styles.heroSection}>
-          <AnimatedView style={[styles.glowContainer, glowAnimatedStyle]}>
-            <LinearGradient
-              colors={['#54FE54', '#D1FE54']}
-              start={{ x: 0.3, y: 0.2 }}
-              end={{ x: 0.7, y: 0.8 }}
-              style={styles.glow}
-            />
-          </AnimatedView>
-          <AnimatedView style={[styles.iconWrapper, iconAnimatedStyle]}>
-            <View style={styles.iconContainer}>
-              <Heart size={28} color="#FFFFFF" strokeWidth={2.5} fill="#FFFFFF" />
-            </View>
-          </AnimatedView>
+      {/* Upper Section with Background Image */}
+      <View style={styles.upperSection}>
+        <RNImage 
+          source={require('@/assets/images/newImg/background.jpg')} 
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        />
+        {/* App Logo */}
+        <View style={styles.logoContainer}>
+          <RNImage 
+            source={require('@/assets/images/newImg/logo.png')} 
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </View>
 
-        {/* Brand & Main Message */}
-        <View style={styles.messageSection}>
-          <Text style={styles.brandName}>
-            {currentLanguage.code === 'en' ? 'Welcome to Famora' : 
-             currentLanguage.code === 'de' ? 'Willkommen bei Famora' : 
-             currentLanguage.code === 'nl' ? 'Welkom bij Famora' : 
-             currentLanguage.code === 'fr' ? 'Bienvenue à Famora' : 
-             currentLanguage.code === 'es' ? 'Bienvenido a Famora' : 
-             currentLanguage.code === 'it' ? 'Benvenuto in Famora' : 
-             t('onboarding.welcome.title') || 'Welcome to Famora'}
-          </Text>
-          <Text style={styles.mainTitle}>
-            {currentLanguage.code === 'en' ? 'Your digital family organizer' : 
-             currentLanguage.code === 'de' ? 'Ihr digitaler Familienorganisator' : 
-             currentLanguage.code === 'nl' ? 'Je digitale familie-organizer' : 
-             currentLanguage.code === 'fr' ? 'Votre organisateur familial numérique' : 
-             currentLanguage.code === 'es' ? 'Tu organizador familiar digital' : 
-             currentLanguage.code === 'it' ? 'Il tuo organizzatore familiare digitale' : 
-             t('onboarding.welcome.subtitle') || 'Your digital family organizer'}
-          </Text>
-          <Text style={styles.subtitle}>
-            {currentLanguage.code === 'en' ? 'Appointments, tasks and reminders – all in one place for the whole family.' : 
-             currentLanguage.code === 'de' ? 'Appointments, tasks and reminders – all in one place for the whole family.' : 
-             currentLanguage.code === 'nl' ? 'Afspraken, taken en herinneringen – alles op één plek voor het hele gezin.' : 
-             currentLanguage.code === 'fr' ? 'Rendez-vous, tâches et rappels – tout en un seul endroit pour toute la famille.' : 
-             currentLanguage.code === 'es' ? 'Citas, tareas y recordatorios: todo en un lugar para toda la familia.' : 
-             currentLanguage.code === 'it' ? 'Appuntamenti, compiti e promemoria: tutto in un posto per tutta la famiglia.' : 
-             t('onboarding.welcome.description') || 'Appointments, tasks and reminders – all in one place for the whole family.'}
-          </Text>
-        </View>
-
-        {/* Simple Trust Signal */}
-        <View style={styles.trustSection}>
-          <Text style={styles.trustText}>
-            {currentLanguage.code === 'en' ? '✨ Set up in 3 minutes' : 
-             currentLanguage.code === 'de' ? '✨ In 3 Minuten eingerichtet' : 
-             currentLanguage.code === 'nl' ? '✨ Ingesteld in 3 minuten' : 
-             currentLanguage.code === 'fr' ? '✨ Configuration en 3 minutes' : 
-             currentLanguage.code === 'es' ? '✨ Configurado en 3 minutos' : 
-             currentLanguage.code === 'it' ? '✨ Configurazione in 3 minuti' : 
-             t('onboarding.welcome.setup') || '✨ Set up in 3 minutes'}
-          </Text>
+        {/* Onboard Start Image */}
+        <View style={styles.onboardImageContainer}>
+          <RNImage 
+            source={require('@/assets/images/newImg/onboard_start.png')} 
+            style={styles.onboardImage}
+            resizeMode="contain"
+          />
         </View>
       </View>
 
-      {/* Clean CTA */}
-      <View style={styles.ctaContainer}>
-        <AnimatedPressable
-          style={[styles.startButton, buttonAnimatedStyle]}
-          onPress={handleGetStarted}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-        >
-          <Text style={styles.startButtonText}>
-            {currentLanguage.code === 'en' ? 'Get started' : 
-             currentLanguage.code === 'de' ? 'Jetzt starten' : 
-             currentLanguage.code === 'nl' ? 'Aan de slag' : 
-             currentLanguage.code === 'fr' ? 'Commencer' : 
-             currentLanguage.code === 'es' ? 'Empezar' : 
-             currentLanguage.code === 'it' ? 'Inizia' : 
-             t('onboarding.welcome.getStarted') || 'Get started'}
+      {/* Lower Section - White Card */}
+      <View style={styles.lowerSection}>
+        <View style={styles.contentCard}>
+          <Text style={styles.welcomeTitle}>
+            {currentLanguage.code === 'en' ? 'Welcome to Famora!' : 
+             currentLanguage.code === 'de' ? 'Willkommen bei Famora!' : 
+             currentLanguage.code === 'nl' ? 'Welkom bij Famora!' : 
+             currentLanguage.code === 'fr' ? 'Bienvenue à Famora!' : 
+             currentLanguage.code === 'es' ? '¡Bienvenido a Famora!' : 
+             currentLanguage.code === 'it' ? 'Benvenuto in Famora!' : 
+             t('onboarding.welcome.title') || 'Welcome to Famora!'}
           </Text>
-          <ChevronRight size={20} color="#161618" strokeWidth={2.5} />
-        </AnimatedPressable>
-        
-        <Text style={styles.footnote}>
-          {currentLanguage.code === 'en' ? 'Free • No Ads • Family Safe' : 
-           currentLanguage.code === 'de' ? 'Kostenlos • Keine Werbung • Familiensicher' : 
-           currentLanguage.code === 'nl' ? 'Gratis • Geen advertenties • Familie veilig' : 
-           currentLanguage.code === 'fr' ? 'Gratuit • Pas de publicité • Sécurisé pour la famille' : 
-           currentLanguage.code === 'es' ? 'Gratis • Sin anuncios • Seguro para la familia' : 
-           currentLanguage.code === 'it' ? 'Gratuito • Senza pubblicità • Sicuro per la famiglia' : 
-           t('onboarding.welcome.footnote') || 'Free • No Ads • Family Safe'}
-        </Text>
+          
+          <Text style={styles.description}>
+            {currentLanguage.code === 'en' ? 'Make Smart Decisions! Set clear timelines for projects and celebrate your achievements!' : 
+             currentLanguage.code === 'de' ? 'Treffen Sie kluge Entscheidungen! Setzen Sie klare Zeitpläne für Projekte und feiern Sie Ihre Erfolge!' : 
+             currentLanguage.code === 'nl' ? 'Maak slimme beslissingen! Stel duidelijke tijdlijnen voor projecten en vier je prestaties!' : 
+             currentLanguage.code === 'fr' ? 'Prenez des décisions intelligentes! Définissez des délais clairs pour les projets et célébrez vos réussites!' : 
+             currentLanguage.code === 'es' ? '¡Toma decisiones inteligentes! Establece cronogramas claros para proyectos y celebra tus logros!' : 
+             currentLanguage.code === 'it' ? 'Prendi decisioni intelligenti! Imposta tempistiche chiare per i progetti e celebra i tuoi successi!' : 
+             t('onboarding.welcome.description') || 'Make Smart Decisions! Set clear timelines for projects and celebrate your achievements!'}
+          </Text>
+
+          {/* Progress Indicator */}
+          <View style={styles.progressContainer}>
+            <View style={[styles.progressDash, styles.activeDash]} />
+            <View style={styles.progressDash} />
+            <View style={styles.progressDash} />
+          </View>
+
+          {/* Buttons */}
+          <View style={styles.buttonContainer}>
+            <AnimatedPressable
+              style={[styles.startButton, buttonAnimatedStyle]}
+              onPress={handleGetStarted}
+              onPressIn={handlePressIn}
+              onPressOut={handlePressOut}
+            >
+              <Text style={styles.startButtonText}>
+                {currentLanguage.code === 'en' ? 'Start' : 
+                 currentLanguage.code === 'de' ? 'Start' : 
+                 currentLanguage.code === 'nl' ? 'Start' : 
+                 currentLanguage.code === 'fr' ? 'Commencer' : 
+                 currentLanguage.code === 'es' ? 'Empezar' : 
+                 currentLanguage.code === 'it' ? 'Inizia' : 
+                 t('onboarding.welcome.start') || 'Start'}
+              </Text>
+            </AnimatedPressable>
+            
+            <Pressable style={styles.skipButton}>
+              <Text style={styles.skipButtonText}>
+                {currentLanguage.code === 'en' ? 'Skip' : 
+                 currentLanguage.code === 'de' ? 'Überspringen' : 
+                 currentLanguage.code === 'nl' ? 'Overslaan' : 
+                 currentLanguage.code === 'fr' ? 'Ignorer' : 
+                 currentLanguage.code === 'es' ? 'Omitir' : 
+                 currentLanguage.code === 'it' ? 'Salta' : 
+                 t('onboarding.welcome.skip') || 'Skip'}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -193,162 +181,334 @@ export default function OnboardingWelcome() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F3F5',
+    backgroundColor: '#17f196',
   },
-  
-  // Minimal Progress (Top)
+
+  // Upper Section (60% of screen)
+  upperSection: {
+    flex: 0.6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+
+  // App Logo
+  logoContainer: {
+    position: 'absolute',
+    top: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoImage: {
+    width: screenWidth * 0.2,
+    height: screenWidth * 0.2,
+  },
+
+  // Onboard Start Image
+  onboardImageContainer: {
+    position: 'absolute',
+    top: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  onboardImage: {
+    width: screenWidth * 0.65,
+    height: screenHeight * 0.22,
+  },
+
+  // Central Illustration
+  illustrationContainer: {
+    width: 300,
+    height: 220,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+
+  // Dark Gray Blob
+  darkBlob: {
+    width: 200,
+    height: 140,
+    backgroundColor: '#4A4A4A',
+    borderRadius: 100,
+    position: 'absolute',
+    top: 10,
+    left: 50,
+  },
+
+  // Smartphone
+  smartphone: {
+    width: 50,
+    height: 80,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 6,
+    position: 'absolute',
+    top: 40,
+    left: 125,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  phoneScreen: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 4,
+    margin: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  person: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  personHead: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#4A4A4A',
+    marginBottom: 1,
+  },
+  personBody: {
+    width: 12,
+    height: 16,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 1,
+  },
+  personShirt: {
+    width: 12,
+    height: 8,
+    backgroundColor: '#D0D0D0',
+    borderRadius: 1,
+    position: 'absolute',
+    top: 2,
+  },
+  personPants: {
+    width: 12,
+    height: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 1,
+    position: 'absolute',
+    bottom: 0,
+  },
+
+  // Chat Bubbles
+  chatBubble: {
+    position: 'absolute',
+    backgroundColor: '#17f196',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  mainChatBubble: {
+    width: 40,
+    height: 30,
+    right: 20,
+    top: 60,
+    backgroundColor: '#17f196',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chatBubble1: {
+    width: 20,
+    height: 16,
+    backgroundColor: '#4A4A4A',
+    top: 20,
+    right: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chatBubble2: {
+    width: 16,
+    height: 12,
+    backgroundColor: '#4A4A4A',
+    top: 80,
+    left: 20,
+  },
+  chatBubble3: {
+    width: 18,
+    height: 14,
+    backgroundColor: '#4A4A4A',
+    bottom: 40,
+    right: 30,
+  },
+  textLine: {
+    width: 20,
+    height: 2,
+    backgroundColor: '#FFFFFF',
+    marginVertical: 1,
+    borderRadius: 1,
+  },
+  ellipsis: {
+    color: '#FFFFFF',
+    fontSize: 8,
+    fontWeight: 'bold',
+  },
+
+  // Envelope
+  envelopeContainer: {
+    position: 'absolute',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 8,
+    padding: 4,
+    right: 15,
+    top: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+
+  // Hearts
+  heartContainer: {
+    position: 'absolute',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 10,
+    padding: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  heart1: {
+    top: 100,
+    right: 60,
+  },
+  heart2: {
+    bottom: 50,
+    left: 30,
+  },
+
+  // Plant Elements
+  plantContainer: {
+    position: 'absolute',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 10,
+    padding: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  plant1: {
+    bottom: 20,
+    left: 50,
+  },
+  plant2: {
+    bottom: 30,
+    left: 70,
+  },
+
+  // Lower Section (40% of screen)
+  lowerSection: {
+    flex: 0.4,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 24,
+  },
+  contentCard: {
+    flex: 1,
+    paddingHorizontal: 32,
+    paddingBottom: 40,
+    alignItems: 'center',
+  },
+
+  // Text Styles
+  welcomeTitle: {
+    fontSize: 30,
+    fontWeight: '600',
+    color: '#404040',
+    textAlign: 'center',
+    marginBottom: 16,
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  },
+  description: {
+    fontSize: 16,
+    color: '#AAA',
+    textAlign: 'center',
+    lineHeight: 17,
+    marginBottom: 32,
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontWeight: '450',
+  },
+
+  // Progress Indicator
   progressContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 32,
-    paddingBottom: 16,
+    marginBottom: 32,
     gap: 8,
   },
-  progressDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#E0E0E0',
+  progressDash: {
+    width: 24,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#eafff6',
   },
-  activeDot: {
-    backgroundColor: '#54FE54',
-    width: 20,
-    borderRadius: 10,
+  activeDash: {
+    backgroundColor: '#55ffb8',
   },
 
-  // Main Content (Center)
-  contentContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 40,
-  },
-
-  // Hero Icon Section
-  heroSection: {
-    width: 120,
-    height: 120,
-    marginBottom: 48,
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  glowContainer: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-  },
-  glow: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    shadowColor: '#54FE54',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 16,
-    elevation: 16,
-  },
-  iconWrapper: {
-    position: 'absolute',
-    width: 80,
-    height: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconContainer: {
-    width: 56,
-    height: 56,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backdropFilter: 'blur(20px)',
-  },
-
-  // Message Section
-  messageSection: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  brandName: {
-    fontFamily: 'Montserrat-Bold',
-    fontWeight: '700',
-    fontSize: 16,
-    color: '#54FE54',
-    marginBottom: 20,
-    letterSpacing: 1,
-  },
-  mainTitle: {
-    fontFamily: 'Montserrat-Bold',
-    fontWeight: '700',
-    fontSize: 28,
-    lineHeight: 34,
-    textAlign: 'center',
-    color: '#161618',
-    marginBottom: 16,
-  },
-  subtitle: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 16,
-    lineHeight: 24,
-    textAlign: 'center',
-    color: '#666666',
-    maxWidth: 280,
-  },
-
-  // Trust Signal
-  trustSection: {
-    alignItems: 'center',
-  },
-  trustText: {
-    fontFamily: 'Montserrat-Medium',
-    fontSize: 14,
-    color: '#54FE54',
-    fontWeight: '500',
-    backgroundColor: 'rgba(84, 254, 84, 0.1)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(84, 254, 84, 0.2)',
-  },
-
-  // CTA Section (Bottom)
-  ctaContainer: {
-    paddingHorizontal: 32,
-    paddingBottom: 40,
+  // Buttons
+  buttonContainer: {
+    width: '100%',
     alignItems: 'center',
     gap: 16,
   },
   startButton: {
-    width: screenWidth - 64,
+    width: '100%',
     height: 56,
-    backgroundColor: '#54FE54',
-    borderRadius: 16,
-    flexDirection: 'row',
+    backgroundColor: '#17f196',
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    shadowColor: '#54FE54',
-    shadowOffset: { width: 0, height: 6 },
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowRadius: 8,
+    elevation: 6,
   },
   startButtonText: {
-    fontFamily: 'Montserrat-SemiBold',
-    fontWeight: '600',
     fontSize: 17,
-    color: '#161618',
-    letterSpacing: 0.3,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
-  footnote: {
-    fontFamily: 'Montserrat-Regular',
-    fontSize: 12,
-    color: '#999999',
-    textAlign: 'center',
+  skipButton: {
+    width: '100%',
+    height: 56,
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#17f196',
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  skipButtonText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#17f196',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
 });

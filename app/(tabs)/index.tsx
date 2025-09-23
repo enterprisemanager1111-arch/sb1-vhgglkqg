@@ -10,6 +10,7 @@ import {
   Image,
   RefreshControl,
   Platform,
+  Image as RNImage,
 } from 'react-native';
 import Animated, { useSharedValue, withSpring, withDelay, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { 
@@ -231,6 +232,15 @@ export default function HomeDashboard() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Background Image */}
+      <RNImage 
+        source={require('@/assets/images/newImg/background.jpg')} 
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      />
+      {/* Dark Overlay */}
+      <View style={styles.darkOverlay} />
+      
       {/* Notification System */}
       <NotificationSystem
         notifications={notifications}
@@ -525,10 +535,30 @@ export default function HomeDashboard() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F3F5',
+    backgroundColor: '#102118',
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  darkOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#102118',
+    opacity: 0.7,
+    zIndex: 1,
   },
   scrollView: {
     flex: 1,
+    zIndex: 2,
   },
   loadingContainer: {
     flex: 1,

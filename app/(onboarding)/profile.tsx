@@ -7,7 +7,7 @@ import {
   SafeAreaView,
   StatusBar,
   ScrollView,
-  Image,
+  Image as RNImage,
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -229,6 +229,11 @@ export default function ProfileCompletion() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <RNImage 
+        source={require('@/assets/images/newImg/background.jpg')} 
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      />
       <StatusBar barStyle="dark-content" backgroundColor="#F3F3F5" />
 
       {/* Header */}
@@ -384,6 +389,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F3F3F5',
   },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
   
   // Header
   header: {
@@ -408,7 +422,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#666666',
-    fontFamily: 'Montserrat-Medium',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
 
   // Progress
@@ -448,14 +462,14 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: '#161618',
-    fontFamily: 'Montserrat-Bold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -489,7 +503,7 @@ const styles = StyleSheet.create({
     right: 8,
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: 25,
     backgroundColor: '#54FE54',
     justifyContent: 'center',
     alignItems: 'center',
@@ -500,7 +514,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#666666',
-    fontFamily: 'Montserrat-Medium',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     marginBottom: 16,
   },
   avatarActions: {
@@ -527,7 +541,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#54FE54',
-    fontFamily: 'Montserrat-Medium',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
 
   // Summary Section
@@ -538,12 +552,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     marginBottom: 16,
   },
   summaryCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 25,
     padding: 20,
     borderWidth: 1,
     borderColor: '#E0E0E0',
@@ -565,13 +579,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#666666',
-    fontFamily: 'Montserrat-Medium',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   summaryValue: {
     fontSize: 14,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     flex: 1,
     textAlign: 'right',
   },
@@ -580,7 +594,7 @@ const styles = StyleSheet.create({
   successSection: {
     alignItems: 'center',
     backgroundColor: 'rgba(84, 254, 84, 0.1)',
-    borderRadius: 16,
+    borderRadius: 25,
     padding: 24,
     borderWidth: 1,
     borderColor: 'rgba(84, 254, 84, 0.2)',
@@ -598,14 +612,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     marginBottom: 8,
     textAlign: 'center',
   },
   successText: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -639,7 +653,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#666666',
-    fontFamily: 'Montserrat-Medium',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   continueButton: {
     flex: 2,
@@ -660,6 +674,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
 });

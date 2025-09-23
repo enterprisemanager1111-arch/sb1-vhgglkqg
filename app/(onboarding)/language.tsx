@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   StatusBar,
   ScrollView,
+  Image as RNImage,
 } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
@@ -62,10 +63,24 @@ export default function LanguageSelection() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F3F3F5" />
+      <StatusBar barStyle="light-content" backgroundColor="#102118" />
 
-      {/* Header */}
-      <View style={styles.header}>
+      {/* Upper Section with Background Image */}
+      <View style={styles.upperSection}>
+        <RNImage 
+          source={require('@/assets/images/newImg/background.jpg')} 
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        />
+        {/* Dark Translucent Overlay */}
+        <View style={styles.darkOverlay} />
+      </View>
+
+      {/* Lower Section - White Card */}
+      <View style={styles.lowerSection}>
+        <View style={styles.contentCard}>
+          {/* Header */}
+          <View style={styles.header}>
         <Pressable style={styles.backButton} onPress={handleBack}>
           <ChevronLeft size={24} color="#161618" strokeWidth={2} />
         </Pressable>
@@ -213,6 +228,8 @@ export default function LanguageSelection() {
           </Text>
           <ChevronRight size={20} color="#161618" strokeWidth={2} />
         </AnimatedPressable>
+        </View>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -221,7 +238,46 @@ export default function LanguageSelection() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F3F5',
+    backgroundColor: '#102118',
+  },
+
+  // Upper Section (Solid Background)
+  upperSection: {
+    height: 200,
+    backgroundColor: '#102118',
+    position: 'relative',
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  darkOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#102118',
+    opacity: 0.87,
+    zIndex: 1,
+  },
+
+  // Lower Section (White Card)
+  lowerSection: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    marginTop: -30,
+  },
+  contentCard: {
+    flex: 1,
+    paddingTop: 24,
   },
   
   // Header
@@ -247,7 +303,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#666666',
-    fontFamily: 'Montserrat-Medium',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
 
   // Progress
@@ -296,14 +352,14 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: '#161618',
-    fontFamily: 'Montserrat-Bold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -318,7 +374,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 25,
     padding: 20,
     borderWidth: 2,
     borderColor: '#E0E0E0',
@@ -348,7 +404,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     marginBottom: 2,
   },
   selectedLanguageName: {
@@ -357,7 +413,7 @@ const styles = StyleSheet.create({
   languageSubtitle: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   languageRight: {
     alignItems: 'center',
@@ -375,7 +431,7 @@ const styles = StyleSheet.create({
   // Preview Section
   previewSection: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 25,
     padding: 20,
     borderWidth: 1,
     borderColor: '#E0E0E0',
@@ -389,7 +445,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     marginBottom: 12,
   },
   previewCard: {
@@ -402,14 +458,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#161618',
-    fontFamily: 'Montserrat-Bold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     textAlign: 'center',
     marginBottom: 4,
   },
   previewSubtext: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     textAlign: 'center',
   },
 
@@ -431,7 +487,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#54FE54',
-    borderRadius: 16,
+    borderRadius: 25,
     paddingVertical: 16,
     gap: 8,
     shadowColor: '#54FE54',
@@ -444,6 +500,6 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
 });
