@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,17 @@ import {
   Image as RNImage,
 } from 'react-native';
 import { router } from 'expo-router';
-import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
+import Animated, { 
+  useSharedValue, 
+  withSpring, 
+  useAnimatedStyle,
+  withTiming,
+  withDelay,
+  withSequence,
+  withRepeat,
+  interpolate,
+  Extrapolate
+} from 'react-native-reanimated';
 import { ChevronLeft, ChevronRight, Globe, Check } from 'lucide-react-native';
 import { supportedLanguages, useLanguage } from '@/contexts/LanguageContext';
 import { useLoading } from '@/contexts/LoadingContext';
@@ -22,7 +32,60 @@ export default function LanguageSelection() {
   const { currentLanguage, changeLanguage, t } = useLanguage();
   const { showLoading, hideLoading } = useLoading();
   
+  // Button animations
   const buttonScale = useSharedValue(1);
+  
+  // Component animations
+  const titleOpacity = useSharedValue(0);
+  const titleTranslateY = useSharedValue(50);
+  const languagesOpacity = useSharedValue(0);
+  const languagesTranslateY = useSharedValue(30);
+  const buttonOpacity = useSharedValue(0);
+  const buttonTranslateY = useSharedValue(20);
+  
+  // Continuous animations
+  const iconFloat = useSharedValue(0);
+  const buttonPulse = useSharedValue(1);
+  
+  // Animation trigger function
+  const triggerAnimations = () => {
+    // Title animation - bounce in from top
+    titleOpacity.value = withTiming(1, { duration: 800 });
+    titleTranslateY.value = withSpring(0, { damping: 15, stiffness: 150 });
+
+    // Languages - slide up with fade
+    languagesOpacity.value = withDelay(400, withTiming(1, { duration: 600 }));
+    languagesTranslateY.value = withDelay(400, withSpring(0, { damping: 12, stiffness: 120 }));
+
+    // Button - fade in from bottom
+    buttonOpacity.value = withDelay(600, withTiming(1, { duration: 500 }));
+    buttonTranslateY.value = withDelay(600, withSpring(0, { damping: 10, stiffness: 100 }));
+
+    // Icon floating animation
+    iconFloat.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 2000 }),
+        withTiming(0, { duration: 2000 })
+      ),
+      -1,
+      true
+    );
+
+    // Button pulse animation
+    buttonPulse.value = withRepeat(
+      withSequence(
+        withTiming(1.02, { duration: 1500 }),
+        withTiming(1, { duration: 1500 })
+      ),
+      -1,
+      true
+    );
+  };
+
+  // Trigger animations on component mount
+  useEffect(() => {
+    triggerAnimations();
+  }, []);
 
   // Initialize with current language
   React.useEffect(() => {
@@ -48,6 +111,29 @@ export default function LanguageSelection() {
   const handleBack = () => {
     router.back();
   };
+
+  // Component animated styles
+  const titleAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: titleOpacity.value,
+    transform: [{ translateY: titleTranslateY.value }],
+  }));
+
+  const languagesAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: languagesOpacity.value,
+    transform: [{ translateY: languagesTranslateY.value }],
+  }));
+
+  const buttonContainerAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: buttonOpacity.value,
+    transform: [{ translateY: buttonTranslateY.value }],
+  }));
+
+  // Additional animated styles
+  const iconFloatAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ 
+      translateY: interpolate(iconFloat.value, [0, 1], [-3, 3], Extrapolate.CLAMP)
+    }],
+  }));
 
   const buttonAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: buttonScale.value }],

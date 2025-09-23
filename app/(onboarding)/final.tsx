@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,17 @@ import {
   Image as RNImage,
 } from 'react-native';
 import { router } from 'expo-router';
-import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
+import Animated, { 
+  useSharedValue, 
+  withSpring, 
+  useAnimatedStyle,
+  withTiming,
+  withDelay,
+  withSequence,
+  withRepeat,
+  interpolate,
+  Extrapolate
+} from 'react-native-reanimated';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -18,22 +28,130 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function OnboardingFinal() {
   const { t, currentLanguage } = useLanguage();
-  const buttonScale = useSharedValue(1);
+  
+  // Button animations
+  const signInButtonScale = useSharedValue(1);
+  const signUpButtonScale = useSharedValue(1);
+  
+  // Component animations
+  const titleOpacity = useSharedValue(0);
+  const titleTranslateY = useSharedValue(50);
+  const subtitleOpacity = useSharedValue(0);
+  const subtitleTranslateY = useSharedValue(30);
+  const illustrationOpacity = useSharedValue(0);
+  const illustrationScale = useSharedValue(0.8);
+  const buttonsOpacity = useSharedValue(0);
+  const buttonsTranslateY = useSharedValue(20);
+  
+  // Continuous animations
+  const iconFloat = useSharedValue(0);
+  const buttonPulse = useSharedValue(1);
+  
+  // Animation trigger function
+  const triggerAnimations = () => {
+    // Title animation - bounce in from top
+    titleOpacity.value = withTiming(1, { duration: 800 });
+    titleTranslateY.value = withSpring(0, { damping: 15, stiffness: 150 });
 
-  const handlePressIn = () => {
-    buttonScale.value = withSpring(0.95);
+    // Subtitle animation - fade in with slight delay
+    subtitleOpacity.value = withDelay(200, withTiming(1, { duration: 600 }));
+    subtitleTranslateY.value = withDelay(200, withSpring(0, { damping: 12, stiffness: 120 }));
+
+    // Illustration - scale in with bounce
+    illustrationOpacity.value = withDelay(400, withTiming(1, { duration: 600 }));
+    illustrationScale.value = withDelay(400, withSpring(1, { damping: 8, stiffness: 120 }));
+
+    // Buttons - fade in from bottom
+    buttonsOpacity.value = withDelay(600, withTiming(1, { duration: 500 }));
+    buttonsTranslateY.value = withDelay(600, withSpring(0, { damping: 10, stiffness: 100 }));
+
+    // Icon floating animation - continuous gentle float
+    iconFloat.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 2000 }),
+        withTiming(0, { duration: 2000 })
+      ),
+      -1,
+      true
+    );
+
+    // Button pulse animation - subtle pulse effect
+    buttonPulse.value = withRepeat(
+      withSequence(
+        withTiming(1.02, { duration: 1500 }),
+        withTiming(1, { duration: 1500 })
+      ),
+      -1,
+      true
+    );
   };
 
-  const handlePressOut = () => {
-    buttonScale.value = withSpring(1);
-  };
+  // Trigger animations on component mount
+  useEffect(() => {
+    triggerAnimations();
+  }, []);
+
 
   const handleGetStarted = () => {
     router.replace('/(tabs)');
   };
 
-  const buttonAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonScale.value }],
+  // Individual button handlers
+  const handleSignInPressIn = () => {
+    signInButtonScale.value = withSpring(0.95);
+  };
+
+  const handleSignInPressOut = () => {
+    signInButtonScale.value = withSpring(1);
+  };
+
+  const handleSignUpPressIn = () => {
+    signUpButtonScale.value = withSpring(0.95);
+  };
+
+  const handleSignUpPressOut = () => {
+    signUpButtonScale.value = withSpring(1);
+  };
+
+  // Component animated styles
+  const titleAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: titleOpacity.value,
+    transform: [{ translateY: titleTranslateY.value }],
+  }));
+
+  const subtitleAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: subtitleOpacity.value,
+    transform: [{ translateY: subtitleTranslateY.value }],
+  }));
+
+  const illustrationAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: illustrationOpacity.value,
+    transform: [{ scale: illustrationScale.value }],
+  }));
+
+  const buttonsAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: buttonsOpacity.value,
+    transform: [{ translateY: buttonsTranslateY.value }],
+  }));
+
+  // Additional cool animated styles
+  const iconFloatAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ 
+      translateY: interpolate(iconFloat.value, [0, 1], [-3, 3], Extrapolate.CLAMP)
+    }],
+  }));
+
+  const buttonPulseAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonPulse.value }],
+  }));
+
+  // Individual button animated styles
+  const signInButtonAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: signInButtonScale.value }],
+  }));
+
+  const signUpButtonAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: signUpButtonScale.value }],
   }));
 
   return (
@@ -57,36 +175,40 @@ export default function OnboardingFinal() {
         </View>
 
         {/* Onboard Final Image */}
-        <View style={styles.onboardImageContainer}>
+        <Animated.View style={[styles.onboardImageContainer, illustrationAnimatedStyle]}>
           <RNImage 
             source={require('@/assets/images/newImg/onboard_final.png')} 
             style={styles.onboardImage}
             resizeMode="contain"
           />
-        </View>
+        </Animated.View>
       </View>
 
       {/* Lower Section - White Card */}
       <View style={styles.lowerSection}>
         <View style={styles.contentCard}>
-          <Text style={styles.welcomeTitle}>
-            Your Famora Account
-          </Text>
+          <Animated.View style={titleAnimatedStyle}>
+            <Text style={styles.welcomeTitle}>
+              Your Famora Account
+            </Text>
+          </Animated.View>
           
-          <Text style={styles.description}>
-            Create or log in to your account to experience all the features.
-          </Text>
+          <Animated.View style={subtitleAnimatedStyle}>
+            <Text style={styles.description}>
+              Create or log in to your account to experience all the features.
+            </Text>
+          </Animated.View>
 
           {/* Buttons */}
-          <View style={styles.buttonContainer}>
+          <Animated.View style={[styles.buttonContainer, buttonsAnimatedStyle]}>
             {/* Sign In Button */}
             <AnimatedPressable
-              style={[styles.signInButton, buttonAnimatedStyle]}
+              style={[styles.signInButton, signInButtonAnimatedStyle]}
               onPress={() => {
                 router.push('/(onboarding)/signin');
               }}
-              onPressIn={handlePressIn}
-              onPressOut={handlePressOut}
+              onPressIn={handleSignInPressIn}
+              onPressOut={handleSignInPressOut}
             >
               <Text style={styles.signInButtonText}>
                 Sign In
@@ -95,19 +217,19 @@ export default function OnboardingFinal() {
 
             {/* Sign Up Button */}
             <AnimatedPressable
-              style={[styles.signUpButton, buttonAnimatedStyle]}
+              style={[styles.signUpButton, signUpButtonAnimatedStyle]}
               onPress={() => {
                 // Navigate to sign up flow
                 router.replace('/(tabs)');
               }}
-              onPressIn={handlePressIn}
-              onPressOut={handlePressOut}
+              onPressIn={handleSignUpPressIn}
+              onPressOut={handleSignUpPressOut}
             >
               <Text style={styles.signUpButtonText}>
                 Sign Up
               </Text>
             </AnimatedPressable>
-          </View>
+          </Animated.View>
         </View>
       </View>
     </SafeAreaView>

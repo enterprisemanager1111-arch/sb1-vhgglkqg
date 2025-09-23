@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,17 @@ import {
   Image as RNImage,
 } from 'react-native';
 import { router } from 'expo-router';
-import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
+import Animated, { 
+  useSharedValue, 
+  withSpring, 
+  useAnimatedStyle,
+  withTiming,
+  withDelay,
+  withSequence,
+  withRepeat,
+  interpolate,
+  Extrapolate
+} from 'react-native-reanimated';
 import { ChevronLeft, ChevronRight, Flag, CircleHelp as HelpCircle } from 'lucide-react-native';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -27,7 +37,29 @@ export default function PreferencesSetup() {
   const { onboardingData, updatePreferences, completeStep } = useOnboarding();
   const { showLoading, hideLoading } = useLoading();
 
+  // Button animations
   const buttonScale = useSharedValue(1);
+  const nextButtonScale = useSharedValue(1);
+  const backButtonScale = useSharedValue(1);
+  
+  // Component animations
+  const titleOpacity = useSharedValue(0);
+  const titleTranslateY = useSharedValue(50);
+  const subtitleOpacity = useSharedValue(0);
+  const subtitleTranslateY = useSharedValue(30);
+  const goalsOpacity = useSharedValue(0);
+  const goalsTranslateY = useSharedValue(30);
+  const progressOpacity = useSharedValue(0);
+  const progressScale = useSharedValue(0.8);
+  const buttonsOpacity = useSharedValue(0);
+  const buttonsTranslateY = useSharedValue(20);
+  
+  // Continuous animations
+  const iconFloat = useSharedValue(0);
+  const buttonPulse = useSharedValue(1);
+  
+  // Individual button animations for goals
+  const goalButtonScales = useSharedValue<Record<string, any>>({});
 
   const goalOptions = [
     { id: 'routine', label: 'Establish routines', description: 'Create regular processes' },
@@ -76,9 +108,103 @@ export default function PreferencesSetup() {
     );
   };
 
+  // Animation trigger function
+  const triggerAnimations = () => {
+    // Title animation - bounce in from top
+    titleOpacity.value = withTiming(1, { duration: 800 });
+    titleTranslateY.value = withSpring(0, { damping: 15, stiffness: 150 });
+
+    // Subtitle animation - fade in with slight delay
+    subtitleOpacity.value = withDelay(200, withTiming(1, { duration: 600 }));
+    subtitleTranslateY.value = withDelay(200, withSpring(0, { damping: 12, stiffness: 120 }));
+
+    // Goals section - slide up with fade
+    goalsOpacity.value = withDelay(400, withTiming(1, { duration: 600 }));
+    goalsTranslateY.value = withDelay(400, withSpring(0, { damping: 12, stiffness: 120 }));
+
+    // Progress indicator - scale in with bounce
+    progressOpacity.value = withDelay(600, withTiming(1, { duration: 500 }));
+    progressScale.value = withDelay(600, withSpring(1, { damping: 8, stiffness: 120 }));
+
+    // Buttons - fade in from bottom
+    buttonsOpacity.value = withDelay(800, withTiming(1, { duration: 500 }));
+    buttonsTranslateY.value = withDelay(800, withSpring(0, { damping: 10, stiffness: 100 }));
+
+    // Icon floating animation - continuous gentle float
+    iconFloat.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 2000 }),
+        withTiming(0, { duration: 2000 })
+      ),
+      -1,
+      true
+    );
+
+    // Button pulse animation - subtle pulse effect
+    buttonPulse.value = withRepeat(
+      withSequence(
+        withTiming(1.02, { duration: 1500 }),
+        withTiming(1, { duration: 1500 })
+      ),
+      -1,
+      true
+    );
+  };
+
+  // Trigger animations on component mount
+  useEffect(() => {
+    triggerAnimations();
+  }, []);
+
   const buttonAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: buttonScale.value }],
   }));
+
+  // Component animated styles
+  const titleAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: titleOpacity.value,
+    transform: [{ translateY: titleTranslateY.value }],
+  }));
+
+  const subtitleAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: subtitleOpacity.value,
+    transform: [{ translateY: subtitleTranslateY.value }],
+  }));
+
+  const goalsAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: goalsOpacity.value,
+    transform: [{ translateY: goalsTranslateY.value }],
+  }));
+
+  const progressAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: progressOpacity.value,
+    transform: [{ scale: progressScale.value }],
+  }));
+
+  const buttonsAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: buttonsOpacity.value,
+    transform: [{ translateY: buttonsTranslateY.value }],
+  }));
+
+  // Additional cool animated styles
+  const iconFloatAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ 
+      translateY: interpolate(iconFloat.value, [0, 1], [-3, 3], Extrapolate.CLAMP)
+    }],
+  }));
+
+  const buttonPulseAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonPulse.value }],
+  }));
+
+  // Goal button animated style
+  const getGoalButtonAnimatedStyle = (goalId: string) => {
+    return useAnimatedStyle(() => ({
+      transform: [{ 
+        scale: goalButtonScales.value[goalId] || 1 
+      }],
+    }));
+  };
 
   const handlePressIn = () => {
     buttonScale.value = withSpring(0.95);
@@ -86,6 +212,23 @@ export default function PreferencesSetup() {
 
   const handlePressOut = () => {
     buttonScale.value = withSpring(1);
+  };
+
+  // Goal button handlers
+  const handleGoalPressIn = (goalId: string) => {
+    'worklet';
+    goalButtonScales.value = {
+      ...goalButtonScales.value,
+      [goalId]: withSpring(0.95, { damping: 15, stiffness: 300 })
+    };
+  };
+
+  const handleGoalPressOut = (goalId: string) => {
+    'worklet';
+    goalButtonScales.value = {
+      ...goalButtonScales.value,
+      [goalId]: withSpring(1, { damping: 15, stiffness: 300 })
+    };
   };
 
   return (
@@ -110,7 +253,7 @@ export default function PreferencesSetup() {
         {/* Content */}
         <View style={styles.content}>
           {/* Title */}
-          <View style={styles.titleContainer}>
+          <Animated.View style={[styles.titleContainer, titleAnimatedStyle]}>
             <Text style={styles.title}>
               {currentLanguage.code === 'en' ? 'Tell us you preferences' : 
                currentLanguage.code === 'de' ? 'Erzählen Sie uns Ihre Präferenzen' : 
@@ -120,7 +263,8 @@ export default function PreferencesSetup() {
                currentLanguage.code === 'it' ? 'Parlaci delle tue preferenze' : 
                t('onboarding.preferences.title') || 'Tell us you preferences'}
             </Text>
-            <Text style={styles.subtitle}>
+            <Animated.View style={subtitleAnimatedStyle}>
+              <Text style={styles.subtitle}>
               {currentLanguage.code === 'en' ? 'Let us shape Famora according to your wishes and thoughts.' : 
                currentLanguage.code === 'de' ? 'Lassen Sie uns Famora nach Ihren Wünschen und Gedanken gestalten.' : 
                currentLanguage.code === 'nl' ? 'Laat ons Famora vormgeven volgens jouw wensen en gedachten.' : 
@@ -128,20 +272,23 @@ export default function PreferencesSetup() {
                currentLanguage.code === 'es' ? 'Dejanos dar forma a Famora según tus deseos y pensamientos.' : 
                currentLanguage.code === 'it' ? 'Lascia che modelliamo Famora secondo i tuoi desideri e pensieri.' : 
                t('onboarding.preferences.subtitle') || 'Let us shape Famora according to your wishes and thoughts.'}
-            </Text>
-          </View>
+              </Text>
+            </Animated.View>
+          </Animated.View>
 
           {/* Progress Indicator */}
-          <View style={styles.progressContainer}>
+          <Animated.View style={[styles.progressContainer, progressAnimatedStyle]}>
             <View style={styles.progressDash} />
             <View style={styles.progressDash} />
             <View style={[styles.progressDash, styles.activeDash]} />
-          </View>
+          </Animated.View>
 
           {/* Goals Selection */}
-          <View style={styles.section}>
+          <Animated.View style={[styles.section, goalsAnimatedStyle]}>
             <View style={styles.sectionHeader}>
-              <Flag size={20} color="#17f196" strokeWidth={2} />
+              <Animated.View style={iconFloatAnimatedStyle}>
+                <Flag size={20} color="#17f196" strokeWidth={2} />
+              </Animated.View>
               <Text style={styles.sectionTitle}>
                 {currentLanguage.code === 'en' ? 'What would you like to achieve?' : 
                  currentLanguage.code === 'de' ? 'Was möchten Sie erreichen?' : 
@@ -154,13 +301,16 @@ export default function PreferencesSetup() {
             </View>
             <View style={styles.goalGrid}>
               {goalOptions.map((goal) => (
-                <Pressable
+                <AnimatedPressable
                   key={goal.id}
                   style={[
                     styles.goalCard,
-                    goals.includes(goal.id) && styles.selectedGoal
+                    goals.includes(goal.id) && styles.selectedGoal,
+                    getGoalButtonAnimatedStyle(goal.id)
                   ]}
                   onPress={() => toggleGoal(goal.id)}
+                  onPressIn={() => handleGoalPressIn(goal.id)}
+                  onPressOut={() => handleGoalPressOut(goal.id)}
                 >
                   <Text style={[
                     styles.goalLabel,
@@ -174,17 +324,17 @@ export default function PreferencesSetup() {
                   ]}>
                     {goal.description}
                   </Text>
-                </Pressable>
+                </AnimatedPressable>
               ))}
             </View>
-          </View>
+          </Animated.View>
 
         </View>
           </ScrollView>
         </View>
 
         {/* Action Buttons */}
-        <View style={styles.buttonContainer}>
+        <Animated.View style={[styles.buttonContainer, buttonsAnimatedStyle]}>
           <AnimatedPressable
             style={[styles.continueButton, buttonAnimatedStyle]}
             onPress={handleContinue}
@@ -212,8 +362,8 @@ export default function PreferencesSetup() {
                currentLanguage.code === 'it' ? 'Indietro' : 
                t('common.back') || 'Back'}
             </Text>
-          </Pressable>
-        </View>
+            </Pressable>
+        </Animated.View>
       </View>
     </SafeAreaView>
   );

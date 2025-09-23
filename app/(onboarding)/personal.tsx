@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,17 @@ import {
   Image as RNImage,
 } from 'react-native';
 import { router } from 'expo-router';
-import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
+import Animated, { 
+  useSharedValue, 
+  withSpring, 
+  useAnimatedStyle,
+  withTiming,
+  withDelay,
+  withSequence,
+  withRepeat,
+  interpolate,
+  Extrapolate
+} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, ChevronRight, User, Calendar, Heart, CircleHelp as HelpCircle, ChevronDown } from 'lucide-react-native';
 import { sanitizeText, validateName } from '@/utils/sanitization';
@@ -294,6 +304,71 @@ export default function PersonalInfoScreen() {
   
   const { onboardingData, updatePersonalInfo, completeStep, loading } = useOnboarding();
   
+  // Component animations
+  const titleOpacity = useSharedValue(0);
+  const titleTranslateY = useSharedValue(50);
+  const subtitleOpacity = useSharedValue(0);
+  const subtitleTranslateY = useSharedValue(30);
+  const nameInputOpacity = useSharedValue(0);
+  const nameInputTranslateX = useSharedValue(-50);
+  const dateInputOpacity = useSharedValue(0);
+  const dateInputTranslateX = useSharedValue(50);
+  const buttonOpacity = useSharedValue(0);
+  const buttonTranslateY = useSharedValue(20);
+  
+  // Continuous animations
+  const iconFloat = useSharedValue(0);
+  const buttonPulse = useSharedValue(1);
+  
+  // Individual button animations for roles
+  const roleButtonScales = useSharedValue<Record<string, any>>({});
+  
+  // Individual button animations for interests
+  const interestButtonScales = useSharedValue<Record<string, any>>({});
+  
+  // Animation trigger function
+  const triggerAnimations = () => {
+    // Title animation - bounce in from top
+    titleOpacity.value = withTiming(1, { duration: 800 });
+    titleTranslateY.value = withSpring(0, { damping: 15, stiffness: 150 });
+
+    // Subtitle animation - fade in with slight delay
+    subtitleOpacity.value = withDelay(200, withTiming(1, { duration: 600 }));
+    subtitleTranslateY.value = withDelay(200, withSpring(0, { damping: 12, stiffness: 120 }));
+
+    // Name input - slide in from left
+    nameInputOpacity.value = withDelay(400, withTiming(1, { duration: 600 }));
+    nameInputTranslateX.value = withDelay(400, withSpring(0, { damping: 10, stiffness: 100 }));
+
+    // Date input - slide in from right
+    dateInputOpacity.value = withDelay(600, withTiming(1, { duration: 600 }));
+    dateInputTranslateX.value = withDelay(600, withSpring(0, { damping: 10, stiffness: 100 }));
+
+    // Button - fade in from bottom
+    buttonOpacity.value = withDelay(800, withTiming(1, { duration: 500 }));
+    buttonTranslateY.value = withDelay(800, withSpring(0, { damping: 10, stiffness: 100 }));
+
+    // Icon floating animation - continuous gentle float
+    iconFloat.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 2000 }),
+        withTiming(0, { duration: 2000 })
+      ),
+      -1,
+      true
+    );
+
+    // Button pulse animation - subtle pulse effect
+    buttonPulse.value = withRepeat(
+      withSequence(
+        withTiming(1.02, { duration: 1500 }),
+        withTiming(1, { duration: 1500 })
+      ),
+      -1,
+      true
+    );
+  };
+
   // Debug component mounting
   React.useEffect(() => {
     console.log('DEBUG: PersonalInfoScreen useEffect - Component mounted');
@@ -316,6 +391,7 @@ export default function PersonalInfoScreen() {
     };
     
     checkCurrentStorage();
+    triggerAnimations();
   }, []);
 
   // Load existing data from context when it becomes available
@@ -491,12 +567,101 @@ export default function PersonalInfoScreen() {
     transform: [{ scale: buttonScale.value }],
   }));
 
+  // Component animated styles
+  const titleAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: titleOpacity.value,
+    transform: [{ translateY: titleTranslateY.value }],
+  }));
+
+  const subtitleAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: subtitleOpacity.value,
+    transform: [{ translateY: subtitleTranslateY.value }],
+  }));
+
+  const nameInputAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: nameInputOpacity.value,
+    transform: [{ translateX: nameInputTranslateX.value }],
+  }));
+
+  const dateInputAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: dateInputOpacity.value,
+    transform: [{ translateX: dateInputTranslateX.value }],
+  }));
+
+  const buttonContainerAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: buttonOpacity.value,
+    transform: [{ translateY: buttonTranslateY.value }],
+  }));
+
+  // Additional cool animated styles
+  const iconFloatAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ 
+      translateY: interpolate(iconFloat.value, [0, 1], [-3, 3], Extrapolate.CLAMP)
+    }],
+  }));
+
+  const buttonPulseAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonPulse.value }],
+  }));
+
+  // Role button animated style
+  const getRoleButtonAnimatedStyle = (roleId: string) => {
+    return useAnimatedStyle(() => ({
+      transform: [{ 
+        scale: roleButtonScales.value[roleId] || 1 
+      }],
+    }));
+  };
+
+  // Interest button animated style
+  const getInterestButtonAnimatedStyle = (interestId: string) => {
+    return useAnimatedStyle(() => ({
+      transform: [{ 
+        scale: interestButtonScales.value[interestId] || 1 
+      }],
+    }));
+  };
+
   const handlePressIn = () => {
     buttonScale.value = withSpring(0.95);
   };
 
   const handlePressOut = () => {
     buttonScale.value = withSpring(1);
+  };
+
+  // Role button handlers
+  const handleRolePressIn = (roleId: string) => {
+    'worklet';
+    roleButtonScales.value = {
+      ...roleButtonScales.value,
+      [roleId]: withSpring(0.95, { damping: 15, stiffness: 300 })
+    };
+  };
+
+  const handleRolePressOut = (roleId: string) => {
+    'worklet';
+    roleButtonScales.value = {
+      ...roleButtonScales.value,
+      [roleId]: withSpring(1, { damping: 15, stiffness: 300 })
+    };
+  };
+
+  // Interest button handlers
+  const handleInterestPressIn = (interestId: string) => {
+    'worklet';
+    interestButtonScales.value = {
+      ...interestButtonScales.value,
+      [interestId]: withSpring(0.95, { damping: 15, stiffness: 300 })
+    };
+  };
+
+  const handleInterestPressOut = (interestId: string) => {
+    'worklet';
+    interestButtonScales.value = {
+      ...interestButtonScales.value,
+      [interestId]: withSpring(1, { damping: 15, stiffness: 300 })
+    };
   };
 
   const isValid = role;
@@ -781,7 +946,7 @@ export default function PersonalInfoScreen() {
         {/* Content */}
         <View style={styles.content}>
           {/* Title */}
-          <View style={styles.titleContainer}>
+          <Animated.View style={[styles.titleContainer, titleAnimatedStyle]}>
             <Text style={styles.title}>
               {currentLanguage.code === 'en' ? 'Tell us about yourself' : 
                currentLanguage.code === 'de' ? 'Erzählen Sie uns von sich' : 
@@ -791,7 +956,8 @@ export default function PersonalInfoScreen() {
                currentLanguage.code === 'it' ? 'Parlaci di te' : 
                t('onboarding.personal.title') || 'Tell us about yourself'}
             </Text>
-            <Text style={styles.subtitle}>
+            <Animated.View style={subtitleAnimatedStyle}>
+              <Text style={styles.subtitle}>
               {currentLanguage.code === 'en' ? 'This information helps us find to build the perfect app for your experience.' : 
                currentLanguage.code === 'de' ? 'Diese Informationen helfen uns, die perfekte App für Ihre Erfahrung zu erstellen.' : 
                currentLanguage.code === 'nl' ? 'Deze informatie helpt ons de perfecte app voor jouw ervaring te bouwen.' : 
@@ -799,8 +965,9 @@ export default function PersonalInfoScreen() {
                currentLanguage.code === 'es' ? 'Esta información nos ayuda a construir la aplicación perfecta para tu experiencia.' : 
                currentLanguage.code === 'it' ? 'Queste informazioni ci aiutano a costruire l\'app perfetta per la tua esperienza.' : 
                t('onboarding.personal.subtitle') || 'This information helps us find to build the perfect app for your experience.'}
-            </Text>
-          </View>
+              </Text>
+            </Animated.View>
+          </Animated.View>
 
 
 
@@ -814,7 +981,7 @@ export default function PersonalInfoScreen() {
           </View>
 
           {/* Role Selection */}
-          <View style={styles.inputSection}>
+          <Animated.View style={[styles.inputSection, nameInputAnimatedStyle]}>
             <View style={styles.sectionHeader}>
               <User size={20} color="#17f196" strokeWidth={2} />
               <Text style={styles.sectionTitle}>
@@ -829,11 +996,12 @@ export default function PersonalInfoScreen() {
             </View>
             <View style={styles.roleGrid}>
               {roleOptions.map((option) => (
-                <Pressable
+                <AnimatedPressable
                   key={option.id}
                   style={[
                     styles.roleOption,
-                    role === option.id && styles.selectedRole
+                    role === option.id && styles.selectedRole,
+                    getRoleButtonAnimatedStyle(option.id)
                   ]}
                   onPress={() => {
                     console.log('DEBUG: Role button pressed, option.id:', option.id);
@@ -844,6 +1012,8 @@ export default function PersonalInfoScreen() {
                     stateRef.current.role = option.id;
                     console.log('DEBUG: Updated stateRef.current.role to:', option.id);
                   }}
+                  onPressIn={() => handleRolePressIn(option.id)}
+                  onPressOut={() => handleRolePressOut(option.id)}
                 >
                   <Text style={[
                     styles.roleLabel,
@@ -851,10 +1021,10 @@ export default function PersonalInfoScreen() {
                   ]}>
                     {option.label}
                   </Text>
-                </Pressable>
+                </AnimatedPressable>
               ))}
             </View>
-          </View>
+          </Animated.View>
 
           {/* Interests Selection */}
           <View style={styles.inputSection}>
@@ -872,13 +1042,16 @@ export default function PersonalInfoScreen() {
             </View>
             <View style={styles.interestGrid}>
               {interestOptions.map((interest) => (
-                <Pressable
+                <AnimatedPressable
                   key={interest.id}
                   style={[
                     styles.interestChip,
-                    interests.includes(interest.id) && styles.selectedInterest
+                    interests.includes(interest.id) && styles.selectedInterest,
+                    getInterestButtonAnimatedStyle(interest.id)
                   ]}
                   onPress={() => toggleInterest(interest.id)}
+                  onPressIn={() => handleInterestPressIn(interest.id)}
+                  onPressOut={() => handleInterestPressOut(interest.id)}
                   disabled={interests.length >= 5 && !interests.includes(interest.id)}
                 >
                   <Text style={[
@@ -887,7 +1060,7 @@ export default function PersonalInfoScreen() {
                   ]}>
                     {interest.label}
                   </Text>
-                </Pressable>
+                </AnimatedPressable>
               ))}
             </View>
           </View>

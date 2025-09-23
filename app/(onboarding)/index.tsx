@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,17 @@ import {
   Image as RNImage,
 } from 'react-native';
 import { router } from 'expo-router';
-import Animated, { useSharedValue, withSpring, useAnimatedStyle, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
+import Animated, { 
+  useSharedValue, 
+  withSpring, 
+  useAnimatedStyle, 
+  withRepeat, 
+  withSequence, 
+  withTiming,
+  withDelay,
+  interpolate,
+  Extrapolate
+} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Heart, MessageCircle, Leaf, Mail } from 'lucide-react-native';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -21,12 +31,72 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function OnboardingWelcome() {
   const { t, currentLanguage } = useLanguage();
+  
+  // Button animations
   const buttonScale = useSharedValue(1);
+  const skipButtonScale = useSharedValue(1);
+  
+  // Component animations
+  const titleOpacity = useSharedValue(0);
+  const titleTranslateY = useSharedValue(50);
+  const subtitleOpacity = useSharedValue(0);
+  const subtitleTranslateY = useSharedValue(30);
+  const illustrationOpacity = useSharedValue(0);
+  const illustrationScale = useSharedValue(0.8);
+  const featuresOpacity = useSharedValue(0);
+  const featuresTranslateY = useSharedValue(30);
+  const buttonsOpacity = useSharedValue(0);
+  const buttonsTranslateY = useSharedValue(20);
+  
+  // Continuous animations
   const iconScale = useSharedValue(1);
   const glowOpacity = useSharedValue(0.6);
+  const iconFloat = useSharedValue(0);
+  const buttonPulse = useSharedValue(1);
 
-  React.useEffect(() => {
-    // Subtle icon breathing animation
+  // Animation trigger function
+  const triggerAnimations = () => {
+    // Title animation - bounce in from top
+    titleOpacity.value = withTiming(1, { duration: 800 });
+    titleTranslateY.value = withSpring(0, { damping: 15, stiffness: 150 });
+
+    // Subtitle animation - fade in with slight delay
+    subtitleOpacity.value = withDelay(200, withTiming(1, { duration: 600 }));
+    subtitleTranslateY.value = withDelay(200, withSpring(0, { damping: 12, stiffness: 120 }));
+
+    // Illustration - scale in with bounce
+    illustrationOpacity.value = withDelay(400, withTiming(1, { duration: 600 }));
+    illustrationScale.value = withDelay(400, withSpring(1, { damping: 8, stiffness: 120 }));
+
+    // Features - slide up with fade
+    featuresOpacity.value = withDelay(600, withTiming(1, { duration: 600 }));
+    featuresTranslateY.value = withDelay(600, withSpring(0, { damping: 12, stiffness: 120 }));
+
+    // Buttons - fade in from bottom
+    buttonsOpacity.value = withDelay(800, withTiming(1, { duration: 500 }));
+    buttonsTranslateY.value = withDelay(800, withSpring(0, { damping: 10, stiffness: 100 }));
+
+    // Icon floating animation - continuous gentle float
+    iconFloat.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 2000 }),
+        withTiming(0, { duration: 2000 })
+      ),
+      -1,
+      true
+    );
+
+    // Button pulse animation - subtle pulse effect
+    buttonPulse.value = withRepeat(
+      withSequence(
+        withTiming(1.02, { duration: 1500 }),
+        withTiming(1, { duration: 1500 })
+      ),
+      -1,
+      true
+    );
+
+    // Existing continuous animations
     iconScale.value = withRepeat(
       withSequence(
         withTiming(1.05, { duration: 2000 }),
@@ -36,7 +106,6 @@ export default function OnboardingWelcome() {
       true
     );
 
-    // Gentle glow pulse
     glowOpacity.value = withRepeat(
       withSequence(
         withTiming(0.8, { duration: 1500 }),
@@ -45,6 +114,11 @@ export default function OnboardingWelcome() {
       -1,
       true
     );
+  };
+
+  // Trigger animations on component mount
+  useEffect(() => {
+    triggerAnimations();
   }, []);
 
   const handleGetStarted = async () => {
@@ -71,6 +145,43 @@ export default function OnboardingWelcome() {
 
   const glowAnimatedStyle = useAnimatedStyle(() => ({
     opacity: glowOpacity.value,
+  }));
+
+  // Component animated styles
+  const titleAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: titleOpacity.value,
+    transform: [{ translateY: titleTranslateY.value }],
+  }));
+
+  const subtitleAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: subtitleOpacity.value,
+    transform: [{ translateY: subtitleTranslateY.value }],
+  }));
+
+  const illustrationAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: illustrationOpacity.value,
+    transform: [{ scale: illustrationScale.value }],
+  }));
+
+  const featuresAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: featuresOpacity.value,
+    transform: [{ translateY: featuresTranslateY.value }],
+  }));
+
+  const buttonsAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: buttonsOpacity.value,
+    transform: [{ translateY: buttonsTranslateY.value }],
+  }));
+
+  // Additional cool animated styles
+  const iconFloatAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ 
+      translateY: interpolate(iconFloat.value, [0, 1], [-3, 3], Extrapolate.CLAMP)
+    }],
+  }));
+
+  const buttonPulseAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonPulse.value }],
   }));
 
   const handlePressIn = () => {
@@ -102,29 +213,32 @@ export default function OnboardingWelcome() {
         </View>
 
         {/* Onboard Start Image */}
-        <View style={styles.onboardImageContainer}>
+        <Animated.View style={[styles.onboardImageContainer, illustrationAnimatedStyle]}>
           <RNImage 
             source={require('@/assets/images/newImg/onboard_start.png')} 
             style={styles.onboardImage}
             resizeMode="contain"
           />
-        </View>
+        </Animated.View>
       </View>
 
       {/* Lower Section - White Card */}
       <View style={styles.lowerSection}>
         <View style={styles.contentCard}>
-          <Text style={styles.welcomeTitle}>
-            {currentLanguage.code === 'en' ? 'Welcome to Famora!' : 
-             currentLanguage.code === 'de' ? 'Willkommen bei Famora!' : 
-             currentLanguage.code === 'nl' ? 'Welkom bij Famora!' : 
-             currentLanguage.code === 'fr' ? 'Bienvenue à Famora!' : 
-             currentLanguage.code === 'es' ? '¡Bienvenido a Famora!' : 
-             currentLanguage.code === 'it' ? 'Benvenuto in Famora!' : 
-             t('onboarding.welcome.title') || 'Welcome to Famora!'}
-          </Text>
+          <Animated.View style={titleAnimatedStyle}>
+            <Text style={styles.welcomeTitle}>
+              {currentLanguage.code === 'en' ? 'Welcome to Famora!' : 
+               currentLanguage.code === 'de' ? 'Willkommen bei Famora!' : 
+               currentLanguage.code === 'nl' ? 'Welkom bij Famora!' : 
+               currentLanguage.code === 'fr' ? 'Bienvenue à Famora!' : 
+               currentLanguage.code === 'es' ? '¡Bienvenido a Famora!' : 
+               currentLanguage.code === 'it' ? 'Benvenuto in Famora!' : 
+               t('onboarding.welcome.title') || 'Welcome to Famora!'}
+            </Text>
+          </Animated.View>
           
-          <Text style={styles.description}>
+          <Animated.View style={subtitleAnimatedStyle}>
+            <Text style={styles.description}>
             {currentLanguage.code === 'en' ? 'Make Smart Decisions! Set clear timelines for projects and celebrate your achievements!' : 
              currentLanguage.code === 'de' ? 'Treffen Sie kluge Entscheidungen! Setzen Sie klare Zeitpläne für Projekte und feiern Sie Ihre Erfolge!' : 
              currentLanguage.code === 'nl' ? 'Maak slimme beslissingen! Stel duidelijke tijdlijnen voor projecten en vier je prestaties!' : 
@@ -132,17 +246,18 @@ export default function OnboardingWelcome() {
              currentLanguage.code === 'es' ? '¡Toma decisiones inteligentes! Establece cronogramas claros para proyectos y celebra tus logros!' : 
              currentLanguage.code === 'it' ? 'Prendi decisioni intelligenti! Imposta tempistiche chiare per i progetti e celebra i tuoi successi!' : 
              t('onboarding.welcome.description') || 'Make Smart Decisions! Set clear timelines for projects and celebrate your achievements!'}
-          </Text>
+            </Text>
+          </Animated.View>
 
           {/* Progress Indicator */}
-          <View style={styles.progressContainer}>
+          <Animated.View style={[styles.progressContainer, featuresAnimatedStyle]}>
             <View style={[styles.progressDash, styles.activeDash]} />
             <View style={styles.progressDash} />
             <View style={styles.progressDash} />
-          </View>
+          </Animated.View>
 
           {/* Buttons */}
-          <View style={styles.buttonContainer}>
+          <Animated.View style={[styles.buttonContainer, buttonsAnimatedStyle]}>
             <AnimatedPressable
               style={[styles.startButton, buttonAnimatedStyle]}
               onPress={handleGetStarted}
@@ -171,7 +286,7 @@ export default function OnboardingWelcome() {
                  t('onboarding.welcome.skip') || 'Skip'}
               </Text>
             </Pressable>
-          </View>
+          </Animated.View>
         </View>
       </View>
     </SafeAreaView>
