@@ -56,7 +56,7 @@ export default function PreferencesSetup() {
       });
 
       hideLoading();
-      router.push('/(onboarding)/auth');
+      router.push('/(onboarding)/final');
     } catch (error) {
       console.error('Error saving preferences:', error);
       hideLoading();
