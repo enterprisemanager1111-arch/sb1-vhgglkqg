@@ -77,6 +77,14 @@ export default function SignIn() {
   // Additional cool animations
   const iconFloat = useSharedValue(0);
   const buttonPulse = useSharedValue(1);
+  
+  // Custom alert animations
+  const alertOpacity = useSharedValue(0);
+  const alertTranslateY = useSharedValue(-100);
+  const alertScale = useSharedValue(0.8);
+  const alertRotation = useSharedValue(-10);
+  const alertIconPulse = useSharedValue(1);
+  const alertShake = useSharedValue(0);
 
   const handleSignInPressIn = () => {
     signInButtonScale.value = withSpring(0.95);
@@ -109,14 +117,71 @@ export default function SignIn() {
       type
     });
     
+    // Trigger cool entrance animations
+    triggerAlertAnimations();
+    
     // Auto-hide after 4 seconds
     setTimeout(() => {
-      setCustomAlert(prev => ({ ...prev, visible: false }));
+      hideCustomAlert();
     }, 4000);
   };
 
   const hideCustomAlert = () => {
-    setCustomAlert(prev => ({ ...prev, visible: false }));
+    // Trigger cool exit animations
+    triggerAlertExitAnimations();
+    
+    // Hide after animation completes
+    setTimeout(() => {
+      setCustomAlert(prev => ({ ...prev, visible: false }));
+    }, 300);
+  };
+
+  // Alert animation functions
+  const triggerAlertAnimations = () => {
+    // Reset values for entrance
+    alertOpacity.value = 0;
+    alertTranslateY.value = -100;
+    alertScale.value = 0.8;
+    alertRotation.value = -10;
+    alertShake.value = 0;
+    
+    // Cool entrance sequence
+    alertOpacity.value = withTiming(1, { duration: 400 });
+    alertTranslateY.value = withSpring(0, { damping: 12, stiffness: 150 });
+    alertScale.value = withSequence(
+      withTiming(1.1, { duration: 200 }),
+      withSpring(1, { damping: 8, stiffness: 120 })
+    );
+    alertRotation.value = withSpring(0, { damping: 10, stiffness: 100 });
+    
+    // Icon pulse animation
+    alertIconPulse.value = withRepeat(
+      withSequence(
+        withTiming(1.2, { duration: 600 }),
+        withTiming(1, { duration: 600 })
+      ),
+      3,
+      true
+    );
+    
+    // Shake animation for error alerts
+    if (customAlert.type === 'error') {
+      alertShake.value = withSequence(
+        withTiming(5, { duration: 100 }),
+        withTiming(-5, { duration: 100 }),
+        withTiming(5, { duration: 100 }),
+        withTiming(-5, { duration: 100 }),
+        withTiming(0, { duration: 100 })
+      );
+    }
+  };
+
+  const triggerAlertExitAnimations = () => {
+    // Cool exit sequence
+    alertOpacity.value = withTiming(0, { duration: 300 });
+    alertTranslateY.value = withTiming(-100, { duration: 300 });
+    alertScale.value = withTiming(0.8, { duration: 300 });
+    alertRotation.value = withTiming(10, { duration: 300 });
   };
 
   // Animation trigger function
@@ -324,26 +389,45 @@ export default function SignIn() {
     transform: [{ scale: buttonPulse.value }],
   }));
 
+  // Alert animated styles
+  const alertAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: alertOpacity.value,
+    transform: [
+      { translateY: alertTranslateY.value },
+      { scale: alertScale.value },
+      { rotate: `${alertRotation.value}deg` },
+      { translateX: alertShake.value }
+    ],
+  }));
+
+  const alertIconAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: alertIconPulse.value }],
+  }));
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#102118" />
 
       {/* Custom Alert Banner */}
       {customAlert.visible && (
-        <View style={[
+        <Animated.View style={[
           styles.alertBanner,
           customAlert.type === 'error' && styles.alertBannerError,
           customAlert.type === 'success' && styles.alertBannerSuccess,
-          customAlert.type === 'warning' && styles.alertBannerWarning
+          customAlert.type === 'warning' && styles.alertBannerWarning,
+          alertAnimatedStyle
         ]}>
-          <View style={styles.alertIcon}>
-            <Text style={styles.alertIconText}>!</Text>
-          </View>
+          <Animated.View style={[styles.alertIcon, alertIconAnimatedStyle]}>
+            <Text style={styles.alertIconText}>
+              {customAlert.type === 'error' ? '!' : 
+               customAlert.type === 'success' ? '✓' : '⚠'}
+            </Text>
+          </Animated.View>
           <Text style={styles.alertText}>{customAlert.message}</Text>
           <Pressable onPress={hideCustomAlert} style={styles.alertCloseButton}>
             <Text style={styles.alertCloseText}>×</Text>
           </Pressable>
-        </View>
+        </Animated.View>
       )}
 
       {/* Upper Section with Background Image */}
@@ -680,13 +764,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 12,
+    borderRadius: 16,
     zIndex: 1000,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   alertBannerError: {
     backgroundColor: '#ff4444',
@@ -698,34 +784,47 @@ const styles = StyleSheet.create({
     backgroundColor: '#ff9500',
   },
   alertIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   alertIconText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#ff4444',
   },
   alertText: {
     flex: 1,
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '600',
     color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     lineHeight: 18,
   },
   alertCloseButton: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
     marginLeft: 12,
   },
   alertCloseText: {
