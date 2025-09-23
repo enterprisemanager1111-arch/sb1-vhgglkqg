@@ -219,8 +219,8 @@ export default function OnboardingFinal() {
             <AnimatedPressable
               style={[styles.signUpButton, signUpButtonAnimatedStyle]}
               onPress={() => {
-                // Navigate to sign up flow
-                router.replace('/(tabs)');
+                // Navigate to sign up page
+                router.push('/(onboarding)/signup');
               }}
               onPressIn={handleSignUpPressIn}
               onPressOut={handleSignUpPressOut}

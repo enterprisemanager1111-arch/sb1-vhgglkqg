@@ -12,6 +12,9 @@ export default function OnboardingLayout() {
       <Stack.Screen name="profile" />
       <Stack.Screen name="family" />
       <Stack.Screen name="overview" />
+      <Stack.Screen name="signup" />
+      <Stack.Screen name="signin" />
+      <Stack.Screen name="final" />
     </Stack>
   );
 }

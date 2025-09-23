@@ -11,6 +11,8 @@ interface Profile {
   avatar_url?: string;
   role?: string;
   interests?: string[];
+  company_ID?: string;
+  phone_num?: string;
   created_at: string;
   updated_at: string;
 }
@@ -20,10 +22,10 @@ interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, birthDate?: string, role?: string, interests?: string[]) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string, birthDate?: string, role?: string, interests?: string[], companyID?: string, phoneNum?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
-  updateProfile: (updates: Partial<Pick<Profile, 'name' | 'birth_date' | 'avatar_url' | 'role' | 'interests'>>) => Promise<void>;
+  updateProfile: (updates: Partial<Pick<Profile, 'name' | 'birth_date' | 'avatar_url' | 'role' | 'interests' | 'company_ID' | 'phone_num'>>) => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -56,10 +58,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const createProfile = async (user: User, fullName: string, birthDate?: string, role?: string, interests?: string[]) => {
+  const createProfile = async (user: User, fullName: string, birthDate?: string, role?: string, interests?: string[], companyID?: string, phoneNum?: string) => {
     try {
-      console.log('createProfile called with fullName:', fullName, 'birthDate:', birthDate, 'role:', role, 'interests:', interests);
-      const profileName = fullName && fullName.trim() ? fullName.trim() : 'Family Member';
+      console.log('createProfile called with fullName:', fullName, 'birthDate:', birthDate, 'role:', role, 'interests:', interests, 'companyID:', companyID, 'phoneNum:', phoneNum);
+      const profileName = fullName && fullName.trim() ? fullName.trim() : '';
       
       console.log('Creating profile for user:', user.id, 'with name:', profileName, 'birth_date:', birthDate, 'role:', role, 'interests:', interests);
 
@@ -90,6 +92,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         profileData.interests = interests.filter(interest => interest && interest.trim());
       }
 
+      // Add company_id if provided
+      if (companyID && companyID.trim()) {
+        profileData.company_ID = companyID.trim();
+        console.log('Adding company_ID to profile:', companyID.trim());
+      }
+
+      // Add phone_num if provided
+      if (phoneNum && phoneNum.trim()) {
+        profileData.phone_num = phoneNum.trim();
+        console.log('Adding phone_num to profile:', phoneNum.trim());
+      }
+
       console.log('Final profile data to insert:', profileData);
 
       const { data, error } = await supabase
@@ -107,6 +121,83 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw new Error('Database schema error: Missing role column. Please run database migrations.');
         } else if (error.message?.includes('column "interests" does not exist')) {
           throw new Error('Database schema error: Missing interests column. Please run database migrations.');
+        } else if (error.message?.includes('column "company_ID" does not exist')) {
+          console.warn('company_ID column does not exist, creating profile without it');
+          // Retry without company_ID and phone_num
+          const fallbackProfileData = {
+            id: user.id,
+            name: profileName,
+            avatar_url: user.user_metadata?.avatar_url || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          if (birthDate && birthDate.trim()) {
+            fallbackProfileData.birth_date = birthDate.trim();
+          }
+          if (role && role.trim()) {
+            const validRoles = ['parent', 'child', 'teenager', 'grandparent', 'other'];
+            const cleanRole = role.trim().toLowerCase();
+            if (validRoles.includes(cleanRole)) {
+              fallbackProfileData.role = cleanRole;
+            }
+          }
+          if (interests && Array.isArray(interests) && interests.length > 0) {
+            fallbackProfileData.interests = interests.filter(interest => interest && interest.trim());
+          }
+          
+          const { data: fallbackData, error: fallbackError } = await supabase
+            .from('profiles')
+            .insert([fallbackProfileData])
+            .select()
+            .single();
+            
+          if (fallbackError) {
+            throw new Error(`Profile creation failed: ${fallbackError.message}`);
+          } else {
+            console.log('Profile created successfully (fallback):', fallbackData);
+            setProfile(fallbackData);
+            return fallbackData;
+          }
+        } else if (error.message?.includes('column "phone_num" does not exist')) {
+          console.warn('phone_num column does not exist, creating profile without it');
+          // Similar fallback logic for phone_num
+          const fallbackProfileData = {
+            id: user.id,
+            name: profileName,
+            avatar_url: user.user_metadata?.avatar_url || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          if (birthDate && birthDate.trim()) {
+            fallbackProfileData.birth_date = birthDate.trim();
+          }
+          if (role && role.trim()) {
+            const validRoles = ['parent', 'child', 'teenager', 'grandparent', 'other'];
+            const cleanRole = role.trim().toLowerCase();
+            if (validRoles.includes(cleanRole)) {
+              fallbackProfileData.role = cleanRole;
+            }
+          }
+          if (interests && Array.isArray(interests) && interests.length > 0) {
+            fallbackProfileData.interests = interests.filter(interest => interest && interest.trim());
+          }
+          if (companyId && companyId.trim()) {
+            fallbackProfileData.company_id = companyId.trim();
+          }
+          
+          const { data: fallbackData, error: fallbackError } = await supabase
+            .from('profiles')
+            .insert([fallbackProfileData])
+            .select()
+            .single();
+            
+          if (fallbackError) {
+            throw new Error(`Profile creation failed: ${fallbackError.message}`);
+          } else {
+            console.log('Profile created successfully (fallback):', fallbackData);
+            setProfile(fallbackData);
+            return fallbackData;
+          }
         } else if (error.message?.includes('duplicate key value')) {
           throw new Error('Profile already exists for this user. Please try signing in instead.');
         } else if (error.message?.includes('foreign key constraint')) {
@@ -182,8 +273,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, birthDate?: string, role?: string, interests?: string[]) => {
-    console.log('🚀 SignUp called with:', { email, fullName, birthDate, role, interests });
+  const signUp = async (email: string, password: string, fullName: string, birthDate?: string, role?: string, interests?: string[], companyID?: string, phoneNum?: string) => {
+    console.log('🚀 SignUp called with:', { email, fullName, birthDate, role, interests, companyID, phoneNum });
     
     // Enhanced validation with better error messages
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -209,6 +300,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('✅ Connection test passed, proceeding with signup...');
       
       // Add timeout for signup operations
+      console.log('🔄 Starting Supabase signup process...');
       const signupPromise = supabase.auth.signUp({
         email,
         password,
@@ -224,6 +316,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       const { data, error } = await Promise.race([signupPromise, timeoutPromise]) as any;
+      
+      console.log('📊 Supabase signup response:', { 
+        hasData: !!data, 
+        hasError: !!error, 
+        userExists: !!data?.user,
+        sessionExists: !!data?.session,
+        errorMessage: error?.message 
+      });
 
       if (error) {
         // Provide more specific error messages for signup
@@ -241,31 +341,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
     if (data.user) {
-      console.log('User created successfully:', data.user.id);
+      console.log('✅ User created successfully:', {
+        userId: data.user.id,
+        email: data.user.email,
+        emailConfirmed: data.user.email_confirmed_at,
+        createdAt: data.user.created_at
+      });
       
       // Wait briefly for the database trigger to create the profile, then update it
       try {
         // Wait a short moment for the trigger to create the basic profile
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Check if profile exists (should be created by trigger)
-        const { data: existingProfile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .maybeSingle();
+        // Retry mechanism for profile check (JWT timing issues)
+        let existingProfile = null;
+        let profileCheckError = null;
+        let retryCount = 0;
+        const maxRetries = 3;
         
-        if (!existingProfile) {
+        while (retryCount < maxRetries) {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', data.user.id)
+            .maybeSingle();
+            
+          existingProfile = profileData;
+          profileCheckError = profileError;
+          
+          if (!profileError) {
+            break; // Success, exit retry loop
+          }
+          
+          if (profileError.message?.includes('user_not_found') || profileError.message?.includes('JWT')) {
+            retryCount++;
+            console.log(`JWT/User not found error, retrying... (${retryCount}/${maxRetries})`);
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)); // Exponential backoff
+          } else {
+            break; // Different error, don't retry
+          }
+        }
+        
+        if (profileCheckError) {
+          console.error('Error checking for existing profile:', profileCheckError);
+          // If there's an error checking the profile, try to create it manually
+          console.log('Profile check failed, creating profile manually for user:', data.user.id);
+          await createProfile(data.user, fullName, birthDate, role, interests, companyID, phoneNum);
+        } else if (!existingProfile) {
           console.log('Database trigger failed, creating profile manually for user:', data.user.id);
-          await createProfile(data.user, fullName, birthDate, role, interests);
+          await createProfile(data.user, fullName, birthDate, role, interests, companyID, phoneNum);
         } else {
           console.log('Profile found for user:', data.user.id);
           // Update profile with additional onboarding data if provided
-          if (birthDate || role || interests) {
+          if (birthDate || role || interests || companyID || phoneNum) {
             const updates: any = {};
             if (birthDate) updates.birth_date = birthDate;
             if (role) updates.role = role;
             if (interests && interests.length > 0) updates.interests = interests;
+            if (companyID) updates.company_ID = companyID;
+            if (phoneNum) updates.phone_num = phoneNum;
             
             if (Object.keys(updates).length > 0) {
               console.log('Updating profile with onboarding data:', updates);
@@ -273,6 +407,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           }
         }
+        
+        console.log('✅ Profile setup completed successfully');
       } catch (profileError) {
         console.error('Profile handling failed:', profileError);
         
@@ -285,6 +421,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw new Error('Database schema is outdated. Please contact support or try again later.');
         } else if (errorMessage.includes('duplicate key value')) {
           throw new Error('Account already exists. Please try signing in instead.');
+        } else if (errorMessage.includes('user_not_found') || errorMessage.includes('JWT')) {
+          // Clear any corrupted session state
+          try {
+            await supabase.auth.signOut();
+            console.log('Cleared session due to JWT error');
+          } catch (signOutError) {
+            console.error('Error clearing session:', signOutError);
+          }
+          throw new Error('Authentication error. Please try signing up again.');
         } else {
           // Don't sign out the user, but throw error to show in UI
           throw new Error(`Profile setup failed: ${errorMessage}. Your account was created, but there was an issue setting up your profile. Please try signing in.`);
@@ -292,7 +437,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     } catch (error: any) {
-      console.log(error);
+      console.error('❌ SignUp function failed:', error);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        name: error.name,
+        stack: error.stack
+      });
+      
       // Handle network and other errors
       if (error.message?.includes('Signup is taking too long')) {
         throw new Error('Signup is taking too long. Please check your internet connection and try again.');
@@ -300,6 +452,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Network error: Unable to connect to the server. Please check your internet connection and try again.');
       } else if (error.message?.includes('timeout')) {
         throw new Error('Connection timeout. Please check your internet connection and try again.');
+      } else if (error.message?.includes('Invalid email')) {
+        throw new Error('Please enter a valid email address.');
+      } else if (error.message?.includes('Password should be at least')) {
+        throw new Error('Password must be at least 6 characters.');
+      } else if (error.message?.includes('User already registered')) {
+        throw new Error('This email is already registered. Please try signing in instead.');
       } else {
         throw error;
       }

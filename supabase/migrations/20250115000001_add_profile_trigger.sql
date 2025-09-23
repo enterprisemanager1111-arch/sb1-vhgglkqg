@@ -9,12 +9,14 @@
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
-  INSERT INTO public.profiles (id, name, created_at, updated_at)
+  INSERT INTO public.profiles (id, name, created_at, updated_at, company_ID, phone_num)
   VALUES (
     new.id,
-    COALESCE(new.raw_user_meta_data->>'full_name', 'Family Member'),
+    COALESCE(NULLIF(new.raw_user_meta_data->>'full_name', ''), ''),
     now(),
-    now()
+    now(),
+    NULL, -- company_ID will be set later via updateProfile
+    NULL  -- phone_num will be set later via updateProfile
   );
   RETURN new;
 END;

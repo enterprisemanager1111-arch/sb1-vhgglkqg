@@ -22,6 +22,7 @@ import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { LoadingProvider } from '@/contexts/LoadingContext';
 import { SnackbarProvider } from '@/contexts/SnackbarContext';
+import { CustomAlertProvider } from '@/contexts/CustomAlertContext';
 import CustomSplashScreen from '@/components/SplashScreen';
 import { ResponsiveProvider } from '@/contexts/ResponsiveContext';
 
@@ -81,19 +82,21 @@ export default function RootLayout() {
       <LanguageProvider>
         <LoadingProvider>
           <SnackbarProvider>
-            <OnboardingProvider>
-              <AuthProvider>
-                <FamilyProvider>
-                <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Screen name="index" />
-                  <Stack.Screen name="(onboarding)" />
-                  <Stack.Screen name="(tabs)" />
-                  <Stack.Screen name="+not-found" options={{ headerShown: false }} />
-                </Stack>
-                <StatusBar style="auto" />
-                </FamilyProvider>
-              </AuthProvider>
-            </OnboardingProvider>
+            <CustomAlertProvider>
+              <OnboardingProvider>
+                <AuthProvider>
+                  <FamilyProvider>
+                  <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="index" />
+                    <Stack.Screen name="(onboarding)" />
+                    <Stack.Screen name="(tabs)" />
+                    <Stack.Screen name="+not-found" options={{ headerShown: false }} />
+                  </Stack>
+                  <StatusBar style="auto" />
+                  </FamilyProvider>
+                </AuthProvider>
+              </OnboardingProvider>
+            </CustomAlertProvider>
           </SnackbarProvider>
         </LoadingProvider>
       </LanguageProvider>

@@ -27,6 +27,7 @@ import { Mail, Lock, Eye, EyeOff, Apple } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useLoading } from '@/contexts/LoadingContext';
+import { useCustomAlert } from '@/contexts/CustomAlertContext';
 import { sanitizeInput, validateEmail } from '@/utils/sanitization';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -35,6 +36,7 @@ export default function SignIn() {
   const { signIn } = useAuth();
   const { completeStep, updateAuthInfo } = useOnboarding();
   const { showLoading, hideLoading } = useLoading();
+  const { showSuccess, showError, showWarning } = useCustomAlert();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -42,12 +44,6 @@ export default function SignIn() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  // Custom Alert State
-  const [customAlert, setCustomAlert] = useState({
-    visible: false,
-    message: '',
-    type: 'error' // 'error', 'success', 'warning'
-  });
   
   // Individual button scales
   const signInButtonScale = useSharedValue(1);
@@ -79,12 +75,12 @@ export default function SignIn() {
   const buttonPulse = useSharedValue(1);
   
   // Custom alert animations
-  const alertOpacity = useSharedValue(0);
-  const alertTranslateY = useSharedValue(-100);
-  const alertScale = useSharedValue(0.8);
-  const alertRotation = useSharedValue(-10);
-  const alertIconPulse = useSharedValue(1);
-  const alertShake = useSharedValue(0);
+  
+  // Checkbox animations
+  const checkboxScale = useSharedValue(1);
+  const checkboxRotation = useSharedValue(0);
+  const checkmarkScale = useSharedValue(0);
+  const checkmarkRotation = useSharedValue(-180);
 
   const handleSignInPressIn = () => {
     signInButtonScale.value = withSpring(0.95);
@@ -110,79 +106,33 @@ export default function SignIn() {
     googleButtonScale.value = withSpring(1);
   };
 
-  const showCustomAlert = (message: string, type: 'error' | 'success' | 'warning' = 'error') => {
-    setCustomAlert({
-      visible: true,
-      message,
-      type
-    });
+  // Checkbox animation handlers
+  const handleCheckboxPress = () => {
+    const newValue = !rememberMe;
+    setRememberMe(newValue);
     
-    // Trigger cool entrance animations
-    triggerAlertAnimations();
-    
-    // Auto-hide after 4 seconds
-    setTimeout(() => {
-      hideCustomAlert();
-    }, 4000);
-  };
-
-  const hideCustomAlert = () => {
-    // Trigger cool exit animations
-    triggerAlertExitAnimations();
-    
-    // Hide after animation completes
-    setTimeout(() => {
-      setCustomAlert(prev => ({ ...prev, visible: false }));
-    }, 300);
-  };
-
-  // Alert animation functions
-  const triggerAlertAnimations = () => {
-    // Reset values for entrance
-    alertOpacity.value = 0;
-    alertTranslateY.value = -100;
-    alertScale.value = 0.8;
-    alertRotation.value = -10;
-    alertShake.value = 0;
-    
-    // Cool entrance sequence
-    alertOpacity.value = withTiming(1, { duration: 400 });
-    alertTranslateY.value = withSpring(0, { damping: 12, stiffness: 150 });
-    alertScale.value = withSequence(
-      withTiming(1.1, { duration: 200 }),
-      withSpring(1, { damping: 8, stiffness: 120 })
-    );
-    alertRotation.value = withSpring(0, { damping: 10, stiffness: 100 });
-    
-    // Icon pulse animation
-    alertIconPulse.value = withRepeat(
-      withSequence(
-        withTiming(1.2, { duration: 600 }),
-        withTiming(1, { duration: 600 })
-      ),
-      3,
-      true
-    );
-    
-    // Shake animation for error alerts
-    if (customAlert.type === 'error') {
-      alertShake.value = withSequence(
-        withTiming(5, { duration: 100 }),
-        withTiming(-5, { duration: 100 }),
-        withTiming(5, { duration: 100 }),
-        withTiming(-5, { duration: 100 }),
-        withTiming(0, { duration: 100 })
+    if (newValue) {
+      // Check animation
+      checkboxScale.value = withSequence(
+        withTiming(1.2, { duration: 150 }),
+        withSpring(1, { damping: 8, stiffness: 120 })
       );
+      checkboxRotation.value = withSpring(360, { damping: 10, stiffness: 100 });
+      checkmarkScale.value = withSequence(
+        withDelay(100, withTiming(1.3, { duration: 200 })),
+        withSpring(1, { damping: 8, stiffness: 120 })
+      );
+      checkmarkRotation.value = withSpring(0, { damping: 10, stiffness: 100 });
+    } else {
+      // Uncheck animation
+      checkboxScale.value = withSpring(0.9, { damping: 8, stiffness: 120 });
+      checkboxRotation.value = withSpring(-180, { damping: 10, stiffness: 100 });
+      checkmarkScale.value = withTiming(0, { duration: 150 });
+      checkmarkRotation.value = withTiming(-180, { duration: 150 });
     }
   };
 
-  const triggerAlertExitAnimations = () => {
-    // Cool exit sequence
-    alertOpacity.value = withTiming(0, { duration: 300 });
-    alertTranslateY.value = withTiming(-100, { duration: 300 });
-    alertScale.value = withTiming(0.8, { duration: 300 });
-    alertRotation.value = withTiming(10, { duration: 300 });
-  };
+
 
   // Animation trigger function
   const triggerAnimations = () => {
@@ -253,17 +203,17 @@ export default function SignIn() {
     const sanitizedPassword = sanitizeInput(password);
     
     if (!sanitizedEmail || !sanitizedPassword) {
-      showCustomAlert('Please fill in all fields', 'error');
+      showError('Missing Information', 'Please fill in all fields');
       return;
     }
 
     if (!validateEmail(sanitizedEmail)) {
-      showCustomAlert('Please enter a valid email address', 'error');
+      showError('Invalid Email', 'Please enter a valid email address');
       return;
     }
 
     if (sanitizedPassword.length < 6) {
-      showCustomAlert('Password must be at least 6 characters', 'error');
+      showError('Weak Password', 'Password must be at least 6 characters');
       return;
     }
 
@@ -287,7 +237,7 @@ export default function SignIn() {
         method: 'login'
       });
       
-      showCustomAlert('Successfully signed in!', 'success');
+      showSuccess('Welcome Back!', 'Successfully signed in!');
       
       setTimeout(() => {
         router.replace('/(tabs)');
@@ -312,7 +262,7 @@ export default function SignIn() {
         errorMessage = error.message;
       }
       
-      showCustomAlert(errorMessage, 'error');
+      showError('Sign In Failed', errorMessage);
     } finally {
       setLoading(false);
       hideLoading();
@@ -390,18 +340,20 @@ export default function SignIn() {
   }));
 
   // Alert animated styles
-  const alertAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: alertOpacity.value,
+
+  // Checkbox animated styles
+  const checkboxAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateY: alertTranslateY.value },
-      { scale: alertScale.value },
-      { rotate: `${alertRotation.value}deg` },
-      { translateX: alertShake.value }
+      { scale: checkboxScale.value },
+      { rotate: `${checkboxRotation.value}deg` }
     ],
   }));
 
-  const alertIconAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: alertIconPulse.value }],
+  const checkmarkAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: checkmarkScale.value },
+      { rotate: `${checkmarkRotation.value}deg` }
+    ],
   }));
 
   return (
@@ -409,26 +361,6 @@ export default function SignIn() {
       <StatusBar barStyle="light-content" backgroundColor="#102118" />
 
       {/* Custom Alert Banner */}
-      {customAlert.visible && (
-        <Animated.View style={[
-          styles.alertBanner,
-          customAlert.type === 'error' && styles.alertBannerError,
-          customAlert.type === 'success' && styles.alertBannerSuccess,
-          customAlert.type === 'warning' && styles.alertBannerWarning,
-          alertAnimatedStyle
-        ]}>
-          <Animated.View style={[styles.alertIcon, alertIconAnimatedStyle]}>
-            <Text style={styles.alertIconText}>
-              {customAlert.type === 'error' ? '!' : 
-               customAlert.type === 'success' ? '✓' : '⚠'}
-            </Text>
-          </Animated.View>
-          <Text style={styles.alertText}>{customAlert.message}</Text>
-          <Pressable onPress={hideCustomAlert} style={styles.alertCloseButton}>
-            <Text style={styles.alertCloseText}>×</Text>
-          </Pressable>
-        </Animated.View>
-      )}
 
       {/* Upper Section with Background Image */}
       <View style={styles.upperSection}>
@@ -512,11 +444,13 @@ export default function SignIn() {
             <Animated.View style={[styles.optionsRow, optionsAnimatedStyle]}>
               <Pressable 
                 style={styles.checkboxContainer}
-                onPress={() => setRememberMe(!rememberMe)}
+                onPress={handleCheckboxPress}
               >
-                <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
-                  {rememberMe && <Text style={styles.checkmark}>✓</Text>}
-                </View>
+                <Animated.View style={[styles.checkbox, rememberMe && styles.checkboxChecked, checkboxAnimatedStyle]}>
+                  {rememberMe && (
+                    <Animated.Text style={[styles.checkmark, checkmarkAnimatedStyle]}>✓</Animated.Text>
+                  )}
+                </Animated.View>
                 <Text style={styles.checkboxLabel}>Remember Me</Text>
               </Pressable>
               
@@ -582,7 +516,7 @@ export default function SignIn() {
             {/* Sign Up Link */}
             <Animated.View style={[styles.signUpContainer, signUpLinkAnimatedStyle]}>
               <Text style={styles.signUpText}>Don't have an account? </Text>
-              <Pressable onPress={() => router.push('/(onboarding)/final')}>
+              <Pressable onPress={() => router.push('/(onboarding)/signup')}>
                 <Text style={styles.signUpLink}>Sign Up Here</Text>
               </Pressable>
             </Animated.View>
@@ -754,85 +688,6 @@ const styles = StyleSheet.create({
     fontWeight: '450',
   },
 
-  // Custom Alert Banner Styles
-  alertBanner: {
-    position: 'absolute',
-    top: 60,
-    left: 20,
-    right: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 16,
-    zIndex: 1000,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  alertBannerError: {
-    backgroundColor: '#ff4444',
-  },
-  alertBannerSuccess: {
-    backgroundColor: '#17f196',
-  },
-  alertBannerWarning: {
-    backgroundColor: '#ff9500',
-  },
-  alertIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  alertIconText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#ff4444',
-  },
-  alertText: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-    lineHeight: 18,
-  },
-  alertCloseButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
-    marginLeft: 12,
-  },
-  alertCloseText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#ff4444',
-    lineHeight: 20,
-  },
 
   // Sign In Button
   signInButton: {
