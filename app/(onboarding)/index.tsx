@@ -254,6 +254,7 @@ export default function OnboardingWelcome() {
             <View style={[styles.progressDash, styles.activeDash]} />
             <View style={styles.progressDash} />
             <View style={styles.progressDash} />
+            <View style={styles.progressDash} />
           </Animated.View>
 
           {/* Buttons */}
@@ -554,7 +555,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#404040',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   description: {
@@ -562,7 +563,7 @@ const styles = StyleSheet.create({
     color: '#AAA',
     textAlign: 'center',
     lineHeight: 17,
-    marginBottom: 32,
+    marginBottom: 8,
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     fontWeight: '450',
   },
@@ -572,7 +573,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 32,
+    paddingVertical: 16,
     gap: 8,
   },
   progressDash: {
@@ -590,6 +591,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     gap: 16,
+    paddingBottom: 20,
   },
   startButton: {
     width: '100%',

@@ -235,15 +235,15 @@ export default function PreferencesSetup() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#102118" />
 
-      {/* Upper Section with Background Image */}
+      {/* Full Screen Background Image */}
+      <RNImage 
+        source={require('@/assets/images/newImg/background.jpg')} 
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      />
+
+      {/* Upper Section */}
       <View style={styles.upperSection}>
-        <RNImage 
-          source={require('@/assets/images/newImg/background.jpg')} 
-          style={styles.backgroundImage}
-          resizeMode="cover"
-        />
-        {/* Dark Translucent Overlay */}
-        <View style={styles.darkOverlay} />
       </View>
 
       {/* Lower Section - White Card */}
@@ -278,6 +278,7 @@ export default function PreferencesSetup() {
 
           {/* Progress Indicator */}
           <Animated.View style={[styles.progressContainer, progressAnimatedStyle]}>
+            <View style={styles.progressDash} />
             <View style={styles.progressDash} />
             <View style={styles.progressDash} />
             <View style={[styles.progressDash, styles.activeDash]} />
@@ -376,7 +377,7 @@ const styles = StyleSheet.create({
   },
   upperSection: {
     height: 200,
-    backgroundColor: '#102118',
+    backgroundColor: 'transparent',
     position: 'relative',
   },
   backgroundImage: {
@@ -387,6 +388,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     height: '100%',
+    zIndex: -2,
   },
   darkOverlay: {
     position: 'absolute',
@@ -460,7 +462,7 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
   titleContainer: {
-    marginBottom: 32,
+    marginBottom: 8,
     alignItems: 'center',
   },
   title: {
@@ -571,7 +573,7 @@ const styles = StyleSheet.create({
   // Action Buttons
   buttonContainer: {
     paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingBottom: 20,
     gap: 16,
   },
   backButton: {

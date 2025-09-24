@@ -928,20 +928,20 @@ export default function PersonalInfoScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#102118" />
 
-      {/* Upper Section with Background Image */}
+      {/* Full Screen Background Image */}
+      <RNImage 
+        source={require('@/assets/images/newImg/background.jpg')} 
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      />
+
+      {/* Upper Section */}
       <View style={styles.upperSection}>
-        <RNImage 
-          source={require('@/assets/images/newImg/background.jpg')} 
-          style={styles.backgroundImage}
-          resizeMode="cover"
-        />
-        {/* Dark Translucent Overlay */}
-        <View style={styles.darkOverlay} />
       </View>
 
-        {/* Lower Section - White Card */}
-        <View style={styles.lowerSection}>
-          <View style={styles.contentCard}>
+      {/* Lower Section - White Card */}
+      <View style={styles.lowerSection}>
+        <View style={styles.contentCard}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Content */}
         <View style={styles.content}>
@@ -975,6 +975,7 @@ export default function PersonalInfoScreen() {
 
           {/* Progress Indicator */}
           <View style={styles.progressContainer}>
+            <View style={styles.progressDash} />
             <View style={styles.progressDash} />
             <View style={[styles.progressDash, styles.activeDash]} />
             <View style={styles.progressDash} />
@@ -1121,7 +1122,7 @@ const styles = StyleSheet.create({
   // Upper Section (Solid Background)
   upperSection: {
     height: 200,
-    backgroundColor: '#102118',
+    backgroundColor: 'transparent',
     position: 'relative',
   },
   backgroundImage: {
@@ -1132,6 +1133,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     height: '100%',
+    zIndex: -2,
   },
   darkOverlay: {
     position: 'absolute',
@@ -1201,7 +1203,7 @@ const styles = StyleSheet.create({
   
   // Title
   titleContainer: {
-    marginBottom: 32,
+    marginBottom: 8,
     alignItems: 'center',
   },
   title: {
@@ -1546,7 +1548,7 @@ const styles = StyleSheet.create({
   // New Button Styles
   buttonContainer: {
     paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingBottom: 20,
     gap: 16,
   },
   nextButton: {

@@ -255,8 +255,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        console.log('👤 User logged in, loading profile...');
+        console.log('👤 User logged in, checking email verification...');
+        
+        // Check if we're in the middle of signup verification
+        const isVerifyingSignup = await AsyncStorage.getItem('is_verifying_signup');
+        if (isVerifyingSignup === 'true') {
+          console.log('🔄 Signup verification in progress, skipping profile loading...');
+          return; // Exit early, don't proceed with profile loading
+        }
+        
+        // CRITICAL SECURITY CHECK: Block unverified users
+        if (!session.user.email_confirmed_at) {
+          console.log('❌ SECURITY: Unverified user detected in auth state change');
+          console.log('🚪 Signing out unverified user immediately...');
+          await supabase.auth.signOut();
+          return; // Exit early, don't proceed with profile loading
+        }
+        
+        console.log('✅ User email is verified, proceeding with profile loading...');
         await loadProfile(session.user.id);
+        
+        // If no profile exists and user is verified, create one
+        if (!profile && session.user.email_confirmed_at) {
+          console.log('📝 No profile found for verified user, creating default profile...');
+          try {
+            await createProfile(
+              session.user, 
+              '', // Empty name as requested
+              undefined, // No birth date
+              undefined, // No role
+              [], // No interests
+              session.user.user_metadata?.company_id,
+              session.user.user_metadata?.phone_number
+            );
+            console.log('✅ Default profile created for verified user');
+          } catch (profileError) {
+            console.error('❌ Failed to create default profile:', profileError);
+          }
+        }
       } else {
         console.log('🚪 User logged out, clearing profile...');
         setProfile(null);
@@ -500,11 +536,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setTimeout(() => reject(new Error(t('onboarding.auth.errors.loginTimeout') || 'Login is taking too long. Please check your internet connection.')), 15000);
       });
 
-      const { error } = await Promise.race([authPromise, timeoutPromise]) as any;
+      const { data, error } = await Promise.race([authPromise, timeoutPromise]) as any;
 
       if (error) {
         console.error('❌ SignIn error:', error);
-        throw error;
+        
+        // Provide more specific error messages
+        if (error.message?.includes('Invalid login credentials')) {
+          throw new Error('Invalid email or password. Please check your credentials and try again.');
+        } else if (error.message?.includes('Email not confirmed')) {
+          throw new Error('Please verify your email address before signing in. Check your email for a verification link.');
+        } else if (error.message?.includes('Too many requests')) {
+          throw new Error('Too many login attempts. Please wait a moment and try again.');
+        } else {
+          throw error;
+        }
+      }
+
+      // Detailed logging for debugging
+      console.log('🔍 SignIn response data:', {
+        user: data?.user ? {
+          id: data.user.id,
+          email: data.user.email,
+          email_confirmed_at: data.user.email_confirmed_at,
+          created_at: data.user.created_at
+        } : null,
+        session: data?.session ? 'exists' : 'null'
+      });
+
+      // Check if user's email is verified - this is CRITICAL for security
+      if (data?.user) {
+        if (!data.user.email_confirmed_at) {
+          console.log('❌ SECURITY: User email not verified - email_confirmed_at:', data.user.email_confirmed_at);
+          console.log('🚪 Signing out unverified user immediately...');
+          // Sign out the user since they shouldn't be logged in
+          await supabase.auth.signOut();
+          throw new Error('Please verify your email address before signing in. Check your email for a verification link.');
+        } else {
+          console.log('✅ User email is verified - email_confirmed_at:', data.user.email_confirmed_at);
+        }
+      } else {
+        console.log('❌ No user data returned from signin');
+        throw new Error('Signin failed: No user data returned');
       }
       
       console.log('✅ SignIn successful!');

@@ -608,7 +608,6 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 12,
     borderWidth: 1,
-    backdropFilter: 'blur(20px)',
   },
   notificationError: {
     backgroundColor: 'rgba(255, 59, 48, 0.95)',

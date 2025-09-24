@@ -27,8 +27,10 @@ import { Mail, Phone, Building, Lock, Eye, EyeOff, Check } from 'lucide-react-na
 import { useAuth } from '@/contexts/AuthContext';
 import { useLoading } from '@/contexts/LoadingContext';
 import { useCustomAlert } from '@/contexts/CustomAlertContext';
-import { sanitizeInput, validateEmail } from '@/utils/sanitization';
-import { sendVerificationCode, verifyCode } from '@/utils/emailVerification';
+import { sanitizeInput, validateEmail, sanitizeEmail } from '@/utils/sanitization';
+import { supabase } from '@/lib/supabase';
+import { BlurView } from 'expo-blur';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -45,17 +47,64 @@ export default function SignUp() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [modalType, setModalType] = useState<'terms' | 'privacy' | null>(null);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [isVerifyingSignup, setIsVerifyingSignup] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
-  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [generatedVerificationCode, setGeneratedVerificationCode] = useState('');
+  const [tempSignupData, setTempSignupData] = useState<{
+    email: string;
+    password: string;
+    phoneNumber: string;
+    companyId: string;
+  } | null>(null);
   
   // Refs for verification code inputs
   const verificationInputRefs = useRef<(TextInput | null)[]>([]);
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   
   const { signUp } = useAuth();
   const { showLoading, hideLoading } = useLoading();
   const { showSuccess, showError, showWarning } = useCustomAlert();
+
+  // Generate a 6-digit verification code
+  const generateVerificationCode = (): string => {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log('🔐 Generated verification code:', code);
+    return code;
+  };
+
+  // Send verification email (NO account creation yet)
+  const sendVerificationEmail = async (email: string, userPassword: string): Promise<boolean> => {
+    try {
+      console.log('📧 Sending verification code (NO account created yet)...');
+      
+      // Generate verification code for testing
+      const verificationCode = generateVerificationCode();
+      setGeneratedVerificationCode(verificationCode);
+      
+      console.log('🔐 VERIFICATION CODE FOR TESTING:', verificationCode);
+      console.log('📧 Email:', email);
+      console.log('💡 Use this code in the verification modal to test the flow');
+      console.log('⚠️ Account will be created ONLY after successful verification');
+      
+      // For now, we'll simulate email sending
+      // In production, you would send the verification code via email service
+      console.log('📧 Simulating email sending...');
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      console.log('✅ Verification code sent successfully (simulated)');
+      return true;
+      
+    } catch (error) {
+      console.error('❌ Email sending failed:', error);
+      return false;
+    }
+  };
+
+
 
   // Animation states
   const logoScale = useSharedValue(0);
@@ -89,8 +138,10 @@ export default function SignUp() {
   // Verification modal animations
   const verificationModalOpacity = useSharedValue(0);
   const verificationModalScale = useSharedValue(0.8);
-  const verificationModalTranslateY = useSharedValue(800);
+  const verificationModalTranslateY = useSharedValue(50);
   
+  
+
   // Welcome modal animations
   const welcomeModalOpacity = useSharedValue(0);
   const welcomeModalScale = useSharedValue(0.8);
@@ -102,6 +153,7 @@ export default function SignUp() {
   useEffect(() => {
     triggerAnimations();
   }, []);
+
 
   const triggerAnimations = () => {
     // Logo animation - scale and rotate
@@ -206,6 +258,8 @@ export default function SignUp() {
     ],
   }));
 
+
+
   // Welcome modal animated styles
   const welcomeModalAnimatedStyle = useAnimatedStyle(() => ({
     opacity: welcomeModalOpacity.value,
@@ -304,33 +358,27 @@ export default function SignUp() {
     hideModal();
   };
 
-  // Verification modal handlers
-  const showVerificationModalHandler = () => {
-    setShowVerificationModal(true);
-    
-    // Verification modal entrance animation
-    verificationModalOpacity.value = withTiming(1, { duration: 300 });
-    verificationModalScale.value = withSpring(1, { damping: 8, stiffness: 120 });
-    verificationModalTranslateY.value = withSpring(0, { damping: 10, stiffness: 100 });
-  };
 
-  const hideVerificationModal = () => {
-    // Verification modal exit animation
-    verificationModalOpacity.value = withTiming(0, { duration: 200 });
-    verificationModalScale.value = withTiming(0.8, { duration: 200 });
-    verificationModalTranslateY.value = withTiming(800, { duration: 200 });
-    
-    // Hide modal after animation
-    setTimeout(() => {
-      setShowVerificationModal(false);
-    }, 200);
-  };
+
+
+
+  // Cleanup effect to clear verification flag on unmount
+  useEffect(() => {
+    return () => {
+      AsyncStorage.removeItem('is_verifying_signup');
+    };
+  }, []);
 
   // Welcome modal handlers
   const showWelcomeModalHandler = () => {
+    console.log('🎊 showWelcomeModalHandler called');
+    console.log('🔍 Current showWelcomeModal state before setState:', showWelcomeModal);
     setShowWelcomeModal(true);
+    console.log('✅ showWelcomeModal state set to true');
+    console.log('🔍 showWelcomeModal state after setState (may not be updated yet):', showWelcomeModal);
     
     // Welcome modal entrance animation
+    console.log('🎬 Starting welcome modal animations...');
     welcomeModalOpacity.value = withTiming(1, { duration: 300 });
     welcomeModalScale.value = withSpring(1, { damping: 8, stiffness: 120 });
     welcomeModalTranslateY.value = withSpring(0, { damping: 10, stiffness: 100 });
@@ -341,6 +389,8 @@ export default function SignUp() {
       withSpring(1, { damping: 8, stiffness: 120 })
     );
     welcomeIconRotation.value = withSpring(360, { damping: 10, stiffness: 100 });
+    
+    console.log('✅ Welcome modal animations started');
   };
 
   const hideWelcomeModal = () => {
@@ -355,6 +405,7 @@ export default function SignUp() {
     }, 200);
   };
 
+
   const handleSetUpProfile = () => {
     hideWelcomeModal();
     // Navigate to profile edit page
@@ -367,7 +418,40 @@ export default function SignUp() {
     router.replace('/(tabs)');
   };
 
+  // Verification modal handlers
+  const showVerificationModalHandler = () => {
+    console.log('🔧 showVerificationModalHandler called, setting modal to true');
+    setShowVerificationModal(true);
+    
+    // Simple animation - just make it visible immediately
+    verificationModalOpacity.value = withTiming(1, { duration: 200 });
+    verificationModalScale.value = withTiming(1, { duration: 200 });
+    verificationModalTranslateY.value = withTiming(0, { duration: 200 });
+  };
 
+  const hideVerificationModal = () => {
+    // Verification modal exit animation
+    verificationModalOpacity.value = withTiming(0, { duration: 200 });
+    verificationModalScale.value = withTiming(0.8, { duration: 200 });
+    verificationModalTranslateY.value = withTiming(50, { duration: 200 });
+    
+    // Hide modal after animation
+    setTimeout(() => {
+      setShowVerificationModal(false);
+    }, 200);
+  };
+
+
+
+
+
+
+
+
+
+
+
+  // Verification code handling functions
   const handleVerificationCodeChange = (index: number, value: string) => {
     // Handle paste functionality - if value is longer than 1 character, it's likely a paste
     if (value.length > 1) {
@@ -414,19 +498,45 @@ export default function SignUp() {
     }
   };
 
-  const handleResendCode = async () => {
+  const handleResendVerification = async () => {
     try {
-      // Send verification code to email
-      const success = await sendVerificationCode(email);
+      setVerificationLoading(true);
       
-      if (success) {
-        showSuccess('Code Sent!', 'Verification code sent successfully!');
-      } else {
-        showError('Verification Failed', 'Failed to send verification code. Please try again.');
+      console.log('🔄 Resending OTP verification code...');
+      
+      if (!tempSignupData) {
+        throw new Error('Signup data not found. Please try signing up again.');
       }
-    } catch (error) {
-      console.error('Error sending verification code:', error);
-      showError('Verification Failed', 'Failed to send verification code. Please try again.');
+      
+      // Resend OTP verification code
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email: tempSignupData.email,
+        options: {
+          shouldCreateUser: true,
+          data: {
+            full_name: '',
+            phone_number: tempSignupData.phoneNumber,
+            company_id: tempSignupData.companyId
+          }
+        }
+      });
+      
+      if (error) {
+        console.error('❌ Error resending OTP:', error);
+        throw new Error(`Failed to resend verification code: ${error.message}`);
+      }
+      
+      // Clear the current verification code input
+      setVerificationCode(['', '', '', '', '', '']);
+      
+      console.log('✅ OTP verification code resent successfully');
+      showSuccess('Code Resent!', 'A new 6-digit verification code has been sent to your email.');
+      
+    } catch (error: any) {
+      console.error('❌ Error resending verification:', error);
+      showError('Resend Failed', error.message || 'Failed to resend verification code. Please try again.');
+    } finally {
+      setVerificationLoading(false);
     }
   };
 
@@ -436,63 +546,104 @@ export default function SignUp() {
       showError('Incomplete Code', 'Please enter the complete 6-digit verification code');
       return;
     }
-
-    setVerificationLoading(true);
+    
     try {
-      // Verify the code
-      const isValid = verifyCode(email, code);
-
-      if (isValid) {
-        // Code is valid, create account silently
-        try {
-          setLoading(true);
-          showLoading('Creating your account...');
-          
-          const sanitizedEmail = sanitizeInput(email);
-          const sanitizedPassword = sanitizeInput(password);
-          const sanitizedPhoneNumber = phoneNumber ? sanitizeInput(phoneNumber) : '';
-          const sanitizedCompanyId = companyId ? sanitizeInput(companyId) : '';
-
-          console.log('🔄 Starting account creation with data:', {
-            email: sanitizedEmail,
-            phoneNumber: sanitizedPhoneNumber,
-            companyId: sanitizedCompanyId,
-            passwordLength: sanitizedPassword.length
-          });
-
-          console.log('📞 Calling signUp function...');
-          await signUp(sanitizedEmail, sanitizedPassword, '', undefined, undefined, undefined, sanitizedCompanyId, sanitizedPhoneNumber);
-          console.log('✅ signUp function completed successfully');
-          
-          hideVerificationModal();
-          hideLoading();
-          setLoading(false);
-          
-          // Show welcome modal after successful account creation
-          setTimeout(() => {
-            showWelcomeModalHandler();
-          }, 500);
-        } catch (error: any) {
-          console.error('SignUp error:', error);
-          
-          // Handle specific JWT/user_not_found errors
-          if (error.message?.includes('user_not_found') || error.message?.includes('JWT')) {
-            showError('Authentication Error', 'There was an issue with account creation. Please try signing up again.');
-          } else if (error.message?.includes('User already registered')) {
-            showError('Account Exists', 'This email is already registered. Please try signing in instead.');
-          } else {
-            showError('Sign Up Failed', error.message || 'Failed to create account. Please try again.');
-          }
-          
-          setLoading(false);
-          hideLoading();
-        }
-      } else {
-        showError('Invalid Code', 'Invalid verification code. Please try again.');
+      setVerificationLoading(true);
+      setIsVerifyingSignup(true); // Set flag to prevent auth redirect
+      
+      // Set flag in AsyncStorage to prevent auth redirect
+      await AsyncStorage.setItem('is_verifying_signup', 'true');
+      
+      console.log('🔐 Verifying OTP code:', code);
+      
+      if (!tempSignupData) {
+        throw new Error('Signup data not found. Please try signing up again.');
       }
-    } catch (error) {
-      console.error('Error verifying code:', error);
-      showError('Verification Failed', 'Failed to verify code. Please try again.');
+      
+      // Verify the OTP code
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: tempSignupData.email,
+        token: code,
+        type: 'email'
+      });
+
+      if (error) {
+        console.error('❌ OTP verification error:', error);
+        
+        // Handle specific OTP errors
+        if (error.message?.includes('Invalid token')) {
+          throw new Error('Invalid verification code. Please check the code and try again.');
+        } else if (error.message?.includes('Token has expired')) {
+          throw new Error('Verification code has expired. Please request a new code.');
+        } else {
+          throw new Error(`Verification failed: ${error.message}`);
+        }
+      }
+
+      // Double-check that we have a valid session after verification
+      if (!data.session || !data.user) {
+        throw new Error('Verification failed. Please try again.');
+      }
+
+      console.log('✅ OTP verification successful!');
+      console.log('👤 User ID:', data.user?.id);
+      console.log('🔐 Session created:', !!data.session);
+      
+      // Now update the user's password since OTP doesn't set a password (async to not block UI)
+      if (data.user && tempSignupData.password) {
+        console.log('🔑 Setting user password asynchronously...');
+        
+        // Don't await this - let it run in background
+        supabase.auth.updateUser({
+          password: tempSignupData.password
+        }).then(({ error: updateError }) => {
+          if (updateError) {
+            console.error('❌ Password update error:', updateError);
+            console.log('⚠️ Password update failed, but user is verified');
+          } else {
+            console.log('✅ Password set successfully');
+          }
+        }).catch((passwordError) => {
+          console.error('❌ Password update exception:', passwordError);
+          console.log('⚠️ Password update failed, but user is verified');
+        });
+      }
+      
+      // Clear temporary signup data
+      setTempSignupData(null);
+      
+      // Hide verification modal
+      hideVerificationModal();
+      
+      // Show success message
+      showSuccess('Account Created!', 'Your account has been successfully created and verified.');
+      
+      // Show welcome modal after successful verification
+      console.log('📱 About to show welcome modal in 1 second...');
+      console.log('🔍 Current showWelcomeModal state:', showWelcomeModal);
+      
+      // Clear the verification flag to allow normal auth flow
+      setIsVerifyingSignup(false);
+      await AsyncStorage.removeItem('is_verifying_signup');
+      
+      // Test: Show modal immediately first
+      console.log('🧪 TEST: Showing welcome modal immediately...');
+      showWelcomeModalHandler();
+      
+      setTimeout(() => {
+        console.log('🎊 Calling showWelcomeModalHandler again after delay...');
+        console.log('🔍 showWelcomeModal state before calling handler:', showWelcomeModal);
+        showWelcomeModalHandler();
+        console.log('🔍 showWelcomeModal state after calling handler:', showWelcomeModal);
+      }, 1000);
+      
+    } catch (error: any) {
+      console.error('Error during verification:', error);
+      showError('Verification Failed', error.message || 'An error occurred during verification. Please try again.');
+      
+      // Clear the verification flag on error
+      setIsVerifyingSignup(false);
+      await AsyncStorage.removeItem('is_verifying_signup');
     } finally {
       setVerificationLoading(false);
     }
@@ -537,21 +688,72 @@ export default function SignUp() {
       return;
     }
 
-    // Show verification modal instead of directly signing up
-    showVerificationModalHandler();
-    
-    // Send verification code to email
+    setLoading(true);
+
     try {
-      const success = await sendVerificationCode(email);
-      
-      if (!success) {
-        showError('Verification Failed', 'Failed to send verification code. Please try again.');
-        hideVerificationModal();
+      // Sanitize inputs
+      const sanitizedPhoneNumber = phoneNumber ? sanitizeInput(phoneNumber) : '';
+      const sanitizedCompanyId = companyId ? sanitizeInput(companyId) : '';
+
+      // Sanitize and validate email
+      const sanitizedEmail = sanitizeEmail(email);
+      console.log('🚀 Sending OTP verification code...');
+      console.log('📧 Original email:', email);
+      console.log('📧 Sanitized email:', sanitizedEmail);
+      console.log('📱 Phone:', sanitizedPhoneNumber);
+      console.log('🏢 Company ID:', sanitizedCompanyId);
+
+      // Validate email format again after sanitization
+      if (!validateEmail(sanitizedEmail)) {
+        throw new Error('Invalid email format. Please check your email address.');
       }
-    } catch (error) {
-      console.error('Error sending verification code:', error);
-      showError('Verification Failed', 'Failed to send verification code. Please try again.');
-      hideVerificationModal();
+
+      // Send OTP verification code (this will create the account if it doesn't exist)
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email: sanitizedEmail,
+        options: {
+          shouldCreateUser: true,
+          data: {
+            full_name: '',
+            phone_number: sanitizedPhoneNumber,
+            company_id: sanitizedCompanyId
+          }
+        }
+      });
+
+      if (error) {
+        console.error('❌ Supabase OTP error:', error);
+        
+        // Handle specific error cases
+        if (error.message?.includes('Email address') && error.message?.includes('invalid')) {
+          throw new Error('Invalid email address. Please check your email and try again.');
+        } else if (error.message?.includes('rate limit')) {
+          throw new Error('Too many requests. Please wait a moment before trying again.');
+        } else {
+          throw new Error(`Failed to send verification code: ${error.message}`);
+        }
+      }
+
+      console.log('✅ OTP verification code sent successfully!');
+      console.log('📧 Verification code sent to:', sanitizedEmail);
+      
+      // Store signup data for verification step
+      setTempSignupData({
+        email: sanitizedEmail,
+        password: password,
+        phoneNumber: phoneNumber,
+        companyId: companyId
+      });
+      
+      // Show verification modal
+      showVerificationModalHandler();
+      showSuccess('Verification Code Sent!', 'A 6-digit verification code has been sent to your email. Please enter it to complete signup.');
+      
+    } catch (error: any) {
+      console.error('Error during signup:', error);
+      showError('Signup Failed', error.message || 'An unexpected error occurred. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -759,6 +961,11 @@ export default function SignUp() {
       {/* Terms & Conditions Modal */}
       {showTermsModal && (
         <View style={styles.modalOverlay}>
+          <BlurView
+            style={styles.blurOverlay}
+            intensity={80}
+            tint="dark"
+          />
           <Animated.View style={[styles.modalContainer, modalAnimatedStyle]}>
              <View style={styles.modalHeader}>
                <Text style={styles.modalTitle}>
@@ -810,6 +1017,11 @@ Your Rights: You can access, update, or delete your personal data at any time th
       {/* Email Verification Modal */}
       {showVerificationModal && (
         <View style={styles.verificationModalOverlay}>
+          <BlurView
+            style={styles.blurOverlay}
+            intensity={80}
+            tint="dark"
+          />
           <Animated.View style={[styles.verificationModalContainer, verificationModalAnimatedStyle]}>
             {/* Icon */}
             <View style={styles.verificationIconContainer}>
@@ -820,13 +1032,13 @@ Your Rights: You can access, update, or delete your personal data at any time th
             </View>
 
             {/* Title */}
-            <Text style={styles.verificationTitle}>Email Verification Sent!</Text>
+            <Text style={styles.verificationTitle}>Email Verification Required!</Text>
 
             {/* Description */}
             <Text style={styles.verificationDescription}>
-              A verification code will be sent to the email{' '}
+              A 6-digit verification code has been sent to{' '}
               <Text style={styles.verificationEmail}>{email}</Text>{' '}
-              for your account verification process.
+              to complete your account creation.
             </Text>
 
             {/* Verification Code Input */}
@@ -834,7 +1046,7 @@ Your Rights: You can access, update, or delete your personal data at any time th
               {verificationCode.map((digit, index) => (
                 <TextInput
                   key={index}
-                  ref={(ref) => (verificationInputRefs.current[index] = ref)}
+                  ref={(ref) => { verificationInputRefs.current[index] = ref; }}
                   style={styles.verificationCodeInput}
                   value={digit}
                   onChangeText={(value) => handleVerificationCodeChange(index, value)}
@@ -852,7 +1064,7 @@ Your Rights: You can access, update, or delete your personal data at any time th
             <View style={styles.resendContainer}>
               <Text style={styles.resendText}>
                 Haven't received the verification code?{' '}
-                <Text style={styles.resendLink} onPress={handleResendCode}>
+                <Text style={styles.resendLink} onPress={handleResendVerification}>
                   Resend it.
                 </Text>
               </Text>
@@ -860,12 +1072,18 @@ Your Rights: You can access, update, or delete your personal data at any time th
 
             {/* Submit Button */}
             <Pressable 
-              style={styles.verificationSubmitButton}
+              style={[
+                styles.verificationSubmitButton,
+                (verificationCode.join('').length !== 6 || verificationLoading) && styles.verificationSubmitButtonDisabled
+              ]}
               onPress={handleSubmitVerification}
-              disabled={verificationLoading}
+              disabled={verificationCode.join('').length !== 6 || verificationLoading}
             >
-              <Text style={styles.verificationSubmitButtonText}>
-                {verificationLoading ? 'Verifying...' : 'Submit'}
+              <Text style={[
+                styles.verificationSubmitButtonText,
+                (verificationCode.join('').length !== 6 || verificationLoading) && styles.verificationSubmitButtonTextDisabled
+              ]}>
+                {verificationLoading ? 'Verifying...' : 'Verify Code'}
               </Text>
             </Pressable>
           </Animated.View>
@@ -1110,10 +1328,16 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'flex-end',
     alignItems: 'center',
     zIndex: 1000,
+  },
+  blurOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   modalContainer: {
     backgroundColor: '#FFFFFF',
@@ -1208,7 +1432,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'flex-end',
     alignItems: 'center',
     zIndex: 2000,
@@ -1335,6 +1558,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  },
+  verificationSubmitButtonDisabled: {
+    backgroundColor: '#CCCCCC',
+    shadowColor: '#CCCCCC',
+    shadowOpacity: 0.2,
+  },
+  verificationSubmitButtonTextDisabled: {
+    color: '#999999',
   },
   
   // Welcome Modal Styles

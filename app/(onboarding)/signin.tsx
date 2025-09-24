@@ -225,6 +225,9 @@ export default function SignIn() {
     showLoading('Signing in...');
     
     try {
+      console.log('🔐 Attempting signin with:', { email: sanitizedEmail });
+      console.log('🔐 Password length:', sanitizedPassword.length);
+      
       await updateAuthInfo({
         email: sanitizedEmail,
         password: sanitizedPassword,
@@ -360,17 +363,17 @@ export default function SignIn() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#102118" />
 
+      {/* Full Screen Background Image */}
+      <RNImage 
+        source={require('@/assets/images/newImg/background.jpg')} 
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      />
+
       {/* Custom Alert Banner */}
 
-      {/* Upper Section with Background Image */}
+      {/* Upper Section */}
       <View style={styles.upperSection}>
-        <RNImage 
-          source={require('@/assets/images/newImg/background.jpg')} 
-          style={styles.backgroundImage}
-          resizeMode="cover"
-        />
-        {/* Dark Translucent Overlay */}
-        <View style={styles.darkOverlay} />
       </View>
 
       {/* Lower Section - White Card */}
@@ -454,7 +457,7 @@ export default function SignIn() {
                 <Text style={styles.checkboxLabel}>Remember Me</Text>
               </Pressable>
               
-              <Pressable>
+              <Pressable onPress={() => router.push('/(onboarding)/resetPwd')}>
                 <Text style={styles.forgotPassword}>Forgot Password</Text>
               </Pressable>
             </Animated.View>
@@ -537,7 +540,7 @@ const styles = StyleSheet.create({
   // Upper Section (40% of screen)
   upperSection: {
     height: 200,
-    backgroundColor: '#102118',
+    backgroundColor: 'transparent',
     position: 'relative',
   },
   backgroundImage: {
@@ -548,16 +551,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     height: '100%',
-  },
-  darkOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#102118',
-    opacity: 0.87,
-    zIndex: 1,
+    zIndex: -1,
   },
 
   // Lower Section (White Card)

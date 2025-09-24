@@ -26,9 +26,18 @@ export const sanitizeText = (input: string, maxLength: number = 255): string => 
   return sanitizeInput(input).substring(0, maxLength);
 };
 
+export const sanitizeEmail = (email: string): string => {
+  if (typeof email !== 'string') {
+    return '';
+  }
+  
+  // Remove extra whitespace and convert to lowercase
+  return email.trim().toLowerCase();
+};
+
 export const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const sanitized = sanitizeInput(email);
+  const sanitized = sanitizeEmail(email);
   return emailRegex.test(sanitized) && sanitized.length <= 254; // RFC limit
 };
 
