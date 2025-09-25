@@ -76,6 +76,8 @@ export default function EditProfile() {
   const [cropStart, setCropStart] = useState({ x: 0, y: 0 });
   const [isUpdateConfirmationVisible, setUpdateConfirmationVisible] = useState(false);
   const [isSuccessModalVisible, setSuccessModalVisible] = useState(false);
+  const [isLoadingUserData, setIsLoadingUserData] = useState(true);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
   // Animation shared values
   // Confirmation modal animations
@@ -86,9 +88,17 @@ export default function EditProfile() {
   // Success modal animations
   const successModalOpacity = useSharedValue(0);
   const successModalScale = useSharedValue(0.8);
-  const successModalTranslateY = useSharedValue(800);
+  const successModalTranslateY = useSharedValue(50);
   const successIconScale = useSharedValue(0);
   const successIconRotation = useSharedValue(0);
+  const successIconBounce = useSharedValue(0);
+  const successIconPulse = useSharedValue(1);
+  
+  // Loading animations
+  const loadingSpinnerRotation = useSharedValue(0);
+  const loadingDotsScale = useSharedValue(1);
+  const loadingPulse = useSharedValue(1);
+  const loadingOpacity = useSharedValue(0);
   const headerOpacity = useSharedValue(0);
   const headerTranslateY = useSharedValue(-50);
   const contentCardOpacity = useSharedValue(0);
@@ -110,6 +120,11 @@ export default function EditProfile() {
 
   // Entrance animations
   useEffect(() => {
+    // Start loading animations for user data
+    if (isLoadingUserData) {
+      startLoadingAnimations();
+    }
+    
     // Header animation
     headerOpacity.value = withTiming(1, { duration: 600 });
     headerTranslateY.value = withSpring(0, { damping: 12, stiffness: 100 });
@@ -170,6 +185,9 @@ export default function EditProfile() {
       if (profile.birth_date) {
         setSelectedDate(new Date(profile.birth_date));
       }
+      
+      // Stop loading user data
+      setIsLoadingUserData(false);
     }
     
     // Load interests from localStorage
@@ -217,8 +235,9 @@ export default function EditProfile() {
 
   const successIconAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
-      { scale: successIconScale.value },
-      { rotate: `${successIconRotation.value}deg` }
+      { scale: successIconScale.value * successIconPulse.value },
+      { rotate: `${successIconRotation.value}deg` },
+      { translateY: successIconBounce.value }
     ],
   }));
 
@@ -227,6 +246,23 @@ export default function EditProfile() {
       { scale: photoUploadScale.value },
       { rotate: `${photoUploadRotation.value}deg` }
     ],
+  }));
+
+  // Loading animated styles
+  const loadingSpinnerAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { rotate: `${loadingSpinnerRotation.value}deg` }
+    ],
+  }));
+
+  const loadingDotsAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: loadingDotsScale.value * loadingPulse.value }
+    ],
+  }));
+
+  const loadingOverlayAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: loadingOpacity.value,
   }));
 
   const inputFieldsAnimatedStyle = useAnimatedStyle(() => ({
@@ -689,6 +725,17 @@ export default function EditProfile() {
         const ctx = canvas.getContext('2d');
         const img = new Image();
         
+        // Convert blob URL to data URL to avoid CORS issues
+        const response = await fetch(editingImageUri);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        
         img.onload = () => {
           console.log('🔧 Image loaded, applying crop and rotation');
           
@@ -785,7 +832,7 @@ export default function EditProfile() {
           showError('Error', 'Failed to load image. Please try again.');
         };
         
-        img.src = editingImageUri;
+        img.src = dataUrl;
       } catch (error) {
         console.error('Error processing image:', error);
         // Fallback: save original image
@@ -1043,24 +1090,49 @@ export default function EditProfile() {
   const showSuccessModal = () => {
     setSuccessModalVisible(true);
     
-    // Success modal entrance animation
+    // Success modal entrance animation (matching confirmation modal)
     successModalOpacity.value = withTiming(1, { duration: 300 });
     successModalScale.value = withSpring(1, { damping: 8, stiffness: 120 });
     successModalTranslateY.value = withSpring(0, { damping: 10, stiffness: 100 });
     
-    // Icon animation
+    // Cool sweet icon animations
     successIconScale.value = withSequence(
-      withTiming(1.3, { duration: 200 }),
-      withSpring(1, { damping: 8, stiffness: 120 })
+      withTiming(0, { duration: 0 }),
+      withTiming(1.2, { duration: 300 }),
+      withSpring(1, { damping: 6, stiffness: 100 })
     );
-    successIconRotation.value = withSpring(360, { damping: 10, stiffness: 100 });
+    
+    // Bounce animation
+    successIconBounce.value = withSequence(
+      withTiming(-10, { duration: 200 }),
+      withSpring(0, { damping: 8, stiffness: 120 })
+    );
+    
+    // Rotation animation
+    successIconRotation.value = withSequence(
+      withTiming(0, { duration: 0 }),
+      withSpring(360, { damping: 8, stiffness: 100 })
+    );
+    
+    // Pulse animation (continuous)
+    successIconPulse.value = withRepeat(
+      withSequence(
+        withTiming(1.1, { duration: 800 }),
+        withTiming(1, { duration: 800 })
+      ),
+      -1, // infinite repeat
+      false
+    );
   };
 
   const hideSuccessModal = () => {
-    // Success modal exit animation
+    // Success modal exit animation (matching confirmation modal)
     successModalOpacity.value = withTiming(0, { duration: 200 });
     successModalScale.value = withTiming(0.8, { duration: 200 });
-    successModalTranslateY.value = withTiming(800, { duration: 200 });
+    successModalTranslateY.value = withTiming(50, { duration: 200 });
+    
+    // Stop pulse animation
+    successIconPulse.value = withTiming(1, { duration: 100 });
     
     // Hide modal after animation
     setTimeout(() => {
@@ -1068,12 +1140,58 @@ export default function EditProfile() {
     }, 200);
   };
 
+  // Loading animation functions
+  const startLoadingAnimations = () => {
+    // Spinner rotation
+    loadingSpinnerRotation.value = withRepeat(
+      withTiming(360, { duration: 1000 }),
+      -1,
+      false
+    );
+    
+    // Dots scale animation
+    loadingDotsScale.value = withRepeat(
+      withSequence(
+        withTiming(1.2, { duration: 600 }),
+        withTiming(1, { duration: 600 })
+      ),
+      -1,
+      false
+    );
+    
+    // Pulse animation
+    loadingPulse.value = withRepeat(
+      withSequence(
+        withTiming(1.1, { duration: 800 }),
+        withTiming(1, { duration: 800 })
+      ),
+      -1,
+      false
+    );
+    
+    // Show loading overlay
+    loadingOpacity.value = withTiming(1, { duration: 300 });
+  };
+
+  const stopLoadingAnimations = () => {
+    // Hide loading overlay
+    loadingOpacity.value = withTiming(0, { duration: 300 });
+    
+    // Stop animations
+    loadingSpinnerRotation.value = withTiming(0, { duration: 200 });
+    loadingDotsScale.value = withTiming(1, { duration: 200 });
+    loadingPulse.value = withTiming(1, { duration: 200 });
+  };
+
   const handleConfirmUpdate = async () => {
     console.log('🚀 handleConfirmUpdate called!');
     console.log('🚀 About to start profile update process...');
     
     hideConfirmationModal();
-    setLoading(true);
+    
+    // Start loading animations for profile update
+    setIsUpdatingProfile(true);
+    startLoadingAnimations();
     try {
       const fullName = `${firstName.trim()} ${lastName.trim()}`;
         
@@ -1154,7 +1272,18 @@ export default function EditProfile() {
                 const ctx = canvas.getContext('2d');
                 const img = new Image();
                 
+                // Convert blob URL to data URL to avoid CORS issues
+                const response = await fetch(avatarUri);
+                const blob = await response.blob();
+                const reader = new FileReader();
+                
                 const dataUrl = await new Promise<string>((resolve, reject) => {
+                  reader.onload = () => resolve(reader.result as string);
+                  reader.onerror = reject;
+                  reader.readAsDataURL(blob);
+                });
+                
+                const compressedDataUrl = await new Promise<string>((resolve, reject) => {
                   img.onload = () => {
                     const maxSize = 200;
                     const ratio = Math.min(maxSize / img.width, maxSize / img.height);
@@ -1165,11 +1294,11 @@ export default function EditProfile() {
                     resolve(canvas.toDataURL('image/jpeg', 0.7));
                   };
                   img.onerror = reject;
-                  img.src = avatarUri;
+                  img.src = dataUrl;
                 });
                 
-                setAvatarUrl(dataUrl);
-                finalAvatarUrl = dataUrl; // Use the data URL directly
+                setAvatarUrl(compressedDataUrl);
+                finalAvatarUrl = compressedDataUrl; // Use the compressed data URL directly
                 console.log('✅ Avatar stored as compressed data URL');
               } else {
                 const reader = new FileReader();
@@ -1305,13 +1434,49 @@ export default function EditProfile() {
         
         showError('Update Failed', errorMessage);
     } finally {
-      setLoading(false);
+      // Stop loading animations
+      setIsUpdatingProfile(false);
+      stopLoadingAnimations();
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      
+      {/* Loading Interface for User Data */}
+      {isLoadingUserData && (
+        <AnimatedView style={[styles.loadingOverlay, loadingOverlayAnimatedStyle]}>
+          <View style={styles.loadingContainer}>
+            <AnimatedView style={[styles.loadingSpinner, loadingSpinnerAnimatedStyle]}>
+              <View style={styles.spinnerCircle} />
+            </AnimatedView>
+            <Text style={styles.loadingText}>Loading your profile...</Text>
+            <View style={styles.loadingDots}>
+              <AnimatedView style={[styles.loadingDot, loadingDotsAnimatedStyle]} />
+              <AnimatedView style={[styles.loadingDot, loadingDotsAnimatedStyle]} />
+              <AnimatedView style={[styles.loadingDot, loadingDotsAnimatedStyle]} />
+            </View>
+          </View>
+        </AnimatedView>
+      )}
+      
+      {/* Loading Interface for Profile Update */}
+      {isUpdatingProfile && (
+        <AnimatedView style={[styles.loadingOverlay, loadingOverlayAnimatedStyle]}>
+          <View style={styles.loadingContainer}>
+            <AnimatedView style={[styles.loadingSpinner, loadingSpinnerAnimatedStyle]}>
+              <View style={styles.spinnerCircle} />
+            </AnimatedView>
+            <Text style={styles.loadingText}>Updating your profile...</Text>
+            <View style={styles.loadingDots}>
+              <AnimatedView style={[styles.loadingDot, loadingDotsAnimatedStyle]} />
+              <AnimatedView style={[styles.loadingDot, loadingDotsAnimatedStyle]} />
+              <AnimatedView style={[styles.loadingDot, loadingDotsAnimatedStyle]} />
+            </View>
+          </View>
+        </AnimatedView>
+      )}
       
       {/* Header */}
       <AnimatedView style={[styles.header, headerAnimatedStyle]}>
@@ -1939,36 +2104,34 @@ export default function EditProfile() {
       {/* Success Modal */}
       {isSuccessModalVisible && (
         <View style={styles.successModalOverlay}>
+          <BlurView
+            style={styles.blurOverlay}
+            intensity={80}
+            tint="dark"
+          />
           <AnimatedView style={[styles.successModalContainer, successModalAnimatedStyle]}>
             {/* Icon */}
             <View style={styles.successIconContainer}>
               <AnimatedView style={[styles.successIcon, successIconAnimatedStyle]}>
-                <Text style={styles.successIconText}>✅</Text>
+                <User size={32} color="#FFFFFF" />
               </AnimatedView>
             </View>
 
             {/* Title */}
-            <Text style={styles.successTitle}>Profile Updated Successfully!</Text>
+            <Text style={styles.successTitle}>Profile Updated!</Text>
 
             {/* Description */}
             <Text style={styles.successDescription}>
-              Your profile has been updated successfully. You can now continue to explore the app or go back to your profile.
+              Your profile has been successfully updated. We're excited to see you take this step!
             </Text>
 
-            {/* Buttons */}
+            {/* Button */}
             <View style={styles.successButtonContainer}>
               <AnimatedPressable
                 style={[styles.successPrimaryButton]}
                 onPress={handleContinueToProfile}
               >
-                <Text style={styles.successPrimaryButtonText}>Continue to Profile</Text>
-              </AnimatedPressable>
-              
-              <AnimatedPressable
-                style={[styles.successSecondaryButton]}
-                onPress={handleExploreApp}
-              >
-                <Text style={styles.successSecondaryButtonText}>Explore The App</Text>
+                <Text style={styles.successPrimaryButtonText}>Visit My Profile</Text>
               </AnimatedPressable>
             </View>
           </AnimatedView>
@@ -2622,7 +2785,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
     marginHorizontal: 0,
-    height: '50%',
+    height: '30%',
     width: '100%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -10 },
@@ -2630,19 +2793,19 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 20,
     paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingTop: 18,
     paddingBottom: 30,
   },
   successIconContainer: {
     alignItems: 'center',
-    marginTop: -40,
-    marginBottom: 16,
+    marginTop: -70,
+    marginBottom: 30,
   },
   successIcon: {
-    width: 80,
-    height: 80,
+    width: 100,
+    height: 100,
     backgroundColor: '#17f196',
-    borderRadius: 20,
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -2652,28 +2815,26 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
-  successIconText: {
-    fontSize: 40,
-    color: '#FFFFFF',
-  },
   successTitle: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#000000',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   successDescription: {
-    fontSize: 16,
+    fontSize: 13,
     color: '#666666',
-    textAlign: 'left',
-    lineHeight: 24,
-    marginBottom: 32,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 20,
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
   successButtonContainer: {
     gap: 16,
+    marginTop: 'auto',
+    paddingBottom: 20,
   },
   successPrimaryButton: {
     backgroundColor: '#17f196',
@@ -2692,6 +2853,57 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  },
+  
+  // Loading Interface Styles
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 4000,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingSpinner: {
+    width: 60,
+    height: 60,
+    marginBottom: 20,
+  },
+  spinnerCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 4,
+    borderColor: '#E5E5E5',
+    borderTopColor: '#17f196',
+    borderRightColor: '#17f196',
+  },
+  loadingText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333333',
+    marginBottom: 20,
+    textAlign: 'center',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  },
+  loadingDots: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  loadingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#17f196',
   },
   successSecondaryButton: {
     backgroundColor: 'transparent',
