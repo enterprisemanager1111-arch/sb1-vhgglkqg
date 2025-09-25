@@ -6,6 +6,7 @@ import { useFamily } from '@/contexts/FamilyContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import SupabaseStatus from '@/components/SupabaseStatus';
+import CoolLoadingScreen from '@/components/CoolLoadingScreen';
 
 export default function IndexScreen() {
   const { session, loading: authLoading, user } = useAuth();
@@ -53,34 +54,16 @@ export default function IndexScreen() {
 
   // Show loading screen while determining navigation route
   if (authLoading || familyLoading || onboardingLoading || languageLoading) {
-    return (
-      <View style={styles.container}>
-        <SupabaseStatus />
-        <View style={styles.loadingContent}>
-          <Text style={styles.loadingText}>Loading Famora...</Text>
-          <Text style={styles.loadingSubtext}>
-            {authLoading ? 'Authenticating...' : 
-             familyLoading ? 'Loading family...' : 
-             languageLoading ? 'Loading language...' :
-             'Loading onboarding...'}
-          </Text>
-        </View>
-      </View>
-    );
+    const loadingMessage = authLoading ? 'Authenticating...' : 
+                          familyLoading ? 'Loading family...' : 
+                          languageLoading ? 'Loading language...' :
+                          'Loading onboarding...';
+    return <CoolLoadingScreen message={loadingMessage} />;
   }
 
   // Fallback loading state (should rarely be seen due to useEffect navigation)
-  return (
-    <View style={styles.container}>
-      <SupabaseStatus />
-      <View style={styles.loadingContent}>
-        <Text style={styles.loadingText}>{t('common.loading') || 'Loading Famora...'}</Text>
-        <Text style={styles.loadingSubtext}>{t('common.redirecting') || 'Redirecting...'}</Text>
-      </View>
-    </View>
-  );
+  return <CoolLoadingScreen message={t('common.redirecting') || 'Redirecting...'} />;
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

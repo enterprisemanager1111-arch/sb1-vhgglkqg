@@ -1,14 +1,16 @@
-import { Tabs } from 'expo-router';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { Tabs, useRouter } from 'expo-router';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { Home, Users, Flame, Settings, Plus, Zap } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AddItemModal from '@/components/AddItemModal';
 import { DesignTokens, Layout } from '@/components/design-system/DesignTokens';
 import { router } from 'expo-router';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
 import { useResponsiveContext } from '@/contexts/ResponsiveContext';
 import Svg, { Path } from 'react-native-svg';
+import { useAuth } from '@/contexts/AuthContext';
+import CoolLoadingScreen from '@/components/CoolLoadingScreen';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -203,6 +205,27 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
 }
 
 export default function TabLayout() {
+  const { session, user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    // Only redirect if we're not loading and user is NOT authenticated
+    if (!authLoading && (!session || !user)) {
+      console.log('🚫 User is not authenticated, redirecting from tabs to onboarding...');
+      router.replace('/(onboarding)');
+    }
+  }, [session, user, authLoading, router]);
+
+  // Show loading screen while checking authentication
+  if (authLoading) {
+    return <CoolLoadingScreen message="Checking authentication..." />;
+  }
+
+  // If user is not authenticated, don't render the tabs
+  if (!session || !user) {
+    return <CoolLoadingScreen message="Redirecting to onboarding..." />;
+  }
+
   return (
     <Tabs
       tabBar={(props) => <CustomTabBar {...props} />}
@@ -305,10 +328,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#17f196', // Updated green color
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#17f196', // Green shadow
-    shadowOffset: { width: 6, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
+    shadowColor: '#00a146', // Green shadow
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
     elevation: 8,
     zIndex: 2,
   },

@@ -1,5 +1,4 @@
-import React from 'react';
-import { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   View, 
   Text, 
@@ -8,11 +7,8 @@ import {
   Pressable,
   SafeAreaView,
   Image,
-  RefreshControl,
-  Platform,
-  Image as RNImage,
+  StatusBar,
 } from 'react-native';
-import Animated, { useSharedValue, withSpring, withDelay, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { 
   Bell, 
   ChevronRight, 
@@ -24,510 +20,392 @@ import {
   Flame,
   Clock,
   ListTodo,
-  TrendingUp
+  TrendingUp,
+  Video,
+  Zap,
+  CheckCircle,
+  Plus
 } from 'lucide-react-native';
-
-import { useFamily } from '@/contexts/FamilyContext';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { useFamilyTasks } from '@/hooks/useFamilyTasks';
-import { useFamilyShoppingItems } from '@/hooks/useFamilyShoppingItems';
-import { useFamilyCalendarEvents } from '@/hooks/useFamilyCalendarEvents';
-import { useFamilyPoints } from '@/hooks/useFamilyPoints';
-import { NotificationSystem, useNotifications } from '@/components/NotificationSystem';
-import NotificationCenter from '@/components/NotificationCenter';
-import { useNotificationCenter } from '@/hooks/useNotificationCenter';
+import Svg, { Path } from 'react-native-svg';
 import { useAuth } from '@/contexts/AuthContext';
-import FamilyPrompt from '@/components/FamilyPrompt';
 import { router } from 'expo-router';
 
-const AnimatedView = Animated.createAnimatedComponent(View);
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+// Custom verification icon component
+const VerificationIcon = ({ size = 16 }: { size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24">
+    {/* Starburst/Cog shape - made much bigger for better visibility */}
+    <Path
+      d="M12 0L15 5L22 3L17 8L22 13L15 11L12 16L9 11L2 13L7 8L2 3L9 5L12 0Z"
+      fill="#55fdb7"
+    />
+    {/* White checkmark - properly contained within the much larger starburst */}
+    <Path
+      d="M8.5 12L10.5 14L15.5 9"
+      stroke="white"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+  </Svg>
+);
 
 export default function HomeDashboard() {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [showNotificationCenter, setShowNotificationCenter] = useState(false);
-  const [showAddItemModal, setShowAddItemModal] = useState(false);
-  
   const { user, profile } = useAuth();
-  const { isInFamily, loading: familyLoading, currentFamily, familyMembers, refreshFamily } = useFamily();
-  const { t, currentLanguage, loading: languageLoading } = useLanguage();
-  
-  // Debug language loading
-  React.useEffect(() => {
-    console.log('Dashboard - Language loading:', languageLoading);
-    console.log('Dashboard - Current language:', currentLanguage);
-    console.log('Dashboard - Translation test:', t('dashboard.welcome'));
-    
-    // Test if translation is working
-    const testTranslation = t('dashboard.welcome');
-    if (testTranslation === 'dashboard.welcome') {
-      console.warn('Translation not working - showing key instead of translation');
-    } else {
-      console.log('Translation working correctly:', testTranslation);
-    }
-  }, [languageLoading, currentLanguage, t]);
-  
-  const { tasks, getCompletedTasks, getPendingTasks, refreshTasks } = useFamilyTasks();
-  const { items, getCompletedItems: getCompletedShoppingItems, refreshItems } = useFamilyShoppingItems();
-  const { events, getUpcomingEvents, refreshEvents } = useFamilyCalendarEvents();
-  const { currentUserPoints, recentActivities } = useFamilyPoints();
-  const { notifications, dismissNotification, showPointsEarned } = useNotifications();
-  
-  // Notification Center Hook
-  const {
-    notifications: centerNotifications,
-    unreadCount,
-    markAsRead,
-    markAllAsRead,
-    refreshNotifications
-  } = useNotificationCenter();
-  
-  // Animation values
-  const headerOpacity = useSharedValue(0);
-  const welcomeScale = useSharedValue(0.9);
-  const familyCardScale = useSharedValue(0.8);
-  const quickAccessOpacity = useSharedValue(0);
-  const tasksTranslateY = useSharedValue(30);
 
-  useEffect(() => {
-    if ((!isLoaded && !familyLoading)) {
-      headerOpacity.value = withTiming(1, { duration: 600 });
-      welcomeScale.value = withDelay(200, withSpring(1, { damping: 18 }));
-      familyCardScale.value = withDelay(400, withSpring(1, { damping: 15 }));
-      quickAccessOpacity.value = withDelay(600, withTiming(1, { duration: 800 }));
-      tasksTranslateY.value = withDelay(800, withSpring(0, { damping: 20 }));
-      setIsLoaded(true);
-    }
-  }, [ ]);
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await Promise.all([
-        refreshFamily(),
-        refreshTasks(),
-        refreshItems(),
-        refreshEvents(),
-        refreshNotifications(),
-      ]);
-    } catch (error) {
-      console.error('Error refreshing data:', error);
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-  // Animated styles
-  const headerAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: headerOpacity.value,
-  }));
-
-  const welcomeAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: welcomeScale.value }],
-  }));
-
-  const familyCardAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: familyCardScale.value }],
-  }));
-
-  const quickAccessAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: quickAccessOpacity.value,
-  }));
-
-  const tasksAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: tasksTranslateY.value }],
-    opacity: tasksTranslateY.value === 0 ? 1 : 0.7,
-  }));
-
-  // Show family prompt if user is not in a family
-  if (!familyLoading && !isInFamily) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <FamilyPrompt />
-      </SafeAreaView>
-    );
-  }
-
-  // Show loading while family data is being fetched
-  if (familyLoading || languageLoading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>{t('dashboard.loading') || 'Loading dashboard...'}</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // Calculate real stats from actual data
-  const completedTasks = getCompletedTasks();
-  const pendingTasks = getPendingTasks();
-  const completedShoppingItems = getCompletedShoppingItems();
-  const upcomingEvents = getUpcomingEvents(7); // Next 7 days
-  
-  // Calculate family organization percentage
-  const totalItems = tasks.length + items.length + events.length;
-  const completedItems = completedTasks.length + completedShoppingItems.length;
-  const familyOrganizationPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-
-  // Calculate user points (15 points per completed task + 5 per shopping item)
-  const userPoints = (completedTasks.length * 15) + (completedShoppingItems.length * 5);
-  
-  // Use real points from the points system
-  const displayPoints = currentUserPoints > 0 ? currentUserPoints : userPoints;
-
-  // Extract first name for greeting
+  // Extract full name for greeting
   const userName = (() => {
     if (profile?.name) {
-      return profile.name.split(' ')[0];
+      return profile.name;
     }
     if (user?.user_metadata?.full_name) {
-      return user.user_metadata.full_name.split(' ')[0];
+      return user.user_metadata.full_name;
     }
-    return 'Familie';
+    return 'Tonald Drump';
   })();
 
-  // Get next upcoming event
-  const nextEvent = upcomingEvents.length > 0 ? upcomingEvents[0] : null;
-  const nextEventText = nextEvent 
-    ? `${nextEvent.title} (${new Date(nextEvent.event_date).toLocaleDateString('de-DE')})`
-    : t('dashboard.noUpcoming');
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    if (profile?.name) {
+      const names = profile.name.split(' ');
+      if (names.length >= 2) {
+        return (names[0][0] + names[names.length - 1][0]).toUpperCase();
+      }
+      return names[0][0].toUpperCase();
+    }
+    if (user?.user_metadata?.full_name) {
+      const names = user.user_metadata.full_name.split(' ');
+      if (names.length >= 2) {
+        return (names[0][0] + names[names.length - 1][0]).toUpperCase();
+      }
+      return names[0][0].toUpperCase();
+    }
+    return 'TD';
+  };
 
-  // Quick access modules
-  const quickAccessModules = [
-    {
-      id: 'shopping',
-      title: t('dashboard.shopping') || 'Shopping list',
-      icon: <ShoppingCart size={24} color="#54FE54" strokeWidth={2} />,
-      subtitle: `${items.filter(i => !i.completed).length} ${t('dashboard.items') || 'items'}`,
-      onPress: () => router.push('/(tabs)/shopping'),
-      available: true,
+  // Mock data for demonstration
+  const mockData = {
+    flames: 10001,
+    tasks: {
+      active: 0,
+      lastAdded: '01.01.2025'
     },
-    {
-      id: 'calendar',
-      title: t('dashboard.calendar') || 'Calendar',
-      icon: <Calendar size={24} color="#54FE54" strokeWidth={2} />,
-      subtitle: `${upcomingEvents.length} ${t('dashboard.appointments') || 'appointments'}`,
-      onPress: () => router.push('/(tabs)/calendar'),
-      available: true,
+    calendar: {
+      active: 1,
+      lastAdded: '01.01.2025'
     },
-    {
-      id: 'tasks',
-      title: t('dashboard.tasks') || 'Tasks',
-      icon: <CheckSquare size={24} color="#54FE54" strokeWidth={2} />,
-      subtitle: pendingTasks.length > 0 ? `${pendingTasks.length} ${t('dashboard.open') || 'open'}` : t('dashboard.allDone') || 'All done',
-      onPress: () => router.push('/(tabs)/tasks'),
-      available: true,
+    shopping: {
+      items: 15,
+      lastAdded: '01.01.2025'
     },
-    {
-      id: 'flames',
-      title: t('dashboard.flames') || 'Flames',
-      icon: <Flame size={24} color="#54FE54" strokeWidth={2} />,
-      subtitle: `${displayPoints} ${t('dashboard.points') || 'points'}`,
-      onPress: () => router.push('/(tabs)/flames'),
-      available: true,
-    },
-  ];
+    todayEvents: [
+      {
+        id: 1,
+        title: 'Townhall Meeting',
+        time: '01:30 AM - 02:00 AM',
+        attendees: 6,
+        type: 'meeting'
+      },
+      {
+        id: 2,
+        title: 'Dashboard Report',
+        time: '01:30 AM - 02:00 AM',
+        attendees: 3,
+        type: 'meeting'
+      }
+    ],
+    todayTasks: [
+      {
+        id: 1,
+        title: 'Wiring Dashboard Analytics',
+        status: 'In Progress',
+        priority: 'High',
+        progress: 60,
+        dueDate: '27 April',
+        assignees: 3
+      }
+    ]
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Background Image */}
-      <RNImage 
-        source={require('@/assets/images/newImg/background.jpg')} 
-        style={styles.backgroundImage}
-        resizeMode="cover"
-      />
-      {/* Dark Overlay */}
-      <View style={styles.darkOverlay} />
-      
-      {/* Notification System */}
-      <NotificationSystem
-        notifications={notifications}
-        onDismiss={dismissNotification}
-      />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
       <ScrollView 
         style={styles.scrollView} 
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
-            onRefresh={onRefresh}
-            tintColor="#54FE54"
-          />
-        }
       >
-        {/* Header Bereich */}
-        <AnimatedView style={[styles.header, headerAnimatedStyle]}>
-          <View style={styles.headerContent}>
-            {/* Profile Picture - Top Left */}
-            <View style={styles.profilePictureContainer}>
-              {profile?.avatar_url ? (
-                <Image 
-                  source={{ uri: profile.avatar_url }} 
-                  style={styles.profilePicture}
-                />
-              ) : (
-                <View style={styles.profilePlaceholder}>
-                  <Text style={styles.profileInitial}>
-                    {userName.charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-              )}
-            </View>
-            
-            {/* Flame Icon - Top Right */}
-            <View style={styles.headerActions}>
-              <View style={styles.pointsContainer}>
-                <Flame size={18} color="#54FE54" strokeWidth={2} />
-                <Text style={styles.pointsText}>{displayPoints}</Text>
-              </View>
-              
-              <Pressable 
-                style={styles.notificationButton}
-                onPress={() => setShowNotificationCenter(true)}
-              >
-                <Bell size={20} color="#161618" strokeWidth={2} />
-                {unreadCount > 0 && (
-                  <View style={styles.notificationBadge}>
-                    <Text style={styles.notificationBadgeText}>
-                      {unreadCount}
-                    </Text>
+        {/* Header Section */}
+        <View style={styles.header}>
+          <View style={styles.profileSection}>
+            <View style={styles.profileInfo}>
+              <View style={styles.avatarContainer}>
+                {profile?.avatar_url ? (
+                  <Image 
+                    source={{ uri: profile.avatar_url }} 
+                    style={styles.avatar}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>{getUserInitials()}</Text>
                   </View>
                 )}
-              </Pressable>
-            </View>
-          </View>
-          
-          {/* Text Content Below Profile Picture */}
-          <View style={styles.textContent}>
-            <Text style={styles.text1}>
-              {currentLanguage.code === 'en' ? 'Welcome back to your family' : 
-               currentLanguage.code === 'de' ? 'Willkommen zurück in deiner Familie' : 
-               currentLanguage.code === 'nl' ? 'Welkom terug bij je familie' : 
-               currentLanguage.code === 'fr' ? 'Bienvenue dans votre famille' : 
-               currentLanguage.code === 'es' ? 'Bienvenido de vuelta a tu familia' : 
-               currentLanguage.code === 'it' ? 'Bentornato nella tua famiglia' : 
-               t('dashboard.welcome') || 'Welcome back to your family'}
-            </Text>
-            <Text style={styles.text2}>
-              {currentLanguage.code === 'en' ? 'Welcome back to your family' : 
-               currentLanguage.code === 'de' ? 'Willkommen zurück in deiner Familie' : 
-               currentLanguage.code === 'nl' ? 'Welkom terug bij je familie' : 
-               currentLanguage.code === 'fr' ? 'Bienvenue dans votre famille' : 
-               currentLanguage.code === 'es' ? 'Bienvenido de vuelta a tu familia' : 
-               currentLanguage.code === 'it' ? 'Bentornato nella tua famiglia' : 
-               t('dashboard.welcome') || 'Welcome back to your family'}
-            </Text>
-          </View>
-        </AnimatedView>
-
-        {/* Familie Summary Card (Option A) */}
-        <AnimatedView style={[styles.section, familyCardAnimatedStyle]}>
-          <View style={styles.familySummaryCard}>
-            <View style={styles.familySummaryHeader}>
-              <View style={styles.familyIconContainer}>
-                <Users size={24} color="#54FE54" strokeWidth={2} />
               </View>
-              <View style={styles.familySummaryInfo}>
-                <Text style={styles.familySummaryName}>{currentFamily?.name || 'My Family'}</Text>
-                <View style={styles.familySummaryMeta}>
-                  <Text style={styles.familySummaryMembers}>{familyMembers.length} members</Text>
-                  <View style={styles.familySummaryDivider} />
-                  <Text style={styles.familySummaryOnline}>
-                    {Math.floor(familyMembers.length * 0.6)} online
-                  </Text>
+              <View style={styles.profileDetails}>
+                <View style={styles.nameRow}>
+                  <Text style={styles.userName}>{userName}</Text>
+                  <View style={styles.verifiedIcon}>
+                    <VerificationIcon size={16} />
+                  </View>
                 </View>
-              </View>
-              <View style={styles.familyProgressContainer}>
-                <View style={styles.familyProgressCircle}>
-                  <Text style={styles.familyProgressText}>{familyOrganizationPercentage}%</Text>
-                </View>
+                <Text style={styles.userRole}>Family Teenager</Text>
               </View>
             </View>
             
-            {/* Familie CTA Button */}
-            <Pressable 
-              style={styles.familyCtaButton}
-              onPress={() => router.push('/(tabs)/family')}
-            >
-              <Text style={styles.familyCtaText}>{t('dashboard.family.manage')}</Text>
-              <ArrowRight size={16} color="#161618" strokeWidth={2} />
-            </Pressable>
-          </View>
-        </AnimatedView>
-
-        {/* Schnellzugriff-Module (2x2 Grid) */}
-        <AnimatedView style={[styles.section, quickAccessAnimatedStyle]}>
-          <Text style={styles.sectionTitle}>
-            {currentLanguage.code === 'en' ? 'Quick access' : 
-             currentLanguage.code === 'de' ? 'Schnellzugriff' : 
-             currentLanguage.code === 'nl' ? 'Snelle toegang' : 
-             currentLanguage.code === 'fr' ? 'Accès rapide' : 
-             currentLanguage.code === 'es' ? 'Acceso rápido' : 
-             currentLanguage.code === 'it' ? 'Accesso rapido' : 
-             t('dashboard.quickAccess') || 'Quick access'}
-          </Text>
-          <View style={styles.quickAccessGrid}>
-            {quickAccessModules.map((module) => (
-              <Pressable
-                key={module.id}
-                style={[
-                  styles.quickAccessCard,
-                  !module.available && styles.quickAccessCardDisabled
-                ]}
-                onPress={module.onPress}
-                disabled={!module.available}
-              >
-                <View style={[
-                  styles.quickAccessIcon,
-                  !module.available && styles.quickAccessIconDisabled
-                ]}>
-                  {module.icon}
-                </View>
-                <Text style={[
-                  styles.quickAccessTitle,
-                  !module.available && styles.quickAccessTitleDisabled
-                ]}>
-                  {module.title}
-                </Text>
-                <Text style={[
-                  styles.quickAccessSubtitle,
-                  !module.available && styles.quickAccessSubtitleDisabled
-                ]}>
-                  {module.subtitle}
-                </Text>
-                
+            <View style={styles.headerActions}>
+              <View style={styles.flamesContainer}>
+                <Flame size={16} color="#17f196" fill="#17f196" />
+                <Text style={styles.flamesText}>{mockData.flames}</Text>
+              </View>
+              <Pressable style={styles.notificationButton}>
+                <Bell size={20} color="#17f196" fill="#17f196" />
               </Pressable>
-            ))}
+            </View>
           </View>
-        </AnimatedView>
+        </View>
 
-        {/* Current Tasks/Next Steps */}
-        <AnimatedView style={[styles.section, tasksAnimatedStyle]}>
+        {/* Futures Elements Section */}
+        <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{t('dashboard.nextSteps') || 'Next steps'}</Text>
-            <Pressable 
-              style={styles.seeAllButton}
-              onPress={() => router.push('/(tabs)/tasks')}
-            >
-              <Text style={styles.seeAllText}>{t('dashboard.showAll') || 'Show all'}</Text>
-              <ChevronRight size={16} color="#666666" strokeWidth={2} />
-            </Pressable>
+            <Text style={styles.sectionTitle}>Futures Elements</Text>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>3</Text>
+            </View>
           </View>
-
-          <View style={styles.tasksList}>
-            {pendingTasks.length > 0 ? (
-              pendingTasks.slice(0, 3).map((task, index) => (
-                <View key={task.id} style={styles.taskCard}>
-                  <View style={styles.taskCardHeader}>
-                    <Text style={styles.taskTitle}>{task.title}</Text>
-                    <View style={styles.taskCategory}>
-                      <Text style={styles.taskCategoryText}>
-                        {task.category === 'household' ? 'Haushalt' :
-                         task.category === 'personal' ? 'Persönlich' :
-                         task.category === 'work' ? 'Arbeit' :
-                         task.category === 'family' ? 'Familie' :
-                         task.category}
-                      </Text>
-                    </View>
-                  </View>
-                  
-                  {/* Fortschrittsbalken */}
-                  <View style={styles.progressBarContainer}>
-                    <View style={styles.progressBar}>
-                      <View style={[
-                        styles.progressBarFill, 
-                        { width: `${task.completed ? 100 : (task.assignee_id ? 50 : 0)}%` }
-                      ]} />
-                    </View>
-                    <Text style={styles.progressPercentageText}>
-                      {task.completed ? '100' : (task.assignee_id ? '50' : '0')}%
-                    </Text>
-                  </View>
-                  
-                  <View style={styles.taskFooter}>
-                    <Text style={styles.taskAssignee}>
-                      {task.assignee_profile?.name ? `Zugewiesen an ${task.assignee_profile.name}` : 'Nicht zugewiesen'}
-                    </Text>
-                    <Text style={styles.taskPoints}>{task.points} {t('dashboard.points')}</Text>
-                  </View>
+          <Text style={styles.sectionSubtitle}>Quickaction to all our Funktions</Text>
+          
+          <View style={styles.quickActionsGrid}>
+            {/* Go to Tasks */}
+            <View style={styles.quickActionCard}>
+              <View style={styles.quickActionHeader}>
+                <View style={styles.quickActionIcon}>
+                  <ListTodo size={24} color="#17f196" fill="#17f196" />
                 </View>
-              ))
-            ) : (
-              <View style={styles.emptyTasksCard}>
-                <CheckSquare size={32} color="#54FE54" strokeWidth={1.5} />
-                <Text style={styles.emptyTasksTitle}>{t('dashboard.allTasksDone')}</Text>
-                <Text style={styles.emptyTasksSubtitle}>
-                  {t('dashboard.greatJob')}
-                </Text>
+                <Text style={styles.quickActionTitle}>Go to Tasks</Text>
               </View>
-            )}
-          </View>
-        </AnimatedView>
-
-        {/* {t('tabs.dashboard.todayOverview')} */}
-        <AnimatedView style={[styles.section, tasksAnimatedStyle]}>
-          <Text style={styles.sectionTitle}>{t('dashboard.todayOverview')}</Text>
-          <View style={styles.overviewCard}>
-            <View style={styles.overviewStats}>
-              <View style={styles.overviewStatItem}>
-                <View style={styles.overviewStatIcon}>
-                  <TrendingUp size={18} color="#54FE54" strokeWidth={2} />
+              <View style={styles.quickActionContent}>
+                <View style={styles.statusPill}>
+                  <Text style={styles.statusPillText}>No Aktive Tasks</Text>
                 </View>
-                <View style={styles.overviewStatText}>
-                  <Text style={styles.overviewStatNumber}>{familyOrganizationPercentage}%</Text>
-                  <Text style={styles.overviewStatLabel}>{t('dashboard.progress')}</Text>
-                </View>
-              </View>
-              
-              <View style={styles.overviewStatItem}>
-                <View style={styles.overviewStatIcon}>
-                  <CheckSquare size={18} color="#54FE54" strokeWidth={2} />
-                </View>
-                <View style={styles.overviewStatText}>
-                  <Text style={styles.overviewStatNumber}>{completedTasks.length}</Text>
-                  <Text style={styles.overviewStatLabel}>{t('dashboard.completedToday')}</Text>
-                </View>
-              </View>
-              
-              <View style={styles.overviewStatItem}>
-                <View style={styles.overviewStatIcon}>
-                  <Calendar size={18} color="#54FE54" strokeWidth={2} />
-                </View>
-                <View style={styles.overviewStatText}>
-                  <Text style={styles.overviewStatNumber}>{upcomingEvents.length}</Text>
-                  <Text style={styles.overviewStatLabel}>{t('dashboard.thisWeek')}</Text>
+                <View style={styles.quickActionDetails}>
+                  <Text style={styles.lastAddedText}>Last Task added: {mockData.tasks.lastAdded}</Text>
+                  <Pressable style={styles.actionButton}>
+                    <Text style={styles.actionButtonText}>Open Tasks</Text>
+                  </Pressable>
                 </View>
               </View>
             </View>
 
-            {/* Next Event Preview */}
-            {nextEvent && (
-              <View style={styles.nextEventSection}>
-                <View style={styles.nextEventHeader}>
-                  <Calendar size={16} color="#666666" strokeWidth={2} />
-                  <Text style={styles.nextEventLabel}>{t('dashboard.nextAppointment')}</Text>
+            {/* Go to Calendar */}
+            <View style={styles.quickActionCard}>
+              <View style={styles.quickActionHeader}>
+                <View style={styles.quickActionIcon}>
+                  <Calendar size={24} color="#17f196" fill="#17f196" />
                 </View>
-                <Text style={styles.nextEventText}>{nextEventText}</Text>
+                <Text style={styles.quickActionTitle}>Go to Calander</Text>
               </View>
-            )}
-          </View>
-        </AnimatedView>
+              <View style={styles.quickActionContent}>
+                <View style={[styles.statusPill, styles.statusPillActive]}>
+                  <Text style={[styles.statusPillText, styles.statusPillTextActive]}>One Aktive Metting</Text>
+                </View>
+                <View style={styles.quickActionDetails}>
+                  <Text style={styles.lastAddedText}>Last Meeting added: {mockData.calendar.lastAdded}</Text>
+                  <Pressable style={styles.actionButton}>
+                    <Text style={styles.actionButtonText}>Open Calander</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </View>
 
-        {/* Bottom spacing für Tab Bar */}
+            {/* Go to Shopping list */}
+            <View style={styles.quickActionCard}>
+              <View style={styles.quickActionHeader}>
+                <View style={styles.quickActionIcon}>
+                  <ShoppingCart size={24} color="#17f196" fill="#17f196" />
+                </View>
+                <Text style={styles.quickActionTitle}>Go to Shopping list</Text>
+              </View>
+              <View style={styles.quickActionContent}>
+                <View style={[styles.statusPill, styles.statusPillActive]}>
+                  <Text style={[styles.statusPillText, styles.statusPillTextActive]}>{mockData.shopping.items} Items on the List</Text>
+                </View>
+                <View style={styles.quickActionDetails}>
+                  <Text style={styles.lastAddedText}>Last Item added: {mockData.shopping.lastAdded}</Text>
+                  <Pressable style={styles.actionButton}>
+                    <Text style={styles.actionButtonText}>Open Shopping list</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+
+            {/* Coming Soon */}
+            <View style={[styles.quickActionCard, styles.quickActionCardDisabled]}>
+              <View style={styles.quickActionHeader}>
+                <View style={[styles.quickActionIcon, styles.quickActionIconDisabled]}>
+                  <Clock size={24} color="#999999" fill="#999999" />
+                </View>
+                <Text style={[styles.quickActionTitle, styles.quickActionTitleDisabled]}>Comming Soon</Text>
+              </View>
+              <View style={styles.quickActionContent}>
+                <View style={[styles.statusPill, styles.statusPillDisabled]}>
+                  <Text style={[styles.statusPillText, styles.statusPillTextDisabled]}>Stay Aktive for Updates</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* My Work Summary Banner */}
+        <View style={styles.workSummaryBanner}>
+          <View style={styles.workSummaryContent}>
+            <View style={styles.workSummaryText}>
+              <Text style={styles.workSummaryTitle}>My Work Summary</Text>
+              <Text style={styles.workSummarySubtitle}>Today task & presence activity</Text>
+            </View>
+            <View style={styles.workSummaryIcon}>
+              <Video size={32} color="#FFFFFF" fill="#FFFFFF" />
+            </View>
+          </View>
+        </View>
+
+        {/* Today on the Calendar Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Today on the Calander</Text>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>2</Text>
+            </View>
+          </View>
+          <Text style={styles.sectionSubtitle}>Your schedule for the day</Text>
+          
+          <View style={styles.eventsList}>
+            {mockData.todayEvents.map((event) => (
+              <View key={event.id} style={styles.eventCard}>
+                <View style={styles.eventIcon}>
+                  <Video size={20} color="#17f196" fill="#17f196" />
+                </View>
+                <View style={styles.eventContent}>
+                  <Text style={styles.eventTitle}>{event.title}</Text>
+                  <View style={styles.eventAttendees}>
+                    <View style={styles.attendeeAvatars}>
+                      <View style={[styles.attendeeAvatar, styles.attendeeAvatar1]} />
+                      <View style={[styles.attendeeAvatar, styles.attendeeAvatar2]} />
+                      <View style={[styles.attendeeAvatar, styles.attendeeAvatar3]} />
+                    </View>
+                    <Text style={styles.attendeeCount}>+{event.attendees - 3}</Text>
+                  </View>
+                </View>
+                <View style={styles.eventActions}>
+                  <Text style={styles.eventTime}>{event.time}</Text>
+                  <Pressable style={styles.joinButton}>
+                    <Text style={styles.joinButtonText}>Join Meet</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Today Task Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Today Task</Text>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>1</Text>
+            </View>
+          </View>
+          <Text style={styles.sectionSubtitle}>The tasks assigned to you for today</Text>
+          
+          <View style={styles.tasksList}>
+            {mockData.todayTasks.map((task) => (
+              <View key={task.id} style={styles.taskCard}>
+                <View style={styles.taskIcon}>
+                  <Zap size={20} color="#17f196" fill="#17f196" />
+                </View>
+                <View style={styles.taskContent}>
+                  <Text style={styles.taskTitle}>{task.title}</Text>
+                  <View style={styles.taskStatusRow}>
+                    <View style={styles.statusBadge}>
+                      <Text style={styles.statusBadgeText}>{task.status}</Text>
+                    </View>
+                    <View style={[styles.priorityBadge, styles.priorityHigh]}>
+                      <Text style={styles.priorityBadgeText}>{task.priority}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.taskAttendees}>
+                    <View style={styles.attendeeAvatars}>
+                      <View style={[styles.attendeeAvatar, styles.attendeeAvatar1]} />
+                      <View style={[styles.attendeeAvatar, styles.attendeeAvatar2]} />
+                      <View style={[styles.attendeeAvatar, styles.attendeeAvatar3]} />
+                    </View>
+                  </View>
+                  <View style={styles.progressBar}>
+                    <View style={[styles.progressFill, { width: `${task.progress}%` }]} />
+                  </View>
+                </View>
+                <View style={styles.taskActions}>
+                  <View style={styles.calendarIcon}>
+                    <Calendar size={16} color="#17f196" fill="#17f196" />
+                  </View>
+                  <Text style={styles.dueDate}>{task.dueDate}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Today added to Shopping list Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Today added to Shopping list</Text>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>2</Text>
+            </View>
+          </View>
+          <Text style={styles.sectionSubtitle}>Your schedule for the day</Text>
+          
+          <View style={styles.eventsList}>
+            {mockData.todayEvents.map((event) => (
+              <View key={`shopping-${event.id}`} style={styles.eventCard}>
+                <View style={styles.eventIcon}>
+                  <Video size={20} color="#17f196" fill="#17f196" />
+                </View>
+                <View style={styles.eventContent}>
+                  <Text style={styles.eventTitle}>{event.title}</Text>
+                  <View style={styles.eventAttendees}>
+                    <View style={styles.attendeeAvatars}>
+                      <View style={[styles.attendeeAvatar, styles.attendeeAvatar1]} />
+                      <View style={[styles.attendeeAvatar, styles.attendeeAvatar2]} />
+                      <View style={[styles.attendeeAvatar, styles.attendeeAvatar3]} />
+                    </View>
+                    <Text style={styles.attendeeCount}>+{event.attendees - 3}</Text>
+                  </View>
+                </View>
+                <View style={styles.eventActions}>
+                  <Text style={styles.eventTime}>{event.time}</Text>
+                  <Pressable style={styles.joinButton}>
+                    <Text style={styles.joinButtonText}>Join Meet</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Bottom spacing for navigation */}
         <View style={styles.bottomSpacing} />
       </ScrollView>
-      
-      {/* Notification Center Modal */}
-      <NotificationCenter
-        visible={showNotificationCenter}
-        onClose={() => setShowNotificationCenter(false)}
-        notifications={centerNotifications}
-        onMarkAsRead={markAsRead}
-        onMarkAllAsRead={markAllAsRead}
-      />
     </SafeAreaView>
   );
 }
@@ -535,539 +413,434 @@ export default function HomeDashboard() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#102118',
-  },
-  backgroundImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: '100%',
-    height: '100%',
-  },
-  darkOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#102118',
-    opacity: 0.7,
-    zIndex: 1,
+    backgroundColor: '#F5F5F5',
   },
   scrollView: {
     flex: 1,
-    zIndex: 2,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#666666',
-    fontFamily: 'Montserrat-Regular',
-  },
-
-  // === HEADER BEREICH ===
+  
+  // Header Section
   header: {
-    paddingHorizontal: 24,
+    backgroundColor: '#FFFFFF',
     paddingTop: 20,
-    paddingBottom: 24,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
-  headerContent: {
+  profileSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  profilePictureContainer: {
-    // Top-left positioning - no additional margin needed
-  },
-  profilePicture: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
-  profilePlaceholder: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#54FE54',
-    justifyContent: 'center',
     alignItems: 'center',
   },
-  profileInitial: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#161618',
-    fontFamily: 'Montserrat-Bold',
+  profileInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  
-  // Text content positioned below profile picture
-  textContent: {
-    paddingLeft: 10,
+  avatarContainer: {
+    position: 'relative',
   },
-  text1: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#161618',
-    fontFamily: 'Montserrat-Bold',
-    marginBottom: 4,
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#FFB6C1',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
   },
-  text2: {
+  avatarText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  profileDetails: {
+    gap: 4,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  userName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  verifiedIcon: {
+    // Verified checkmark styling
+  },
+  userRole: {
     fontSize: 14,
-    color: '#A3A9A2',
-    fontFamily: 'Montserrat-Regular',
-    lineHeight: 20,
+    color: '#17f196',
+    fontWeight: '500',
   },
-  
-  // Header actions positioned top-right
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  pointsContainer: {
+  flamesContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: '#17f196',
+    borderRadius: 20,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 6,
     gap: 6,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
   },
-  pointsText: {
+  flamesText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    color: '#FFFFFF',
   },
   notificationButton: {
-    position: 'relative',
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#FFFFFF',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#17f196',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  notificationBadge: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#54FE54',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  notificationBadgeText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    fontFamily: 'Montserrat-SemiBold',
   },
 
-  // === SECTIONS ===
+  // Section Styling
   section: {
-    paddingHorizontal: 24,
-    marginBottom: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
   },
   sectionHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    gap: 8,
+    marginBottom: 8,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
-    color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    color: '#000000',
   },
-  seeAllButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(84, 254, 84, 0.1)',
+  badge: {
+    backgroundColor: '#17f196',
     borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    gap: 4,
-  },
-  seeAllText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#54FE54',
-    fontFamily: 'Montserrat-Medium',
-  },
-
-  // === BIRTHDAY CARD ===
-
-  // === FAMILIENÜBERSICHT CARD ===
-  familySummaryCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 24,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 8,
-    marginBottom: 24,
-  },
-  familySummaryHeader: {
-    flexDirection: 'row',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    minWidth: 24,
     alignItems: 'center',
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: '#666666',
     marginBottom: 16,
+  },
+
+  // Quick Actions Grid
+  quickActionsGrid: {
     gap: 16,
   },
-  familyIconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(84, 254, 84, 0.1)',
+  quickActionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  quickActionCardDisabled: {
+    opacity: 0.6,
+  },
+  quickActionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  quickActionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F0F0F0',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  familySummaryInfo: {
+  quickActionIconDisabled: {
+    backgroundColor: '#E0E0E0',
+  },
+  quickActionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  quickActionTitleDisabled: {
+    color: '#999999',
+  },
+  quickActionContent: {
+    gap: 8,
+  },
+  statusPill: {
+    backgroundColor: '#E0E0E0',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    alignSelf: 'flex-start',
+  },
+  statusPillActive: {
+    backgroundColor: '#17f196',
+  },
+  statusPillDisabled: {
+    backgroundColor: '#F0F0F0',
+  },
+  statusPillText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#666666',
+  },
+  statusPillTextActive: {
+    color: '#FFFFFF',
+  },
+  statusPillTextDisabled: {
+    color: '#999999',
+  },
+  quickActionDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  lastAddedText: {
+    fontSize: 12,
+    color: '#666666',
     flex: 1,
   },
-  familySummaryName: {
+  actionButton: {
+    backgroundColor: '#17f196',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  actionButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+
+  // Work Summary Banner
+  workSummaryBanner: {
+    backgroundColor: '#17f196',
+    marginHorizontal: 20,
+    marginVertical: 20,
+    borderRadius: 12,
+    padding: 20,
+  },
+  workSummaryContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  workSummaryText: {
+    flex: 1,
+  },
+  workSummaryTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#161618',
-    fontFamily: 'Montserrat-Bold',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
-  familySummaryMeta: {
+  workSummarySubtitle: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    opacity: 0.9,
+  },
+  workSummaryIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Events List
+  eventsList: {
+    gap: 12,
+  },
+  eventCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  eventIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F0F0F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  eventContent: {
+    flex: 1,
+    gap: 8,
+  },
+  eventTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  eventAttendees: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  familySummaryMembers: {
-    fontSize: 13,
-    color: '#666666',
-    fontFamily: 'Montserrat-Medium',
-  },
-  familySummaryDivider: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#54FE54',
-  },
-  familySummaryOnline: {
-    fontSize: 13,
-    color: '#54FE54',
-    fontFamily: 'Montserrat-SemiBold',
-  },
-  familyProgressContainer: {
-    alignItems: 'center',
-  },
-  familyProgressCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#54FE54',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  familyProgressText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#161618',
-    fontFamily: 'Montserrat-Bold',
-  },
-  familyCtaButton: {
+  attendeeAvatars: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(84, 254, 84, 0.1)',
+    gap: -8,
+  },
+  attendeeAvatar: {
+    width: 24,
+    height: 24,
     borderRadius: 12,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(84, 254, 84, 0.2)',
-    gap: 6,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
-  familyCtaText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#54FE54',
-    fontFamily: 'Montserrat-SemiBold',
+  attendeeAvatar1: {
+    backgroundColor: '#FFB6C1',
   },
-
-  // === SCHNELLZUGRIFF GRID ===
-  quickAccessGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
+  attendeeAvatar2: {
+    backgroundColor: '#FFD700',
   },
-  quickAccessCard: {
-    width: '47%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-    position: 'relative',
+  attendeeAvatar3: {
+    backgroundColor: '#87CEEB',
   },
-  quickAccessCardDisabled: {
-    opacity: 0.6,
-  },
-  quickAccessIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(84, 254, 84, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  quickAccessIconDisabled: {
-    backgroundColor: 'rgba(153, 153, 153, 0.1)',
-  },
-  quickAccessTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  quickAccessTitleDisabled: {
-    color: '#999999',
-  },
-  quickAccessSubtitle: {
-    fontSize: 13,
+  attendeeCount: {
+    fontSize: 12,
     color: '#666666',
-    fontFamily: 'Montserrat-Regular',
-    textAlign: 'center',
   },
-  quickAccessSubtitleDisabled: {
-    color: '#BBBBBB',
+  eventActions: {
+    alignItems: 'flex-end',
+    gap: 8,
   },
-  comingSoonBadge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: '#E0E0E0',
+  eventTime: {
+    fontSize: 12,
+    color: '#666666',
+  },
+  joinButton: {
+    backgroundColor: '#17f196',
     borderRadius: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
-  comingSoonText: {
-    fontSize: 10,
+  joinButtonText: {
+    fontSize: 12,
     fontWeight: '600',
-    color: '#999999',
-    fontFamily: 'Montserrat-SemiBold',
-  },
-  quickActionButton: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(84, 254, 84, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(84, 254, 84, 0.2)',
+    color: '#FFFFFF',
   },
 
-  // === TASKS LISTE ===
+  // Tasks List
   tasksList: {
     gap: 12,
   },
   taskCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  taskCardHeader: {
+    borderRadius: 12,
+    padding: 16,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
+    alignItems: 'center',
+    gap: 12,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  taskIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F0F0F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  taskContent: {
+    flex: 1,
+    gap: 8,
   },
   taskTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
-    flex: 1,
-    marginRight: 12,
+    color: '#000000',
   },
-  taskCategory: {
-    backgroundColor: 'rgba(84, 254, 84, 0.1)',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  taskCategoryText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#54FE54',
-    fontFamily: 'Montserrat-SemiBold',
-    textTransform: 'uppercase',
-  },
-  progressBarContainer: {
+  taskStatusRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    gap: 12,
-  },
-  progressBar: {
-    flex: 1,
-    height: 8,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: '#54FE54',
-    borderRadius: 4,
-  },
-  progressPercentageText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#54FE54',
-    fontFamily: 'Montserrat-SemiBold',
-    minWidth: 30,
-  },
-  taskFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  taskAssignee: {
-    fontSize: 13,
-    color: '#666666',
-    fontFamily: 'Montserrat-Regular',
-    flex: 1,
-  },
-  taskPoints: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#54FE54',
-    fontFamily: 'Montserrat-SemiBold',
-  },
-  emptyTasksCard: {
-    backgroundColor: 'rgba(84, 254, 84, 0.1)',
-    borderRadius: 16,
-    padding: 32,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(84, 254, 84, 0.2)',
-  },
-  emptyTasksTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
-    marginTop: 16,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptyTasksSubtitle: {
-    fontSize: 14,
-    color: '#666666',
-    fontFamily: 'Montserrat-Regular',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-
-  // === HEUTE IM ÜBERBLICK ===
-  overviewCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  overviewStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  overviewStatItem: {
-    alignItems: 'center',
     gap: 8,
   },
-  overviewStatIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(84, 254, 84, 0.1)',
+  statusBadge: {
+    backgroundColor: '#E0E0E0',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  statusBadgeText: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: '#666666',
+  },
+  priorityBadge: {
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  priorityHigh: {
+    backgroundColor: '#FF6B6B',
+  },
+  priorityBadgeText: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: '#FFFFFF',
+  },
+  taskAttendees: {
+    marginTop: 4,
+  },
+  progressBar: {
+    height: 4,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#17f196',
+    borderRadius: 2,
+  },
+  taskActions: {
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  calendarIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#F0F0F0',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  overviewStatText: {
-    alignItems: 'center',
-  },
-  overviewStatNumber: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#161618',
-    fontFamily: 'Montserrat-Bold',
-  },
-  overviewStatLabel: {
-    fontSize: 11,
+  dueDate: {
+    fontSize: 12,
     color: '#666666',
-    fontFamily: 'Montserrat-Medium',
-    textAlign: 'center',
-  },
-  nextEventSection: {
-    paddingTop: 16,
-  },
-  nextEventHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 8,
-  },
-  nextEventLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#666666',
-    fontFamily: 'Montserrat-Medium',
-  },
-  nextEventText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
   },
 
-  // === BOTTOM SPACING ===
+  // Bottom spacing
   bottomSpacing: {
     height: 100,
   },
