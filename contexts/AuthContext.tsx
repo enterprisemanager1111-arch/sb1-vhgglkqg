@@ -41,6 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Load user profile
   const loadProfile = async (userId: string) => {
     try {
+      console.log('🔄 Loading profile for user:', userId);
       const { data: profileData, error } = await supabase
         .from('profiles')
         .select('*')
@@ -48,13 +49,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle();
 
       if (error) {
-        console.error('Error loading profile:', error);
+        console.error('❌ Error loading profile:', error);
         return;
       }
 
+      console.log('✅ Profile loaded successfully:', profileData);
       setProfile(profileData || null);
     } catch (error) {
-      console.error('Error loading profile:', error);
+      console.error('❌ Error loading profile:', error);
     }
   };
 
@@ -124,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else if (error.message?.includes('column "company_ID" does not exist')) {
           console.warn('company_ID column does not exist, creating profile without it');
           // Retry without company_ID and phone_num
-          const fallbackProfileData = {
+          const fallbackProfileData: any = {
             id: user.id,
             name: profileName,
             avatar_url: user.user_metadata?.avatar_url || null,
@@ -143,6 +145,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           if (interests && Array.isArray(interests) && interests.length > 0) {
             fallbackProfileData.interests = interests.filter(interest => interest && interest.trim());
+          }
+          if (companyID && companyID.trim()) {
+            fallbackProfileData.company_ID = companyID.trim();
+          }
+          if (phoneNum && phoneNum.trim()) {
+            fallbackProfileData.phone_num = phoneNum.trim();
           }
           
           const { data: fallbackData, error: fallbackError } = await supabase
@@ -161,7 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else if (error.message?.includes('column "phone_num" does not exist')) {
           console.warn('phone_num column does not exist, creating profile without it');
           // Similar fallback logic for phone_num
-          const fallbackProfileData = {
+          const fallbackProfileData: any = {
             id: user.id,
             name: profileName,
             avatar_url: user.user_metadata?.avatar_url || null,
@@ -181,8 +189,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (interests && Array.isArray(interests) && interests.length > 0) {
             fallbackProfileData.interests = interests.filter(interest => interest && interest.trim());
           }
-          if (companyId && companyId.trim()) {
-            fallbackProfileData.company_id = companyId.trim();
+          if (companyID && companyID.trim()) {
+            fallbackProfileData.company_ID = companyID.trim();
+          }
+          if (phoneNum && phoneNum.trim()) {
+            fallbackProfileData.phone_num = phoneNum.trim();
           }
           
           const { data: fallbackData, error: fallbackError } = await supabase
@@ -273,10 +284,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         
         console.log('✅ User email is verified, proceeding with profile loading...');
-        await loadProfile(session.user.id);
         
-        // If no profile exists and user is verified, create one
-        if (!profile && session.user.email_confirmed_at) {
+        // Load profile and check if it exists
+        const { data: existingProfile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (profileError) {
+          console.error('❌ Error loading profile:', profileError);
+          return;
+        }
+
+        if (existingProfile) {
+          console.log('✅ Existing profile found, setting profile state');
+          setProfile(existingProfile);
+        } else {
           console.log('📝 No profile found for verified user, creating default profile...');
           try {
             await createProfile(
@@ -289,8 +313,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               session.user.user_metadata?.phone_number
             );
             console.log('✅ Default profile created for verified user');
-          } catch (profileError) {
-            console.error('❌ Failed to create default profile:', profileError);
+          } catch (createError) {
+            console.error('❌ Failed to create default profile:', createError);
           }
         }
       } else {
@@ -638,18 +662,102 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updateProfile = async (updates: Partial<Pick<Profile, 'name' | 'birth_date' | 'avatar_url' | 'role' | 'interests'>>) => {
     if (!user) throw new Error('No user logged in');
+    if (!session?.access_token) throw new Error('No valid session found');
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', user.id);
+    console.log('📝 updateProfile called with updates:', updates);
+    console.log('📝 User ID:', user.id);
+    console.log('📝 Session available:', !!session);
 
-    if (error) throw error;
+    const updateData = {
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
+    
+    console.log('📝 Update data being sent:', updateData);
 
-    await loadProfile(user.id);
+    // Use Supabase client with proper authentication
+    try {
+      console.log('🚀 Using Supabase client with session authentication...');
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('id', user.id)
+        .select();
+
+      if (error) {
+        console.error('❌ Supabase update error:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
+        throw error;
+      }
+
+      console.log('✅ Profile updated successfully:', data);
+      console.log('✅ Updated profile data:', JSON.stringify(data, null, 2));
+      
+      // Reload profile to get updated data
+      await loadProfile(user.id);
+      return data;
+      
+    } catch (error: any) {
+      console.error('❌ Profile update failed:', error);
+      
+      // If Supabase client fails, try direct fetch with session token
+      try {
+        console.log('🔄 Falling back to direct fetch with session token...');
+        
+        const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+        const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+        
+        if (!supabaseUrl || !supabaseAnonKey) {
+          throw new Error('Supabase configuration missing');
+        }
+        
+        const fetchUrl = `${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`;
+        console.log('🌐 Fetch URL:', fetchUrl);
+        
+        const response = await fetch(fetchUrl, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': supabaseAnonKey,
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify(updateData)
+        });
+        
+        console.log('🌐 Response received:', {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ HTTP Error Response:', {
+            status: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries()),
+            body: errorText
+          });
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ Profile updated successfully via fetch:', data);
+        await loadProfile(user.id);
+        return data;
+        
+      } catch (fetchError: any) {
+        console.error('❌ Direct fetch fallback also failed:', fetchError);
+        throw new Error(`Profile update failed: ${error.message}. Fallback error: ${fetchError.message}`);
+      }
+    }
   };
 
   const refreshProfile = async () => {

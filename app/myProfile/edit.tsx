@@ -30,6 +30,9 @@ import { User, Calendar, Briefcase, Upload, ChevronLeft, ChevronDown, RefreshCw,
 import { useAuth } from '@/contexts/AuthContext';
 import { useCustomAlert } from '@/contexts/CustomAlertContext';
 import * as ImagePicker from 'expo-image-picker';
+import { BlurView } from 'expo-blur';
+import { supabase } from '@/lib/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Create animated components
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -37,7 +40,7 @@ const AnimatedView = Animated.createAnimatedComponent(View);
 const AnimatedText = Animated.createAnimatedComponent(Text);
 
 export default function EditProfile() {
-  const { profile, updateProfile } = useAuth();
+  const { profile, updateProfile, user } = useAuth();
   const { showSuccess, showError } = useCustomAlert();
   
   const [firstName, setFirstName] = useState('');
@@ -49,6 +52,8 @@ export default function EditProfile() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showPositionPicker, setShowPositionPicker] = useState(false);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [interests, setInterests] = useState<string[]>([]);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [editingImageUri, setEditingImageUri] = useState<string | null>(null);
@@ -69,8 +74,21 @@ export default function EditProfile() {
   const [resizeCorner, setResizeCorner] = useState<string | null>(null);
   const [isCreatingCrop, setIsCreatingCrop] = useState(false);
   const [cropStart, setCropStart] = useState({ x: 0, y: 0 });
+  const [isUpdateConfirmationVisible, setUpdateConfirmationVisible] = useState(false);
+  const [isSuccessModalVisible, setSuccessModalVisible] = useState(false);
 
   // Animation shared values
+  // Confirmation modal animations
+  const confirmationModalOpacity = useSharedValue(0);
+  const confirmationModalScale = useSharedValue(0.8);
+  const confirmationModalTranslateY = useSharedValue(50);
+  
+  // Success modal animations
+  const successModalOpacity = useSharedValue(0);
+  const successModalScale = useSharedValue(0.8);
+  const successModalTranslateY = useSharedValue(800);
+  const successIconScale = useSharedValue(0);
+  const successIconRotation = useSharedValue(0);
   const headerOpacity = useSharedValue(0);
   const headerTranslateY = useSharedValue(-50);
   const contentCardOpacity = useSharedValue(0);
@@ -113,8 +131,32 @@ export default function EditProfile() {
     buttonOpacity.value = withDelay(800, withTiming(1, { duration: 400 }));
   }, []);
 
+  // Load interests from localStorage
+  const loadInterestsFromStorage = async () => {
+    try {
+      const STORAGE_KEY = '@famora_onboarding_data';
+      const storedData = await AsyncStorage.getItem(STORAGE_KEY);
+      
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        const interestsData = parsedData.personalInfo?.interests || [];
+        setInterests(interestsData);
+        console.log('✅ Loaded interests from localStorage:', interestsData);
+      } else {
+        console.log('❌ No interests data found in localStorage');
+        setInterests([]);
+      }
+    } catch (error) {
+      console.error('❌ Error loading interests from localStorage:', error);
+      setInterests([]);
+    }
+  };
+
   useEffect(() => {
     if (profile) {
+      console.log('📋 Current profile data:', profile);
+      console.log('📋 Profile fields:', Object.keys(profile));
+      
       // Split the name into first and last name
       const nameParts = profile.name ? profile.name.split(' ') : ['', ''];
       setFirstName(nameParts[0] || '');
@@ -122,12 +164,16 @@ export default function EditProfile() {
       setDateOfBirth(profile.birth_date || '');
       setPosition(profile.role || '');
       setAvatarUri(profile.avatar_url || null);
+      setAvatarUrl(profile.avatar_url || null);
       
       // Set selectedDate if birth_date exists
       if (profile.birth_date) {
         setSelectedDate(new Date(profile.birth_date));
       }
     }
+    
+    // Load interests from localStorage
+    loadInterestsFromStorage();
   }, [profile]);
 
   // Monitor avatar URI changes
@@ -148,6 +194,31 @@ export default function EditProfile() {
     transform: [
       { scale: contentCardScale.value },
       { translateY: contentCardTranslateY.value }
+    ],
+  }));
+
+  // Confirmation modal animated style
+  const confirmationModalAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: confirmationModalOpacity.value,
+    transform: [
+      { scale: confirmationModalScale.value },
+      { translateY: confirmationModalTranslateY.value }
+    ],
+  }));
+
+  // Success modal animated styles
+  const successModalAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: successModalOpacity.value,
+    transform: [
+      { scale: successModalScale.value },
+      { translateY: successModalTranslateY.value }
+    ],
+  }));
+
+  const successIconAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: successIconScale.value },
+      { rotate: `${successIconRotation.value}deg` }
     ],
   }));
 
@@ -776,14 +847,26 @@ export default function EditProfile() {
   };
 
   const handlePositionSelect = (selectedPosition: string) => {
+    console.log('🎯 Position selected:', selectedPosition);
     setPosition(selectedPosition);
     handlePositionPickerClose();
   };
 
+  // Format position for display (capitalize first letter)
+  const formatPositionDisplay = (pos: string) => {
+    return pos.charAt(0).toUpperCase() + pos.slice(1);
+  };
+
+  // Valid role values that work with the database constraint
+  // Based on the createProfile function in AuthContext, these are the allowed values
+  const validRoles = ['parent', 'child', 'teenager', 'grandparent', 'other'];
+
   const handleDateChange = (event: any, date?: Date) => {
     if (date) {
+      console.log('📅 Date selected:', date);
       setSelectedDate(date);
       const formattedDate = date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+      console.log('📅 Formatted date:', formattedDate);
       setDateOfBirth(formattedDate);
     }
     // Only close modal for native date picker (mobile), not for web
@@ -792,26 +875,435 @@ export default function EditProfile() {
     }
   };
 
-  const handleUpdateProfile = async () => {
+  // Success modal handlers
+  const handleContinueToProfile = () => {
+    hideSuccessModal();
+    router.back();
+  };
+
+  const handleExploreApp = () => {
+    hideSuccessModal();
+    router.replace('/(tabs)');
+  };
+
+  // Upload avatar to Supabase Storage
+  const uploadAvatarToSupabase = async (avatarUri: string): Promise<string> => {
+    try {
+      console.log('📤 uploadAvatarToSupabase function called!');
+      console.log('📤 Starting avatar upload to Supabase Storage...');
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
+      // Convert blob URL to file
+      const response = await fetch(avatarUri);
+      const blob = await response.blob();
+      
+      // Create a file from the blob
+      const file = new File([blob], 'avatar.png', { type: 'image/png' });
+      
+      // Generate unique filename with user ID in path (matches storage policy)
+      const timestamp = Date.now();
+      const filename = `${user.id}/avatar-${timestamp}.png`;
+      
+      console.log('📤 Uploading to path:', filename);
+      console.log('📤 File size:', file.size, 'bytes');
+      console.log('📤 User ID:', user.id);
+      
+      // Use the correct bucket name from migration: 'avatars'
+      const bucketName = 'avatar';
+      
+      try {
+        console.log(`📤 Uploading to bucket: ${bucketName}`);
+        
+        const { data, error } = await supabase.storage
+          .from(bucketName)
+          .upload(filename, file, {
+            cacheControl: '3600',
+            upsert: true // Allow overwriting existing files
+          });
+        
+        if (error) {
+          console.error(`❌ Upload failed:`, error);
+          throw error;
+        }
+        
+        console.log(`✅ Avatar uploaded successfully:`, data);
+        
+        // Get public URL - FIXED: Added missing function call
+        const { data: urlData } = supabase.storage
+          .from(bucketName)
+          .getPublicUrl(filename);
+        
+        const publicUrl = urlData.publicUrl;
+        console.log('✅ Avatar public URL:', publicUrl);
+        
+        return publicUrl;
+        
+      } catch (uploadError: any) {
+        console.error(`❌ Upload error:`, uploadError);
+        
+        // If avatars bucket fails, try fallback buckets
+        const fallbackBuckets = ['public', 'uploads', 'images'];
+        
+        for (const fallbackBucket of fallbackBuckets) {
+          try {
+            console.log(`🔄 Trying fallback bucket: ${fallbackBucket}`);
+            
+            const { data, error } = await supabase.storage
+              .from(fallbackBucket)
+              .upload(filename, file, {
+                cacheControl: '3600',
+                upsert: true
+              });
+            
+            if (error) {
+              console.log(`❌ Fallback bucket ${fallbackBucket} failed:`, error.message);
+              continue;
+            }
+            
+            console.log(`✅ Upload successful to fallback bucket ${fallbackBucket}:`, data);
+            
+            // Get public URL
+            const { data: urlData } = supabase.storage
+              .from(fallbackBucket)
+              .getPublicUrl(filename);
+            
+            const publicUrl = urlData.publicUrl;
+            console.log('✅ Fallback avatar public URL:', publicUrl);
+            
+            return publicUrl;
+            
+          } catch (fallbackError) {
+            console.log(`❌ Fallback bucket ${fallbackBucket} error:`, fallbackError);
+            continue;
+          }
+        }
+        
+        throw new Error(`All upload attempts failed. Original error: ${uploadError.message}`);
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Avatar upload failed:', error);
+      
+      // Check if it's a bucket not found error
+      if (error.message?.includes('Bucket not found') || error.message?.includes('not found')) {
+        throw new Error('Storage bucket not configured. Please contact support to set up storage buckets.');
+      }
+      
+      // Check if it's an authentication error
+      if (error.message?.includes('JWT') || error.message?.includes('auth')) {
+        throw new Error('Authentication failed. Please log in again.');
+      }
+      
+      throw new Error(`Avatar upload failed: ${error.message}`);
+    }
+  };
+
+  const handleUpdateProfile = () => {
+    console.log('🚀 handleUpdateProfile called!');
+    console.log('🚀 firstName:', firstName);
+    console.log('🚀 lastName:', lastName);
+    
     if (!firstName.trim() || !lastName.trim()) {
+      console.log('❌ Validation failed - missing first or last name');
       showError('Validation Error', 'Please fill in both first name and last name.');
       return;
     }
 
+    console.log('✅ Validation passed - showing confirmation modal');
+    // Show confirmation modal with animation
+    showConfirmationModal();
+  };
+
+  // Confirmation modal animation handlers
+  const showConfirmationModal = () => {
+    setUpdateConfirmationVisible(true);
+    
+    // Modal entrance animation
+    confirmationModalOpacity.value = withTiming(1, { duration: 300 });
+    confirmationModalScale.value = withSpring(1, { damping: 8, stiffness: 120 });
+    confirmationModalTranslateY.value = withSpring(0, { damping: 10, stiffness: 100 });
+  };
+
+  const hideConfirmationModal = () => {
+    // Modal exit animation
+    confirmationModalOpacity.value = withTiming(0, { duration: 200 });
+    confirmationModalScale.value = withTiming(0.8, { duration: 200 });
+    confirmationModalTranslateY.value = withTiming(50, { duration: 200 });
+    
+    // Hide modal after animation
+    setTimeout(() => {
+      setUpdateConfirmationVisible(false);
+    }, 200);
+  };
+
+  // Success modal animation handlers
+  const showSuccessModal = () => {
+    setSuccessModalVisible(true);
+    
+    // Success modal entrance animation
+    successModalOpacity.value = withTiming(1, { duration: 300 });
+    successModalScale.value = withSpring(1, { damping: 8, stiffness: 120 });
+    successModalTranslateY.value = withSpring(0, { damping: 10, stiffness: 100 });
+    
+    // Icon animation
+    successIconScale.value = withSequence(
+      withTiming(1.3, { duration: 200 }),
+      withSpring(1, { damping: 8, stiffness: 120 })
+    );
+    successIconRotation.value = withSpring(360, { damping: 10, stiffness: 100 });
+  };
+
+  const hideSuccessModal = () => {
+    // Success modal exit animation
+    successModalOpacity.value = withTiming(0, { duration: 200 });
+    successModalScale.value = withTiming(0.8, { duration: 200 });
+    successModalTranslateY.value = withTiming(800, { duration: 200 });
+    
+    // Hide modal after animation
+    setTimeout(() => {
+      setSuccessModalVisible(false);
+    }, 200);
+  };
+
+  const handleConfirmUpdate = async () => {
+    console.log('🚀 handleConfirmUpdate called!');
+    console.log('🚀 About to start profile update process...');
+    
+    hideConfirmationModal();
     setLoading(true);
     try {
       const fullName = `${firstName.trim()} ${lastName.trim()}`;
-      await updateProfile({
-        name: fullName,
-        birth_date: dateOfBirth || undefined,
-        role: position || undefined,
-        avatar_url: avatarUri || undefined,
-      });
-      
-      showSuccess('Success', 'Profile updated successfully!');
-      router.back();
+        
+        // Prepare update data with validation
+        
+        // Ensure name is not empty
+        if (!fullName || fullName.trim() === '') {
+          throw new Error('Name cannot be empty. Please enter both first and last name.');
+        }
+        
+        console.log('🔍 Debug - Current state values:');
+        console.log('🔍 firstName:', firstName, '(type:', typeof firstName, ')');
+        console.log('🔍 lastName:', lastName, '(type:', typeof lastName, ')');
+        console.log('🔍 fullName:', fullName, '(type:', typeof fullName, ')');
+        console.log('🔍 dateOfBirth:', dateOfBirth, '(type:', typeof dateOfBirth, ')');
+        console.log('🔍 position:', position, '(type:', typeof position, ')');
+        console.log('🔍 avatarUri:', avatarUri, '(type:', typeof avatarUri, ')');
+        console.log('🔍 avatarUri length:', avatarUri?.length);
+        console.log('🔍 avatarUrl (state):', avatarUrl, '(type:', typeof avatarUrl, ')');
+        console.log('🔍 interests (from localStorage):', interests, '(type:', typeof interests, ')');
+        
+        console.log('🔍 Field processing starting...');
+        
+        // Initialize finalAvatarUrl with current state
+        let finalAvatarUrl = avatarUrl; // Start with existing avatarUrl state
+        
+        // Always add birth_date (even if empty, let user clear it)
+        // updateData.birth_date = dateOfBirth && dateOfBirth.trim() ? dateOfBirth.trim() : null;
+        // console.log('✅ Added birth_date (Date of Birth from picker):', updateData.birth_date);
+        console.log('✅ This will be saved to profiles.birth_date in Supabase');
+        
+        // Always add role (even if empty, let user clear it)
+        const roleValue = position && position.trim() ? position.trim() : null;
+        
+        // Validate role against database constraint only if it has a value
+        if (roleValue && !validRoles.includes(roleValue)) {
+          console.error('❌ Invalid role value:', roleValue);
+          console.error('❌ Allowed roles:', validRoles);
+          throw new Error(`Invalid role selected. Please choose from: ${validRoles.join(', ')}`);
+        }
+        
+        // updateData.role = roleValue;
+        // console.log('✅ Added role (from position field):', updateData.role);
+        
+        // Add interests field (empty array for now - can be enhanced later)
+        // updateData.interests = [];
+        // console.log('✅ Added interests:', updateData.interests);
+        
+        // Log current updateData state
+        // console.log('📊 Current updateData after field processing:', updateData);
+        
+        // Process avatar if available - upload to Supabase Storage
+        
+        if (avatarUri && avatarUri.trim()) {
+          try {
+            console.log('📤 Uploading avatar to Supabase Storage...');
+            console.log('📤 avatarUri:', avatarUri);
+            console.log('📤 About to call uploadAvatarToSupabase function...');
+            const uploadedAvatarUrl = await uploadAvatarToSupabase(avatarUri);
+            setAvatarUrl(uploadedAvatarUrl);
+            finalAvatarUrl = uploadedAvatarUrl; // Use the uploaded URL directly
+            console.log('✅ Avatar uploaded to Supabase Storage!');
+            console.log('✅ Supabase Storage URL saved as avatar_url:', uploadedAvatarUrl);
+            console.log('✅ This URL will be saved to profiles.avatar_url in database');
+          } catch (uploadError: any) {
+            console.error('❌ Avatar upload failed:', uploadError);
+            
+            // Fallback: Convert to data URL and store in database
+            try {
+              console.log('🔄 Falling back to data URL storage...');
+              const response = await fetch(avatarUri);
+              const blob = await response.blob();
+              
+              // Compress if too large
+              if (blob.size > 500000) {
+                console.log('🔄 Compressing large avatar...');
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                const dataUrl = await new Promise<string>((resolve, reject) => {
+                  img.onload = () => {
+                    const maxSize = 200;
+                    const ratio = Math.min(maxSize / img.width, maxSize / img.height);
+                    canvas.width = img.width * ratio;
+                    canvas.height = img.height * ratio;
+                    
+                    ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                  };
+                  img.onerror = reject;
+                  img.src = avatarUri;
+                });
+                
+                setAvatarUrl(dataUrl);
+                finalAvatarUrl = dataUrl; // Use the data URL directly
+                console.log('✅ Avatar stored as compressed data URL');
+              } else {
+                const reader = new FileReader();
+                const dataUrl = await new Promise<string>((resolve, reject) => {
+                  reader.onload = () => resolve(reader.result as string);
+                  reader.onerror = reject;
+                  reader.readAsDataURL(blob);
+                });
+                
+                setAvatarUrl(dataUrl);
+                finalAvatarUrl = dataUrl; // Use the data URL directly
+                console.log('✅ Avatar stored as data URL');
+              }
+            } catch (fallbackError) {
+              console.error('❌ Data URL fallback also failed:', fallbackError);
+              console.log('⚠️ Continuing without avatar...');
+            }
+          }
+        } else {
+          console.log('❌ No avatarUri to add');
+        }
+        
+        console.log('🔍 finalAvatarUrl (final value):', finalAvatarUrl, '(type:', typeof finalAvatarUrl, ')');
+        
+        const updateData: any = {
+          name: fullName,
+          birth_date: dateOfBirth,
+          role: roleValue,
+          avatar_url: finalAvatarUrl,
+          interests: interests,
+        };
+        // Log final updateData state after all processing
+        console.log('📊 Final updateData after all processing:', updateData);
+        console.log('📝 Final update data being sent:', updateData);
+        console.log('📝 Field mappings to profiles table:');
+        console.log('📝 - name (firstName + lastName):', updateData.name);
+        console.log('📝 - birth_date (dateOfBirth):', updateData.birth_date);
+        console.log('📝 - role (position):', updateData.role);
+        console.log('📝 - avatar_url (Supabase Storage URL):', updateData.avatar_url ? 'Present' : 'Not present');
+        console.log('📝 - interests (from localStorage):', updateData.interests);
+        
+        // Verify all required fields are present
+        console.log('🔍 Field verification:');
+        console.log('🔍 - name field:', updateData.name ? '✅ Present' : '❌ Missing');
+        console.log('🔍 - birth_date field:', updateData.birth_date ? '✅ Present' : '⚠️ Empty/Null');
+        console.log('🔍 - role field (position):', updateData.role ? '✅ Present' : '⚠️ Empty/Null');
+        console.log('🔍 - avatar_url field (Supabase Storage URL):', updateData.avatar_url ? '✅ Present' : '⚠️ Empty/Null');
+        console.log('🔍 - interests field:', updateData.interests ? '✅ Present' : '⚠️ Empty/Null');
+        
+        // Final validation before sending
+        if (!updateData.name || updateData.name.trim() === '') {
+          throw new Error('Name is required and cannot be empty');
+        }
+        
+        console.log('✅ All validations passed, sending update to database...');
+        
+        try {
+          console.log('🚀 About to call updateProfile function...');
+          console.log('🚀 updateData being sent:', updateData);
+          await updateProfile(updateData);
+          console.log('✅ Profile update successful!');
+          console.log('✅ Data saved to profiles table:');
+          console.log('✅ - name:', updateData.name);
+          console.log('✅ - birth_date:', updateData.birth_date);
+          console.log('✅ - role:', updateData.role);
+          console.log('✅ - avatar_url:', updateData.avatar_url);
+          
+          // Confirm all fields were saved
+          console.log('🎉 All fields successfully saved to profiles table!');
+          console.log('🎉 - Name (firstName + lastName):', updateData.name);
+          console.log('🎉 - Birth Date (birth_date):', updateData.birth_date || 'Not set');
+          console.log('🎉 - Position/Role (role):', updateData.role || 'Not set');
+          console.log('🎉 - Avatar URL (avatar_url - Supabase Storage):', updateData.avatar_url || 'Not set');
+          console.log('🎉 - Interests (from localStorage):', updateData.interests || 'Not set');
+          // Show success modal instead of alert
+          showSuccessModal();
+        } catch (updateError: any) {
+          console.error('❌ Profile update failed, trying fallback approach:', updateError);
+          
+          // Try updating without avatar first (avatar might be too large)
+          if (updateData.avatar_url) {
+            console.log('🔄 Trying update without avatar...');
+            const updateDataWithoutAvatar = { ...updateData };
+            delete updateDataWithoutAvatar.avatar_url;
+            
+            try {
+              await updateProfile(updateDataWithoutAvatar);
+              showError('Partial Update', 'Profile updated successfully, but avatar could not be saved. Please try uploading a smaller image.');
+              router.back();
+              return;
+            } catch (fallbackError) {
+              console.error('❌ Fallback update also failed:', fallbackError);
+            }
+          }
+          
+          // Try updating with minimal data (just name)
+          console.log('🔄 Trying update with minimal data...');
+          const minimalUpdateData = {
+            name: updateData.name,
+            updated_at: new Date().toISOString(),
+          };
+          
+          try {
+            await updateProfile(minimalUpdateData);
+            showError('Partial Update', 'Only name was updated. Please try again for other fields.');
+            router.back();
+            return;
+          } catch (minimalError) {
+            console.error('❌ Minimal update also failed:', minimalError);
+            throw updateError; // Re-throw original error
+          }
+        }
     } catch (error: any) {
-      showError('Update Failed', error.message || 'Failed to update profile. Please try again.');
+        console.error('❌ Profile update error in edit page:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
+        
+        let errorMessage = 'Failed to update profile. Please try again.';
+        
+        if (error.message?.includes('role_check') || error.message?.includes('profiles_role_check') || error.message?.includes('violates check constraint')) {
+          errorMessage = `Invalid position selected. Please choose from: ${validRoles.join(', ')}`;
+        } else if (error.message?.includes('avatar')) {
+          errorMessage = 'Failed to update avatar. Please try again.';
+        } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        showError('Update Failed', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -979,7 +1471,7 @@ export default function EditProfile() {
               >
                 <Briefcase size={20} color="#17f196" style={styles.inputIcon} />
                 <AnimatedText style={[styles.textInput, !position && styles.placeholderText]}>
-                  {position || 'Select Position'}
+                  {position ? formatPositionDisplay(position) : 'Select Position'}
                 </AnimatedText>
                 <ChevronDown size={20} color="#17f196" style={styles.inputChevron} />
               </AnimatedPressable>
@@ -1199,7 +1691,7 @@ export default function EditProfile() {
             </AnimatedView>
             <AnimatedView style={styles.datePickerContent}>
               <AnimatedView style={styles.positionPickerContainer}>
-                {['Partner', 'Owner'].map((positionOption) => (
+                {validRoles.map((positionOption) => (
                   <AnimatedPressable
                     key={positionOption}
                     style={[
@@ -1218,7 +1710,7 @@ export default function EditProfile() {
                       styles.positionOptionText,
                       position === positionOption && styles.positionOptionTextSelected
                     ]}>
-                      {positionOption}
+                      {formatPositionDisplay(positionOption)}
                     </AnimatedText>
                   </AnimatedPressable>
                 ))}
@@ -1399,6 +1891,89 @@ export default function EditProfile() {
           </AnimatedView>
         </AnimatedView>
       </Modal>
+
+      {/* Update Profile Confirmation Modal */}
+      {isUpdateConfirmationVisible && (
+        <View style={styles.confirmationModalOverlay}>
+          <BlurView
+            style={styles.blurOverlay}
+            intensity={80}
+            tint="dark"
+          />
+          <AnimatedView style={[styles.confirmationModalContainer, confirmationModalAnimatedStyle]}>
+            {/* Icon */}
+            <View style={styles.confirmationIconContainer}>
+              <View style={styles.confirmationIcon}>
+                <User size={32} color="#FFFFFF" />
+              </View>
+            </View>
+            
+            {/* Title */}
+            <Text style={styles.confirmationTitle}>Update Profile</Text>
+            
+            {/* Message */}
+            <Text style={styles.confirmationMessage}>
+              Are you sure you want to update your profile? This will help us improve your experience and provide personalized features.
+            </Text>
+            
+            {/* Buttons */}
+            <View style={styles.confirmationButtons}>
+              <AnimatedPressable
+                style={[styles.confirmationButton, styles.confirmButton]}
+                onPress={handleConfirmUpdate}
+              >
+                <Text style={styles.confirmButtonText}>Yes, Update Profile</Text>
+              </AnimatedPressable>
+              
+              <AnimatedPressable
+                style={[styles.confirmationButton, styles.cancelButton]}
+                onPress={hideConfirmationModal}
+              >
+                <Text style={styles.cancelButtonText}>No, Let me check</Text>
+              </AnimatedPressable>
+            </View>
+          </AnimatedView>
+        </View>
+      )}
+
+      {/* Success Modal */}
+      {isSuccessModalVisible && (
+        <View style={styles.successModalOverlay}>
+          <AnimatedView style={[styles.successModalContainer, successModalAnimatedStyle]}>
+            {/* Icon */}
+            <View style={styles.successIconContainer}>
+              <AnimatedView style={[styles.successIcon, successIconAnimatedStyle]}>
+                <Text style={styles.successIconText}>✅</Text>
+              </AnimatedView>
+            </View>
+
+            {/* Title */}
+            <Text style={styles.successTitle}>Profile Updated Successfully!</Text>
+
+            {/* Description */}
+            <Text style={styles.successDescription}>
+              Your profile has been updated successfully. You can now continue to explore the app or go back to your profile.
+            </Text>
+
+            {/* Buttons */}
+            <View style={styles.successButtonContainer}>
+              <AnimatedPressable
+                style={[styles.successPrimaryButton]}
+                onPress={handleContinueToProfile}
+              >
+                <Text style={styles.successPrimaryButtonText}>Continue to Profile</Text>
+              </AnimatedPressable>
+              
+              <AnimatedPressable
+                style={[styles.successSecondaryButton]}
+                onPress={handleExploreApp}
+              >
+                <Text style={styles.successSecondaryButtonText}>Explore The App</Text>
+              </AnimatedPressable>
+            </View>
+          </AnimatedView>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -1919,5 +2494,218 @@ const styles = StyleSheet.create({
     right: -14,
     top: 'auto',
     left: 'auto',
+  },
+  // Confirmation Modal Styles (matching signup verification modal)
+  confirmationModalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    zIndex: 2000,
+  },
+  blurOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  confirmationModalContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    marginHorizontal: 0,
+    height: '40%',
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 20,
+    paddingHorizontal: 24,
+    paddingTop: 18,
+    paddingBottom: 30,
+  },
+  confirmationIconContainer: {
+    alignItems: 'center',
+    marginTop: -70,
+    marginBottom: 30,
+  },
+  confirmationIcon: {
+    width: 100,
+    height: 100,
+    backgroundColor: '#17f196',
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  confirmationTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000000',
+    textAlign: 'center',
+    marginBottom: 8,
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  },
+  confirmationMessage: {
+    fontSize: 13,
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 20,
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  },
+  confirmationButtons: {
+    gap: 16,
+    marginTop: 'auto',
+    paddingBottom: 20,
+  },
+  confirmationButton: {
+    borderRadius: 25,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  confirmButton: {
+    backgroundColor: '#17f196',
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  confirmButtonText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  },
+  cancelButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#17f196',
+  },
+  cancelButtonText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#17f196',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  },
+  
+  // Success Modal Styles
+  successModalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    zIndex: 3000,
+  },
+  successModalContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    marginHorizontal: 0,
+    height: '50%',
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 20,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 30,
+  },
+  successIconContainer: {
+    alignItems: 'center',
+    marginTop: -40,
+    marginBottom: 16,
+  },
+  successIcon: {
+    width: 80,
+    height: 80,
+    backgroundColor: '#17f196',
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  successIconText: {
+    fontSize: 40,
+    color: '#FFFFFF',
+  },
+  successTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000000',
+    textAlign: 'center',
+    marginBottom: 16,
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  },
+  successDescription: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'left',
+    lineHeight: 24,
+    marginBottom: 32,
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  },
+  successButtonContainer: {
+    gap: 16,
+  },
+  successPrimaryButton: {
+    backgroundColor: '#17f196',
+    borderRadius: 25,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  successPrimaryButtonText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  },
+  successSecondaryButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#17f196',
+    borderRadius: 25,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  successSecondaryButtonText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#17f196',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
 });
