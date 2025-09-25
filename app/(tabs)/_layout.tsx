@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Chrome as Home, Users, Flame, Settings, Plus } from 'lucide-react-native';
+import { Home, Users, Flame, Settings, Plus, Zap } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import AddItemModal from '@/components/AddItemModal';
@@ -8,26 +8,19 @@ import { DesignTokens, Layout } from '@/components/design-system/DesignTokens';
 import { router } from 'expo-router';
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
 import { useResponsiveContext } from '@/contexts/ResponsiveContext';
+import Svg, { Path } from 'react-native-svg';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-// Custom Tab Bar Component
+// Custom Tab Bar Component with Dented Design
 function CustomTabBar({ state, descriptors, navigation }: any) {
   const insets = useSafeAreaInsets();
   const [showAddItemModal, setShowAddItemModal] = useState(false);
-  const { isMobile, isTablet, isDesktop, getResponsivePadding, scaleWidth, scaleHeight } = useResponsiveContext();
-  
   
   // Filter to only show the 4 main tabs
   const visibleRoutes = state.routes.filter((route: any) => 
     ['index', 'family', 'flames', 'profile'].includes(route.name)
   );
-
-  // Responsive values
-  const responsivePadding = getResponsivePadding();
-  const fabSize = isMobile ? 70 : isTablet ? 80 : 90;
-  const fabIconSize = isMobile ? 28 : isTablet ? 32 : 36;
-  const tabBarHeight = isMobile ? 80 : isTablet ? 90 : 100;
 
   return (
     <>
@@ -35,140 +28,168 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
       styles.tabBarContainer, 
       { 
         paddingBottom: Math.max(insets.bottom, 0),
-        height: tabBarHeight + Math.max(insets.bottom, 0)
       }
     ]}>
-      {/* Floating Action Button - Responsive */}
-      <View style={[
-        styles.fabContainer,
-        {
-          top: -fabSize / 2,
-          marginLeft: -fabSize / 2,
-        }
-      ]}>
-        {/* White background circle */}
-        <View style={[
-          styles.fabBackground,
-          {
-            width: fabSize + 20,
-            height: fabSize + 20,
-            borderRadius: (fabSize + 20) / 2,
-            marginTop: -(fabSize + 20) / 2,
-            marginLeft: -(fabSize + 20) / 2,
-          }
-        ]} />
-        <View style={[
-          styles.fab,
-          {
-            width: fabSize,
-            height: fabSize,
-            borderRadius: fabSize / 2,
-          }
-        ]}>
-          <Pressable
-            style={[
-              styles.fabPressable,
-              {
-                borderRadius: fabSize / 2,
-              }
-            ]}
-            onPress={() => {
-              setShowAddItemModal(true);
-            }}
-          >
-            <Plus size={fabIconSize} color={DesignTokens.colors.backgrounds.primary} strokeWidth={2.5} />
-          </Pressable>
-        </View>
+      {/* Add Button positioned on top */}
+      <View style={styles.addButtonContainer}>
+        {/* Gray half circle background (page background color) */}
+        <View style={styles.grayHalfCircleBackground} />
+        <Pressable
+          style={styles.addButton}
+          onPress={() => setShowAddItemModal(true)}
+        >
+          <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
+        </Pressable>
       </View>
 
-      {/* Tab Bar - Responsive */}
-      <View style={[
-        styles.tabBar,
-        {
-          height: tabBarHeight,
-          paddingHorizontal: responsivePadding.horizontal,
-        }
-      ]}>
-        {visibleRoutes.map((route: any, adjustedIndex: any) => {
-            const { options } = descriptors[route.key];
-            const originalIndex = state.routes.findIndex((r: any) => r.key === route.key);
-            const isFocused = state.index === originalIndex;
+      {/* Navigation Bar - Flat White Design */}
+      <View style={styles.navigationBar}>
+        {/* Navigation Items */}
+        <View style={styles.navigationItems}>
+          {/* Left Group: Home and Family */}
+          <View style={styles.leftGroup}>
+            {visibleRoutes.slice(0, 2).map((route: any) => {
+              const originalIndex = state.routes.findIndex((r: any) => r.key === route.key);
+              const isFocused = state.index === originalIndex;
 
-            const onPress = () => {
-              const event = navigation.emit({
-                type: 'tabPress',
-                target: route.key,
-                canPreventDefault: true,
-              });
+              const onPress = () => {
+                const event = navigation.emit({
+                  type: 'tabPress',
+                  target: route.key,
+                  canPreventDefault: true,
+                });
 
-              if (!isFocused && !event.defaultPrevented) {
-                navigation.navigate(route.name);
-              }
-            };
+                if (!isFocused && !event.defaultPrevented) {
+                  navigation.navigate(route.name);
+                }
+              };
 
-            // Get the appropriate icon and label
-            const getIconAndLabel = () => {
-              const iconColor = isFocused ? DesignTokens.colors.primary[400] : DesignTokens.colors.neutral[400];
-              const iconSize = isMobile ? 24 : isTablet ? 28 : 32;
-              
-              switch (route.name) {
-                case 'index':
-                  return {
-                    icon: <Home size={iconSize} color={iconColor} strokeWidth={2} />
-                  };
-                case 'family':
-                  return {
-                    icon: <Users size={iconSize} color={iconColor} strokeWidth={2} />
-                  };
-                case 'flames':
-                  return {
-                    icon: <Flame size={iconSize} color={iconColor} strokeWidth={2} />
-                  };
-                case 'profile':
-                  return {
-                    icon: <Settings size={iconSize} color={iconColor} strokeWidth={2} />
-                  };
-                default:
-                  return {
-                    icon: <Home size={iconSize} color={iconColor} strokeWidth={2.5} />
-                  };
-              }
-            };
+              // Get the appropriate icon and label
+              const getIconAndLabel = () => {
+                const iconColor = isFocused ? '#17f196' : '#888888'; // Bright green for active, muted gray for inactive
+                const iconSize = 24;
+                
+                switch (route.name) {
+                   case 'index':
+                     return {
+                       icon: (
+                         <View style={{ position: 'relative' }}>
+                           <Home size={iconSize} color={iconColor} fill={iconColor} />
+                           <View style={{ 
+                             position: 'absolute', 
+                             top: '50%', 
+                             left: '50%', 
+                             transform: [{ translateX: -6 }, { translateY: -6 }] 
+                           }}>
+                             <Zap size={12} color={iconColor} fill={iconColor} />
+                           </View>
+                         </View>
+                       ),
+                       label: 'Home'
+                     };
+                   case 'family':
+                     return {
+                       icon: <Users size={iconSize} color={iconColor} fill={iconColor} />,
+                       label: 'Family'
+                     };
+                   default:
+                     return {
+                       icon: <Home size={iconSize} color={iconColor} fill={iconColor} />,
+                       label: 'Home'
+                     };
+                }
+              };
 
-            const { icon } = getIconAndLabel();
+              const { icon, label } = getIconAndLabel();
 
-            return (
-              <Pressable
-                key={route.key}
-                style={[
-                  styles.tabItem,
-                  {
-                    paddingHorizontal: isMobile ? 8 : isTablet ? 12 : 16,
-                  }
-                ]}
-                onPress={onPress}
-              >
-                <View style={[
-                  styles.tabContent,
-                  isFocused && styles.tabContentActive,
-                  {
-                    paddingVertical: isMobile ? 8 : isTablet ? 10 : 12,
-                  }
-                ]}>
-                  <View style={[
-                    styles.tabIconContainer,
-                    {
-                      width: isMobile ? 40 : isTablet ? 44 : 48,
-                      height: isMobile ? 40 : isTablet ? 44 : 48,
-                      borderRadius: isMobile ? 20 : isTablet ? 22 : 24,
-                    }
-                  ]}>
-                    {icon}
+              return (
+                <Pressable
+                  key={route.key}
+                  style={styles.tabItem}
+                  onPress={onPress}
+                >
+                  <View style={styles.tabContent}>
+                    <View style={styles.tabIconContainer}>
+                      {icon}
+                    </View>
+                    <Text style={[
+                      styles.tabLabel,
+                      isFocused ? styles.tabLabelActive : styles.tabLabelInactive
+                    ]}>
+                      {label}
+                    </Text>
                   </View>
-                </View>
-              </Pressable>
-            );
-          })}
+                </Pressable>
+              );
+            })}
+          </View>
+          
+          {/* Right Group: Flames and Profile */}
+          <View style={styles.rightGroup}>
+            {visibleRoutes.slice(2, 4).map((route: any) => {
+              const originalIndex = state.routes.findIndex((r: any) => r.key === route.key);
+              const isFocused = state.index === originalIndex;
+
+              const onPress = () => {
+                const event = navigation.emit({
+                  type: 'tabPress',
+                  target: route.key,
+                  canPreventDefault: true,
+                });
+
+                if (!isFocused && !event.defaultPrevented) {
+                  navigation.navigate(route.name);
+                }
+              };
+
+              // Get the appropriate icon and label
+              const getIconAndLabel = () => {
+                const iconColor = isFocused ? '#17f196' : '#888888'; // Bright green for active, muted gray for inactive
+                const iconSize = 24;
+                
+                 switch (route.name) {
+                   case 'flames':
+                     return {
+                       icon: <Flame size={iconSize} color={iconColor} fill={iconColor} />,
+                       label: 'Flames'
+                     };
+                   case 'profile':
+                     return {
+                       icon: <Settings size={iconSize} color={iconColor} fill={iconColor} />,
+                       label: 'Profile'
+                     };
+                   default:
+                     return {
+                       icon: <Home size={iconSize} color={iconColor} fill={iconColor} />,
+                       label: 'Home'
+                     };
+                 }
+              };
+
+              const { icon, label } = getIconAndLabel();
+
+              return (
+                <Pressable
+                  key={route.key}
+                  style={styles.tabItem}
+                  onPress={onPress}
+                >
+                  <View style={styles.tabContent}>
+                    <View style={styles.tabIconContainer}>
+                      {icon}
+                    </View>
+                    <Text style={[
+                      styles.tabLabel,
+                      isFocused ? styles.tabLabelActive : styles.tabLabelInactive
+                    ]}>
+                      {label}
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
       </View>
     </View>
 
@@ -243,107 +264,130 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  // Container for the entire tab bar area - Onboarding Style
+  // Container for the entire tab bar area
   tabBarContainer: {
     position: 'relative',
     backgroundColor: 'transparent',
-    paddingBottom: DesignTokens.spacing.sm,
+    height: 100,
   },
 
-  // Floating Action Button - Enhanced with Onboarding Aesthetics
-  fabContainer: {
+  // Add Button Container - positioned higher
+  addButtonContainer: {
     position: 'absolute',
-    top: -45,
+    top: -25, // Positioned higher for half circle
     left: '50%',
-    marginLeft: -45,
+    marginLeft: -35, // Adjusted for Add button size
     zIndex: 10,
   },
 
-  // White background circle behind FAB
-  fabBackground: {
+  // Gray half circle background (page background color) - pointing downward
+  grayHalfCircleBackground: {
     position: 'absolute',
     width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: DesignTokens.colors.backgrounds.primary,
-    top: '50%',
-    left: '50%',
-    marginTop: -45,
-    marginLeft: -45,
-    zIndex: -1,
+    height: 50, // Half the height for half circle
+    backgroundColor: '#F5F5F5', // Gray color matching page background
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 50,
+    borderBottomRightRadius: 50,
+    top: 42, // Center of bottom side aligns with center of Add button
+    left: -11,
+    zIndex: 0,
+    boxShadow: '0 -2px 4px 0px rgba(0, 0, 0, 0.1) inset',
   },
 
-  // FAB main circle - Larger and more prominent
-  fab: {
+  // Add Button - Green circular button (no white outline)
+  addButton: {
+    top: 10,
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: DesignTokens.colors.primary[400],
-    position: 'relative',
+    backgroundColor: '#17f196', // Updated green color
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#17f196', // Green shadow
+    shadowOffset: { width: 6, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
     zIndex: 2,
   },
 
-  // FAB pressable area - Larger touch target
-  fabPressable: {
-    width: '100%',
+  // Navigation Bar - Flat White Design
+  navigationBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 80,
+    backgroundColor: '#FFFFFF', // White background like the image
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+
+  // Navigation items container
+  navigationItems: {
+    flexDirection: 'row',
     height: '100%',
-    borderRadius: 35,
-    justifyContent: 'center',
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    justifyContent: 'space-between', // Space between left and right groups
     alignItems: 'center',
   },
 
-  // Main tab bar container - Onboarding Background Color
-  tabBar: {
+  // Left group (Home and Family)
+  leftGroup: {
     flexDirection: 'row',
-    backgroundColor: DesignTokens.colors.backgrounds.primary,
-    borderTopLeftRadius: DesignTokens.radius.xl + DesignTokens.spacing.md,
-    borderTopRightRadius: DesignTokens.radius.xl + DesignTokens.spacing.md,
-    height: Layout.tabBarHeight,
-    paddingTop: DesignTokens.spacing['2xl'] + DesignTokens.spacing.lg,
-    paddingHorizontal: DesignTokens.spacing.xl,
-    paddingBottom: DesignTokens.spacing['2xl'],
-    justifyContent: 'space-around',
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: DesignTokens.colors.neutral[200],
+    gap: 20, // Space between Home and Family
+  },
+
+  // Right group (Flames and Profile)
+  rightGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20, // Space between Flames and Profile
   },
 
   // Individual tab item
   tabItem: {
-    flex: 1,
     alignItems: 'center',
-    paddingVertical: DesignTokens.spacing.sm,
     minWidth: 60,
   },
 
-  // Tab content wrapper - Enhanced styling
+  // Tab content wrapper
   tabContent: {
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
-    gap: DesignTokens.spacing.xs,
-    paddingHorizontal: DesignTokens.spacing.sm,
-    paddingVertical: DesignTokens.spacing.xs,
-    borderRadius: DesignTokens.radius.md,
-  },
-
-  // Active tab content - Subtle highlight
-  tabContentActive: {
-    backgroundColor: DesignTokens.colors.primary[50],
+    gap: 4,
   },
 
   // Tab icon container
   tabIconContainer: {
-    // Icon now stands alone without text below
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
-  // Tab label text - Onboarding Typography
+  // Tab label text
   tabLabel: {
-    fontFamily: DesignTokens.typography.fonts.caption,
-    fontSize: DesignTokens.typography.sizes.ui.small,
+    fontSize: 12,
+    fontWeight: '500',
     textAlign: 'center',
-    letterSpacing: 0.2,
-    fontWeight: '600',
-    marginTop: DesignTokens.spacing.xs,
+  },
+
+  // Active tab label
+  tabLabelActive: {
+    color: '#17f196', // Bright green color for active state
+  },
+
+  // Inactive tab label
+  tabLabelInactive: {
+    color: '#888888', // Gray color for inactive state
   },
 });
