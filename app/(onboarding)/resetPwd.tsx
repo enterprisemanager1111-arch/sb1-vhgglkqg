@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -38,12 +38,15 @@ export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
-  const [tempNewPassword, setTempNewPassword] = useState('');
   const [lastResetAttempt, setLastResetAttempt] = useState<number | null>(null);
   const [cooldownTime, setCooldownTime] = useState<number>(0);
   const [emailFocused, setEmailFocused] = useState(false);
   const [newPasswordFocused, setNewPasswordFocused] = useState(false);
   const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
+  const [showPasswordSuccessModal, setShowPasswordSuccessModal] = useState(false);
+  
+  // Refs for verification code inputs
+  const verificationInputRefs = useRef<(TextInput | null)[]>([]);
   
   
   // Animation values
@@ -151,12 +154,42 @@ export default function ResetPassword() {
   };
 
   const handleVerificationCodeChange = (index: number, value: string) => {
+    // Handle paste of full code (6 digits)
+    if (value.length === 6 && /^\d{6}$/.test(value)) {
+      const newCode = value.split('');
+      setVerificationCode(newCode);
+      console.log('🔍 Full code pasted:', newCode.join(''));
+      return;
+    }
+    
+    // Handle single character input
     const newCode = [...verificationCode];
     newCode[index] = value;
     setVerificationCode(newCode);
     
+    // Auto-focus next input if current input has a value
+    if (value && index < 5) {
+      setTimeout(() => {
+        verificationInputRefs.current[index + 1]?.focus();
+      }, 100);
+    }
+    
     // Debug logging
     console.log('🔍 Input change:', { index, value, newCode: newCode.join('') });
+  };
+
+  const handleVerificationKeyPress = (index: number, key: string) => {
+    // Handle backspace - focus previous input if current is empty
+    if (key === 'Backspace' && !verificationCode[index] && index > 0) {
+      setTimeout(() => {
+        verificationInputRefs.current[index - 1]?.focus();
+      }, 100);
+    }
+  };
+
+  const handleSignInPress = () => {
+    setShowPasswordSuccessModal(false);
+    router.push('/(onboarding)/signin');
   };
 
   const handleSubmitVerificationCode = async () => {
@@ -172,34 +205,22 @@ export default function ResetPassword() {
     }
 
     setVerificationLoading(true);
-    showLoading('Verifying code...');
+    showLoading('Processing...');
     
     try {
       // Debug logging
-      console.log('🔍 ===== VERIFICATION DEBUG INFO =====');
+      console.log('🔍 ===== STORING VERIFICATION CODE =====');
       console.log('🔍 Entered code:', code);
       console.log('🔍 Email:', email);
       console.log('🔍 Code length:', code.length);
       console.log('🔍 ===================================');
       
-      // Validate the entered code against the database
-      const isValid = await validateVerificationCode(email, code);
+      // Just store the code, no verification yet
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      if (!isValid) {
-        console.log('❌ Verification code validation failed');
-        throw new Error('Invalid verification code');
-      }
+      console.log('✅ Verification code stored successfully:', code);
       
-      // Simulate API call with validation
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      console.log('✅ Verification code validated successfully:', code);
-      
-      // Store the new password for later use in password update
-      setTempNewPassword(newPassword);
-      console.log('💾 Stored new password for reset process');
-      
-      showSuccess('Code Verified!', 'Your verification code has been accepted.');
+      showSuccess('Code Received!', 'Please set your new password.');
       
       // Move to step 3: Set new password
       setTimeout(() => {
@@ -207,8 +228,8 @@ export default function ResetPassword() {
       }, 1500);
       
     } catch (error: any) {
-      console.error('❌ Verification failed:', error);
-      showError('Verification Failed', 'Invalid verification code. Please try again.');
+      console.error('❌ Error storing code:', error);
+      showError('Processing Failed', 'Failed to process verification code. Please try again.');
     } finally {
       setVerificationLoading(false);
       hideLoading();
@@ -293,73 +314,57 @@ export default function ResetPassword() {
     showLoading('Updating password...');
     
     try {
-      console.log('🔧 Attempting to reset password for:', email);
-      console.log('🔧 Proceeding with password reset after verification');
+      console.log('🔧 Attempting to update password for:', email);
       console.log('🔐 New password length:', newPassword.length);
-      console.log('💾 Using stored password:', tempNewPassword ? 'Yes' : 'No');
       
-      // Use the stored password from verification step
-      const passwordToUse = tempNewPassword || newPassword;
+      // First, verify the stored verification code
+      const code = verificationCode.join('');
+      console.log('🔍 Verifying stored code:', code);
       
-      console.log('🔐 Final password to set (length):', passwordToUse.length);
+      const isValid = await validateVerificationCode(email, code);
       
-      // For a proper password reset, we need to use a backend API
-      // Since we can't directly update passwords without authentication, we'll use a different approach
+      if (!isValid) {
+        console.log('❌ Verification code validation failed');
+        throw new Error('Invalid verification code. Please go back and re-enter your code.');
+      }
       
-      console.log('🔍 Attempting to update password via backend API...');
+      console.log('✅ Verification code validated successfully');
       
-      // Store the new password temporarily so the callback page can use it
-      console.log('💾 Storing new password for callback page...');
-      await AsyncStorage.setItem('temp_new_password', passwordToUse);
-      await AsyncStorage.setItem('temp_reset_email', email);
+      // Now that we've verified the code, reset the password
+      console.log('🔍 Resetting password using Supabase reset flow...');
       
-      // For password reset, we need to use Supabase's resetPasswordForEmail
-      // This will send an email with a reset link that allows the user to set a new password
-      console.log('📧 Sending password reset email via Supabase...');
-      
-      const { error: emailError } = await supabase.auth.resetPasswordForEmail(email, {
+      // Send a password reset email - this will allow the user to set a new password
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: 'famora://auth/reset-password-callback'
       });
       
-      if (emailError) {
-        console.error('❌ Password reset email error:', emailError);
+      if (resetError) {
+        console.error('❌ Password reset error:', resetError);
         
-        // Handle rate limiting specifically
-        if (emailError.message?.includes('Too Many Requests') || emailError.message?.includes('you can only request this after')) {
-          const timeMatch = emailError.message.match(/(\d+) seconds/);
-          const waitTime = timeMatch ? timeMatch[1] : '60';
-          
-          console.log(`⏰ Rate limited - need to wait ${waitTime} seconds`);
-          throw new Error(`Too many password reset requests. Please wait ${waitTime} seconds before trying again.`);
+        // Handle specific errors
+        if (resetError.message?.includes('Too Many Requests')) {
+          throw new Error('Too many password reset requests. Please wait a moment and try again.');
         }
         
-        // Handle other specific errors
-        if (emailError.message?.includes('User not found')) {
+        if (resetError.message?.includes('User not found')) {
           throw new Error('No account found with this email address.');
         }
         
-        if (emailError.message?.includes('Email not confirmed')) {
-          throw new Error('Please verify your email address before resetting your password.');
-        }
-        
-        // Generic error fallback
-        throw new Error(`Failed to send password reset email: ${emailError.message}`);
+        throw new Error('Failed to initiate password reset. Please try again.');
       }
       
       console.log('✅ Password reset email sent successfully');
-      console.log('📧 Check your email for the password reset link');
-      console.log('🔗 Click the link to set your new password');
-      console.log('💡 The verification code was used to validate your identity');
-      console.log('🔐 You will be able to set your new password when you click the email link');
+      console.log('📧 User will receive an email to complete password reset');
+      
+      console.log('✅ Password reset process initiated successfully');
+      console.log('📧 Reset email sent to:', email);
+      console.log('💡 User should check their email to complete password reset');
       
       // Record successful reset attempt
       setLastResetAttempt(Date.now());
       
-      showSuccess('Reset Email Sent!', 'Please check your email and click the reset link to complete your password reset. You will be able to set your new password on the next page.');
-      
-      setTimeout(() => {
-        router.back();
-      }, 2000);
+      // Show password success modal
+      setShowPasswordSuccessModal(true);
       
     } catch (error: any) {
       console.error('❌ Error updating password:', error);
@@ -395,11 +400,15 @@ export default function ResetPassword() {
       </View>
 
       {/* Lower Section - White Card */}
-      <View style={styles.lowerSection}>
-        {/* Teal Icon with Lock - Overlapping the white card */}
+      <View style={[styles.lowerSection, currentStep === 3 && styles.lowerSectionExtended]}>
+        {/* Teal Icon with Security Safe - Overlapping the white card */}
         <View style={styles.iconContainer}>
           <View style={styles.iconBackground}>
-            <Lock size={32} color="#FFFFFF" strokeWidth={2} />
+            <RNImage 
+              source={require('@/assets/images/icon/security-safe.png')}
+              style={styles.iconImage}
+              resizeMode="contain"
+            />
           </View>
         </View>
         <View style={styles.contentCard}>
@@ -408,7 +417,7 @@ export default function ResetPassword() {
             <View style={[styles.header, ]}>
               <Text style={styles.title}>
                 {currentStep === 1 ? 'Forgot Password' : 
-                 currentStep === 2 ? 'Verify Code' : 
+                 currentStep === 2 ? 'Forgot Password' : 
                  'Set a New Password'}
               </Text>
             </View>
@@ -477,27 +486,26 @@ export default function ResetPassword() {
                   <Text style={styles.subtitle}>
                     A reset code has been sent to {email}, check your email to continue the password reset process.
                   </Text>
-                  <Text style={[styles.subtitle, { color: '#007bff', marginTop: 10, fontWeight: 'bold' }]}>
-                    💡 Use the verification code from the email you received
-                  </Text>
                 </View>
 
                 {/* Verification Code Input */}
                 <View style={styles.form}>
                   <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Verification Code</Text>
                     <View style={styles.verificationCodeContainer}>
                       {verificationCode.map((digit, index) => (
                         <TextInput
                           key={index}
+                          ref={(ref) => { verificationInputRefs.current[index] = ref; }}
                           style={styles.verificationCodeInput}
                           value={digit}
                           onChangeText={(value) => handleVerificationCodeChange(index, value)}
+                          onKeyPress={({ nativeEvent }) => handleVerificationKeyPress(index, nativeEvent.key)}
                           keyboardType="numeric"
-                          maxLength={1}
+                          maxLength={6} // Allow paste of full code
                           textAlign="center"
                           placeholder="0"
                           placeholderTextColor="#CCCCCC"
+                          selectTextOnFocus={true}
                         />
                       ))}
                     </View>
@@ -549,7 +557,11 @@ export default function ResetPassword() {
                   <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>Password</Text>
                     <View style={[styles.inputContainer, newPasswordFocused && styles.inputContainerFocused]}>
-                      <Lock size={20} color="#17f196" strokeWidth={1.5} style={styles.inputIcon} />
+                      <RNImage 
+                        source={require('@/assets/images/icon/password.png')}
+                        style={styles.inputIcon}
+                        resizeMode="contain"
+                      />
                       <TextInput
                         style={styles.input}
                         placeholder="Input Password"
@@ -576,7 +588,11 @@ export default function ResetPassword() {
                   <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>Confirm Password</Text>
                     <View style={[styles.inputContainer, confirmPasswordFocused && styles.inputContainerFocused]}>
-                      <Lock size={20} color="#17f196" strokeWidth={1.5} style={styles.inputIcon} />
+                      <RNImage 
+                        source={require('@/assets/images/icon/password.png')}
+                        style={styles.inputIcon}
+                        resizeMode="contain"
+                      />
                       <TextInput
                         style={styles.input}
                         placeholder="Re Enter Your Password"
@@ -625,6 +641,40 @@ export default function ResetPassword() {
             )}
         </View>
       </View>
+
+      {/* Password Success Modal */}
+      {showPasswordSuccessModal && (
+        <View style={styles.passwordSuccessModalOverlay}>
+          <View style={styles.passwordSuccessModalContainer}>
+            {/* Icon */}
+            <View style={styles.passwordSuccessIconContainer}>
+              <View style={styles.passwordSuccessIcon}>
+                <RNImage 
+                  source={require('@/assets/images/icon/security-safe.png')}
+                  style={styles.passwordSuccessIconImage}
+                  resizeMode="contain"
+                />
+              </View>
+            </View>
+
+            {/* Title */}
+            <Text style={styles.passwordSuccessTitle}>Password Reset Email Sent</Text>
+
+            {/* Description */}
+            <Text style={styles.passwordSuccessDescription}>
+              Please check your email and click the reset link to set your new password. After setting your new password, you can sign in to your account.
+            </Text>
+
+            {/* Sign In Button */}
+            <Pressable
+              style={styles.passwordSuccessButton}
+              onPress={handleSignInPress}
+            >
+              <Text style={styles.passwordSuccessButtonText}>Sign In</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -633,16 +683,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#102118',
+    justifyContent: 'flex-end',
   },
 
-  // Upper Section (50% of screen)
+  // Upper Section (40% of screen)
   upperSection: {
     flex: 1,
     backgroundColor: 'transparent',
     position: 'relative',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    paddingBottom: 60, // Extra padding to show the overlapping icon
   },
   backgroundImage: {
     position: 'absolute',
@@ -671,49 +719,49 @@ const styles = StyleSheet.create({
 
   // Icon Container
   iconContainer: {
-    position: 'absolute',
     alignItems: 'center',
-    top: -40,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    height: 80, // Ensure the container has proper height
+    marginTop: -70,
+    marginBottom: 30,
   },
   iconBackground: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
+    width: 100,
+    height: 100,
+    borderRadius: 16,
     backgroundColor: '#17f196',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#17f196',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 9,
+    elevation: 10,
+  },
+  iconImage: {
+    width: 48,
+    height: 48,
   },
 
   // Lower Section (White Card)
   lowerSection: {
-    flex: 1,
+    height: '40%',
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    paddingTop: 40,
-    marginTop: -30,
-    maxHeight: 450, // Increased from 380 to 450
+    paddingTop: 30,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: -8 },
     shadowOpacity: 0.15,
     shadowRadius: 20,
     elevation: 12,
   },
+  lowerSectionExtended: {
+    height: '50%',
+  },
   contentCard: {
     flex: 1,
-    paddingTop: 45,
+    paddingTop: 0,
     paddingHorizontal: 24,
-    paddingBottom: 12,
-    justifyContent: 'space-between',
+    paddingBottom: 20,
   },
 
   // Header
@@ -722,23 +770,21 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#161618',
-    fontFamily: 'Helvetica',
-    marginBottom: 8,
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#101828',
     textAlign: 'center',
+    marginBottom: 8,
+    fontFamily: 'Helvetica',
   },
   subtitle: {
-    fontSize: 13,
-    color: '#98a2b3',
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#393b41',
+    textAlign: 'left',
+    lineHeight: 18,
+    marginBottom: 14,
     fontFamily: 'Helvetica',
-    fontWeight: '400',
-    textAlign: 'center',
-    lineHeight: '130%',
-    maxWidth: 320,
-    alignSelf: 'center',
-    marginBottom: 24,
   },
 
   // Form
@@ -751,40 +797,40 @@ const styles = StyleSheet.create({
     gap: 8, // Increased from 6 to 8
   },
   inputLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#161618',
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#475467',
     fontFamily: 'Helvetica',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderWidth: 1.5,
-    borderColor: '#E8E8E8',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 15,
-    elevation: 4,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: '#98a2b3',
+    shadowColor: '#101828',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   inputContainerFocused: {
     borderColor: '#17f196',
     shadowColor: '#17f196',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 6,
+    shadowRadius: 8,
+    elevation: 4,
   },
   inputIcon: {
     marginRight: 12,
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 14,
     color: '#161618',
     fontFamily: 'Helvetica',
   },
@@ -797,16 +843,16 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 16,
+    marginTop: 12,
     shadowColor: '#17f196',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.5,
-    shadowRadius: 16,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   sendButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
     color: '#FFFFFF',
     fontFamily: 'Helvetica',
   },
@@ -831,31 +877,27 @@ const styles = StyleSheet.create({
   verificationCodeContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 12,
+    paddingHorizontal: 0,
   },
   verificationCodeInput: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    borderWidth: 1.5,
-    borderColor: '#E8E8E8',
-    backgroundColor: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#161618',
+    width: 50,
+    height: 50,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#d0d5dd',
+    borderRadius: 12,
     textAlign: 'center',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
+    fontSize: 36,
+    fontWeight: '600',
+    color: '#000000',
+    backgroundColor: '#fefefe',
+    fontFamily: 'Helvetica',
   },
   resendContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 4,
   },
   resendText: {
     fontSize: 14,
@@ -867,5 +909,96 @@ const styles = StyleSheet.create({
     color: '#17f196',
     fontFamily: 'Helvetica',
     fontWeight: '500',
+  },
+
+  // Password Success Modal Styles
+  passwordSuccessModalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    zIndex: 3000,
+  },
+  passwordSuccessModalContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    marginHorizontal: 0,
+    height: '45%',
+    width: '100%',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: -8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 12,
+    paddingHorizontal: 32,
+    paddingTop: 18,
+    paddingBottom: 18,
+  },
+  passwordSuccessIconContainer: {
+    alignItems: 'center',
+    marginTop: -70,
+    marginBottom: 30,
+  },
+  passwordSuccessIcon: {
+    width: 100,
+    height: 100,
+    backgroundColor: '#17f196',
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 9,
+    elevation: 10,
+  },
+  passwordSuccessIconImage: {
+    width: 48,
+    height: 48,
+  },
+  passwordSuccessTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#101828',
+    textAlign: 'center',
+    marginBottom: 8,
+    fontFamily: 'Helvetica',
+  },
+  passwordSuccessDescription: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#393b41',
+    textAlign: 'left',
+    lineHeight: 18,
+    marginBottom: 14,
+    fontFamily: 'Helvetica',
+  },
+  passwordSuccessButton: {
+    width: '100%',
+    height: 50,
+    backgroundColor: '#17f196',
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 'auto',
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  passwordSuccessButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#FFFFFF',
+    fontFamily: 'Helvetica',
   },
 });
