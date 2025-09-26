@@ -12,7 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Mail, Lock, Eye, EyeOff, Apple } from 'lucide-react-native';
+import { Eye, EyeOff } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useLoading } from '@/contexts/LoadingContext';
@@ -32,6 +32,8 @@ export default function SignIn() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [shouldCheckProfile, setShouldCheckProfile] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
   
   // Check profile when it's loaded and we need to check it
   useEffect(() => {
@@ -174,9 +176,13 @@ export default function SignIn() {
             {/* Email Input */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Email</Text>
-              <View style={styles.inputContainer}>
+              <View style={[styles.inputContainer, emailFocused && styles.inputContainerFocused]}>
                 <View >
-                  <Mail size={20} color="#17f196" strokeWidth={1.5} style={styles.inputIcon} />
+                  <RNImage 
+                    source={require('@/assets/images/icon/email_address.png')}
+                    style={styles.inputIcon}
+                    resizeMode="contain"
+                  />
                 </View>
                 <TextInput
                   style={styles.input}
@@ -187,6 +193,8 @@ export default function SignIn() {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoComplete="email"
+                  onFocus={() => setEmailFocused(true)}
+                  onBlur={() => setEmailFocused(false)}
                 />
               </View>
             </View>
@@ -194,9 +202,13 @@ export default function SignIn() {
             {/* Password Input */}
             <View style={[styles.inputGroup, ]}>
               <Text style={styles.inputLabel}>Password</Text>
-              <View style={styles.inputContainer}>
+              <View style={[styles.inputContainer, passwordFocused && styles.inputContainerFocused]}>
                 <View >
-                  <Lock size={20} color="#17f196" strokeWidth={1.5} style={styles.inputIcon} />
+                  <RNImage 
+                    source={require('@/assets/images/icon/password.png')}
+                    style={styles.inputIcon}
+                    resizeMode="contain"
+                  />
                 </View>
                 <TextInput
                   style={[styles.input, styles.passwordInput]}
@@ -206,6 +218,8 @@ export default function SignIn() {
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
                   autoComplete="current-password"
+                  onFocus={() => setPasswordFocused(true)}
+                  onBlur={() => setPasswordFocused(false)}
                 />
                 <Pressable
                   style={styles.eyeButton}
@@ -213,9 +227,9 @@ export default function SignIn() {
                 >
                   <View >
                     {showPassword ? (
-                      <EyeOff size={20} color="#17f196" strokeWidth={1.5} />
+                      <EyeOff size={20} color="#88faca" strokeWidth={1.5} />
                     ) : (
-                      <Eye size={20} color="#17f196" strokeWidth={1.5} />
+                      <Eye size={20} color="#88faca" strokeWidth={1.5} />
                     )}
                   </View>
                 </Pressable>
@@ -274,7 +288,11 @@ export default function SignIn() {
                 style={[styles.socialButton, ]}
               >
                 <View >
-                  <Apple size={20} color="#17f196" strokeWidth={2} />
+                  <RNImage 
+                    source={require('@/assets/images/icon/apple.png')}
+                    style={styles.appleIcon}
+                    resizeMode="contain"
+                  />
                 </View>
                 <Text style={styles.socialButtonText}>Sign in With Apple ID</Text>
               </Pressable>
@@ -283,7 +301,11 @@ export default function SignIn() {
                 style={[styles.socialButton, ]}
               >
                 <View style={[styles.googleIcon, ]}>
-                  <Text style={styles.googleIconText}>G</Text>
+                  <RNImage 
+                    source={require('@/assets/images/icon/google.png')}
+                    style={styles.googleIconImage}
+                    resizeMode="contain"
+                  />
                 </View>
                 <Text style={styles.socialButtonText}>Sign in With Google</Text>
               </Pressable>
@@ -308,11 +330,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#102118',
+    justifyContent: 'flex-end',
   },
 
   // Upper Section (40% of screen)
   upperSection: {
-    height: 200,
+    height: 170,
     backgroundColor: 'transparent',
     position: 'relative',
   },
@@ -329,17 +352,17 @@ const styles = StyleSheet.create({
 
   // Lower Section (White Card)
   lowerSection: {
-    flex: 1,
+    flex: 0.85,
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    paddingTop: 40,
+    paddingTop: 30,
     marginTop: -30,
     position: 'relative',
   },
   contentCard: {
     flex: 1,
-    paddingTop: 24,
+    paddingTop: 0,
   },
   scrollView: {
     flex: 1,
@@ -348,64 +371,75 @@ const styles = StyleSheet.create({
   // Header
   header: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 0,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontSize: 32,
+    fontWeight: '600',
+    fontStyle: 'Semi Bold',
     color: '#161618',
     fontFamily: 'Helvetica',
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 13,
-    color: '#98a2b3',
+    fontSize: 14,
+    fontStyle: 'Medium',
+    color: '#475467',
     fontFamily: 'Helvetica',
-    fontWeight: '400',
+    fontWeight: '500',
     textAlign: 'center',
-    lineHeight: '130%',
+    lineHeight: 20,
     maxWidth: 320,
+     marginBottom: 20,
     alignSelf: 'center',
   },
 
   // Form
   form: {
     flex: 1,
-    gap: 20,
+     gap: 16,
     paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingBottom: 20,
   },
   inputGroup: {
     gap: 8,
   },
   inputLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#161618',
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#475467',
     fontFamily: 'Helvetica',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 14,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
+    borderColor: '#98a2b3',
+    shadowColor: '#101828',
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
+  },
+  inputContainerFocused: {
+    borderColor: '#17f196',
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   inputIcon: {
     marginRight: 12,
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 14,
     color: '#161618',
     fontFamily: 'Helvetica',
   },
@@ -434,17 +468,17 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: '#17f196',
-    backgroundColor: '#FFFFFF',
+    borderColor: '#58f6b4',
+    backgroundColor: '#f3f4ff',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
   },
   checkboxChecked: {
-    backgroundColor: '#17f196',
+    // backgroundColor: '#17f196',
   },
   checkmark: {
-    color: '#FFFFFF',
+    color: '#58f6b4',
     fontSize: 12,
     fontWeight: 'bold',
   },
@@ -528,9 +562,16 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#17f196',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  googleIconImage: {
+    width: 16,
+    height: 16,
+  },
+  appleIcon: {
+    width: 20,
+    height: 20,
   },
   googleIconText: {
     fontSize: 12,
@@ -554,14 +595,17 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   signUpText: {
-    fontSize: 14,
-    color: '#161618',
+    fontSize: 12,
+    fontStyle: 'medium',
+    fontWeight: '500',
+    color: '#263238',
     fontFamily: 'Helvetica',
   },
   signUpLink: {
-    fontSize: 14,
-    color: '#17f196',
+    fontSize: 12,
+    fontStyle: 'medium',
+    color: '#37eba0',
     fontFamily: 'Helvetica',
-    fontWeight: '450',
+    fontWeight: '500',
   },
 });

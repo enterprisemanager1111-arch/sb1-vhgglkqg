@@ -170,7 +170,6 @@ export default function EditProfile() {
 
       if (!result.canceled && result.assets[0]) {
         setAvatarUri(result.assets[0].uri);
-        showSuccess('Success', 'Avatar updated successfully!');
       }
     } catch (error) {
       console.error('Error picking image from camera:', error);
@@ -221,7 +220,6 @@ export default function EditProfile() {
       if (!result.canceled && result.assets[0]) {
         console.log('✅ Image selected successfully:', result.assets[0].uri);
         setAvatarUri(result.assets[0].uri);
-        showSuccess('Success', 'Avatar updated successfully!');
       } else {
         console.log('❌ Image selection canceled or no assets');
       }
@@ -237,18 +235,8 @@ export default function EditProfile() {
   const handleRefreshClick = () => {
     console.log('🔄 Refresh button clicked - clearing image');
     setAvatarUri(null);
-    showSuccess('Avatar Cleared', 'Your avatar has been cleared successfully!');
   };
 
-  // Handle edit button click
-  const handleEditClick = () => {
-    console.log('✏️ Edit button clicked');
-    if (avatarUri) {
-      setEditingImageUri(avatarUri);
-      setImageRotation(0);
-      setShowImageEditor(true);
-    }
-  };
 
   // Image editing functions
   const handleRotateImage = () => {
@@ -627,7 +615,6 @@ export default function EditProfile() {
                 testImg.src = newUri;
                 setShowImageEditor(false);
                 setCropMode(false);
-                showSuccess('Success', 'Avatar updated successfully!');
               } else {
                 console.error('🔧 Failed to create blob');
                 showError('Error', 'Failed to create image blob. Please try again.');
@@ -648,7 +635,6 @@ export default function EditProfile() {
         setAvatarUri(editingImageUri);
         setShowImageEditor(false);
         setCropMode(false);
-        showSuccess('Success', 'Avatar updated successfully!');
       }
     }
   };
@@ -1208,7 +1194,11 @@ export default function EditProfile() {
                   />
                 ) : (
                   <View style={styles.photoIcon}>
-                <User size={40} color="#17f196" />
+                <RNImage 
+                  source={require('@/assets/images/icon/image.png')}
+                  style={styles.placeholderIcon}
+                  resizeMode="contain"
+                />
                   </View>
                 )}
               </Pressable>
@@ -1222,20 +1212,14 @@ export default function EditProfile() {
                 {avatarUri ? (
                   <RefreshCw size={16} color={isUploadingAvatar ? "#CCCCCC" : "#FFFFFF"} />
                 ) : (
-                  <Upload size={16} color={isUploadingAvatar ? "#CCCCCC" : "#FFFFFF"} />
+                  <RNImage 
+                  source={require('@/assets/images/icon/upload.png')}
+                  style={[styles.uploadIcon, isUploadingAvatar && styles.uploadIconDisabled]}
+                  resizeMode="contain"
+                />
                 )}
               </Pressable>
 
-              {/* Edit Button (Bottom Right) - Only show when image exists */}
-              {avatarUri && (
-                <Pressable 
-                  style={styles.editButton}
-                  onPress={handleEditClick}
-                  disabled={isUploadingAvatar}
-                >
-                  <Edit3 size={14} color="#FFFFFF" />
-                </Pressable>
-              )}
             </View>
             <Text style={styles.uploadLabel}>
               {avatarUri ? 'Change Photo' : 'Upload Photo'}
@@ -1257,7 +1241,7 @@ export default function EditProfile() {
                   value={firstName}
                   onChangeText={setFirstName}
                   placeholder="First Name"
-                  placeholderTextColor="#CCCCCC"
+                  placeholderTextColor="#888888"
                 />
               </View>
             </View>
@@ -1272,7 +1256,7 @@ export default function EditProfile() {
                   value={lastName}
                   onChangeText={setLastName}
                   placeholder="Last Name"
-                  placeholderTextColor="#CCCCCC"
+                  placeholderTextColor="#888888"
                 />
               </View>
             </View>
@@ -1284,7 +1268,11 @@ export default function EditProfile() {
                 style={styles.inputContainer} 
                 onPress={handleDatePickerOpen}
               >
-                <Calendar size={20} color="#17f196" style={styles.inputIcon} />
+                <RNImage 
+                  source={require('@/assets/images/icon/calendar.png')}
+                  style={styles.inputIcon}
+                  resizeMode="contain"
+                />
                 <Text style={[styles.textInput, !dateOfBirth && styles.placeholderText]}>
                   {dateOfBirth || 'Date of Birth'}
                 </Text>
@@ -1299,7 +1287,11 @@ export default function EditProfile() {
                 style={styles.inputContainer} 
                 onPress={handlePositionPickerOpen}
               >
-                <Briefcase size={20} color="#17f196" style={styles.inputIcon} />
+                <RNImage 
+                  source={require('@/assets/images/icon/keyboard.png')}
+                  style={styles.inputIcon}
+                  resizeMode="contain"
+                />
                 <Text style={[styles.textInput, !position && styles.placeholderText]}>
                   {position ? formatPositionDisplay(position) : 'Select Position'}
                 </Text>
@@ -1684,7 +1676,11 @@ export default function EditProfile() {
             {/* Icon */}
             <View style={styles.confirmationIconContainer}>
               <View style={styles.confirmationIcon}>
-                <User size={32} color="#FFFFFF" />
+                <RNImage 
+                  source={require('@/assets/images/icon/user.png')}
+                  style={styles.confirmationIconImage}
+                  resizeMode="contain"
+                />
               </View>
             </View>
             
@@ -1728,7 +1724,11 @@ export default function EditProfile() {
             {/* Icon */}
             <View style={styles.successIconContainer}>
               <View style={styles.successIcon}>
-                <User size={32} color="#FFFFFF" />
+                <RNImage 
+                  source={require('@/assets/images/icon/user.png')}
+                  style={styles.successIconImage}
+                  resizeMode="contain"
+                />
               </View>
             </View>
 
@@ -1798,29 +1798,33 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontWeight: '600',
+    fontStyle: 'Semi Bold',
     color: '#000000',
     marginBottom: 8,
     fontFamily: 'Arial',
   },
   sectionSubtitle: {
-    fontSize: 14,
-    color: '#666666',
+    fontSize: 12,
+    fontStyle: 'regular',
+    fontWeight: '400',
+    color: '#667085',
     marginBottom: 32,
     fontFamily: 'Arial',
   },
   photoUploadSection: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   photoPlaceholder: {
-    width: 120,
-    height: 120,
+    width: 100,
+    height: 100,
+    backgroundColor: '#fafaff',
     borderWidth: 2,
-    borderColor: '#D1D5DB',
+    borderColor: '#bdb4fe',
     borderStyle: 'dashed',
-    borderRadius: 16,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -1836,8 +1840,8 @@ const styles = StyleSheet.create({
   },
   uploadButton: {
     position: 'absolute',
-    top: -8,
-    right: -8,
+    top: -18,
+    right: -18,
     width: 32,
     height: 32,
     borderRadius: 16,
@@ -1845,6 +1849,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#17f196',
+    borderWidth: 2,
+    borderColor: '#ffffff',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -1861,34 +1867,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  editButton: {
-    position: 'absolute',
-    bottom: -8,
-    right: -8,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#17f196',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#17f196',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
-  },
   uploadLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
+    fontSize: 12,
+    fontWeight: '500',
+    fontStyle: 'medium',
+    color: '#475467',
     marginBottom: 8,
     fontFamily: 'Arial',
   },
   uploadGuidelines: {
-    fontSize: 12,
-    color: '#666666',
+    fontSize: 10,
+    fontWeight: '400',
+    fontStyle: 'regular',
+    color: '#667085',
     textAlign: 'center',
     lineHeight: 16,
+    width: 190,
     fontFamily: 'Arial',
   },
   inputFieldsContainer: {
@@ -1898,30 +1892,45 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#000000',
-    fontFamily: 'Arial',
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#475467',
+    fontFamily: 'Helvetica',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 14,
     borderWidth: 1,
-    borderColor: '#E5E5E5',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    minHeight: 48,
+    borderColor: '#98a2b3',
+    shadowColor: '#101828',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   inputIcon: {
     marginRight: 12,
   },
+  uploadIcon: {
+    width: 16,
+    height: 16,
+  },
+  uploadIconDisabled: {
+    opacity: 0.5,
+  },
+  placeholderIcon: {
+    width: 40,
+    height: 40,
+  },
   textInput: {
     flex: 1,
-    fontSize: 16,
-    color: '#000000',
-    fontFamily: 'Arial',
+    fontSize: 14,
+    color: '#161618',
+    fontFamily: 'Helvetica',
   },
   placeholderText: {
     color: '#CCCCCC',
@@ -1939,7 +1948,7 @@ const styles = StyleSheet.create({
   },
   updateButton: {
     width: '100%',
-    height: 56,
+    height: 50,
     backgroundColor: '#17f196',
     borderRadius: 25,
     alignItems: 'center',
@@ -1956,10 +1965,11 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   updateButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#FFFFFF',
-    fontFamily: 'Arial',
+    fontFamily: 'Helvetica',
   },
   // Date Picker Modal Styles
   datePickerOverlay: {
@@ -2305,9 +2315,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 20,
     elevation: 20,
-    paddingHorizontal: 24,
+    paddingHorizontal: 32,
     paddingTop: 18,
-    paddingBottom: 30,
+    paddingBottom: 18,
   },
   confirmationIconContainer: {
     alignItems: 'center',
@@ -2318,31 +2328,39 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     backgroundColor: '#17f196',
-    borderRadius: 25,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
     shadowColor: '#17f196',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 9,
+    elevation: 10,
+  },
+  confirmationIconImage: {
+    width: 48,
+    height: 48,
   },
   confirmationTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000000',
+    fontSize: 20,
+    fontWeight: '600',
+    fontStyle: 'Semi Bold',
+    color: '#101828',
     textAlign: 'center',
     marginBottom: 8,
-    fontFamily: 'Arial',
+    fontFamily: 'Helvetica',
   },
   confirmationMessage: {
-    fontSize: 13,
-    color: '#666666',
-    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: '500',
+    fontStyle: 'Medium',
+    color: '#393b41',
+    textAlign: 'left',
     lineHeight: 18,
-    marginBottom: 20,
-    fontFamily: 'Arial',
+    marginTop: 10,
+    marginBottom: 14,
+    fontFamily: 'Helvetica',
   },
   confirmationButtons: {
     gap: 16,
@@ -2357,28 +2375,39 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     backgroundColor: '#17f196',
+    borderRadius: 25,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#17f196',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 8,
+    elevation: 6,
   },
   confirmButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#FFFFFF',
-    fontFamily: 'Arial',
+    fontFamily: 'Helvetica',
   },
   cancelButton: {
+    width: '100%',
+    height: 50,
     backgroundColor: 'transparent',
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#17f196',
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cancelButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#17f196',
-    fontFamily: 'Arial',
+    fontFamily: 'Helvetica',
   },
   
   // Success Modal Styles
@@ -2407,9 +2436,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 20,
     elevation: 20,
-    paddingHorizontal: 24,
+    paddingHorizontal: 32,
     paddingTop: 18,
-    paddingBottom: 30,
+    paddingBottom: 18,
   },
   successIconContainer: {
     alignItems: 'center',
@@ -2420,31 +2449,39 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     backgroundColor: '#17f196',
-    borderRadius: 25,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
     shadowColor: '#17f196',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 9,
+    elevation: 10,
+  },
+  successIconImage: {
+    width: 48,
+    height: 48,
   },
   successTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000000',
+    fontSize: 20,
+    fontWeight: '600',
+    fontStyle: 'Semi Bold',
+    color: '#101828',
     textAlign: 'center',
     marginBottom: 8,
-    fontFamily: 'Arial',
+    fontFamily: 'Helvetica',
   },
   successDescription: {
-    fontSize: 13,
-    color: '#666666',
+    fontSize: 12,
+    fontWeight: '500',
+    fontStyle: 'Medium',
+    color: '#393b41',
     textAlign: 'center',
     lineHeight: 18,
-    marginBottom: 20,
-    fontFamily: 'Arial',
+    marginTop: 10,
+    marginBottom: 14,
+    fontFamily: 'Helvetica',
   },
   successButtonContainer: {
     gap: 16,
@@ -2454,20 +2491,21 @@ const styles = StyleSheet.create({
   successPrimaryButton: {
     backgroundColor: '#17f196',
     borderRadius: 25,
-    height: 56,
+    height: 50,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#17f196',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 8,
+    elevation: 6,
   },
   successPrimaryButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#FFFFFF',
-    fontFamily: 'Arial',
+    fontFamily: 'Helvetica',
   },
   
   // Loading Interface Styles
@@ -2521,18 +2559,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#17f196',
   },
   successSecondaryButton: {
+    width: '100%',
+    height: 50,
     backgroundColor: 'transparent',
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#17f196',
     borderRadius: 25,
-    height: 56,
     alignItems: 'center',
     justifyContent: 'center',
   },
   successSecondaryButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#17f196',
-    fontFamily: 'Arial',
+    fontFamily: 'Helvetica',
   },
 });

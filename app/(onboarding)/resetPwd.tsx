@@ -41,6 +41,9 @@ export default function ResetPassword() {
   const [tempNewPassword, setTempNewPassword] = useState('');
   const [lastResetAttempt, setLastResetAttempt] = useState<number | null>(null);
   const [cooldownTime, setCooldownTime] = useState<number>(0);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [newPasswordFocused, setNewPasswordFocused] = useState(false);
+  const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
   
   
   // Animation values
@@ -424,7 +427,7 @@ export default function ResetPassword() {
                   {/* Email Input */}
                   <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>Email</Text>
-                    <View style={styles.inputContainer}>
+                    <View style={[styles.inputContainer, emailFocused && styles.inputContainerFocused]}>
                       <View>
                         <Mail size={20} color="#17f196" strokeWidth={1.5} style={styles.inputIcon} />
                       </View>
@@ -437,6 +440,8 @@ export default function ResetPassword() {
                         keyboardType="email-address"
                         autoCapitalize="none"
                         autoComplete="email"
+                        onFocus={() => setEmailFocused(true)}
+                        onBlur={() => setEmailFocused(false)}
                       />
                     </View>
                   </View>
@@ -543,7 +548,7 @@ export default function ResetPassword() {
                   {/* New Password Input */}
                   <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>Password</Text>
-                    <View style={styles.inputContainer}>
+                    <View style={[styles.inputContainer, newPasswordFocused && styles.inputContainerFocused]}>
                       <Lock size={20} color="#17f196" strokeWidth={1.5} style={styles.inputIcon} />
                       <TextInput
                         style={styles.input}
@@ -554,6 +559,8 @@ export default function ResetPassword() {
                         secureTextEntry={!showPassword}
                         autoCapitalize="none"
                         autoComplete="new-password"
+                        onFocus={() => setNewPasswordFocused(true)}
+                        onBlur={() => setNewPasswordFocused(false)}
                       />
                       <Pressable onPress={() => setShowPassword(!showPassword)}>
                         {showPassword ? (
@@ -568,7 +575,7 @@ export default function ResetPassword() {
                   {/* Confirm Password Input */}
                   <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>Confirm Password</Text>
-                    <View style={styles.inputContainer}>
+                    <View style={[styles.inputContainer, confirmPasswordFocused && styles.inputContainerFocused]}>
                       <Lock size={20} color="#17f196" strokeWidth={1.5} style={styles.inputIcon} />
                       <TextInput
                         style={styles.input}
@@ -579,6 +586,8 @@ export default function ResetPassword() {
                         secureTextEntry={!showConfirmPassword}
                         autoCapitalize="none"
                         autoComplete="new-password"
+                        onFocus={() => setConfirmPasswordFocused(true)}
+                        onBlur={() => setConfirmPasswordFocused(false)}
                       />
                       <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
                         {showConfirmPassword ? (
@@ -761,6 +770,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 15,
     elevation: 4,
+  },
+  inputContainerFocused: {
+    borderColor: '#17f196',
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 6,
   },
   inputIcon: {
     marginRight: 12,

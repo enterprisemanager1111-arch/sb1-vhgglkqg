@@ -44,6 +44,9 @@ export default function FamilySetup() {
   const [showCode, setShowCode] = useState(false);
   const [createdCode, setCreatedCode] = useState('');
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
+  const [familyNameFocused, setFamilyNameFocused] = useState(false);
+  const [searchTermFocused, setSearchTermFocused] = useState(false);
+  const [joinCodeFocused, setJoinCodeFocused] = useState(false);
 
   const { createFamily, joinFamily, searchFamilies, isInFamily, loading: familyLoading } = useFamily();
   const buttonScale = useSharedValue(1);
@@ -450,12 +453,14 @@ export default function FamilySetup() {
                   </View>
                 )}
                 <TextInput
-                  style={styles.textInput}
+                  style={[styles.textInput, familyNameFocused && styles.textInputFocused]}
                   placeholder="e.g. The Smiths"
                   placeholderTextColor="#888888"
                   value={familyName}
                   onChangeText={setFamilyName}
                   autoCapitalize="words"
+                  onFocus={() => setFamilyNameFocused(true)}
+                  onBlur={() => setFamilyNameFocused(false)}
                 />
               </View>
 
@@ -483,13 +488,15 @@ export default function FamilySetup() {
                 </Text>
                 <View style={styles.searchContainer}>
                   <TextInput
-                    style={styles.textInput}
+                    style={[styles.textInput, searchTermFocused && styles.textInputFocused]}
                     placeholder={getTranslation('family.onboarding.searchPlaceholder', 'Enter family name, code, or ID...')}
                     placeholderTextColor="#888888"
                     value={searchTerm}
                     onChangeText={setSearchTerm}
                     autoCapitalize="none"
                     autoCorrect={false}
+                    onFocus={() => setSearchTermFocused(true)}
+                    onBlur={() => setSearchTermFocused(false)}
                   />
                   <Pressable 
                     style={[styles.searchButton, searchTerm.length < 2 && styles.searchButtonDisabled]}
@@ -571,7 +578,7 @@ export default function FamilySetup() {
                   </View>
                 )}
                 <TextInput
-                  style={[styles.textInput, styles.codeInput]}
+                  style={[styles.textInput, styles.codeInput, joinCodeFocused && styles.textInputFocused]}
                   placeholder="ABC123"
                   placeholderTextColor="#888888"
                   value={joinCode}
@@ -584,6 +591,8 @@ export default function FamilySetup() {
                   maxLength={6}
                   autoCorrect={false}
                   autoComplete="off"
+                  onFocus={() => setJoinCodeFocused(true)}
+                  onBlur={() => setJoinCodeFocused(false)}
                 />
               </View>
 
@@ -843,6 +852,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 1,
+  },
+  textInputFocused: {
+    borderColor: '#17f196',
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   codeInput: {
     textAlign: 'center',

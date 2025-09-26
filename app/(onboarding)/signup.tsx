@@ -42,6 +42,11 @@ export default function SignUp() {
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
   const [generatedVerificationCode, setGeneratedVerificationCode] = useState('');
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [phoneNumberFocused, setPhoneNumberFocused] = useState(false);
+  const [companyIdFocused, setCompanyIdFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
+  const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
   const [tempSignupData, setTempSignupData] = useState<{
     email: string;
     password: string;
@@ -540,7 +545,11 @@ export default function SignUp() {
         {/* Logo */}
         <View style={styles.logoContainer}>
           <View style={styles.logo}>
-            <Text style={styles.logoText}>∞</Text>
+            <RNImage 
+              source={require('@/assets/images/newImg/logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
           </View>
         </View>
 
@@ -559,17 +568,23 @@ export default function SignUp() {
           {/* Email Field */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Email</Text>
-            <View style={styles.inputContainer}>
-              <Mail size={20} color="#55ffb8" strokeWidth={2} style={styles.inputIcon} />
+            <View style={[styles.inputContainer, emailFocused && styles.inputContainerFocused]}>
+              <RNImage 
+                source={require('@/assets/images/icon/email_address.png')}
+                style={styles.inputIcon}
+                resizeMode="contain"
+              />
               <TextInput
                 style={styles.textInput}
                 placeholder="Enter Your Email"
-                placeholderTextColor="#999"
+                placeholderTextColor="#888888"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
+                onFocus={() => setEmailFocused(true)}
+                onBlur={() => setEmailFocused(false)}
               />
             </View>
           </View>
@@ -577,19 +592,21 @@ export default function SignUp() {
           {/* Phone Number Field */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Phone Number (optional)</Text>
-            <View style={styles.inputContainer}>
+            <View style={[styles.inputContainer, phoneNumberFocused && styles.inputContainerFocused]}>
               <View style={styles.countryCodeContainer}>
                 <Text style={styles.countryCode}>INA</Text>
                 <Text style={styles.countryArrow}>▼</Text>
               </View>
-              <Phone size={20} color="#55ffb8" strokeWidth={2} style={styles.inputIcon} />
+              <Phone size={20} color="#88faca" strokeWidth={2} style={styles.inputIcon} />
               <TextInput
                 style={styles.textInput}
                 placeholder="+62 0000 0000 0000"
-                placeholderTextColor="#999"
+                placeholderTextColor="#888888"
                 value={phoneNumber}
                 onChangeText={setPhoneNumber}
                 keyboardType="phone-pad"
+                onFocus={() => setPhoneNumberFocused(true)}
+                onBlur={() => setPhoneNumberFocused(false)}
               />
             </View>
           </View>
@@ -597,16 +614,22 @@ export default function SignUp() {
           {/* Company ID Field */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Company ID (optional)</Text>
-            <View style={styles.inputContainer}>
-              <Building size={20} color="#55ffb8" strokeWidth={2} style={styles.inputIcon} />
+            <View style={[styles.inputContainer, companyIdFocused && styles.inputContainerFocused]}>
+              <RNImage 
+                source={require('@/assets/images/icon/email_address.png')}
+                style={styles.inputIcon}
+                resizeMode="contain"
+              />
               <TextInput
                 style={styles.textInput}
                 placeholder="Enter Company ID"
-                placeholderTextColor="#999"
+                placeholderTextColor="#888888"
                 value={companyId}
                 onChangeText={setCompanyId}
                 autoCapitalize="none"
                 autoCorrect={false}
+                onFocus={() => setCompanyIdFocused(true)}
+                onBlur={() => setCompanyIdFocused(false)}
               />
             </View>
           </View>
@@ -614,26 +637,32 @@ export default function SignUp() {
           {/* Password Field */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Password</Text>
-            <View style={styles.inputContainer}>
-              <Lock size={20} color="#55ffb8" strokeWidth={2} style={styles.inputIcon} />
+            <View style={[styles.inputContainer, passwordFocused && styles.inputContainerFocused]}>
+              <RNImage 
+                source={require('@/assets/images/icon/password.png')}
+                style={styles.inputIcon}
+                resizeMode="contain"
+              />
               <TextInput
                 style={styles.textInput}
                 placeholder="My Password"
-                placeholderTextColor="#999"
+                placeholderTextColor="#888888"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
+                onFocus={() => setPasswordFocused(true)}
+                onBlur={() => setPasswordFocused(false)}
               />
               <Pressable
                 onPress={() => setShowPassword(!showPassword)}
                 style={styles.eyeButton}
               >
                 {showPassword ? (
-                  <Eye size={20} color="#55ffb8" strokeWidth={2} />
+                  <Eye size={20} color="#88faca" strokeWidth={2} />
                 ) : (
-                  <EyeOff size={20} color="#55ffb8" strokeWidth={2} />
+                  <EyeOff size={20} color="#88faca" strokeWidth={2} />
                 )}
               </Pressable>
             </View>
@@ -642,26 +671,32 @@ export default function SignUp() {
           {/* Confirm Password Field */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Confirm Password</Text>
-            <View style={styles.inputContainer}>
-              <Lock size={20} color="#55ffb8" strokeWidth={2} style={styles.inputIcon} />
+            <View style={[styles.inputContainer, confirmPasswordFocused && styles.inputContainerFocused]}>
+              <RNImage 
+                source={require('@/assets/images/icon/password.png')}
+                style={styles.inputIcon}
+                resizeMode="contain"
+              />
               <TextInput
                 style={styles.textInput}
                 placeholder="Confirm My Password"
-                placeholderTextColor="#999"
+                placeholderTextColor="#888888"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirmPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
+                onFocus={() => setConfirmPasswordFocused(true)}
+                onBlur={() => setConfirmPasswordFocused(false)}
               />
               <Pressable
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 style={styles.eyeButton}
               >
                 {showConfirmPassword ? (
-                  <Eye size={20} color="#55ffb8" strokeWidth={2} />
+                  <Eye size={20} color="#88faca" strokeWidth={2} />
                 ) : (
-                  <EyeOff size={20} color="#55ffb8" strokeWidth={2} />
+                  <EyeOff size={20} color="#88faca" strokeWidth={2} />
                 )}
               </Pressable>
             </View>
@@ -675,9 +710,7 @@ export default function SignUp() {
             >
               <View style={[styles.checkbox, agreeToTerms && styles.checkboxChecked]}>
                 {agreeToTerms && (
-                  <View>
-                    <Check size={16} color="#FFFFFF" strokeWidth={3} />
-                  </View>
+                  <Text style={styles.checkmark}>✓</Text>
                 )}
               </View>
               <Text style={styles.termsText}>
@@ -733,34 +766,44 @@ export default function SignUp() {
           <View style={styles.modalContainer}>
              <View style={styles.modalHeader}>
                <Text style={styles.modalTitle}>
-                 Terms & Conditions and Privacy Policy
+                 Terms & Conditions and 
+                 {'\n'}Privacy Policy
                </Text>
              </View>
             
             <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={true}>
               <Text style={styles.modalText}>
                 Terms and Conditions:
-
+                {'\n'}
 Acceptance: By using the Re-Dus app, you agree to comply with all applicable terms and conditions.
-
+{'\n'}
+{'\n'}
 Usage: This app is for personal use only and may not be used for commercial purposes without permission.
-
+{'\n'}
+{'\n'}
 Account: You are responsible for the security of your account and all activities that occur within it.
-
+{'\n'}
+{'\n'}
 Content: You must not upload content that violates copyright, privacy, or applicable laws.
-
+{'\n'}
+{'\n'}
 Changes: We reserve the right to change the terms and conditions at any time and will notify you of these changes through the app or via email.
-
+{'\n'}
+{'\n'}
 Privacy Policy:
-
+{'\n'}
 Data Collection: We collect personal data such as name, email, and location to process transactions and improve our services.
-
+{'\n'}
+{'\n'}
 Data Usage: Your data is used for internal purposes such as account management, usage analysis, and service offerings.
-
+{'\n'}
+{'\n'}
 Security: We protect your data with appropriate security measures to prevent unauthorized access.
-
+{'\n'}
+{'\n'}
 Data Sharing: We do not share your personal data with third parties without your consent, except as required by law.
-
+{'\n'}
+{'\n'}
 Your Rights: You can access, update, or delete your personal data at any time through the app settings or by contacting us.
               </Text>
             </ScrollView>
@@ -789,20 +832,23 @@ Your Rights: You can access, update, or delete your personal data at any time th
           <View style={styles.verificationModalContainer}>
             {/* Icon */}
             <View style={styles.verificationIconContainer}>
-              <View style={styles.verificationIcon}>
-                <Text style={styles.verificationIconText}>✉</Text>
-                <View style={styles.verificationIconDot} />
-              </View>
+                <View style={styles.verificationIcon}>
+                  <RNImage 
+                    source={require('@/assets/images/icon/sms-notification.png')}
+                    style={styles.verificationIconImage}
+                    resizeMode="contain"
+                  />
+                </View>
             </View>
 
             {/* Title */}
-            <Text style={styles.verificationTitle}>Email Verification Required!</Text>
+            <Text style={styles.verificationTitle}>Email Verification Sent!</Text>
 
             {/* Description */}
             <Text style={styles.verificationDescription}>
-              A 6-digit verification code has been sent to{' '}
-              <Text style={styles.verificationEmail}>{email}</Text>{' '}
-              to complete your account creation.
+            A verification code will be sent to the email{' '}
+              {email}{' '}
+              for your account verification process.
             </Text>
 
             {/* Verification Code Input */}
@@ -921,33 +967,30 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginTop: 24,
+    marginBottom: 12,
   },
   logo: {
-    width: 80,
-    height: 80,
+    width: 56,
+    height: 56,
     backgroundColor: '#17f196',
-    borderRadius: 20,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#17f196',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
     elevation: 8,
   },
-  logoText: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+  logoImage: {
+    width: 28,
+    height: 28,
   },
   titleContainer: {
     alignItems: 'center',
     marginBottom: 8,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '600',
+    fontStyle: 'Semi Bold',
     color: '#000000',
     fontFamily: 'Helvetica',
   },
@@ -956,42 +999,51 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   subtitle: {
-    fontSize: 13,
-    color: '#98a2b3',
+    fontSize: 12,
+    fontStyle: 'Medium',
+    color: '#393b41',
     fontFamily: 'Helvetica',
-    fontWeight: '400',
+    fontWeight: '500',
     textAlign: 'center',
     lineHeight: '130%',
     maxWidth: 320,
     alignSelf: 'center',
   },
   formContainer: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
   inputGroup: {
     marginBottom: 20,
   },
   inputLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#000000',
+    fontSize: 12,
     marginBottom: 8,
+    fontWeight: '500',
+    color: '#475467',
     fontFamily: 'Helvetica',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 12,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    shadowColor: '#000',
+    borderColor: '#98a2b3',
+    shadowColor: '#101828',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  inputContainerFocused: {
+    borderColor: '#17f196',
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   countryCodeContainer: {
     flexDirection: 'row',
@@ -1016,12 +1068,12 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    fontSize: 16,
-    color: '#000000',
+    fontSize: 14,
+    color: '#161618',
     fontFamily: 'Helvetica',
   },
   eyeButton: {
-    padding: 4,
+    paddingHorizontal: 4,
   },
   termsContainer: {
     marginTop: 8,
@@ -1033,30 +1085,36 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 20,
     height: 20,
-    borderWidth: 2,
-    borderColor: '#17f196',
     borderRadius: 4,
-    marginRight: 12,
-    marginTop: 2,
-    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#58f6b4',
+    backgroundColor: '#f3f4ff',
     alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
   },
   checkboxChecked: {
-    backgroundColor: '#17f196',
+    // backgroundColor: '#17f196',
+  },
+  checkmark: {
+    color: '#58f6b4',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   termsText: {
     flex: 1,
     fontSize: 14,
-    color: '#000000',
+    color: '#000',
     lineHeight: 20,
     fontFamily: 'Helvetica',
   },
   termsLink: {
-    color: '#17f196',
+    color: '#58f6b4',
     textDecorationLine: 'underline',
     fontWeight: '500',
   },
   buttonContainer: {
+    marginTop: 24,
     marginBottom: 24,
   },
   signUpButton: {
@@ -1088,16 +1146,21 @@ const styles = StyleSheet.create({
      color: '#999999',
    },
   linkContainer: {
+    bottom: 30,
+    width: 'calc(100% - 48px)',
+    position: 'absolute',
     alignItems: 'center',
   },
   linkText: {
-    fontSize: 14,
-    color: '#000000',
+    fontSize: 12,
+    color: '#030407',
     fontFamily: 'Helvetica',
   },
   signInLink: {
-    color: '#17f196',
-    textDecorationLine: 'underline',
+    fontSize: 12,
+    fontStyle: 'medium',
+    color: '#37eba0',
+    fontFamily: 'Helvetica',
     fontWeight: '500',
   },
   
@@ -1139,12 +1202,15 @@ const styles = StyleSheet.create({
      justifyContent: 'center',
      alignItems: 'center',
      paddingHorizontal: 24,
-     paddingVertical: 20,
+     paddingVertical: 40,
    },
    modalTitle: {
-     fontSize: 18,
-     fontWeight: 'bold',
-     color: '#000000',
+     fontSize: 20,
+     fontWeight: '600',
+     fontStyle: 'Semi Bold',
+     color: '#101828',
+     textAlign: 'center',
+     marginBottom: 8,
      fontFamily: 'Helvetica',
    },
   modalContent: {
@@ -1152,13 +1218,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 20,
     width: '90%',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#f9fafb',
     marginHorizontal: '5%',
   },
   modalText: {
-    fontSize: 14,
+    fontSize: 12,
+    fontWeight: '500',
+    fontStyle: 'Medium',
     lineHeight: 22,
-    color: '#333333',
+    color: '#344054',
     fontFamily: 'Helvetica',
   },
   modalButtons: {
@@ -1188,7 +1256,7 @@ const styles = StyleSheet.create({
   },
   agreeButton: {
     width: '100%',
-    height: 56,
+    height: 50,
     backgroundColor: '#17f196',
     borderRadius: 25,
     alignItems: 'center',
@@ -1200,8 +1268,9 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   agreeButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#FFFFFF',
     fontFamily: 'Helvetica',
   },
@@ -1231,7 +1300,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 20,
     elevation: 20,
-    paddingHorizontal: 24,
+    paddingHorizontal: 32,
     paddingTop: 18,
     paddingBottom: 18,
   },
@@ -1244,19 +1313,19 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     backgroundColor: '#17f196',
-    borderRadius: 25,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
     shadowColor: '#17f196',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 9,
+    elevation: 10,
   },
-  verificationIconText: {
-    fontSize: 50,
-    color: '#FFFFFF',
+  verificationIconImage: {
+    width: 48,
+    height: 48,
   },
   verificationIconDot: {
     position: 'absolute',
@@ -1270,18 +1339,22 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF',
   },
   verificationTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000000',
+    fontSize: 20,
+    fontWeight: '600',
+    fontStyle: 'Semi Bold',
+    color: '#101828',
     textAlign: 'center',
     marginBottom: 8,
     fontFamily: 'Helvetica',
   },
   verificationDescription: {
-    fontSize: 13,
-    color: '#666666',
-    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: '500',
+    fontStyle: 'Medium',
+    color: '#393b41',
+    textAlign: 'left',
     lineHeight: 18,
+    marginTop: 10,
     marginBottom: 14,
     fontFamily: 'Helvetica',
   },
@@ -1293,33 +1366,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 14,
-    paddingHorizontal: 20,
+    paddingHorizontal: 0,
   },
   verificationCodeInput: {
-    width: 45,
-    height: 55,
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
+    width: 50,
+    height: 50,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#d0d5dd',
     borderRadius: 12,
     textAlign: 'center',
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 36,
+    fontWeight: '600',
+    fontStyle: 'Semi Bold',
     color: '#000000',
-    backgroundColor: '#F8F8F8',
+    backgroundColor: '#fefefe',
     fontFamily: 'Helvetica',
   },
   resendContainer: {
-    alignItems: 'center',
+    alignItems: 'left',
     marginBottom: 14,
   },
   resendText: {
-    fontSize: 14,
+    fontSize: 12,
+    fontWeight: '500',
+    fontStyle: 'Medium',
     color: '#666666',
     fontFamily: 'Helvetica',
   },
   resendLink: {
-    color: '#17f196',
-    fontWeight: 'bold',
+    color: '#58f6b4',
     textDecorationLine: 'underline',
   },
   verificationSubmitButton: {
@@ -1335,8 +1412,9 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   verificationSubmitButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#FFFFFF',
     fontFamily: 'Helvetica',
   },
@@ -1381,28 +1459,28 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 20,
     elevation: 20,
-    paddingHorizontal: 24,
+    paddingHorizontal: 36,
     paddingTop: 20,
     paddingBottom: 30,
   },
   welcomeIconContainer: {
     alignItems: 'center',
-    marginTop: -60,
+    marginTop: -70,
     marginBottom: 30,
   },
   welcomeIcon: {
-    width: 80,
-    height: 80,
+    width: 100,
+    height: 100,
     backgroundColor: '#17f196',
-    borderRadius: 20,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
     shadowColor: '#17f196',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 9,
+    elevation: 10,
   },
   welcomeIconHexagon: {
     width: 50,
@@ -1413,24 +1491,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   welcomeIconImage: {
-    width: 30,
-    height: 30,
+    width: 48,
+    height: 48,
   },
   welcomeTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '600',
+    fontStyle: 'Semi Bold',
     color: '#101828',
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
     fontFamily: 'Helvetica',
   },
   welcomeDescription: {
-    fontSize: 14,
-    color: '#344054',
-    textAlign: 'left',
-    lineHeight: 18.2,
-    marginBottom: 24,
+    fontSize: 12,
     fontWeight: '500',
+    fontStyle: 'Medium',
+    color: '#393b41',
+    textAlign: 'left',
+    lineHeight: 18,
+    marginTop: 10,
+    marginBottom: 14,
     fontFamily: 'Helvetica',
   },
   welcomeButtonContainer: {
@@ -1438,19 +1519,20 @@ const styles = StyleSheet.create({
   },
   welcomePrimaryButton: {
     backgroundColor: '#17f196',
-    borderRadius: 30,
-    height: 56,
+    borderRadius: 25,
+    height: 50,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#17f196',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 8,
+    elevation: 6,
   },
   welcomePrimaryButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#FFFFFF',
     fontFamily: 'Helvetica',
   },
