@@ -12,17 +12,6 @@ import {
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import Animated, { 
-  useSharedValue, 
-  withSpring, 
-  useAnimatedStyle, 
-  withTiming, 
-  withDelay, 
-  withSequence,
-  withRepeat,
-  interpolate,
-  Extrapolate
-} from 'react-native-reanimated';
 import { Mail, Phone, Building, Lock, Eye, EyeOff, Check } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLoading } from '@/contexts/LoadingContext';
@@ -32,9 +21,9 @@ import { supabase } from '@/lib/supabase';
 import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function SignUp() {
+  const { session, user } = useAuth();
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [companyId, setCompanyId] = useState('');
@@ -107,193 +96,17 @@ export default function SignUp() {
 
 
   // Animation states
-  const logoScale = useSharedValue(0);
-  const logoRotation = useSharedValue(0);
-  const titleOpacity = useSharedValue(0);
-  const titleTranslateY = useSharedValue(30);
-  const subtitleOpacity = useSharedValue(0);
-  const subtitleTranslateY = useSharedValue(20);
-  const formOpacity = useSharedValue(0);
-  const formTranslateY = useSharedValue(30);
-  const buttonOpacity = useSharedValue(0);
-  const buttonTranslateY = useSharedValue(20);
-  const linkOpacity = useSharedValue(0);
-  const linkTranslateY = useSharedValue(15);
 
-  // Button animations
-  const signUpButtonScale = useSharedValue(1);
-  const signInLinkScale = useSharedValue(1);
-  
-  // Checkbox animations
-  const checkboxScale = useSharedValue(1);
-  const checkboxRotation = useSharedValue(0);
-  const checkmarkScale = useSharedValue(0);
-  const checkmarkRotation = useSharedValue(-180);
-  
-  // Modal animations
-  const modalOpacity = useSharedValue(0);
-  const modalScale = useSharedValue(0.8);
-  const modalTranslateY = useSharedValue(800);
-  
-  // Verification modal animations
-  const verificationModalOpacity = useSharedValue(0);
-  const verificationModalScale = useSharedValue(0.8);
-  const verificationModalTranslateY = useSharedValue(50);
   
   
 
-  // Welcome modal animations
-  const welcomeModalOpacity = useSharedValue(0);
-  const welcomeModalScale = useSharedValue(0.8);
-  const welcomeModalTranslateY = useSharedValue(800);
-  const welcomeIconScale = useSharedValue(0);
-  const welcomeIconRotation = useSharedValue(0);
-
-  // Animation trigger
-  useEffect(() => {
-    triggerAnimations();
-  }, []);
-
-
-  const triggerAnimations = () => {
-    // Logo animation - scale and rotate
-    logoScale.value = withSequence(
-      withTiming(1.2, { duration: 300 }),
-      withSpring(1, { damping: 8, stiffness: 120 })
-    );
-    logoRotation.value = withSpring(360, { damping: 10, stiffness: 100 });
-
-    // Title animation
-    titleOpacity.value = withDelay(200, withTiming(1, { duration: 600 }));
-    titleTranslateY.value = withDelay(200, withSpring(0, { damping: 12, stiffness: 120 }));
-
-    // Subtitle animation
-    subtitleOpacity.value = withDelay(400, withTiming(1, { duration: 500 }));
-    subtitleTranslateY.value = withDelay(400, withSpring(0, { damping: 10, stiffness: 100 }));
-
-    // Form animation
-    formOpacity.value = withDelay(600, withTiming(1, { duration: 600 }));
-    formTranslateY.value = withDelay(600, withSpring(0, { damping: 10, stiffness: 100 }));
-
-    // Button animation
-    buttonOpacity.value = withDelay(800, withTiming(1, { duration: 500 }));
-    buttonTranslateY.value = withDelay(800, withSpring(0, { damping: 10, stiffness: 100 }));
-
-    // Link animation
-    linkOpacity.value = withDelay(1000, withTiming(1, { duration: 400 }));
-    linkTranslateY.value = withDelay(1000, withSpring(0, { damping: 10, stiffness: 100 }));
-  };
-
-  // Animated styles
-  const logoAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: logoScale.value },
-      { rotate: `${logoRotation.value}deg` }
-    ],
-  }));
-
-  const titleAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: titleOpacity.value,
-    transform: [{ translateY: titleTranslateY.value }],
-  }));
-
-  const subtitleAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: subtitleOpacity.value,
-    transform: [{ translateY: subtitleTranslateY.value }],
-  }));
-
-  const formAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: formOpacity.value,
-    transform: [{ translateY: formTranslateY.value }],
-  }));
-
-  const buttonAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: buttonOpacity.value,
-    transform: [{ translateY: buttonTranslateY.value }],
-  }));
-
-  const linkAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: linkOpacity.value,
-    transform: [{ translateY: linkTranslateY.value }],
-  }));
-
-  const signUpButtonAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: signUpButtonScale.value }],
-  }));
-
-  const signInLinkAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: signInLinkScale.value }],
-  }));
-
-  // Checkbox animated styles
-  const checkboxAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: checkboxScale.value },
-      { rotate: `${checkboxRotation.value}deg` }
-    ],
-  }));
-
-  const checkmarkAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: checkmarkScale.value },
-      { rotate: `${checkmarkRotation.value}deg` }
-    ],
-  }));
-
-  // Modal animated styles
-  const modalAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: modalOpacity.value,
-    transform: [
-      { scale: modalScale.value },
-      { translateY: modalTranslateY.value }
-    ],
-  }));
-
-  // Verification modal animated styles
-  const verificationModalAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: verificationModalOpacity.value,
-    transform: [
-      { scale: verificationModalScale.value },
-      { translateY: verificationModalTranslateY.value }
-    ],
-  }));
 
 
 
-  // Welcome modal animated styles
-  const welcomeModalAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: welcomeModalOpacity.value,
-    transform: [
-      { scale: welcomeModalScale.value },
-      { translateY: welcomeModalTranslateY.value }
-    ],
-  }));
 
-  const welcomeIconAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: welcomeIconScale.value },
-      { rotate: `${welcomeIconRotation.value}deg` }
-    ],
-  }));
 
-  // Button handlers
-  const handleSignUpPressIn = () => {
-    signUpButtonScale.value = withSpring(0.95);
-  };
 
-  const handleSignUpPressOut = () => {
-    signUpButtonScale.value = withSpring(1);
-  };
-
-  const handleSignInLinkPressIn = () => {
-    signInLinkScale.value = withSpring(0.95);
-  };
-
-  const handleSignInLinkPressOut = () => {
-    signInLinkScale.value = withSpring(1);
-  };
-
-  // Checkbox animation handlers
+  // Checkbox handlers
   const handleCheckboxPress = () => {
     if (!agreeToTerms) {
       // Show modal if checkbox is not checked
@@ -301,54 +114,23 @@ export default function SignUp() {
     } else {
       // Uncheck the checkbox if it's already checked
       setAgreeToTerms(false);
-      
-      // Uncheck animation
-      checkboxScale.value = withSpring(0.9, { damping: 8, stiffness: 120 });
-      checkboxRotation.value = withSpring(-180, { damping: 10, stiffness: 100 });
-      checkmarkScale.value = withTiming(0, { duration: 150 });
-      checkmarkRotation.value = withTiming(-180, { duration: 150 });
     }
   };
 
-  // Modal animation handlers
+  // Modal handlers
   const showModal = (type: 'terms' | 'privacy') => {
     setModalType(type);
     setShowTermsModal(true);
-    
-    // Modal entrance animation
-    modalOpacity.value = withTiming(1, { duration: 300 });
-    modalScale.value = withSpring(1, { damping: 8, stiffness: 120 });
-    modalTranslateY.value = withSpring(0, { damping: 10, stiffness: 100 });
   };
 
   const hideModal = () => {
-    // Modal exit animation
-    modalOpacity.value = withTiming(0, { duration: 200 });
-    modalScale.value = withTiming(0.8, { duration: 200 });
-    modalTranslateY.value = withTiming(800, { duration: 200 });
-    
-    // Hide modal after animation
-    setTimeout(() => {
-      setShowTermsModal(false);
-      setModalType(null);
-    }, 200);
+    setShowTermsModal(false);
+    setModalType(null);
   };
 
   const handleAgree = () => {
-    // Check the checkbox and animate it
+    // Check the checkbox
     setAgreeToTerms(true);
-    
-    // Check animation
-    checkboxScale.value = withSequence(
-      withTiming(1.2, { duration: 150 }),
-      withSpring(1, { damping: 8, stiffness: 120 })
-    );
-    checkboxRotation.value = withSpring(360, { damping: 10, stiffness: 100 });
-    checkmarkScale.value = withSequence(
-      withDelay(100, withTiming(1.3, { duration: 200 })),
-      withSpring(1, { damping: 8, stiffness: 120 })
-    );
-    checkmarkRotation.value = withSpring(0, { damping: 10, stiffness: 100 });
     
     hideModal();
   };
@@ -361,6 +143,30 @@ export default function SignUp() {
 
 
 
+
+  // Check if user is already authenticated and should show welcome modal
+  useEffect(() => {
+    const checkAuthAndWelcomeModal = async () => {
+      if (session && user) {
+        try {
+          const showingWelcomeModal = await AsyncStorage.getItem('showing_welcome_modal');
+          if (showingWelcomeModal === 'true') {
+            console.log('🔄 User authenticated and welcome modal flag set, showing welcome modal');
+            showWelcomeModalHandler();
+            return;
+          }
+        } catch (error) {
+          console.error('Error checking welcome modal flag:', error);
+        }
+        
+        // If no welcome modal flag, redirect to main app
+        console.log('User is already authenticated, redirecting to main app');
+        router.replace('/(tabs)');
+      }
+    };
+    
+    checkAuthAndWelcomeModal();
+  }, [session, user]);
 
   // Cleanup effect to clear verification flag on unmount
   useEffect(() => {
@@ -377,43 +183,27 @@ export default function SignUp() {
     console.log('✅ showWelcomeModal state set to true');
     console.log('🔍 showWelcomeModal state after setState (may not be updated yet):', showWelcomeModal);
     
-    // Welcome modal entrance animation
-    console.log('🎬 Starting welcome modal animations...');
-    welcomeModalOpacity.value = withTiming(1, { duration: 300 });
-    welcomeModalScale.value = withSpring(1, { damping: 8, stiffness: 120 });
-    welcomeModalTranslateY.value = withSpring(0, { damping: 10, stiffness: 100 });
-    
-    // Icon animation
-    welcomeIconScale.value = withSequence(
-      withTiming(1.3, { duration: 200 }),
-      withSpring(1, { damping: 8, stiffness: 120 })
-    );
-    welcomeIconRotation.value = withSpring(360, { damping: 10, stiffness: 100 });
-    
-    console.log('✅ Welcome modal animations started');
+    console.log('🎬 Starting welcome modal...');
+    console.log('✅ Welcome modal started');
   };
 
   const hideWelcomeModal = () => {
-    // Welcome modal exit animation
-    welcomeModalOpacity.value = withTiming(0, { duration: 200 });
-    welcomeModalScale.value = withTiming(0.8, { duration: 200 });
-    welcomeModalTranslateY.value = withTiming(800, { duration: 200 });
-    
-    // Hide modal after animation
-    setTimeout(() => {
-      setShowWelcomeModal(false);
-    }, 200);
+    setShowWelcomeModal(false);
   };
 
 
-  const handleSetUpProfile = () => {
+  const handleSetUpProfile = async () => {
     hideWelcomeModal();
+    // Clear the welcome modal flag
+    await AsyncStorage.removeItem('showing_welcome_modal');
     // Navigate to profile edit page
     router.push('/myProfile/edit');
   };
 
-  const handleExploreApp = () => {
+  const handleExploreApp = async () => {
     hideWelcomeModal();
+    // Clear the welcome modal flag
+    await AsyncStorage.removeItem('showing_welcome_modal');
     // Navigate to main app (account already created)
     router.replace('/(tabs)');
   };
@@ -423,22 +213,10 @@ export default function SignUp() {
     console.log('🔧 showVerificationModalHandler called, setting modal to true');
     setShowVerificationModal(true);
     
-    // Simple animation - just make it visible immediately
-    verificationModalOpacity.value = withTiming(1, { duration: 200 });
-    verificationModalScale.value = withTiming(1, { duration: 200 });
-    verificationModalTranslateY.value = withTiming(0, { duration: 200 });
   };
 
   const hideVerificationModal = () => {
-    // Verification modal exit animation
-    verificationModalOpacity.value = withTiming(0, { duration: 200 });
-    verificationModalScale.value = withTiming(0.8, { duration: 200 });
-    verificationModalTranslateY.value = withTiming(50, { duration: 200 });
-    
-    // Hide modal after animation
-    setTimeout(() => {
-      setShowVerificationModal(false);
-    }, 200);
+    setShowVerificationModal(false);
   };
 
 
@@ -618,24 +396,16 @@ export default function SignUp() {
       // Show success message
       showSuccess('Account Created!', 'Your account has been successfully created and verified.');
       
-      // Show welcome modal after successful verification
-      console.log('📱 About to show welcome modal in 1 second...');
-      console.log('🔍 Current showWelcomeModal state:', showWelcomeModal);
+      // Set flag to prevent main app routing from interfering
+      await AsyncStorage.setItem('showing_welcome_modal', 'true');
       
       // Clear the verification flag to allow normal auth flow
       setIsVerifyingSignup(false);
       await AsyncStorage.removeItem('is_verifying_signup');
       
-      // Test: Show modal immediately first
-      console.log('🧪 TEST: Showing welcome modal immediately...');
+      // Show welcome modal after successful verification
+      console.log('📱 Showing welcome modal after verification...');
       showWelcomeModalHandler();
-      
-      setTimeout(() => {
-        console.log('🎊 Calling showWelcomeModalHandler again after delay...');
-        console.log('🔍 showWelcomeModal state before calling handler:', showWelcomeModal);
-        showWelcomeModalHandler();
-        console.log('🔍 showWelcomeModal state after calling handler:', showWelcomeModal);
-      }, 1000);
       
     } catch (error: any) {
       console.error('Error during verification:', error);
@@ -768,29 +538,29 @@ export default function SignUp() {
         showsVerticalScrollIndicator={false}
       >
         {/* Logo */}
-        <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
+        <View style={styles.logoContainer}>
           <View style={styles.logo}>
             <Text style={styles.logoText}>∞</Text>
           </View>
-        </Animated.View>
+        </View>
 
         {/* Title */}
-        <Animated.View style={[styles.titleContainer, titleAnimatedStyle]}>
+        <View style={styles.titleContainer}>
           <Text style={styles.title}>Famora</Text>
-        </Animated.View>
+        </View>
 
         {/* Subtitle */}
-        <Animated.View style={[styles.subtitleContainer, subtitleAnimatedStyle]}>
+        <View style={styles.subtitleContainer}>
           <Text style={styles.subtitle}>Register Using Your Credentials</Text>
-        </Animated.View>
+        </View>
 
         {/* Form */}
-        <Animated.View style={[styles.formContainer, formAnimatedStyle]}>
+        <View style={styles.formContainer}>
           {/* Email Field */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Email</Text>
             <View style={styles.inputContainer}>
-              <Mail size={20} color="#17f196" strokeWidth={2} style={styles.inputIcon} />
+              <Mail size={20} color="#55ffb8" strokeWidth={2} style={styles.inputIcon} />
               <TextInput
                 style={styles.textInput}
                 placeholder="Enter Your Email"
@@ -812,7 +582,7 @@ export default function SignUp() {
                 <Text style={styles.countryCode}>INA</Text>
                 <Text style={styles.countryArrow}>▼</Text>
               </View>
-              <Phone size={20} color="#17f196" strokeWidth={2} style={styles.inputIcon} />
+              <Phone size={20} color="#55ffb8" strokeWidth={2} style={styles.inputIcon} />
               <TextInput
                 style={styles.textInput}
                 placeholder="+62 0000 0000 0000"
@@ -828,7 +598,7 @@ export default function SignUp() {
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Company ID (optional)</Text>
             <View style={styles.inputContainer}>
-              <Building size={20} color="#17f196" strokeWidth={2} style={styles.inputIcon} />
+              <Building size={20} color="#55ffb8" strokeWidth={2} style={styles.inputIcon} />
               <TextInput
                 style={styles.textInput}
                 placeholder="Enter Company ID"
@@ -845,7 +615,7 @@ export default function SignUp() {
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Password</Text>
             <View style={styles.inputContainer}>
-              <Lock size={20} color="#17f196" strokeWidth={2} style={styles.inputIcon} />
+              <Lock size={20} color="#55ffb8" strokeWidth={2} style={styles.inputIcon} />
               <TextInput
                 style={styles.textInput}
                 placeholder="My Password"
@@ -861,9 +631,9 @@ export default function SignUp() {
                 style={styles.eyeButton}
               >
                 {showPassword ? (
-                  <Eye size={20} color="#17f196" strokeWidth={2} />
+                  <Eye size={20} color="#55ffb8" strokeWidth={2} />
                 ) : (
-                  <EyeOff size={20} color="#17f196" strokeWidth={2} />
+                  <EyeOff size={20} color="#55ffb8" strokeWidth={2} />
                 )}
               </Pressable>
             </View>
@@ -873,7 +643,7 @@ export default function SignUp() {
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Confirm Password</Text>
             <View style={styles.inputContainer}>
-              <Lock size={20} color="#17f196" strokeWidth={2} style={styles.inputIcon} />
+              <Lock size={20} color="#55ffb8" strokeWidth={2} style={styles.inputIcon} />
               <TextInput
                 style={styles.textInput}
                 placeholder="Confirm My Password"
@@ -889,9 +659,9 @@ export default function SignUp() {
                 style={styles.eyeButton}
               >
                 {showConfirmPassword ? (
-                  <Eye size={20} color="#17f196" strokeWidth={2} />
+                  <Eye size={20} color="#55ffb8" strokeWidth={2} />
                 ) : (
-                  <EyeOff size={20} color="#17f196" strokeWidth={2} />
+                  <EyeOff size={20} color="#55ffb8" strokeWidth={2} />
                 )}
               </Pressable>
             </View>
@@ -903,13 +673,13 @@ export default function SignUp() {
               style={styles.checkboxContainer}
               onPress={handleCheckboxPress}
             >
-              <Animated.View style={[styles.checkbox, agreeToTerms && styles.checkboxChecked, checkboxAnimatedStyle]}>
+              <View style={[styles.checkbox, agreeToTerms && styles.checkboxChecked]}>
                 {agreeToTerms && (
-                  <Animated.View style={checkmarkAnimatedStyle}>
+                  <View>
                     <Check size={16} color="#FFFFFF" strokeWidth={3} />
-                  </Animated.View>
+                  </View>
                 )}
-              </Animated.View>
+              </View>
               <Text style={styles.termsText}>
                 I agree with{' '}
                 <Text style={styles.termsLink}>terms & conditions</Text>
@@ -918,19 +688,16 @@ export default function SignUp() {
               </Text>
             </Pressable>
           </View>
-        </Animated.View>
+        </View>
 
          {/* Sign Up Button */}
-         <Animated.View style={[styles.buttonContainer, buttonAnimatedStyle]}>
-           <AnimatedPressable
+         <View style={styles.buttonContainer}>
+           <Pressable
              style={[
                styles.signUpButton, 
-               signUpButtonAnimatedStyle,
                (!isFormValid() || loading) && styles.signUpButtonDisabled
              ]}
              onPress={handleSignUp}
-             onPressIn={handleSignUpPressIn}
-             onPressOut={handleSignUpPressOut}
              disabled={!isFormValid() || loading}
            >
              <Text style={[
@@ -939,23 +706,20 @@ export default function SignUp() {
              ]}>
                {loading ? 'Creating Account...' : 'Sign Up'}
              </Text>
-           </AnimatedPressable>
-         </Animated.View>
+           </Pressable>
+         </View>
 
         {/* Sign In Link */}
-        <Animated.View style={[styles.linkContainer, linkAnimatedStyle]}>
+        <View style={styles.linkContainer}>
           <Text style={styles.linkText}>
             Already have an account?{' '}
-            <AnimatedPressable
+            <Pressable
               onPress={() => router.push('/(onboarding)/signin')}
-              onPressIn={handleSignInLinkPressIn}
-              onPressOut={handleSignInLinkPressOut}
-              style={signInLinkAnimatedStyle}
             >
               <Text style={styles.signInLink}>Sign in here</Text>
-            </AnimatedPressable>
+            </Pressable>
           </Text>
-        </Animated.View>
+        </View>
       </ScrollView>
 
       {/* Terms & Conditions Modal */}
@@ -966,7 +730,7 @@ export default function SignUp() {
             intensity={80}
             tint="dark"
           />
-          <Animated.View style={[styles.modalContainer, modalAnimatedStyle]}>
+          <View style={styles.modalContainer}>
              <View style={styles.modalHeader}>
                <Text style={styles.modalTitle}>
                  Terms & Conditions and Privacy Policy
@@ -1010,7 +774,7 @@ Your Rights: You can access, update, or delete your personal data at any time th
                 <Text style={styles.declineButtonText}>Decline</Text>
               </Pressable>
             </View>
-          </Animated.View>
+          </View>
         </View>
       )}
 
@@ -1022,7 +786,7 @@ Your Rights: You can access, update, or delete your personal data at any time th
             intensity={80}
             tint="dark"
           />
-          <Animated.View style={[styles.verificationModalContainer, verificationModalAnimatedStyle]}>
+          <View style={styles.verificationModalContainer}>
             {/* Icon */}
             <View style={styles.verificationIconContainer}>
               <View style={styles.verificationIcon}>
@@ -1086,19 +850,28 @@ Your Rights: You can access, update, or delete your personal data at any time th
                 {verificationLoading ? 'Verifying...' : 'Verify Code'}
               </Text>
             </Pressable>
-          </Animated.View>
+          </View>
         </View>
       )}
 
       {/* Welcome Modal */}
       {showWelcomeModal && (
         <View style={styles.welcomeModalOverlay}>
-          <Animated.View style={[styles.welcomeModalContainer, welcomeModalAnimatedStyle]}>
+          <BlurView
+            style={styles.welcomeBlurOverlay}
+            intensity={80}
+            tint="dark"
+          />
+          <View style={styles.welcomeModalContainer}>
             {/* Icon */}
             <View style={styles.welcomeIconContainer}>
-              <Animated.View style={[styles.welcomeIcon, welcomeIconAnimatedStyle]}>
-                <Text style={styles.welcomeIconText}>👤</Text>
-              </Animated.View>
+              <View style={styles.welcomeIcon}>
+                  <RNImage 
+                    source={require('@/assets/images/icon/welcom_modal.png')}
+                    style={styles.welcomeIconImage}
+                    resizeMode="contain"
+                  />
+              </View>
             </View>
 
             {/* Title */}
@@ -1125,7 +898,7 @@ Your Rights: You can access, update, or delete your personal data at any time th
                 <Text style={styles.welcomeSecondaryButtonText}>Explore The App First</Text>
               </Pressable>
             </View>
-          </Animated.View>
+          </View>
         </View>
       )}
     </SafeAreaView>
@@ -1176,17 +949,21 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     color: '#000000',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   subtitleContainer: {
     alignItems: 'center',
     marginBottom: 40,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 13,
+    color: '#98a2b3',
+    fontFamily: 'Helvetica',
     fontWeight: '400',
-    color: '#000000',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    textAlign: 'center',
+    lineHeight: '130%',
+    maxWidth: 320,
+    alignSelf: 'center',
   },
   formContainer: {
     marginBottom: 32,
@@ -1199,7 +976,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#000000',
     marginBottom: 8,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -1241,7 +1018,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#000000',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   eyeButton: {
     padding: 4,
@@ -1272,7 +1049,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#000000',
     lineHeight: 20,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   termsLink: {
     color: '#17f196',
@@ -1284,7 +1061,7 @@ const styles = StyleSheet.create({
   },
   signUpButton: {
     width: '100%',
-    height: 56,
+    height: 50,
     backgroundColor: '#17f196',
     borderRadius: 25,
     alignItems: 'center',
@@ -1296,10 +1073,11 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
    signUpButtonText: {
-     fontSize: 17,
-     fontWeight: '600',
+     fontSize: 14,
+     fontStyle: 'medium',
+     fontWeight: '500',
      color: '#FFFFFF',
-     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+     fontFamily: 'Helvetica',
    },
    signUpButtonDisabled: {
      backgroundColor: '#CCCCCC',
@@ -1315,7 +1093,7 @@ const styles = StyleSheet.create({
   linkText: {
     fontSize: 14,
     color: '#000000',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   signInLink: {
     color: '#17f196',
@@ -1367,7 +1145,7 @@ const styles = StyleSheet.create({
      fontSize: 18,
      fontWeight: 'bold',
      color: '#000000',
-     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+     fontFamily: 'Helvetica',
    },
   modalContent: {
     flex: 1,
@@ -1381,7 +1159,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
     color: '#333333',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   modalButtons: {
     flexDirection: 'column',
@@ -1393,19 +1171,20 @@ const styles = StyleSheet.create({
   },
   declineButton: {
     width: '100%',
-    height: 56,
+    height: 50,
     backgroundColor: 'transparent',
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#17f196',
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
   },
   declineButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#17f196',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   agreeButton: {
     width: '100%',
@@ -1424,7 +1203,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#FFFFFF',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   
   // Verification Modal Styles
@@ -1496,7 +1275,7 @@ const styles = StyleSheet.create({
     color: '#000000',
     textAlign: 'center',
     marginBottom: 8,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   verificationDescription: {
     fontSize: 13,
@@ -1504,7 +1283,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
     marginBottom: 14,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   verificationEmail: {
     fontWeight: 'bold',
@@ -1527,7 +1306,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000000',
     backgroundColor: '#F8F8F8',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   resendContainer: {
     alignItems: 'center',
@@ -1536,7 +1315,7 @@ const styles = StyleSheet.create({
   resendText: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   resendLink: {
     color: '#17f196',
@@ -1559,7 +1338,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#FFFFFF',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   verificationSubmitButtonDisabled: {
     backgroundColor: '#CCCCCC',
@@ -1577,10 +1356,16 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'flex-end',
     alignItems: 'center',
     zIndex: 3000,
+  },
+  welcomeBlurOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   welcomeModalContainer: {
     backgroundColor: '#FFFFFF',
@@ -1589,7 +1374,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
     marginHorizontal: 0,
-    height: '50%',
+    height: '40%',
     width: '100%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -10 },
@@ -1602,8 +1387,8 @@ const styles = StyleSheet.create({
   },
   welcomeIconContainer: {
     alignItems: 'center',
-    marginTop: -40,
-    marginBottom: 16,
+    marginTop: -60,
+    marginBottom: 30,
   },
   welcomeIcon: {
     width: 80,
@@ -1619,32 +1404,41 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
-  welcomeIconText: {
-    fontSize: 40,
-    color: '#FFFFFF',
+  welcomeIconHexagon: {
+    width: 50,
+    height: 50,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  welcomeIconImage: {
+    width: 30,
+    height: 30,
   },
   welcomeTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000000',
+    fontWeight: '600',
+    color: '#101828',
     textAlign: 'center',
-    marginBottom: 16,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    marginBottom: 12,
+    fontFamily: 'Helvetica',
   },
   welcomeDescription: {
-    fontSize: 16,
-    color: '#666666',
+    fontSize: 14,
+    color: '#344054',
     textAlign: 'left',
-    lineHeight: 24,
-    marginBottom: 32,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    lineHeight: 18.2,
+    marginBottom: 24,
+    fontWeight: '500',
+    fontFamily: 'Helvetica',
   },
   welcomeButtonContainer: {
     gap: 16,
   },
   welcomePrimaryButton: {
     backgroundColor: '#17f196',
-    borderRadius: 25,
+    borderRadius: 30,
     height: 56,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1658,21 +1452,22 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#FFFFFF',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   welcomeSecondaryButton: {
     backgroundColor: 'transparent',
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#17f196',
     borderRadius: 25,
-    height: 56,
+    height: 50,
     alignItems: 'center',
     justifyContent: 'center',
   },
   welcomeSecondaryButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#17f196',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
 });

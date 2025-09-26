@@ -14,18 +14,6 @@ import {
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import Animated, { 
-  useSharedValue, 
-  withSpring, 
-  withTiming, 
-  withSequence,
-  withDelay,
-  withRepeat,
-  useAnimatedStyle,
-  interpolate,
-  Extrapolate,
-  runOnJS
-} from 'react-native-reanimated';
 import { User, Calendar, Briefcase, Upload, ChevronLeft, ChevronDown, RefreshCw, Edit3, RotateCw, Check, X, Crop, RotateCcw } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCustomAlert } from '@/contexts/CustomAlertContext';
@@ -34,10 +22,6 @@ import { BlurView } from 'expo-blur';
 import { supabase } from '@/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Create animated components
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-const AnimatedView = Animated.createAnimatedComponent(View);
-const AnimatedText = Animated.createAnimatedComponent(Text);
 
 export default function EditProfile() {
   const { profile, updateProfile, user } = useAuth();
@@ -79,72 +63,7 @@ export default function EditProfile() {
   const [isLoadingUserData, setIsLoadingUserData] = useState(true);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
-  // Animation shared values
-  // Confirmation modal animations
-  const confirmationModalOpacity = useSharedValue(0);
-  const confirmationModalScale = useSharedValue(0.8);
-  const confirmationModalTranslateY = useSharedValue(50);
-  
-  // Success modal animations
-  const successModalOpacity = useSharedValue(0);
-  const successModalScale = useSharedValue(0.8);
-  const successModalTranslateY = useSharedValue(50);
-  const successIconScale = useSharedValue(0);
-  const successIconRotation = useSharedValue(0);
-  const successIconBounce = useSharedValue(0);
-  const successIconPulse = useSharedValue(1);
-  
-  // Loading animations
-  const loadingSpinnerRotation = useSharedValue(0);
-  const loadingDotsScale = useSharedValue(1);
-  const loadingPulse = useSharedValue(1);
-  const loadingOpacity = useSharedValue(0);
-  const headerOpacity = useSharedValue(0);
-  const headerTranslateY = useSharedValue(-50);
-  const contentCardOpacity = useSharedValue(0);
-  const contentCardScale = useSharedValue(0.8);
-  const contentCardTranslateY = useSharedValue(50);
-  const photoUploadScale = useSharedValue(0);
-  const photoUploadRotation = useSharedValue(0);
-  const inputFieldsOpacity = useSharedValue(0);
-  const inputFieldsTranslateY = useSharedValue(30);
-  const buttonScale = useSharedValue(1);
-  const buttonOpacity = useSharedValue(0);
-  const modalOpacity = useSharedValue(0);
-  const modalScale = useSharedValue(0.8);
-  const modalTranslateY = useSharedValue(300);
-  const positionModalOpacity = useSharedValue(0);
-  const positionModalScale = useSharedValue(0.8);
-  const positionModalTranslateY = useSharedValue(300);
-  const avatarScale = useSharedValue(1);
 
-  // Entrance animations
-  useEffect(() => {
-    // Start loading animations for user data
-    if (isLoadingUserData) {
-      startLoadingAnimations();
-    }
-    
-    // Header animation
-    headerOpacity.value = withTiming(1, { duration: 600 });
-    headerTranslateY.value = withSpring(0, { damping: 12, stiffness: 100 });
-
-    // Content card animation
-    contentCardOpacity.value = withDelay(200, withTiming(1, { duration: 600 }));
-    contentCardScale.value = withDelay(200, withSpring(1, { damping: 10, stiffness: 100 }));
-    contentCardTranslateY.value = withDelay(200, withSpring(0, { damping: 12, stiffness: 100 }));
-
-    // Photo upload animation
-    photoUploadScale.value = withDelay(400, withSpring(1, { damping: 8, stiffness: 120 }));
-    photoUploadRotation.value = withDelay(400, withSpring(360, { damping: 10, stiffness: 100 }));
-
-    // Input fields animation
-    inputFieldsOpacity.value = withDelay(600, withTiming(1, { duration: 500 }));
-    inputFieldsTranslateY.value = withDelay(600, withSpring(0, { damping: 12, stiffness: 100 }));
-
-    // Button animation
-    buttonOpacity.value = withDelay(800, withTiming(1, { duration: 400 }));
-  }, []);
 
   // Load interests from localStorage
   const loadInterestsFromStorage = async () => {
@@ -201,124 +120,14 @@ export default function EditProfile() {
     console.log('🔧 Avatar URI length:', avatarUri?.length);
   }, [avatarUri]);
 
-  // Animated styles
-  const headerAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: headerOpacity.value,
-    transform: [{ translateY: headerTranslateY.value }],
-  }));
 
-  const contentCardAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: contentCardOpacity.value,
-    transform: [
-      { scale: contentCardScale.value },
-      { translateY: contentCardTranslateY.value }
-    ],
-  }));
-
-  // Confirmation modal animated style
-  const confirmationModalAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: confirmationModalOpacity.value,
-    transform: [
-      { scale: confirmationModalScale.value },
-      { translateY: confirmationModalTranslateY.value }
-    ],
-  }));
-
-  // Success modal animated styles
-  const successModalAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: successModalOpacity.value,
-    transform: [
-      { scale: successModalScale.value },
-      { translateY: successModalTranslateY.value }
-    ],
-  }));
-
-  const successIconAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: successIconScale.value * successIconPulse.value },
-      { rotate: `${successIconRotation.value}deg` },
-      { translateY: successIconBounce.value }
-    ],
-  }));
-
-  const photoUploadAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: photoUploadScale.value },
-      { rotate: `${photoUploadRotation.value}deg` }
-    ],
-  }));
-
-  // Loading animated styles
-  const loadingSpinnerAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { rotate: `${loadingSpinnerRotation.value}deg` }
-    ],
-  }));
-
-  const loadingDotsAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: loadingDotsScale.value * loadingPulse.value }
-    ],
-  }));
-
-  const loadingOverlayAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: loadingOpacity.value,
-  }));
-
-  const inputFieldsAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: inputFieldsOpacity.value,
-    transform: [{ translateY: inputFieldsTranslateY.value }],
-  }));
-
-  const buttonAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: buttonOpacity.value,
-    transform: [{ scale: buttonScale.value }],
-  }));
-
-  const modalAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: modalOpacity.value,
-    transform: [
-      { scale: modalScale.value },
-      { translateY: modalTranslateY.value }
-    ],
-  }));
-
-  const positionModalAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: positionModalOpacity.value,
-    transform: [
-      { scale: positionModalScale.value },
-      { translateY: positionModalTranslateY.value }
-    ],
-  }));
-
-  const avatarAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: avatarScale.value }],
-  }));
-
-  // Interaction animations
-  const handleButtonPressIn = () => {
-    buttonScale.value = withSpring(0.95, { damping: 15, stiffness: 300 });
-  };
-
-  const handleButtonPressOut = () => {
-    buttonScale.value = withSpring(1, { damping: 15, stiffness: 300 });
-  };
 
   const handleDatePickerOpen = () => {
     setShowDatePicker(true);
-    // Modal entrance animation
-    modalOpacity.value = withTiming(1, { duration: 300 });
-    modalScale.value = withSpring(1, { damping: 10, stiffness: 100 });
-    modalTranslateY.value = withSpring(0, { damping: 12, stiffness: 100 });
   };
 
   const handleDatePickerClose = () => {
-    // Modal exit animation
-    modalOpacity.value = withTiming(0, { duration: 200 });
-    modalScale.value = withTiming(0.8, { duration: 200 });
-    modalTranslateY.value = withTiming(300, { duration: 200 }, () => {
-      runOnJS(setShowDatePicker)(false);
-    });
+    setShowDatePicker(false);
   };
 
   // Request permissions for camera and photo library
@@ -868,29 +677,15 @@ export default function EditProfile() {
     // Directly open file picker for all platforms
     console.log('📁 Opening file picker directly...');
     pickImageFromLibrary();
-    
-    avatarScale.value = withSequence(
-      withSpring(0.95, { damping: 15, stiffness: 300 }),
-      withSpring(1, { damping: 15, stiffness: 300 })
-    );
   };
 
   // Position picker handlers
   const handlePositionPickerOpen = () => {
     setShowPositionPicker(true);
-    // Position modal entrance animation
-    positionModalOpacity.value = withTiming(1, { duration: 300 });
-    positionModalScale.value = withSpring(1, { damping: 10, stiffness: 100 });
-    positionModalTranslateY.value = withSpring(0, { damping: 12, stiffness: 100 });
   };
 
   const handlePositionPickerClose = () => {
-    // Position modal exit animation
-    positionModalOpacity.value = withTiming(0, { duration: 200 });
-    positionModalScale.value = withTiming(0.8, { duration: 200 });
-    positionModalTranslateY.value = withTiming(300, { duration: 200 }, () => {
-      runOnJS(setShowPositionPicker)(false);
-    });
+    setShowPositionPicker(false);
   };
 
   const handlePositionSelect = (selectedPosition: string) => {
@@ -1064,124 +859,24 @@ export default function EditProfile() {
     showConfirmationModal();
   };
 
-  // Confirmation modal animation handlers
+  // Confirmation modal handlers
   const showConfirmationModal = () => {
     setUpdateConfirmationVisible(true);
-    
-    // Modal entrance animation
-    confirmationModalOpacity.value = withTiming(1, { duration: 300 });
-    confirmationModalScale.value = withSpring(1, { damping: 8, stiffness: 120 });
-    confirmationModalTranslateY.value = withSpring(0, { damping: 10, stiffness: 100 });
   };
 
   const hideConfirmationModal = () => {
-    // Modal exit animation
-    confirmationModalOpacity.value = withTiming(0, { duration: 200 });
-    confirmationModalScale.value = withTiming(0.8, { duration: 200 });
-    confirmationModalTranslateY.value = withTiming(50, { duration: 200 });
-    
-    // Hide modal after animation
-    setTimeout(() => {
-      setUpdateConfirmationVisible(false);
-    }, 200);
+    setUpdateConfirmationVisible(false);
   };
 
-  // Success modal animation handlers
+  // Success modal handlers
   const showSuccessModal = () => {
     setSuccessModalVisible(true);
-    
-    // Success modal entrance animation (matching confirmation modal)
-    successModalOpacity.value = withTiming(1, { duration: 300 });
-    successModalScale.value = withSpring(1, { damping: 8, stiffness: 120 });
-    successModalTranslateY.value = withSpring(0, { damping: 10, stiffness: 100 });
-    
-    // Cool sweet icon animations
-    successIconScale.value = withSequence(
-      withTiming(0, { duration: 0 }),
-      withTiming(1.2, { duration: 300 }),
-      withSpring(1, { damping: 6, stiffness: 100 })
-    );
-    
-    // Bounce animation
-    successIconBounce.value = withSequence(
-      withTiming(-10, { duration: 200 }),
-      withSpring(0, { damping: 8, stiffness: 120 })
-    );
-    
-    // Rotation animation
-    successIconRotation.value = withSequence(
-      withTiming(0, { duration: 0 }),
-      withSpring(360, { damping: 8, stiffness: 100 })
-    );
-    
-    // Pulse animation (continuous)
-    successIconPulse.value = withRepeat(
-      withSequence(
-        withTiming(1.1, { duration: 800 }),
-        withTiming(1, { duration: 800 })
-      ),
-      -1, // infinite repeat
-      false
-    );
   };
 
   const hideSuccessModal = () => {
-    // Success modal exit animation (matching confirmation modal)
-    successModalOpacity.value = withTiming(0, { duration: 200 });
-    successModalScale.value = withTiming(0.8, { duration: 200 });
-    successModalTranslateY.value = withTiming(50, { duration: 200 });
-    
-    // Stop pulse animation
-    successIconPulse.value = withTiming(1, { duration: 100 });
-    
-    // Hide modal after animation
-    setTimeout(() => {
-      setSuccessModalVisible(false);
-    }, 200);
+    setSuccessModalVisible(false);
   };
 
-  // Loading animation functions
-  const startLoadingAnimations = () => {
-    // Spinner rotation
-    loadingSpinnerRotation.value = withRepeat(
-      withTiming(360, { duration: 1000 }),
-      -1,
-      false
-    );
-    
-    // Dots scale animation
-    loadingDotsScale.value = withRepeat(
-      withSequence(
-        withTiming(1.2, { duration: 600 }),
-        withTiming(1, { duration: 600 })
-      ),
-      -1,
-      false
-    );
-    
-    // Pulse animation
-    loadingPulse.value = withRepeat(
-      withSequence(
-        withTiming(1.1, { duration: 800 }),
-        withTiming(1, { duration: 800 })
-      ),
-      -1,
-      false
-    );
-    
-    // Show loading overlay
-    loadingOpacity.value = withTiming(1, { duration: 300 });
-  };
-
-  const stopLoadingAnimations = () => {
-    // Hide loading overlay
-    loadingOpacity.value = withTiming(0, { duration: 300 });
-    
-    // Stop animations
-    loadingSpinnerRotation.value = withTiming(0, { duration: 200 });
-    loadingDotsScale.value = withTiming(1, { duration: 200 });
-    loadingPulse.value = withTiming(1, { duration: 200 });
-  };
 
   const handleConfirmUpdate = async () => {
     console.log('🚀 handleConfirmUpdate called!');
@@ -1189,9 +884,8 @@ export default function EditProfile() {
     
     hideConfirmationModal();
     
-    // Start loading animations for profile update
+    // Start loading for profile update
     setIsUpdatingProfile(true);
-    startLoadingAnimations();
     try {
       const fullName = `${firstName.trim()} ${lastName.trim()}`;
         
@@ -1436,7 +1130,6 @@ export default function EditProfile() {
     } finally {
       // Stop loading animations
       setIsUpdatingProfile(false);
-      stopLoadingAnimations();
     }
   };
 
@@ -1446,81 +1139,65 @@ export default function EditProfile() {
       
       {/* Loading Interface for User Data */}
       {isLoadingUserData && (
-        <AnimatedView style={[styles.loadingOverlay, loadingOverlayAnimatedStyle]}>
+        <View style={styles.loadingOverlay}>
           <View style={styles.loadingContainer}>
-            <AnimatedView style={[styles.loadingSpinner, loadingSpinnerAnimatedStyle]}>
+            <View style={styles.loadingSpinner}>
               <View style={styles.spinnerCircle} />
-            </AnimatedView>
+            </View>
             <Text style={styles.loadingText}>Loading your profile...</Text>
             <View style={styles.loadingDots}>
-              <AnimatedView style={[styles.loadingDot, loadingDotsAnimatedStyle]} />
-              <AnimatedView style={[styles.loadingDot, loadingDotsAnimatedStyle]} />
-              <AnimatedView style={[styles.loadingDot, loadingDotsAnimatedStyle]} />
+              <View style={styles.loadingDot} />
+              <View style={styles.loadingDot} />
+              <View style={styles.loadingDot} />
             </View>
           </View>
-        </AnimatedView>
+        </View>
       )}
       
       {/* Loading Interface for Profile Update */}
       {isUpdatingProfile && (
-        <AnimatedView style={[styles.loadingOverlay, loadingOverlayAnimatedStyle]}>
+        <View style={styles.loadingOverlay}>
           <View style={styles.loadingContainer}>
-            <AnimatedView style={[styles.loadingSpinner, loadingSpinnerAnimatedStyle]}>
+            <View style={styles.loadingSpinner}>
               <View style={styles.spinnerCircle} />
-            </AnimatedView>
+            </View>
             <Text style={styles.loadingText}>Updating your profile...</Text>
             <View style={styles.loadingDots}>
-              <AnimatedView style={[styles.loadingDot, loadingDotsAnimatedStyle]} />
-              <AnimatedView style={[styles.loadingDot, loadingDotsAnimatedStyle]} />
-              <AnimatedView style={[styles.loadingDot, loadingDotsAnimatedStyle]} />
+              <View style={styles.loadingDot} />
+              <View style={styles.loadingDot} />
+              <View style={styles.loadingDot} />
             </View>
           </View>
-        </AnimatedView>
+        </View>
       )}
       
       {/* Header */}
-      <AnimatedView style={[styles.header, headerAnimatedStyle]}>
-        <AnimatedPressable 
+      <View style={styles.header}>
+        <Pressable 
           style={styles.backButton} 
           onPress={() => router.back()}
-          onPressIn={() => {
-            buttonScale.value = withSpring(0.9, { damping: 15, stiffness: 300 });
-          }}
-          onPressOut={() => {
-            buttonScale.value = withSpring(1, { damping: 15, stiffness: 300 });
-          }}
         >
           <ChevronLeft size={24} color="#17f196" />
-        </AnimatedPressable>
-        <AnimatedText style={styles.headerTitle}>My Work Profile</AnimatedText>
+        </Pressable>
+        <Text style={styles.headerTitle}>My Work Profile</Text>
         <View style={styles.headerSpacer} />
-      </AnimatedView>
+      </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Main Content Card */}
-        <AnimatedView style={[styles.contentCard, contentCardAnimatedStyle]}>
+        <View style={styles.contentCard}>
           {/* Section Title */}
-          <AnimatedText style={styles.sectionTitle}>Personal Data Information</AnimatedText>
-          <AnimatedText style={styles.sectionSubtitle}>Your personal data information</AnimatedText>
+          <Text style={styles.sectionTitle}>Personal Data Information</Text>
+          <Text style={styles.sectionSubtitle}>Your personal data information</Text>
 
           {/* Profile Photo Upload Section */}
-          <AnimatedView style={[styles.photoUploadSection, photoUploadAnimatedStyle]}>
+          <View style={styles.photoUploadSection}>
             
-            <AnimatedView style={[styles.photoPlaceholder, avatarAnimatedStyle]}>
-              <AnimatedPressable 
+            <View style={styles.photoPlaceholder}>
+              <Pressable 
                 style={styles.avatarMainArea}
                 onPress={handleAvatarPress}
                 disabled={isUploadingAvatar}
-                onPressIn={() => {
-                  if (!isUploadingAvatar) {
-                    avatarScale.value = withSpring(0.95, { damping: 15, stiffness: 300 });
-                  }
-                }}
-                onPressOut={() => {
-                  if (!isUploadingAvatar) {
-                    avatarScale.value = withSpring(1, { damping: 15, stiffness: 300 });
-                  }
-                }}
               >
                 {avatarUri ? (
                   <RNImage 
@@ -1530,14 +1207,14 @@ export default function EditProfile() {
                     resizeMode="cover"
                   />
                 ) : (
-                  <AnimatedView style={styles.photoIcon}>
+                  <View style={styles.photoIcon}>
                 <User size={40} color="#17f196" />
-                  </AnimatedView>
+                  </View>
                 )}
-              </AnimatedPressable>
+              </Pressable>
               
               {/* Refresh Button (Top Right) */}
-              <AnimatedPressable 
+              <Pressable 
                 style={[styles.uploadButton, isUploadingAvatar && styles.uploadButtonLoading]}
                 onPress={avatarUri ? handleRefreshClick : handleAvatarPress}
                 disabled={isUploadingAvatar}
@@ -1547,33 +1224,33 @@ export default function EditProfile() {
                 ) : (
                   <Upload size={16} color={isUploadingAvatar ? "#CCCCCC" : "#FFFFFF"} />
                 )}
-              </AnimatedPressable>
+              </Pressable>
 
               {/* Edit Button (Bottom Right) - Only show when image exists */}
               {avatarUri && (
-                <AnimatedPressable 
+                <Pressable 
                   style={styles.editButton}
                   onPress={handleEditClick}
                   disabled={isUploadingAvatar}
                 >
                   <Edit3 size={14} color="#FFFFFF" />
-                </AnimatedPressable>
+                </Pressable>
               )}
-            </AnimatedView>
-            <AnimatedText style={styles.uploadLabel}>
+            </View>
+            <Text style={styles.uploadLabel}>
               {avatarUri ? 'Change Photo' : 'Upload Photo'}
-            </AnimatedText>
-            <AnimatedText style={styles.uploadGuidelines}>
+            </Text>
+            <Text style={styles.uploadGuidelines}>
               Format should be in .jpeg .png atleast 800×800px and less than 5MB
-            </AnimatedText>
-          </AnimatedView>
+            </Text>
+          </View>
 
           {/* Input Fields */}
-          <AnimatedView style={[styles.inputFieldsContainer, inputFieldsAnimatedStyle]}>
+          <View style={styles.inputFieldsContainer}>
             {/* First Name */}
-            <AnimatedView style={styles.inputGroup}>
-              <AnimatedText style={styles.inputLabel}>First Name</AnimatedText>
-              <AnimatedView style={styles.inputContainer}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>First Name</Text>
+              <View style={styles.inputContainer}>
                 <User size={20} color="#17f196" style={styles.inputIcon} />
                 <TextInput
                   style={styles.textInput}
@@ -1582,13 +1259,13 @@ export default function EditProfile() {
                   placeholder="First Name"
                   placeholderTextColor="#CCCCCC"
                 />
-              </AnimatedView>
-            </AnimatedView>
+              </View>
+            </View>
 
             {/* Last Name */}
-            <AnimatedView style={styles.inputGroup}>
-              <AnimatedText style={styles.inputLabel}>Last Name</AnimatedText>
-              <AnimatedView style={styles.inputContainer}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Last Name</Text>
+              <View style={styles.inputContainer}>
                 <User size={20} color="#17f196" style={styles.inputIcon} />
                 <TextInput
                   style={styles.textInput}
@@ -1597,68 +1274,54 @@ export default function EditProfile() {
                   placeholder="Last Name"
                   placeholderTextColor="#CCCCCC"
                 />
-              </AnimatedView>
-            </AnimatedView>
+              </View>
+            </View>
 
             {/* Date of Birth */}
-            <AnimatedView style={styles.inputGroup}>
-              <AnimatedText style={styles.inputLabel}>Date of Birth</AnimatedText>
-              <AnimatedPressable 
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Date of Birth</Text>
+              <Pressable 
                 style={styles.inputContainer} 
                 onPress={handleDatePickerOpen}
-                onPressIn={() => {
-                  buttonScale.value = withSpring(0.98, { damping: 15, stiffness: 300 });
-                }}
-                onPressOut={() => {
-                  buttonScale.value = withSpring(1, { damping: 15, stiffness: 300 });
-                }}
               >
                 <Calendar size={20} color="#17f196" style={styles.inputIcon} />
-                <AnimatedText style={[styles.textInput, !dateOfBirth && styles.placeholderText]}>
+                <Text style={[styles.textInput, !dateOfBirth && styles.placeholderText]}>
                   {dateOfBirth || 'Date of Birth'}
-                </AnimatedText>
+                </Text>
                 <ChevronDown size={20} color="#17f196" style={styles.inputChevron} />
-              </AnimatedPressable>
-            </AnimatedView>
+              </Pressable>
+            </View>
 
             {/* Position */}
-            <AnimatedView style={styles.inputGroup}>
-              <AnimatedText style={styles.inputLabel}>Position</AnimatedText>
-              <AnimatedPressable 
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Position</Text>
+              <Pressable 
                 style={styles.inputContainer} 
                 onPress={handlePositionPickerOpen}
-                onPressIn={() => {
-                  buttonScale.value = withSpring(0.98, { damping: 15, stiffness: 300 });
-                }}
-                onPressOut={() => {
-                  buttonScale.value = withSpring(1, { damping: 15, stiffness: 300 });
-                }}
               >
                 <Briefcase size={20} color="#17f196" style={styles.inputIcon} />
-                <AnimatedText style={[styles.textInput, !position && styles.placeholderText]}>
+                <Text style={[styles.textInput, !position && styles.placeholderText]}>
                   {position ? formatPositionDisplay(position) : 'Select Position'}
-                </AnimatedText>
+                </Text>
                 <ChevronDown size={20} color="#17f196" style={styles.inputChevron} />
-              </AnimatedPressable>
-            </AnimatedView>
-          </AnimatedView>
-        </AnimatedView>
+              </Pressable>
+            </View>
+          </View>
+        </View>
       </ScrollView>
 
       {/* Update Profile Button */}
-      <AnimatedView style={[styles.buttonContainer, buttonAnimatedStyle]}>
-        <AnimatedPressable 
+      <View style={styles.buttonContainer}>
+        <Pressable 
           style={[styles.updateButton, loading && styles.updateButtonDisabled]}
           onPress={handleUpdateProfile}
-          onPressIn={handleButtonPressIn}
-          onPressOut={handleButtonPressOut}
           disabled={loading}
         >
-          <AnimatedText style={styles.updateButtonText}>
+          <Text style={styles.updateButtonText}>
             {loading ? 'Updating...' : 'Update Profile'}
-          </AnimatedText>
-        </AnimatedPressable>
-      </AnimatedView>
+          </Text>
+        </Pressable>
+      </View>
 
       {/* Date Picker Modal */}
       <Modal
@@ -1667,44 +1330,32 @@ export default function EditProfile() {
         animationType="none"
         onRequestClose={handleDatePickerClose}
       >
-        <AnimatedView style={[styles.datePickerOverlay, { opacity: modalOpacity }]}>
-          <AnimatedView style={[styles.datePickerContainer, modalAnimatedStyle]}>
-            <AnimatedView style={styles.datePickerHeader}>
-              <AnimatedPressable 
+        <View style={styles.datePickerOverlay}>
+          <View style={styles.datePickerContainer}>
+            <View style={styles.datePickerHeader}>
+              <Pressable 
                 onPress={handleDatePickerClose} 
                 style={styles.datePickerCancelButton}
-                onPressIn={() => {
-                  buttonScale.value = withSpring(0.95, { damping: 15, stiffness: 300 });
-                }}
-                onPressOut={() => {
-                  buttonScale.value = withSpring(1, { damping: 15, stiffness: 300 });
-                }}
               >
-                <AnimatedText style={styles.datePickerCancelText}>Cancel</AnimatedText>
-              </AnimatedPressable>
-              <AnimatedText style={styles.datePickerTitle}>Select Date of Birth</AnimatedText>
-              <AnimatedPressable 
+                <Text style={styles.datePickerCancelText}>Cancel</Text>
+              </Pressable>
+              <Text style={styles.datePickerTitle}>Select Date of Birth</Text>
+              <Pressable 
                 onPress={handleDatePickerClose} 
                 style={styles.datePickerDoneButton}
-                onPressIn={() => {
-                  buttonScale.value = withSpring(0.95, { damping: 15, stiffness: 300 });
-                }}
-                onPressOut={() => {
-                  buttonScale.value = withSpring(1, { damping: 15, stiffness: 300 });
-                }}
               >
-                <AnimatedText style={styles.datePickerDoneText}>Done</AnimatedText>
-              </AnimatedPressable>
-            </AnimatedView>
-            <AnimatedView style={styles.datePickerContent}>
+                <Text style={styles.datePickerDoneText}>Done</Text>
+              </Pressable>
+            </View>
+            <View style={styles.datePickerContent}>
               {Platform.OS === 'web' ? (
-                <AnimatedView style={styles.webDatePicker}>
-                  <AnimatedView style={styles.datePickerRow}>
-                    <AnimatedView style={styles.datePickerColumn}>
-                      <AnimatedText style={styles.datePickerLabel}>Year</AnimatedText>
+                <View style={styles.webDatePicker}>
+                  <View style={styles.datePickerRow}>
+                    <View style={styles.datePickerColumn}>
+                      <Text style={styles.datePickerLabel}>Year</Text>
                       <ScrollView style={styles.yearScrollView} showsVerticalScrollIndicator={true}>
                         {Array.from({ length: 125 }, (_, i) => new Date().getFullYear() - i).map((year) => (
-                          <AnimatedPressable
+                          <Pressable
                             key={year}
                             style={[
                               styles.datePickerOption,
@@ -1715,32 +1366,26 @@ export default function EditProfile() {
                               newDate.setFullYear(year);
                               handleDateChange(null, newDate);
                             }}
-                            onPressIn={() => {
-                              buttonScale.value = withSpring(0.95, { damping: 15, stiffness: 300 });
-                            }}
-                            onPressOut={() => {
-                              buttonScale.value = withSpring(1, { damping: 15, stiffness: 300 });
-                            }}
                           >
-                            <AnimatedText style={[
+                            <Text style={[
                               styles.datePickerOptionText,
                               selectedDate.getFullYear() === year && styles.datePickerOptionTextSelected
                             ]}>
                               {year}
-                            </AnimatedText>
-                          </AnimatedPressable>
+                            </Text>
+                          </Pressable>
                         ))}
                       </ScrollView>
-                    </AnimatedView>
+                    </View>
                     
-                    <AnimatedView style={styles.datePickerColumn}>
-                      <AnimatedText style={styles.datePickerLabel}>Month</AnimatedText>
+                    <View style={styles.datePickerColumn}>
+                      <Text style={styles.datePickerLabel}>Month</Text>
                       <ScrollView style={styles.monthScrollView} showsVerticalScrollIndicator={true}>
                         {[
                           'January', 'February', 'March', 'April', 'May', 'June',
                           'July', 'August', 'September', 'October', 'November', 'December'
                         ].map((month, index) => (
-                          <AnimatedPressable
+                          <Pressable
                             key={month}
                             style={[
                               styles.datePickerOption,
@@ -1751,29 +1396,23 @@ export default function EditProfile() {
                               newDate.setMonth(index);
                               handleDateChange(null, newDate);
                             }}
-                            onPressIn={() => {
-                              buttonScale.value = withSpring(0.95, { damping: 15, stiffness: 300 });
-                            }}
-                            onPressOut={() => {
-                              buttonScale.value = withSpring(1, { damping: 15, stiffness: 300 });
-                            }}
                           >
-                            <AnimatedText style={[
+                            <Text style={[
                               styles.datePickerOptionText,
                               selectedDate.getMonth() === index && styles.datePickerOptionTextSelected
                             ]}>
                               {month}
-                            </AnimatedText>
-                          </AnimatedPressable>
+                            </Text>
+                          </Pressable>
                         ))}
                       </ScrollView>
-                    </AnimatedView>
+                    </View>
                     
-                    <AnimatedView style={styles.datePickerColumn}>
-                      <AnimatedText style={styles.datePickerLabel}>Day</AnimatedText>
+                    <View style={styles.datePickerColumn}>
+                      <Text style={styles.datePickerLabel}>Day</Text>
                       <ScrollView style={styles.dayScrollView} showsVerticalScrollIndicator={true}>
                         {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                          <AnimatedPressable
+                          <Pressable
                             key={day}
                             style={[
                               styles.datePickerOption,
@@ -1784,38 +1423,32 @@ export default function EditProfile() {
                               newDate.setDate(day);
                               handleDateChange(null, newDate);
                             }}
-                            onPressIn={() => {
-                              buttonScale.value = withSpring(0.95, { damping: 15, stiffness: 300 });
-                            }}
-                            onPressOut={() => {
-                              buttonScale.value = withSpring(1, { damping: 15, stiffness: 300 });
-                            }}
                           >
-                            <AnimatedText style={[
+                            <Text style={[
                               styles.datePickerOptionText,
                               selectedDate.getDate() === day && styles.datePickerOptionTextSelected
                             ]}>
                               {day}
-                            </AnimatedText>
-                          </AnimatedPressable>
+                            </Text>
+                          </Pressable>
                         ))}
                       </ScrollView>
-                    </AnimatedView>
-                  </AnimatedView>
-                </AnimatedView>
+                    </View>
+                  </View>
+                </View>
               ) : (
-                <AnimatedView style={styles.nativeDatePicker}>
-                  <AnimatedText style={styles.datePickerNote}>
+                <View style={styles.nativeDatePicker}>
+                  <Text style={styles.datePickerNote}>
                     Native date picker would be implemented here for mobile platforms
-                  </AnimatedText>
-                  <AnimatedText style={styles.datePickerNote}>
+                  </Text>
+                  <Text style={styles.datePickerNote}>
                     Selected: {selectedDate.toDateString()}
-                  </AnimatedText>
-                </AnimatedView>
+                  </Text>
+                </View>
               )}
-            </AnimatedView>
-          </AnimatedView>
-        </AnimatedView>
+            </View>
+          </View>
+        </View>
       </Modal>
 
       {/* Position Picker Modal */}
@@ -1825,64 +1458,46 @@ export default function EditProfile() {
         animationType="none"
         onRequestClose={handlePositionPickerClose}
       >
-        <AnimatedView style={[styles.datePickerOverlay, { opacity: positionModalOpacity }]}>
-          <AnimatedView style={[styles.datePickerContainer, positionModalAnimatedStyle]}>
-            <AnimatedView style={styles.datePickerHeader}>
-              <AnimatedPressable 
+        <View style={styles.datePickerOverlay}>
+          <View style={styles.datePickerContainer}>
+            <View style={styles.datePickerHeader}>
+              <Pressable 
                 onPress={handlePositionPickerClose} 
                 style={styles.datePickerCancelButton}
-                onPressIn={() => {
-                  buttonScale.value = withSpring(0.95, { damping: 15, stiffness: 300 });
-                }}
-                onPressOut={() => {
-                  buttonScale.value = withSpring(1, { damping: 15, stiffness: 300 });
-                }}
               >
-                <AnimatedText style={styles.datePickerCancelText}>Cancel</AnimatedText>
-              </AnimatedPressable>
-              <AnimatedText style={styles.datePickerTitle}>Select Position</AnimatedText>
-              <AnimatedPressable 
+                <Text style={styles.datePickerCancelText}>Cancel</Text>
+              </Pressable>
+              <Text style={styles.datePickerTitle}>Select Position</Text>
+              <Pressable 
                 onPress={handlePositionPickerClose} 
                 style={styles.datePickerDoneButton}
-                onPressIn={() => {
-                  buttonScale.value = withSpring(0.95, { damping: 15, stiffness: 300 });
-                }}
-                onPressOut={() => {
-                  buttonScale.value = withSpring(1, { damping: 15, stiffness: 300 });
-                }}
               >
-                <AnimatedText style={styles.datePickerDoneText}>Done</AnimatedText>
-              </AnimatedPressable>
-            </AnimatedView>
-            <AnimatedView style={styles.datePickerContent}>
-              <AnimatedView style={styles.positionPickerContainer}>
+                <Text style={styles.datePickerDoneText}>Done</Text>
+              </Pressable>
+            </View>
+            <View style={styles.datePickerContent}>
+              <View style={styles.positionPickerContainer}>
                 {validRoles.map((positionOption) => (
-                  <AnimatedPressable
+                  <Pressable
                     key={positionOption}
                     style={[
                       styles.positionOption,
                       position === positionOption && styles.positionOptionSelected
                     ]}
                     onPress={() => handlePositionSelect(positionOption)}
-                    onPressIn={() => {
-                      buttonScale.value = withSpring(0.95, { damping: 15, stiffness: 300 });
-                    }}
-                    onPressOut={() => {
-                      buttonScale.value = withSpring(1, { damping: 15, stiffness: 300 });
-                    }}
                   >
-                    <AnimatedText style={[
+                    <Text style={[
                       styles.positionOptionText,
                       position === positionOption && styles.positionOptionTextSelected
                     ]}>
                       {formatPositionDisplay(positionOption)}
-                    </AnimatedText>
-                  </AnimatedPressable>
+                    </Text>
+                  </Pressable>
                 ))}
-              </AnimatedView>
-            </AnimatedView>
-          </AnimatedView>
-        </AnimatedView>
+              </View>
+            </View>
+          </View>
+        </View>
       </Modal>
 
       {/* Image Editing Modal */}
@@ -1892,30 +1507,30 @@ export default function EditProfile() {
         animationType="none"
         onRequestClose={handleCancelEdit}
       >
-        <AnimatedView style={styles.imageEditorOverlay}>
-          <AnimatedView style={styles.imageEditorContainer}>
+        <View style={styles.imageEditorOverlay}>
+          <View style={styles.imageEditorContainer}>
             {/* Header */}
-            <AnimatedView style={styles.imageEditorHeader}>
-              <AnimatedPressable 
+            <View style={styles.imageEditorHeader}>
+              <Pressable 
                 onPress={handleCancelEdit} 
                 style={styles.imageEditorCancelButton}
               >
                 <X size={24} color="#666666" />
-              </AnimatedPressable>
-              <AnimatedText style={styles.imageEditorTitle}>Edit Image</AnimatedText>
-              <AnimatedPressable 
+              </Pressable>
+              <Text style={styles.imageEditorTitle}>Edit Image</Text>
+              <Pressable 
                 onPress={handleSaveEditedImage} 
                 style={styles.imageEditorSaveButton}
               >
                 <Check size={24} color="#17f196" />
-              </AnimatedPressable>
-            </AnimatedView>
+              </Pressable>
+            </View>
 
             {/* Image Display Area */}
-            <AnimatedView style={styles.imageEditorContent}>
+            <View style={styles.imageEditorContent}>
               {editingImageUri && (
-                <AnimatedView style={styles.imageEditorImageWrapper}>
-                  <AnimatedView 
+                <View style={styles.imageEditorImageWrapper}>
+                  <View 
                     style={[
                       styles.imageEditorImageContainer,
                       {
@@ -1931,23 +1546,23 @@ export default function EditProfile() {
                       style={styles.imageEditorImage}
                       resizeMode="contain"
                     />
-                  </AnimatedView>
+                  </View>
                   
                   {/* Crop Overlay */}
                   {cropMode && (
-                    <AnimatedView style={styles.cropOverlay}>
+                    <View style={styles.cropOverlay}>
                       {/* Dark overlay parts */}
-                      <AnimatedView style={[styles.cropOverlayTop, { height: cropArea.y }]} />
-                      <AnimatedView style={[styles.cropOverlayBottom, { 
+                      <View style={[styles.cropOverlayTop, { height: cropArea.y }]} />
+                      <View style={[styles.cropOverlayBottom, { 
                         top: cropArea.y + cropArea.height,
                         height: 300 - cropArea.y - cropArea.height 
                       }]} />
-                      <AnimatedView style={[styles.cropOverlayLeft, { 
+                      <View style={[styles.cropOverlayLeft, { 
                         top: cropArea.y,
                         width: cropArea.x,
                         height: cropArea.height 
                       }]} />
-                      <AnimatedView style={[styles.cropOverlayRight, { 
+                      <View style={[styles.cropOverlayRight, { 
                         left: cropArea.x + cropArea.width,
                         top: cropArea.y,
                         width: 300 - cropArea.x - cropArea.width,
@@ -2019,42 +1634,42 @@ export default function EditProfile() {
                         onTouchMove={handleCornerMove}
                         onTouchEnd={handleCropAreaRelease}
                       />
-                    </AnimatedView>
+                    </View>
                   )}
-                </AnimatedView>
+                </View>
               )}
-            </AnimatedView>
+            </View>
 
             {/* Control Buttons */}
-            <AnimatedView style={styles.imageEditorControls}>
-              <AnimatedPressable 
+            <View style={styles.imageEditorControls}>
+              <Pressable 
                 style={[styles.imageEditorControlButton, cropMode && styles.imageEditorControlButtonActive]}
                 onPress={handleToggleCropMode}
               >
                 <Crop size={24} color={cropMode ? "#FFFFFF" : "#17f196"} />
-                <AnimatedText style={[styles.imageEditorControlText, cropMode && styles.imageEditorControlTextActive]}>
+                <Text style={[styles.imageEditorControlText, cropMode && styles.imageEditorControlTextActive]}>
                   {cropMode ? 'Exit Crop' : 'Crop'}
-                </AnimatedText>
-              </AnimatedPressable>
+                </Text>
+              </Pressable>
 
-              <AnimatedPressable 
+              <Pressable 
                 style={styles.imageEditorControlButton}
                 onPress={handleRotateImage}
               >
                 <RotateCw size={24} color="#17f196" />
-                <AnimatedText style={styles.imageEditorControlText}>Rotate</AnimatedText>
-              </AnimatedPressable>
+                <Text style={styles.imageEditorControlText}>Rotate</Text>
+              </Pressable>
 
-              <AnimatedPressable 
+              <Pressable 
                 style={styles.imageEditorControlButton}
                 onPress={handleResetCrop}
               >
                 <RotateCcw size={24} color="#17f196" />
-                <AnimatedText style={styles.imageEditorControlText}>Reset</AnimatedText>
-              </AnimatedPressable>
-            </AnimatedView>
-          </AnimatedView>
-        </AnimatedView>
+                <Text style={styles.imageEditorControlText}>Reset</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
       </Modal>
 
       {/* Update Profile Confirmation Modal */}
@@ -2065,7 +1680,7 @@ export default function EditProfile() {
             intensity={80}
             tint="dark"
           />
-          <AnimatedView style={[styles.confirmationModalContainer, confirmationModalAnimatedStyle]}>
+          <View style={styles.confirmationModalContainer}>
             {/* Icon */}
             <View style={styles.confirmationIconContainer}>
               <View style={styles.confirmationIcon}>
@@ -2083,21 +1698,21 @@ export default function EditProfile() {
             
             {/* Buttons */}
             <View style={styles.confirmationButtons}>
-              <AnimatedPressable
+              <Pressable
                 style={[styles.confirmationButton, styles.confirmButton]}
                 onPress={handleConfirmUpdate}
               >
                 <Text style={styles.confirmButtonText}>Yes, Update Profile</Text>
-              </AnimatedPressable>
+              </Pressable>
               
-              <AnimatedPressable
+              <Pressable
                 style={[styles.confirmationButton, styles.cancelButton]}
                 onPress={hideConfirmationModal}
               >
                 <Text style={styles.cancelButtonText}>No, Let me check</Text>
-              </AnimatedPressable>
+              </Pressable>
             </View>
-          </AnimatedView>
+          </View>
         </View>
       )}
 
@@ -2109,12 +1724,12 @@ export default function EditProfile() {
             intensity={80}
             tint="dark"
           />
-          <AnimatedView style={[styles.successModalContainer, successModalAnimatedStyle]}>
+          <View style={styles.successModalContainer}>
             {/* Icon */}
             <View style={styles.successIconContainer}>
-              <AnimatedView style={[styles.successIcon, successIconAnimatedStyle]}>
+              <View style={styles.successIcon}>
                 <User size={32} color="#FFFFFF" />
-              </AnimatedView>
+              </View>
             </View>
 
             {/* Title */}
@@ -2127,14 +1742,14 @@ export default function EditProfile() {
 
             {/* Button */}
             <View style={styles.successButtonContainer}>
-              <AnimatedPressable
+              <Pressable
                 style={[styles.successPrimaryButton]}
                 onPress={handleContinueToProfile}
               >
                 <Text style={styles.successPrimaryButtonText}>Visit My Profile</Text>
-              </AnimatedPressable>
+              </Pressable>
             </View>
-          </AnimatedView>
+          </View>
         </View>
       )}
     </SafeAreaView>
@@ -2163,7 +1778,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000000',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   headerSpacer: {
     width: 40,
@@ -2187,13 +1802,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000000',
     marginBottom: 8,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   sectionSubtitle: {
     fontSize: 14,
     color: '#666666',
     marginBottom: 32,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   photoUploadSection: {
     alignItems: 'center',
@@ -2267,14 +1882,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#000000',
     marginBottom: 8,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   uploadGuidelines: {
     fontSize: 12,
     color: '#666666',
     textAlign: 'center',
     lineHeight: 16,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   inputFieldsContainer: {
     gap: 20,
@@ -2286,7 +1901,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#000000',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -2306,7 +1921,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#000000',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   placeholderText: {
     color: '#CCCCCC',
@@ -2344,7 +1959,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#FFFFFF',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   // Date Picker Modal Styles
   datePickerOverlay: {
@@ -2373,13 +1988,13 @@ const styles = StyleSheet.create({
   datePickerCancelText: {
     fontSize: 16,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   datePickerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000000',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   datePickerDoneButton: {
     padding: 8,
@@ -2388,7 +2003,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#17f196',
     fontWeight: '600',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   datePickerContent: {
     padding: 20,
@@ -2417,7 +2032,7 @@ const styles = StyleSheet.create({
     color: '#333333',
     textAlign: 'center',
     marginBottom: 10,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   yearScrollView: {
     height: 250,
@@ -2453,7 +2068,7 @@ const styles = StyleSheet.create({
   datePickerOptionText: {
     fontSize: 14,
     color: '#333333',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   datePickerOptionTextSelected: {
     color: '#FFFFFF',
@@ -2469,7 +2084,7 @@ const styles = StyleSheet.create({
     color: '#666666',
     textAlign: 'center',
     marginBottom: 10,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   // Position Picker Styles
   positionPickerContainer: {
@@ -2494,7 +2109,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#333333',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   positionOptionTextSelected: {
     color: '#FFFFFF',
@@ -2530,7 +2145,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000000',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   imageEditorSaveButton: {
     padding: 8,
@@ -2572,7 +2187,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#17f196',
     marginTop: 4,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   imageEditorControlButtonActive: {
     backgroundColor: '#17f196',
@@ -2719,7 +2334,7 @@ const styles = StyleSheet.create({
     color: '#000000',
     textAlign: 'center',
     marginBottom: 8,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   confirmationMessage: {
     fontSize: 13,
@@ -2727,7 +2342,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
     marginBottom: 20,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   confirmationButtons: {
     gap: 16,
@@ -2752,7 +2367,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#FFFFFF',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   cancelButton: {
     backgroundColor: 'transparent',
@@ -2763,7 +2378,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#17f196',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   
   // Success Modal Styles
@@ -2821,7 +2436,7 @@ const styles = StyleSheet.create({
     color: '#000000',
     textAlign: 'center',
     marginBottom: 8,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   successDescription: {
     fontSize: 13,
@@ -2829,7 +2444,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
     marginBottom: 20,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   successButtonContainer: {
     gap: 16,
@@ -2852,7 +2467,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#FFFFFF',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   
   // Loading Interface Styles
@@ -2891,7 +2506,7 @@ const styles = StyleSheet.create({
     color: '#333333',
     marginBottom: 20,
     textAlign: 'center',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   loadingDots: {
     flexDirection: 'row',
@@ -2918,6 +2533,6 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#17f196',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
 });

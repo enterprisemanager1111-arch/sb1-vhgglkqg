@@ -14,17 +14,6 @@ import {
   Image as RNImage,
 } from 'react-native';
 import { router } from 'expo-router';
-import Animated, { 
-  useSharedValue, 
-  withSpring, 
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
-  withSequence,
-  withRepeat,
-  interpolate,
-  Extrapolate
-} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, ChevronRight, User, Calendar, Heart, CircleHelp as HelpCircle, ChevronDown } from 'lucide-react-native';
 import { sanitizeText, validateName } from '@/utils/sanitization';
@@ -304,70 +293,7 @@ export default function PersonalInfoScreen() {
   
   const { onboardingData, updatePersonalInfo, completeStep, loading } = useOnboarding();
   
-  // Component animations
-  const titleOpacity = useSharedValue(0);
-  const titleTranslateY = useSharedValue(50);
-  const subtitleOpacity = useSharedValue(0);
-  const subtitleTranslateY = useSharedValue(30);
-  const nameInputOpacity = useSharedValue(0);
-  const nameInputTranslateX = useSharedValue(-50);
-  const dateInputOpacity = useSharedValue(0);
-  const dateInputTranslateX = useSharedValue(50);
-  const buttonOpacity = useSharedValue(0);
-  const buttonTranslateY = useSharedValue(20);
   
-  // Continuous animations
-  const iconFloat = useSharedValue(0);
-  const buttonPulse = useSharedValue(1);
-  
-  // Individual button animations for roles
-  const roleButtonScales = useSharedValue<Record<string, any>>({});
-  
-  // Individual button animations for interests
-  const interestButtonScales = useSharedValue<Record<string, any>>({});
-  
-  // Animation trigger function
-  const triggerAnimations = () => {
-    // Title animation - bounce in from top
-    titleOpacity.value = withTiming(1, { duration: 800 });
-    titleTranslateY.value = withSpring(0, { damping: 15, stiffness: 150 });
-
-    // Subtitle animation - fade in with slight delay
-    subtitleOpacity.value = withDelay(200, withTiming(1, { duration: 600 }));
-    subtitleTranslateY.value = withDelay(200, withSpring(0, { damping: 12, stiffness: 120 }));
-
-    // Name input - slide in from left
-    nameInputOpacity.value = withDelay(400, withTiming(1, { duration: 600 }));
-    nameInputTranslateX.value = withDelay(400, withSpring(0, { damping: 10, stiffness: 100 }));
-
-    // Date input - slide in from right
-    dateInputOpacity.value = withDelay(600, withTiming(1, { duration: 600 }));
-    dateInputTranslateX.value = withDelay(600, withSpring(0, { damping: 10, stiffness: 100 }));
-
-    // Button - fade in from bottom
-    buttonOpacity.value = withDelay(800, withTiming(1, { duration: 500 }));
-    buttonTranslateY.value = withDelay(800, withSpring(0, { damping: 10, stiffness: 100 }));
-
-    // Icon floating animation - continuous gentle float
-    iconFloat.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 2000 }),
-        withTiming(0, { duration: 2000 })
-      ),
-      -1,
-      true
-    );
-
-    // Button pulse animation - subtle pulse effect
-    buttonPulse.value = withRepeat(
-      withSequence(
-        withTiming(1.02, { duration: 1500 }),
-        withTiming(1, { duration: 1500 })
-      ),
-      -1,
-      true
-    );
-  };
 
   // Debug component mounting
   React.useEffect(() => {
@@ -391,7 +317,6 @@ export default function PersonalInfoScreen() {
     };
     
     checkCurrentStorage();
-    triggerAnimations();
   }, []);
 
   // Load existing data from context when it becomes available
@@ -464,7 +389,6 @@ export default function PersonalInfoScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
 
-  const buttonScale = useSharedValue(1);
 
   const roleOptions = [
     { id: 'parent', label: 'Parent' },
@@ -542,7 +466,6 @@ export default function PersonalInfoScreen() {
   };
 
 
-  const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
   const handleBack = () => {
     router.back();
@@ -563,106 +486,7 @@ export default function PersonalInfoScreen() {
     });
   };
 
-  const buttonAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonScale.value }],
-  }));
 
-  // Component animated styles
-  const titleAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: titleOpacity.value,
-    transform: [{ translateY: titleTranslateY.value }],
-  }));
-
-  const subtitleAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: subtitleOpacity.value,
-    transform: [{ translateY: subtitleTranslateY.value }],
-  }));
-
-  const nameInputAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: nameInputOpacity.value,
-    transform: [{ translateX: nameInputTranslateX.value }],
-  }));
-
-  const dateInputAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: dateInputOpacity.value,
-    transform: [{ translateX: dateInputTranslateX.value }],
-  }));
-
-  const buttonContainerAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: buttonOpacity.value,
-    transform: [{ translateY: buttonTranslateY.value }],
-  }));
-
-  // Additional cool animated styles
-  const iconFloatAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ 
-      translateY: interpolate(iconFloat.value, [0, 1], [-3, 3], Extrapolate.CLAMP)
-    }],
-  }));
-
-  const buttonPulseAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonPulse.value }],
-  }));
-
-  // Role button animated style
-  const getRoleButtonAnimatedStyle = (roleId: string) => {
-    return useAnimatedStyle(() => ({
-      transform: [{ 
-        scale: roleButtonScales.value[roleId] || 1 
-      }],
-    }));
-  };
-
-  // Interest button animated style
-  const getInterestButtonAnimatedStyle = (interestId: string) => {
-    return useAnimatedStyle(() => ({
-      transform: [{ 
-        scale: interestButtonScales.value[interestId] || 1 
-      }],
-    }));
-  };
-
-  const handlePressIn = () => {
-    buttonScale.value = withSpring(0.95);
-  };
-
-  const handlePressOut = () => {
-    buttonScale.value = withSpring(1);
-  };
-
-  // Role button handlers
-  const handleRolePressIn = (roleId: string) => {
-    'worklet';
-    roleButtonScales.value = {
-      ...roleButtonScales.value,
-      [roleId]: withSpring(0.95, { damping: 15, stiffness: 300 })
-    };
-  };
-
-  const handleRolePressOut = (roleId: string) => {
-    'worklet';
-    roleButtonScales.value = {
-      ...roleButtonScales.value,
-      [roleId]: withSpring(1, { damping: 15, stiffness: 300 })
-    };
-  };
-
-  // Interest button handlers
-  const handleInterestPressIn = (interestId: string) => {
-    'worklet';
-    interestButtonScales.value = {
-      ...interestButtonScales.value,
-      [interestId]: withSpring(0.95, { damping: 15, stiffness: 300 })
-    };
-  };
-
-  const handleInterestPressOut = (interestId: string) => {
-    'worklet';
-    interestButtonScales.value = {
-      ...interestButtonScales.value,
-      [interestId]: withSpring(1, { damping: 15, stiffness: 300 })
-    };
-  };
 
   const isValid = role;
 
@@ -946,7 +770,7 @@ export default function PersonalInfoScreen() {
         {/* Content */}
         <View style={styles.content}>
           {/* Title */}
-          <Animated.View style={[styles.titleContainer, titleAnimatedStyle]}>
+          <View style={styles.titleContainer}>
             <Text style={styles.title}>
               {currentLanguage.code === 'en' ? 'Tell us about yourself' : 
                currentLanguage.code === 'de' ? 'Erzählen Sie uns von sich' : 
@@ -956,7 +780,7 @@ export default function PersonalInfoScreen() {
                currentLanguage.code === 'it' ? 'Parlaci di te' : 
                t('onboarding.personal.title') || 'Tell us about yourself'}
             </Text>
-            <Animated.View style={subtitleAnimatedStyle}>
+            <View>
               <Text style={styles.subtitle}>
               {currentLanguage.code === 'en' ? 'This information helps us find to build the perfect app for your experience.' : 
                currentLanguage.code === 'de' ? 'Diese Informationen helfen uns, die perfekte App für Ihre Erfahrung zu erstellen.' : 
@@ -966,8 +790,8 @@ export default function PersonalInfoScreen() {
                currentLanguage.code === 'it' ? 'Queste informazioni ci aiutano a costruire l\'app perfetta per la tua esperienza.' : 
                t('onboarding.personal.subtitle') || 'This information helps us find to build the perfect app for your experience.'}
               </Text>
-            </Animated.View>
-          </Animated.View>
+            </View>
+          </View>
 
 
 
@@ -982,9 +806,9 @@ export default function PersonalInfoScreen() {
           </View>
 
           {/* Role Selection */}
-          <Animated.View style={[styles.inputSection, nameInputAnimatedStyle]}>
+          <View style={styles.inputSection}>
             <View style={styles.sectionHeader}>
-              <User size={20} color="#17f196" strokeWidth={2} />
+              <User size={20} color="#55ffb8" strokeWidth={2} />
               <Text style={styles.sectionTitle}>
                 {currentLanguage.code === 'en' ? 'What is your role in the family?' : 
                  currentLanguage.code === 'de' ? 'Was ist Ihre Rolle in der Familie?' : 
@@ -997,12 +821,11 @@ export default function PersonalInfoScreen() {
             </View>
             <View style={styles.roleGrid}>
               {roleOptions.map((option) => (
-                <AnimatedPressable
+                <Pressable
                   key={option.id}
                   style={[
                     styles.roleOption,
-                    role === option.id && styles.selectedRole,
-                    getRoleButtonAnimatedStyle(option.id)
+                    role === option.id && styles.selectedRole
                   ]}
                   onPress={() => {
                     console.log('DEBUG: Role button pressed, option.id:', option.id);
@@ -1013,8 +836,6 @@ export default function PersonalInfoScreen() {
                     stateRef.current.role = option.id;
                     console.log('DEBUG: Updated stateRef.current.role to:', option.id);
                   }}
-                  onPressIn={() => handleRolePressIn(option.id)}
-                  onPressOut={() => handleRolePressOut(option.id)}
                 >
                   <Text style={[
                     styles.roleLabel,
@@ -1022,15 +843,15 @@ export default function PersonalInfoScreen() {
                   ]}>
                     {option.label}
                   </Text>
-                </AnimatedPressable>
+                </Pressable>
               ))}
             </View>
-          </Animated.View>
+          </View>
 
           {/* Interests Selection */}
           <View style={styles.inputSection}>
             <View style={styles.sectionHeader}>
-              <Heart size={20} color="#17f196" strokeWidth={2} />
+              <Heart size={20} color="#55ffb8" strokeWidth={2} />
               <Text style={styles.sectionTitle}>
                 {currentLanguage.code === 'en' ? 'What are your interests?' : 
                  currentLanguage.code === 'de' ? 'Was sind deine Interessen?' : 
@@ -1043,16 +864,13 @@ export default function PersonalInfoScreen() {
             </View>
             <View style={styles.interestGrid}>
               {interestOptions.map((interest) => (
-                <AnimatedPressable
+                <Pressable
                   key={interest.id}
                   style={[
                     styles.interestChip,
-                    interests.includes(interest.id) && styles.selectedInterest,
-                    getInterestButtonAnimatedStyle(interest.id)
+                    interests.includes(interest.id) && styles.selectedInterest
                   ]}
                   onPress={() => toggleInterest(interest.id)}
-                  onPressIn={() => handleInterestPressIn(interest.id)}
-                  onPressOut={() => handleInterestPressOut(interest.id)}
                   disabled={interests.length >= 5 && !interests.includes(interest.id)}
                 >
                   <Text style={[
@@ -1061,7 +879,7 @@ export default function PersonalInfoScreen() {
                   ]}>
                     {interest.label}
                   </Text>
-                </AnimatedPressable>
+                </Pressable>
               ))}
             </View>
           </View>
@@ -1078,11 +896,9 @@ export default function PersonalInfoScreen() {
 
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
-          <AnimatedPressable
-            style={[styles.nextButton, buttonAnimatedStyle]}
+          <Pressable
+            style={styles.nextButton}
             onPress={handleContinue}
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
           >
             <Text style={styles.nextButtonText}>
               {currentLanguage.code === 'en' ? 'Next' : 
@@ -1093,7 +909,7 @@ export default function PersonalInfoScreen() {
                currentLanguage.code === 'it' ? 'Avanti' : 
                t('common.next') || 'Next'}
             </Text>
-          </AnimatedPressable>
+          </Pressable>
           
           <Pressable style={styles.backButton} onPress={handleBack}>
             <Text style={styles.backButtonText}>
@@ -1152,11 +968,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    paddingTop: 40,
     marginTop: -30,
   },
   contentCard: {
     flex: 1,
-    paddingTop: 24,
   },
   
   // Header
@@ -1207,20 +1023,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 30,
+    fontSize: 24,
     fontWeight: '600',
-    color: '#404040',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    color: '#000',
+    fontStyle: 'Semi Bold',
+    fontFamily: 'Helvetica',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#AAA',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-    fontWeight: '450',
+    fontSize: 13,
+    color: '#98a2b3',
+    fontFamily: 'Helvetica',
+    fontWeight: '400',
     textAlign: 'center',
-    lineHeight: 17,
+    lineHeight: '130%',
+    maxWidth: 320,
+    alignSelf: 'center',
   },
 
   // Input Sections
@@ -1232,13 +1051,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
     gap: 8,
+    marginTop: 20,
+    paddingHorizontal: 0,
   },
   sectionTitle: {
     fontSize: 16,
     marginLeft: 15,
     fontWeight: '600',
     color: '#202020',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   labelContainer: {
     flexDirection: 'row',
@@ -1304,31 +1125,32 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 10,
     padding: 14,
-    alignItems: 'center',
+    paddingLeft: 25,
     borderWidth: 2,
-    borderColor: '#EfEfEf',
+    borderColor: '#eaecf0',
     elevation: 1,
+    alignItems: 'flex-start',
   },
   selectedRole: {
-    borderColor: '#17f196',
+    borderColor: '#59f6b5',
     backgroundColor: '#FFFFFF',
-    shadowColor: '#17f196',
+    shadowColor: '#41ffb0',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 5,
   },
   roleLabel: {
     fontSize: 13,
     fontWeight: '500',
     color: '#4A4A4A',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     textAlign: 'center',
   },
   selectedRoleLabel: {
     color: '#404040',
     fontWeight: '750',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
 
   // Interests
@@ -1340,33 +1162,33 @@ const styles = StyleSheet.create({
   interestChip: {
     backgroundColor: '#FFFFFF',
     borderRadius: 7,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderWidth: 1.5,
-    borderColor: '#E0E0E0',
+    padding: 6,
+    borderWidth: 2,
+    borderColor: '#eaecf0',
+    elevation: 1,
+    alignItems: 'flex-start',
     width: '23%',
-    alignItems: 'center',
   },
   selectedInterest: {
-    borderColor: '#17f196',
+    borderColor: '#59f6b5',
     backgroundColor: '#FFFFFF',
-    shadowColor: '#17f196',
+    shadowColor: '#41ffb0',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 5,
   },
   interestText: {
     fontSize: 11,
     fontWeight: '500',
-    color: '#4A4A4A',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    color: '#2d2d2d',
+    fontFamily: 'Helvetica',
     textAlign: 'center',
   },
   selectedInterestText: {
-    color: '#404040',
+    color: '#2d2d2d',
     fontWeight: '700',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
 
   // Date Picker
@@ -1553,7 +1375,7 @@ const styles = StyleSheet.create({
   },
   nextButton: {
     width: '100%',
-    height: 56,
+    height: 50,
     backgroundColor: '#17f196',
     borderRadius: 25,
     alignItems: 'center',
@@ -1565,25 +1387,27 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   nextButtonText: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#FFFFFF',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   backButton: {
     width: '100%',
-    height: 56,
+    height: 50,
     backgroundColor: 'transparent',
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#17f196',
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
   },
   backButtonText: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#17f196',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
 });

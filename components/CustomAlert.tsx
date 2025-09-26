@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     color: '#000000',
     textAlign: 'center',
     marginBottom: 8,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   message: {
     fontSize: 16,
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
   cancelButton: {
     backgroundColor: '#E0E0E0',
@@ -318,6 +318,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
 });

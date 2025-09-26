@@ -246,12 +246,12 @@ export default function ProfileCompletion() {
 
       {/* Progress Indicator */}
       <View style={styles.progressContainer}>
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={[styles.progressDot, styles.activeDot]} />
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
+        <View style={styles.progressDash} />
+        <View style={styles.progressDash} />
+        <View style={styles.progressDash} />
+        <View style={[styles.progressDash, styles.activeDash]} />
+        <View style={styles.progressDash} />
+        <View style={styles.progressDash} />
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -286,12 +286,12 @@ export default function ProfileCompletion() {
             
             <View style={styles.avatarActions}>
               <Pressable style={styles.avatarActionButton} onPress={takePhoto}>
-                <Camera size={18} color="#54FE54" strokeWidth={2} />
+                <Camera size={18} color="#55ffb8" strokeWidth={2} />
                 <Text style={styles.avatarActionText}>Take Photo</Text>
               </Pressable>
               
               <Pressable style={styles.avatarActionButton} onPress={handleAvatarUpload}>
-                <User size={18} color="#54FE54" strokeWidth={2} />
+                <User size={18} color="#55ffb8" strokeWidth={2} />
                 <Text style={styles.avatarActionText}>From Gallery</Text>
               </Pressable>
             </View>
@@ -351,7 +351,7 @@ export default function ProfileCompletion() {
           {/* Success Message */}
           <View style={styles.successSection}>
             <View style={styles.successIcon}>
-              <Check size={24} color="#54FE54" strokeWidth={2.5} />
+              <Check size={24} color="#55ffb8" strokeWidth={2.5} />
             </View>
             <Text style={styles.successTitle}>Profile created successfully!</Text>
             <Text style={styles.successText}>
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
 
   // Progress
@@ -433,16 +433,15 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     gap: 8,
   },
-  progressDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#E0E0E0',
-  },
-  activeDot: {
-    backgroundColor: '#54FE54',
+  progressDash: {
     width: 24,
-    borderRadius: 12,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#eafff6',
+    marginHorizontal: 4,
+  },
+  activeDash: {
+    backgroundColor: '#55ffb8',
   },
 
   scrollView: {
@@ -459,19 +458,23 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#000',
+    fontStyle: 'Semi Bold',
+    fontFamily: 'Helvetica',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontSize: 13,
+    color: '#98a2b3',
+    fontFamily: 'Helvetica',
+    fontWeight: '400',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: '130%',
+    maxWidth: 320,
+    alignSelf: 'center',
   },
 
   // Avatar Section
@@ -514,7 +517,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     marginBottom: 16,
   },
   avatarActions: {
@@ -541,7 +544,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#54FE54',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
 
   // Summary Section
@@ -552,7 +555,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     marginBottom: 16,
   },
   summaryCard: {
@@ -579,13 +582,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   summaryValue: {
     fontSize: 14,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     flex: 1,
     textAlign: 'right',
   },
@@ -612,14 +615,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     marginBottom: 8,
     textAlign: 'center',
   },
   successText: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -653,27 +656,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   continueButton: {
     flex: 2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#54FE54',
-    borderRadius: 12,
-    paddingVertical: 16,
+    backgroundColor: '#17f196',
+    borderRadius: 25,
+    height: 50,
     gap: 8,
-    shadowColor: '#54FE54',
+    shadowColor: '#17f196',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
   continueText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
+    color: '#FFFFFF',
+    fontFamily: 'Helvetica',
   },
 });

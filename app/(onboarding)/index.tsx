@@ -10,116 +10,17 @@ import {
   Image as RNImage,
 } from 'react-native';
 import { router } from 'expo-router';
-import Animated, { 
-  useSharedValue, 
-  withSpring, 
-  useAnimatedStyle, 
-  withRepeat, 
-  withSequence, 
-  withTiming,
-  withDelay,
-  interpolate,
-  Extrapolate
-} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight, Heart, MessageCircle, Leaf, Mail } from 'lucide-react-native';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-const AnimatedView = Animated.createAnimatedComponent(View);
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function OnboardingWelcome() {
   const { t, currentLanguage } = useLanguage();
   
-  // Button animations
-  const buttonScale = useSharedValue(1);
-  const skipButtonScale = useSharedValue(1);
-  
-  // Component animations
-  const titleOpacity = useSharedValue(0);
-  const titleTranslateY = useSharedValue(50);
-  const subtitleOpacity = useSharedValue(0);
-  const subtitleTranslateY = useSharedValue(30);
-  const illustrationOpacity = useSharedValue(0);
-  const illustrationScale = useSharedValue(0.8);
-  const featuresOpacity = useSharedValue(0);
-  const featuresTranslateY = useSharedValue(30);
-  const buttonsOpacity = useSharedValue(0);
-  const buttonsTranslateY = useSharedValue(20);
-  
-  // Continuous animations
-  const iconScale = useSharedValue(1);
-  const glowOpacity = useSharedValue(0.6);
-  const iconFloat = useSharedValue(0);
-  const buttonPulse = useSharedValue(1);
 
-  // Animation trigger function
-  const triggerAnimations = () => {
-    // Title animation - bounce in from top
-    titleOpacity.value = withTiming(1, { duration: 800 });
-    titleTranslateY.value = withSpring(0, { damping: 15, stiffness: 150 });
 
-    // Subtitle animation - fade in with slight delay
-    subtitleOpacity.value = withDelay(200, withTiming(1, { duration: 600 }));
-    subtitleTranslateY.value = withDelay(200, withSpring(0, { damping: 12, stiffness: 120 }));
-
-    // Illustration - scale in with bounce
-    illustrationOpacity.value = withDelay(400, withTiming(1, { duration: 600 }));
-    illustrationScale.value = withDelay(400, withSpring(1, { damping: 8, stiffness: 120 }));
-
-    // Features - slide up with fade
-    featuresOpacity.value = withDelay(600, withTiming(1, { duration: 600 }));
-    featuresTranslateY.value = withDelay(600, withSpring(0, { damping: 12, stiffness: 120 }));
-
-    // Buttons - fade in from bottom
-    buttonsOpacity.value = withDelay(800, withTiming(1, { duration: 500 }));
-    buttonsTranslateY.value = withDelay(800, withSpring(0, { damping: 10, stiffness: 100 }));
-
-    // Icon floating animation - continuous gentle float
-    iconFloat.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 2000 }),
-        withTiming(0, { duration: 2000 })
-      ),
-      -1,
-      true
-    );
-
-    // Button pulse animation - subtle pulse effect
-    buttonPulse.value = withRepeat(
-      withSequence(
-        withTiming(1.02, { duration: 1500 }),
-        withTiming(1, { duration: 1500 })
-      ),
-      -1,
-      true
-    );
-
-    // Existing continuous animations
-    iconScale.value = withRepeat(
-      withSequence(
-        withTiming(1.05, { duration: 2000 }),
-        withTiming(1, { duration: 2000 })
-      ),
-      -1,
-      true
-    );
-
-    glowOpacity.value = withRepeat(
-      withSequence(
-        withTiming(0.8, { duration: 1500 }),
-        withTiming(0.4, { duration: 1500 })
-      ),
-      -1,
-      true
-    );
-  };
-
-  // Trigger animations on component mount
-  useEffect(() => {
-    triggerAnimations();
-  }, []);
 
   const handleGetStarted = async () => {
     // Clear any existing onboarding data to start fresh
@@ -135,62 +36,7 @@ export default function OnboardingWelcome() {
     router.push('/(onboarding)/language');
   };
 
-  const buttonAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonScale.value }],
-  }));
 
-  const iconAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: iconScale.value }],
-  }));
-
-  const glowAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: glowOpacity.value,
-  }));
-
-  // Component animated styles
-  const titleAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: titleOpacity.value,
-    transform: [{ translateY: titleTranslateY.value }],
-  }));
-
-  const subtitleAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: subtitleOpacity.value,
-    transform: [{ translateY: subtitleTranslateY.value }],
-  }));
-
-  const illustrationAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: illustrationOpacity.value,
-    transform: [{ scale: illustrationScale.value }],
-  }));
-
-  const featuresAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: featuresOpacity.value,
-    transform: [{ translateY: featuresTranslateY.value }],
-  }));
-
-  const buttonsAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: buttonsOpacity.value,
-    transform: [{ translateY: buttonsTranslateY.value }],
-  }));
-
-  // Additional cool animated styles
-  const iconFloatAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ 
-      translateY: interpolate(iconFloat.value, [0, 1], [-3, 3], Extrapolate.CLAMP)
-    }],
-  }));
-
-  const buttonPulseAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonPulse.value }],
-  }));
-
-  const handlePressIn = () => {
-    buttonScale.value = withSpring(0.95);
-  };
-
-  const handlePressOut = () => {
-    buttonScale.value = withSpring(1);
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -213,19 +59,19 @@ export default function OnboardingWelcome() {
         </View>
 
         {/* Onboard Start Image */}
-        <Animated.View style={[styles.onboardImageContainer, illustrationAnimatedStyle]}>
+        <View style={styles.onboardImageContainer}>
           <RNImage 
             source={require('@/assets/images/newImg/onboard_start.png')} 
             style={styles.onboardImage}
             resizeMode="contain"
           />
-        </Animated.View>
+        </View>
       </View>
 
       {/* Lower Section - White Card */}
       <View style={styles.lowerSection}>
         <View style={styles.contentCard}>
-          <Animated.View style={titleAnimatedStyle}>
+          <View>
             <Text style={styles.welcomeTitle}>
               {currentLanguage.code === 'en' ? 'Welcome to Famora!' : 
                currentLanguage.code === 'de' ? 'Willkommen bei Famora!' : 
@@ -235,9 +81,9 @@ export default function OnboardingWelcome() {
                currentLanguage.code === 'it' ? 'Benvenuto in Famora!' : 
                t('onboarding.welcome.title') || 'Welcome to Famora!'}
             </Text>
-          </Animated.View>
+          </View>
           
-          <Animated.View style={subtitleAnimatedStyle}>
+          <View>
             <Text style={styles.description}>
             {currentLanguage.code === 'en' ? 'Make Smart Decisions! Set clear timelines for projects and celebrate your achievements!' : 
              currentLanguage.code === 'de' ? 'Treffen Sie kluge Entscheidungen! Setzen Sie klare Zeitpläne für Projekte und feiern Sie Ihre Erfolge!' : 
@@ -247,23 +93,21 @@ export default function OnboardingWelcome() {
              currentLanguage.code === 'it' ? 'Prendi decisioni intelligenti! Imposta tempistiche chiare per i progetti e celebra i tuoi successi!' : 
              t('onboarding.welcome.description') || 'Make Smart Decisions! Set clear timelines for projects and celebrate your achievements!'}
             </Text>
-          </Animated.View>
+          </View>
 
           {/* Progress Indicator */}
-          <Animated.View style={[styles.progressContainer, featuresAnimatedStyle]}>
+          <View style={styles.progressContainer}>
             <View style={[styles.progressDash, styles.activeDash]} />
             <View style={styles.progressDash} />
             <View style={styles.progressDash} />
             <View style={styles.progressDash} />
-          </Animated.View>
+          </View>
 
           {/* Buttons */}
-          <Animated.View style={[styles.buttonContainer, buttonsAnimatedStyle]}>
-            <AnimatedPressable
-              style={[styles.startButton, buttonAnimatedStyle]}
+          <View style={styles.buttonContainer}>
+            <Pressable
+              style={styles.startButton}
               onPress={handleGetStarted}
-              onPressIn={handlePressIn}
-              onPressOut={handlePressOut}
             >
               <Text style={styles.startButtonText}>
                 {currentLanguage.code === 'en' ? 'Start' : 
@@ -274,7 +118,7 @@ export default function OnboardingWelcome() {
                  currentLanguage.code === 'it' ? 'Inizia' : 
                  t('onboarding.welcome.start') || 'Start'}
               </Text>
-            </AnimatedPressable>
+            </Pressable>
             
             <Pressable style={styles.skipButton}>
               <Text style={styles.skipButtonText}>
@@ -287,7 +131,7 @@ export default function OnboardingWelcome() {
                  t('onboarding.welcome.skip') || 'Skip'}
               </Text>
             </Pressable>
-          </Animated.View>
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -298,11 +142,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#17f196',
+    justifyContent: 'flex-end',
   },
 
-  // Upper Section (60% of screen)
+  // Upper Section (70% of screen)
   upperSection: {
-    flex: 0.6,
+    flex: 0.7,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -534,38 +379,42 @@ const styles = StyleSheet.create({
     left: 70,
   },
 
-  // Lower Section (40% of screen)
+  // Lower Section (35% of screen)
   lowerSection: {
-    flex: 0.4,
+    flex: 0.35,
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    paddingTop: 24,
+    paddingTop: 40,
+    marginTop: -30,
   },
   contentCard: {
     flex: 1,
-    paddingHorizontal: 32,
-    paddingBottom: 40,
+    paddingHorizontal: 24,
+    paddingBottom: 0,
     alignItems: 'center',
   },
 
   // Text Styles
   welcomeTitle: {
-    fontSize: 30,
+    fontSize: 24,
     fontWeight: '600',
-    color: '#404040',
+    color: '#2d2d2d',
+    style: 'Semi Bold',
     textAlign: 'center',
-    marginBottom: 8,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    marginBottom: 15,
+    fontFamily: 'Helvetica',
   },
   description: {
-    fontSize: 16,
-    color: '#AAA',
+    fontSize: 13,
+    color: '#98a2b3',
+    fontFamily: 'Helvetica',
+    fontWeight: '400',
     textAlign: 'center',
-    lineHeight: 17,
-    marginBottom: 8,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-    fontWeight: '450',
+    lineHeight: '130%',
+    maxWidth: 320,
+    alignSelf: 'center',
+    marginBottom: 0,
   },
 
   // Progress Indicator
@@ -573,7 +422,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: 35,
     gap: 8,
   },
   progressDash: {
@@ -595,37 +444,39 @@ const styles = StyleSheet.create({
   },
   startButton: {
     width: '100%',
-    height: 56,
+    height: 50,
     backgroundColor: '#17f196',
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 10,
     shadowColor: '#17f196',
-    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
   startButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#FFFFFF',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   skipButton: {
     width: '100%',
-    height: 56,
+    height: 50,
     backgroundColor: 'transparent',
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#17f196',
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
   },
   skipButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#17f196',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
 });

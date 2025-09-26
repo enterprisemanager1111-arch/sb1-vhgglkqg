@@ -4,15 +4,8 @@ import { Home, Users, Flame, Settings, Plus, Zap } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
 import AddItemModal from '@/components/AddItemModal';
-import { DesignTokens, Layout } from '@/components/design-system/DesignTokens';
 import { router } from 'expo-router';
-import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated';
-import { useResponsiveContext } from '@/contexts/ResponsiveContext';
-import Svg, { Path } from 'react-native-svg';
 import { useAuth } from '@/contexts/AuthContext';
-import CoolLoadingScreen from '@/components/CoolLoadingScreen';
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 // Custom Tab Bar Component with Dented Design
 function CustomTabBar({ state, descriptors, navigation }: any) {
@@ -218,12 +211,22 @@ export default function TabLayout() {
 
   // Show loading screen while checking authentication
   if (authLoading) {
-    return <CoolLoadingScreen message="Checking authentication..." />;
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Checking authentication...</Text>
+        <ActivityIndicator size="large" color="#17f196" />
+      </View>
+    );
   }
 
   // If user is not authenticated, don't render the tabs
   if (!session || !user) {
-    return <CoolLoadingScreen message="Redirecting to onboarding..." />;
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Redirecting to onboarding...</Text>
+        <ActivityIndicator size="large" color="#17f196" />
+      </View>
+    );
   }
 
   return (
@@ -412,5 +415,19 @@ const styles = StyleSheet.create({
   // Inactive tab label
   tabLabelInactive: {
     color: '#888888', // Gray color for inactive state
+  },
+
+  // Loading styles
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F3F3F5',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666666',
+    marginBottom: 16,
+    fontFamily: 'Montserrat-Regular',
   },
 });

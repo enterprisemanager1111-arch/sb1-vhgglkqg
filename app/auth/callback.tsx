@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function AuthCallback() {
   useEffect(() => {
@@ -18,8 +19,20 @@ export default function AuthCallback() {
         
         if (data.session?.user) {
           console.log('✅ Email verification successful, user:', data.session.user.email);
-          // Navigate to main app
-          router.replace('/(tabs)');
+          
+          // Check if this is a new user verification (from signup)
+          const isVerifyingSignup = await AsyncStorage.getItem('is_verifying_signup');
+          const showingWelcomeModal = await AsyncStorage.getItem('showing_welcome_modal');
+          
+          if (isVerifyingSignup === 'true' || showingWelcomeModal === 'true') {
+            console.log('🔄 New user verification detected, redirecting to signup page for welcome modal');
+            // Redirect back to signup page to show welcome modal
+            router.replace('/(onboarding)/signup');
+          } else {
+            console.log('🔄 Existing user verification, redirecting to main app');
+            // Navigate to main app for existing users
+            router.replace('/(tabs)');
+          }
         } else {
           console.log('⚠️ No session found, redirecting to signin');
           router.replace('/(onboarding)/signin');
@@ -52,6 +65,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Arial',
   },
 });

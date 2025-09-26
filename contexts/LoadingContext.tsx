@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Modal } from 'react-native';
 import { useLanguage } from './LanguageContext';
-import CoolLoadingScreen from '@/components/CoolLoadingScreen';
 
 interface LoadingContextType {
   isLoading: boolean;
@@ -43,7 +42,10 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
         animationType="fade"
         statusBarTranslucent={true}
       >
-        <CoolLoadingScreen message={loadingMessage} />
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>{loadingMessage}</Text>
+          <ActivityIndicator size="large" color="#17f196" />
+        </View>
       </Modal>
     </LoadingContext.Provider>
   );
@@ -56,4 +58,19 @@ export function useLoading() {
   }
   return context;
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F3F3F5',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666666',
+    marginBottom: 16,
+    fontFamily: 'Montserrat-Regular',
+  },
+});
 

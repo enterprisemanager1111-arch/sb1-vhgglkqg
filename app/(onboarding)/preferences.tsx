@@ -11,23 +11,11 @@ import {
   Image as RNImage,
 } from 'react-native';
 import { router } from 'expo-router';
-import Animated, { 
-  useSharedValue, 
-  withSpring, 
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
-  withSequence,
-  withRepeat,
-  interpolate,
-  Extrapolate
-} from 'react-native-reanimated';
 import { ChevronLeft, ChevronRight, Flag, CircleHelp as HelpCircle } from 'lucide-react-native';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLoading } from '@/contexts/LoadingContext';
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function PreferencesSetup() {
   const { t, currentLanguage } = useLanguage();
@@ -38,28 +26,6 @@ export default function PreferencesSetup() {
   const { showLoading, hideLoading } = useLoading();
 
   // Button animations
-  const buttonScale = useSharedValue(1);
-  const nextButtonScale = useSharedValue(1);
-  const backButtonScale = useSharedValue(1);
-  
-  // Component animations
-  const titleOpacity = useSharedValue(0);
-  const titleTranslateY = useSharedValue(50);
-  const subtitleOpacity = useSharedValue(0);
-  const subtitleTranslateY = useSharedValue(30);
-  const goalsOpacity = useSharedValue(0);
-  const goalsTranslateY = useSharedValue(30);
-  const progressOpacity = useSharedValue(0);
-  const progressScale = useSharedValue(0.8);
-  const buttonsOpacity = useSharedValue(0);
-  const buttonsTranslateY = useSharedValue(20);
-  
-  // Continuous animations
-  const iconFloat = useSharedValue(0);
-  const buttonPulse = useSharedValue(1);
-  
-  // Individual button animations for goals
-  const goalButtonScales = useSharedValue<Record<string, any>>({});
 
   const goalOptions = [
     { id: 'routine', label: 'Establish routines', description: 'Create regular processes' },
@@ -108,128 +74,8 @@ export default function PreferencesSetup() {
     );
   };
 
-  // Animation trigger function
-  const triggerAnimations = () => {
-    // Title animation - bounce in from top
-    titleOpacity.value = withTiming(1, { duration: 800 });
-    titleTranslateY.value = withSpring(0, { damping: 15, stiffness: 150 });
 
-    // Subtitle animation - fade in with slight delay
-    subtitleOpacity.value = withDelay(200, withTiming(1, { duration: 600 }));
-    subtitleTranslateY.value = withDelay(200, withSpring(0, { damping: 12, stiffness: 120 }));
 
-    // Goals section - slide up with fade
-    goalsOpacity.value = withDelay(400, withTiming(1, { duration: 600 }));
-    goalsTranslateY.value = withDelay(400, withSpring(0, { damping: 12, stiffness: 120 }));
-
-    // Progress indicator - scale in with bounce
-    progressOpacity.value = withDelay(600, withTiming(1, { duration: 500 }));
-    progressScale.value = withDelay(600, withSpring(1, { damping: 8, stiffness: 120 }));
-
-    // Buttons - fade in from bottom
-    buttonsOpacity.value = withDelay(800, withTiming(1, { duration: 500 }));
-    buttonsTranslateY.value = withDelay(800, withSpring(0, { damping: 10, stiffness: 100 }));
-
-    // Icon floating animation - continuous gentle float
-    iconFloat.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 2000 }),
-        withTiming(0, { duration: 2000 })
-      ),
-      -1,
-      true
-    );
-
-    // Button pulse animation - subtle pulse effect
-    buttonPulse.value = withRepeat(
-      withSequence(
-        withTiming(1.02, { duration: 1500 }),
-        withTiming(1, { duration: 1500 })
-      ),
-      -1,
-      true
-    );
-  };
-
-  // Trigger animations on component mount
-  useEffect(() => {
-    triggerAnimations();
-  }, []);
-
-  const buttonAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonScale.value }],
-  }));
-
-  // Component animated styles
-  const titleAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: titleOpacity.value,
-    transform: [{ translateY: titleTranslateY.value }],
-  }));
-
-  const subtitleAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: subtitleOpacity.value,
-    transform: [{ translateY: subtitleTranslateY.value }],
-  }));
-
-  const goalsAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: goalsOpacity.value,
-    transform: [{ translateY: goalsTranslateY.value }],
-  }));
-
-  const progressAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: progressOpacity.value,
-    transform: [{ scale: progressScale.value }],
-  }));
-
-  const buttonsAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: buttonsOpacity.value,
-    transform: [{ translateY: buttonsTranslateY.value }],
-  }));
-
-  // Additional cool animated styles
-  const iconFloatAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ 
-      translateY: interpolate(iconFloat.value, [0, 1], [-3, 3], Extrapolate.CLAMP)
-    }],
-  }));
-
-  const buttonPulseAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonPulse.value }],
-  }));
-
-  // Goal button animated style
-  const getGoalButtonAnimatedStyle = (goalId: string) => {
-    return useAnimatedStyle(() => ({
-      transform: [{ 
-        scale: goalButtonScales.value[goalId] || 1 
-      }],
-    }));
-  };
-
-  const handlePressIn = () => {
-    buttonScale.value = withSpring(0.95);
-  };
-
-  const handlePressOut = () => {
-    buttonScale.value = withSpring(1);
-  };
-
-  // Goal button handlers
-  const handleGoalPressIn = (goalId: string) => {
-    'worklet';
-    goalButtonScales.value = {
-      ...goalButtonScales.value,
-      [goalId]: withSpring(0.95, { damping: 15, stiffness: 300 })
-    };
-  };
-
-  const handleGoalPressOut = (goalId: string) => {
-    'worklet';
-    goalButtonScales.value = {
-      ...goalButtonScales.value,
-      [goalId]: withSpring(1, { damping: 15, stiffness: 300 })
-    };
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -253,7 +99,7 @@ export default function PreferencesSetup() {
         {/* Content */}
         <View style={styles.content}>
           {/* Title */}
-          <Animated.View style={[styles.titleContainer, titleAnimatedStyle]}>
+          <View style={styles.titleContainer}>
             <Text style={styles.title}>
               {currentLanguage.code === 'en' ? 'Tell us you preferences' : 
                currentLanguage.code === 'de' ? 'Erzählen Sie uns Ihre Präferenzen' : 
@@ -263,7 +109,7 @@ export default function PreferencesSetup() {
                currentLanguage.code === 'it' ? 'Parlaci delle tue preferenze' : 
                t('onboarding.preferences.title') || 'Tell us you preferences'}
             </Text>
-            <Animated.View style={subtitleAnimatedStyle}>
+            <View>
               <Text style={styles.subtitle}>
               {currentLanguage.code === 'en' ? 'Let us shape Famora according to your wishes and thoughts.' : 
                currentLanguage.code === 'de' ? 'Lassen Sie uns Famora nach Ihren Wünschen und Gedanken gestalten.' : 
@@ -273,23 +119,23 @@ export default function PreferencesSetup() {
                currentLanguage.code === 'it' ? 'Lascia che modelliamo Famora secondo i tuoi desideri e pensieri.' : 
                t('onboarding.preferences.subtitle') || 'Let us shape Famora according to your wishes and thoughts.'}
               </Text>
-            </Animated.View>
-          </Animated.View>
+            </View>
+          </View>
 
           {/* Progress Indicator */}
-          <Animated.View style={[styles.progressContainer, progressAnimatedStyle]}>
+          <View style={styles.progressContainer}>
             <View style={styles.progressDash} />
             <View style={styles.progressDash} />
             <View style={styles.progressDash} />
             <View style={[styles.progressDash, styles.activeDash]} />
-          </Animated.View>
+          </View>
 
           {/* Goals Selection */}
-          <Animated.View style={[styles.section, goalsAnimatedStyle]}>
+          <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Animated.View style={iconFloatAnimatedStyle}>
-                <Flag size={20} color="#17f196" strokeWidth={2} />
-              </Animated.View>
+              <View>
+                <Flag size={20} color="#55ffb8" strokeWidth={2} />
+              </View>
               <Text style={styles.sectionTitle}>
                 {currentLanguage.code === 'en' ? 'What would you like to achieve?' : 
                  currentLanguage.code === 'de' ? 'Was möchten Sie erreichen?' : 
@@ -302,16 +148,13 @@ export default function PreferencesSetup() {
             </View>
             <View style={styles.goalGrid}>
               {goalOptions.map((goal) => (
-                <AnimatedPressable
+                <Pressable
                   key={goal.id}
                   style={[
                     styles.goalCard,
-                    goals.includes(goal.id) && styles.selectedGoal,
-                    getGoalButtonAnimatedStyle(goal.id)
+                    goals.includes(goal.id) && styles.selectedGoal
                   ]}
                   onPress={() => toggleGoal(goal.id)}
-                  onPressIn={() => handleGoalPressIn(goal.id)}
-                  onPressOut={() => handleGoalPressOut(goal.id)}
                 >
                   <Text style={[
                     styles.goalLabel,
@@ -325,22 +168,20 @@ export default function PreferencesSetup() {
                   ]}>
                     {goal.description}
                   </Text>
-                </AnimatedPressable>
+                </Pressable>
               ))}
             </View>
-          </Animated.View>
+          </View>
 
         </View>
           </ScrollView>
         </View>
 
         {/* Action Buttons */}
-        <Animated.View style={[styles.buttonContainer, buttonsAnimatedStyle]}>
-          <AnimatedPressable
-            style={[styles.continueButton, buttonAnimatedStyle]}
+        <View style={styles.buttonContainer}>
+          <Pressable
+            style={styles.continueButton}
             onPress={handleContinue}
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
           >
             <Text style={styles.continueText}>
               {currentLanguage.code === 'en' ? 'Next' : 
@@ -351,7 +192,7 @@ export default function PreferencesSetup() {
                currentLanguage.code === 'it' ? 'Avanti' : 
                t('common.next') || 'Next'}
             </Text>
-          </AnimatedPressable>
+          </Pressable>
           
           <Pressable style={styles.backButton} onPress={handleBack}>
             <Text style={styles.backButtonText}>
@@ -364,7 +205,7 @@ export default function PreferencesSetup() {
                t('common.back') || 'Back'}
             </Text>
             </Pressable>
-        </Animated.View>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -405,12 +246,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    paddingTop: 40,
     marginTop: -30,
     position: 'relative',
   },
   contentCard: {
     flex: 1,
-    paddingTop: 24,
   },
   header: {
     flexDirection: 'row',
@@ -436,7 +277,7 @@ const styles = StyleSheet.create({
   stepIndicator: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   progressContainer: {
     flexDirection: 'row',
@@ -466,20 +307,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 30,
+    fontSize: 24,
     fontWeight: '600',
-    color: '#404040',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    color: '#000',
+    fontStyle: 'Semi Bold',
+    fontFamily: 'Helvetica',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#AAA',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-    fontWeight: '450',
+    fontSize: 13,
+    color: '#98a2b3',
+    fontFamily: 'Helvetica',
+    fontWeight: '400',
     textAlign: 'center',
-    lineHeight: 17,
+    lineHeight: '130%',
+    maxWidth: 320,
+    alignSelf: 'center',
   },
   section: {
     marginBottom: 32,
@@ -489,18 +333,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
     gap: 8,
+    marginTop: 20,
+    paddingHorizontal: 0,
   },
   sectionTitle: {
     fontSize: 16,
     marginLeft: 15,
     fontWeight: '600',
     color: '#4A4A4A',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   sectionDescription: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     marginBottom: 20,
     lineHeight: 20,
   },
@@ -516,7 +362,7 @@ const styles = StyleSheet.create({
   tooltipText: {
     fontSize: 13,
     color: '#FFFFFF',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     lineHeight: 18,
   },
 
@@ -530,18 +376,18 @@ const styles = StyleSheet.create({
     padding: 14,
     paddingLeft: 25,
     borderWidth: 2,
-    borderColor: '#EfEfEf',
+    borderColor: '#eaecf0',
     elevation: 1,
-    alignItems: 'left',
+    alignItems: 'flex-start',
   },
   selectedGoal: {
-    borderColor: '#17f196',
+    borderColor: '#59f6b5',
     backgroundColor: '#FFFFFF',
-    shadowColor: '#17f196',
+    shadowColor: '#41ffb0',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 5,
   },
   goalIcon: {
     fontSize: 32,
@@ -551,19 +397,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#202020',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     textAlign: 'left',
     marginBottom: 4,
   },
   selectedGoalLabel: {
     color: '#303030',
     fontWeight: '750',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   goalDescription: {
     fontSize: 13,
     color: '#aaaaaa',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     lineHeight: 17,
   },
   selectedGoalDescription: {
@@ -578,23 +424,24 @@ const styles = StyleSheet.create({
   },
   backButton: {
     width: '100%',
-    height: 56,
+    height: 50,
     backgroundColor: 'transparent',
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#17f196',
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
   },
   backButtonText: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#17f196',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   continueButton: {
     width: '100%',
-    height: 56,
+    height: 50,
     backgroundColor: '#17f196',
     borderRadius: 25,
     alignItems: 'center',
@@ -606,9 +453,10 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   continueText: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#FFFFFF',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
 });

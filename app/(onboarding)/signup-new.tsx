@@ -716,9 +716,14 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666666',
+    fontSize: 13,
+    color: '#98a2b3',
+    fontFamily: 'Helvetica',
+    fontWeight: '400',
     textAlign: 'center',
+    lineHeight: '130%',
+    maxWidth: 320,
+    alignSelf: 'center',
   },
   formContainer: {
     marginBottom: 30,

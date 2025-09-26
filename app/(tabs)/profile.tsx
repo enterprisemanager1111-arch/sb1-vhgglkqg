@@ -523,58 +523,71 @@ export default function UserProfile() {
     console.log('Current user:', user?.id);
     console.log('Current profile:', profile?.id);
     
-    Alert.alert(
-      t('profile.alerts.logoutTitle'),
-      t('profile.alerts.logoutMessage'),
-      [
-        { text: t('profile.alerts.logoutCancel'), style: 'cancel' },
-        {
-          text: t('profile.alerts.logoutConfirm'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              console.log('🚪 Starting logout process from profile page...');
-              console.log('Calling signOut function...');
+    try {
+      // Use the AuthContext signOut function which handles token deletion
+      await signOut();
+      console.log('✅ Sign out completed, redirecting to onboarding start page...');
+      
+      // Redirect to onboarding start page
+      router.replace('/(onboarding)');
+      
+    } catch (error) {
+      console.error('❌ Sign out error:', error);
+      // Even if sign out fails, try to redirect to onboarding
+      router.replace('/(onboarding)');
+    }
+    // Alert.alert(
+    //   t('profile.alerts.logoutTitle'),
+    //   t('profile.alerts.logoutMessage'),
+    //   [
+    //     { text: t('profile.alerts.logoutCancel'), style: 'cancel' },
+    //     {
+    //       text: t('profile.alerts.logoutConfirm'),
+    //       style: 'destructive',
+    //       onPress: async () => {
+    //         try {
+    //           console.log('🚪 Starting logout process from profile page...');
+    //           console.log('Calling signOut function...');
               
-              // Add timeout to prevent hanging
-              const signOutPromise = signOut();
-              const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('Sign out timeout')), 10000); // 10 second timeout
-              });
+    //           // Add timeout to prevent hanging
+    //           const signOutPromise = signOut();
+    //           const timeoutPromise = new Promise((_, reject) => {
+    //             setTimeout(() => reject(new Error('Sign out timeout')), 10000); // 10 second timeout
+    //           });
               
-              await Promise.race([signOutPromise, timeoutPromise]);
+    //           await Promise.race([signOutPromise, timeoutPromise]);
               
-              console.log('✅ Sign out completed, showing snackbar and navigating...');
+    //           console.log('✅ Sign out completed, showing snackbar and navigating...');
               
-              // Show success snackbar
-              showSnackbar('Successfully signed out', 'success', 3000);
+    //           // Show success snackbar
+    //           showSnackbar('Successfully signed out', 'success', 3000);
               
-              // Give a moment for auth state to clear, then navigate to first page
-              setTimeout(() => {
-                console.log('🔄 Navigating to first page...');
-                router.replace('/');
-              }, 100);
+    //           // Give a moment for auth state to clear, then navigate to first page
+    //           setTimeout(() => {
+    //             console.log('🔄 Navigating to first page...');
+    //             router.replace('/');
+    //           }, 100);
               
-            } catch (error: any) {
-              console.error('❌ Logout error in profile page:', error);
+    //         } catch (error: any) {
+    //           console.error('❌ Logout error in profile page:', error);
               
-              // Even if sign out fails, try to navigate to first page
-              if (error?.message === 'Sign out timeout') {
-                console.log('⚠️ Sign out timed out, forcing navigation...');
-                showSnackbar('Sign out timed out, but you have been logged out', 'warning', 4000);
-                router.replace('/');
-              } else {
-                showSnackbar('Sign out failed. Please try again.', 'error', 4000);
-                Alert.alert(
-                  t('common.error'), 
-                  error?.message || 'Sign out failed. Please try again.'
-                );
-              }
-            }
-          },
-        },
-      ]
-    );
+    //           // Even if sign out fails, try to navigate to first page
+    //           if (error?.message === 'Sign out timeout') {
+    //             console.log('⚠️ Sign out timed out, forcing navigation...');
+    //             showSnackbar('Sign out timed out, but you have been logged out', 'warning', 4000);
+    //             router.replace('/');
+    //           } else {
+    //             showSnackbar('Sign out failed. Please try again.', 'error', 4000);
+    //             Alert.alert(
+    //               t('common.error'), 
+    //               error?.message || 'Sign out failed. Please try again.'
+    //             );
+    //           }
+    //         }
+    //       },
+    //     },
+    //   ]
+    // );
   }
 
   const onRefresh = async () => {

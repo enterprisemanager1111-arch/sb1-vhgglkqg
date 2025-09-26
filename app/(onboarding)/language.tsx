@@ -10,151 +10,16 @@ import {
   Image as RNImage,
 } from 'react-native';
 import { router } from 'expo-router';
-import Animated, { 
-  useSharedValue, 
-  withSpring, 
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
-  withSequence,
-  withRepeat,
-  interpolate,
-  Extrapolate
-} from 'react-native-reanimated';
-import { ChevronLeft, ChevronRight, Globe, Check } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Check } from 'lucide-react-native';
 import { supportedLanguages, useLanguage } from '@/contexts/LanguageContext';
 import { useLoading } from '@/contexts/LoadingContext';
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function LanguageSelection() {
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const { currentLanguage, changeLanguage, t } = useLanguage();
   const { showLoading, hideLoading } = useLoading();
   
-  // Button animations
-  const nextButtonScale = useSharedValue(1);
-  const backButtonScale = useSharedValue(1);
-  
-  // Individual language button animations
-  const languageButtonScales = useSharedValue<Record<string, any>>({});
-  const languageButtonRotations = useSharedValue<Record<string, any>>({});
-  const languageButtonBounces = useSharedValue<Record<string, any>>({});
-  
-  // Staggered entrance animations for language buttons
-  const languageButtonEntrances = useSharedValue<Record<string, any>>({});
-  
-  // Step interface animation
-  const stepInterfaceScale = useSharedValue(1);
-  const stepInterfaceOpacity = useSharedValue(1);
-  
-  // Component animations
-  const titleOpacity = useSharedValue(0);
-  const titleTranslateY = useSharedValue(50);
-  const subtitleOpacity = useSharedValue(0);
-  const subtitleTranslateY = useSharedValue(30);
-  const progressOpacity = useSharedValue(0);
-  const progressScale = useSharedValue(0.8);
-  const questionOpacity = useSharedValue(0);
-  const questionTranslateX = useSharedValue(-30);
-  const languagesOpacity = useSharedValue(0);
-  const languagesTranslateY = useSharedValue(30);
-  const buttonOpacity = useSharedValue(0);
-  const buttonTranslateY = useSharedValue(20);
-  
-  // Continuous animations
-  const iconFloat = useSharedValue(0);
-  const buttonPulse = useSharedValue(1);
-  
-  // Animation trigger function
-  const triggerAnimations = () => {
-    // Title animation - bounce in from top
-    titleOpacity.value = withTiming(1, { duration: 800 });
-    titleTranslateY.value = withSpring(0, { damping: 15, stiffness: 150 });
-
-    // Subtitle animation - fade in with slight delay
-    subtitleOpacity.value = withDelay(200, withTiming(1, { duration: 600 }));
-    subtitleTranslateY.value = withDelay(200, withSpring(0, { damping: 12, stiffness: 120 }));
-
-    // Progress indicator - scale in with bounce
-    progressOpacity.value = withDelay(400, withTiming(1, { duration: 500 }));
-    progressScale.value = withDelay(400, withSpring(1, { damping: 8, stiffness: 120 }));
-
-    // Question - slide in from left
-    questionOpacity.value = withDelay(600, withTiming(1, { duration: 600 }));
-    questionTranslateX.value = withDelay(600, withSpring(0, { damping: 10, stiffness: 100 }));
-
-    // Languages - slide up with fade
-    languagesOpacity.value = withDelay(800, withTiming(1, { duration: 600 }));
-    languagesTranslateY.value = withDelay(800, withSpring(0, { damping: 12, stiffness: 120 }));
-
-    // Staggered language button entrance animations (right to left)
-    const supportedLanguages = [
-      { code: 'en', name: 'English', nativeName: 'English' },
-      { code: 'de', name: 'German', nativeName: 'Deutsch' },
-      { code: 'nl', name: 'Dutch', nativeName: 'Nederlands' },
-      { code: 'fr', name: 'French', nativeName: 'Français' },
-      { code: 'es', name: 'Spanish', nativeName: 'Español' },
-      { code: 'it', name: 'Italian', nativeName: 'Italiano' }
-    ];
-
-    supportedLanguages.forEach((language, index) => {
-      const delay = 0 + (index * 50); // Start immediately, stagger by 50ms (faster)
-      languageButtonEntrances.value = {
-        ...languageButtonEntrances.value,
-        [language.code]: withDelay(delay, withSpring(0, { damping: 10, stiffness: 150 }))
-      };
-    });
-
-    // Button - scale in with bounce
-    buttonOpacity.value = withDelay(1000, withTiming(1, { duration: 500 }));
-    buttonTranslateY.value = withDelay(1000, withSpring(0, { damping: 8, stiffness: 120 }));
-
-    // Icon floating animation - continuous gentle float
-    iconFloat.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 2000 }),
-        withTiming(0, { duration: 2000 })
-      ),
-      -1,
-      true
-    );
-
-    // Button pulse animation - subtle pulse effect
-    buttonPulse.value = withRepeat(
-      withSequence(
-        withTiming(1.02, { duration: 1500 }),
-        withTiming(1, { duration: 1500 })
-      ),
-      -1,
-      true
-    );
-  };
-
-  // Initialize language button entrance positions
-  useEffect(() => {
-    const supportedLanguages = [
-      { code: 'en', name: 'English', nativeName: 'English' },
-      { code: 'de', name: 'German', nativeName: 'Deutsch' },
-      { code: 'nl', name: 'Dutch', nativeName: 'Nederlands' },
-      { code: 'fr', name: 'French', nativeName: 'Français' },
-      { code: 'es', name: 'Spanish', nativeName: 'Español' },
-      { code: 'it', name: 'Italian', nativeName: 'Italiano' }
-    ];
-
-    // Initialize all language buttons to start from right (100px)
-    supportedLanguages.forEach((language) => {
-      languageButtonEntrances.value = {
-        ...languageButtonEntrances.value,
-        [language.code]: 100
-      };
-    });
-  }, []);
-
-  // Trigger animations on component mount
-  useEffect(() => {
-    triggerAnimations();
-  }, []);
 
   // Initialize with current language
   React.useEffect(() => {
@@ -162,17 +27,6 @@ export default function LanguageSelection() {
   }, [currentLanguage]);
 
   const handleContinue = async () => {
-    // Animate step interface before navigation
-    stepInterfaceScale.value = withSequence(
-      withTiming(1.1, { duration: 150 }),
-      withTiming(0.9, { duration: 150 }),
-      withTiming(1, { duration: 150 })
-    );
-    stepInterfaceOpacity.value = withSequence(
-      withTiming(0.7, { duration: 150 }),
-      withTiming(1, { duration: 300 })
-    );
-
     showLoading(t('common.redirecting') || 'Redirecting...');
     
     try {
@@ -192,128 +46,7 @@ export default function LanguageSelection() {
     router.back();
   };
 
-  // Language button press handlers with fast cool sweet animations
-  const handleLanguagePressIn = (languageCode: string) => {
-    // Scale down with fast bounce
-    languageButtonScales.value = {
-      ...languageButtonScales.value,
-      [languageCode]: withSpring(0.92, { damping: 8, stiffness: 200 })
-    };
-    
-    // Add fast rotation effect
-    languageButtonRotations.value = {
-      ...languageButtonRotations.value,
-      [languageCode]: withSpring(2, { damping: 10, stiffness: 150 })
-    };
-    
-    // Add fast bounce effect
-    languageButtonBounces.value = {
-      ...languageButtonBounces.value,
-      [languageCode]: withSequence(
-        withTiming(1.05, { duration: 50 }),
-        withSpring(1, { damping: 10, stiffness: 150 })
-      )
-    };
-  };
 
-  const handleLanguagePressOut = (languageCode: string) => {
-    // Scale back up with fast spring
-    languageButtonScales.value = {
-      ...languageButtonScales.value,
-      [languageCode]: withSpring(1, { damping: 10, stiffness: 150 })
-    };
-    
-    // Reset rotation fast
-    languageButtonRotations.value = {
-      ...languageButtonRotations.value,
-      [languageCode]: withSpring(0, { damping: 12, stiffness: 150 })
-    };
-    
-    // Reset bounce fast
-    languageButtonBounces.value = {
-      ...languageButtonBounces.value,
-      [languageCode]: withSpring(1, { damping: 10, stiffness: 150 })
-    };
-  };
-
-  // Component animated styles
-  const titleAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: titleOpacity.value,
-    transform: [{ translateY: titleTranslateY.value }],
-  }));
-
-  const subtitleAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: subtitleOpacity.value,
-    transform: [{ translateY: subtitleTranslateY.value }],
-  }));
-
-  const progressAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: progressOpacity.value,
-    transform: [{ scale: progressScale.value }],
-  }));
-
-  const questionAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: questionOpacity.value,
-    transform: [{ translateX: questionTranslateX.value }],
-  }));
-
-  const languagesAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: languagesOpacity.value,
-    transform: [{ translateY: languagesTranslateY.value }],
-  }));
-
-  const buttonContainerAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: buttonOpacity.value,
-    transform: [{ translateY: buttonTranslateY.value }],
-  }));
-
-  // Language button animated style with cool sweet animations
-  const getLanguageButtonAnimatedStyle = (languageCode: string) => {
-    return useAnimatedStyle(() => ({
-      opacity: 1,
-      transform: [
-        { translateX: languageButtonEntrances.value[languageCode] || 100 }, // Start from right (100px)
-        { scale: (languageButtonScales.value[languageCode] || 1) * (languageButtonBounces.value[languageCode] || 1) },
-        { rotate: `${languageButtonRotations.value[languageCode] || 0}deg` }
-      ],
-    }), []);
-  };
-
-  // Additional animated styles
-  const iconFloatAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ 
-      translateY: interpolate(iconFloat.value, [0, 1], [-3, 3], Extrapolate.CLAMP)
-    }],
-  }));
-
-  const nextButtonAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: nextButtonScale.value }],
-  }));
-
-  const backButtonAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: backButtonScale.value }],
-  }));
-
-  const stepInterfaceAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: stepInterfaceOpacity.value,
-    transform: [{ scale: stepInterfaceScale.value }],
-  }));
-
-  const handleNextPressIn = () => {
-    nextButtonScale.value = withSpring(0.95);
-  };
-
-  const handleNextPressOut = () => {
-    nextButtonScale.value = withSpring(1);
-  };
-
-  const handleBackPressIn = () => {
-    backButtonScale.value = withSpring(0.95);
-  };
-
-  const handleBackPressOut = () => {
-    backButtonScale.value = withSpring(1);
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -334,42 +67,45 @@ export default function LanguageSelection() {
       <View style={styles.lowerSection}>
         <View style={styles.contentCard}>
           {/* Title */}
-          <Animated.View style={[styles.titleContainer, titleAnimatedStyle as any]}>
+          <View style={styles.titleContainer}>
             <Text style={styles.title}>Choose your Language</Text>
-          </Animated.View>
+          </View>
 
           {/* Subtitle */}
-          <Animated.View style={subtitleAnimatedStyle as any}>
+          <View>
             <Text style={styles.subtitle}>Select your preferred language for Famora, for the perfect experience.</Text>
-          </Animated.View>
+          </View>
 
           {/* Progress Indicator */}
-          <Animated.View style={[styles.progressContainer, progressAnimatedStyle as any, stepInterfaceAnimatedStyle as any]}>
+          <View style={styles.progressContainer}>
             <View style={styles.progressDash} />
             <View style={[styles.progressDash, styles.activeDash]} />
             <View style={styles.progressDash} />
             <View style={styles.progressDash} />
-          </Animated.View>
+          </View>
 
           {/* Question */}
-          <Animated.View style={[styles.questionContainer, questionAnimatedStyle as any]}>
-            <Animated.View style={iconFloatAnimatedStyle as any}>
-              <Globe size={20} color="#17f196" strokeWidth={2} />
-            </Animated.View>
+          <View style={styles.questionContainer}>
+            <View>
+              <RNImage 
+                source={require('@/assets/images/icon/language-exchange.png')}
+                style={styles.questionIcon}
+                resizeMode="contain"
+              />
+            </View>
             <Text style={styles.questionText}>What language do you speak?</Text>
-          </Animated.View>
+          </View>
 
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
             <View style={styles.content}>
               {/* Language Options */}
               <View style={styles.languagesContainer}>
             {supportedLanguages.map((language) => (
-              <AnimatedPressable
+              <Pressable
                 key={language.code}
                 style={[
                   styles.languageOption,
-                  selectedLanguage === language.code && styles.selectedLanguageOption,
-                  getLanguageButtonAnimatedStyle(language.code) as any
+                  selectedLanguage === language.code && styles.selectedLanguageOption
                 ]}
                 onPress={async () => {
                   setSelectedLanguage(language.code);
@@ -378,8 +114,6 @@ export default function LanguageSelection() {
                     await changeLanguage(language.code);
                   }
                 }}
-                onPressIn={() => handleLanguagePressIn(language.code)}
-                onPressOut={() => handleLanguagePressOut(language.code)}
               >
                 <Text style={[
                   styles.languageName,
@@ -393,7 +127,7 @@ export default function LanguageSelection() {
                 ]}>
                   {language.name}
                 </Text>
-              </AnimatedPressable>
+              </Pressable>
             ))}
           </View>
 
@@ -401,25 +135,21 @@ export default function LanguageSelection() {
           </ScrollView>
 
           {/* Button Container */}
-          <Animated.View style={[styles.buttonContainer, buttonContainerAnimatedStyle as any]}>
-            <AnimatedPressable
-              style={[styles.nextButton, nextButtonAnimatedStyle as any]}
+          <View style={styles.buttonContainer}>
+            <Pressable
+              style={styles.nextButton}
               onPress={handleContinue}
-              onPressIn={handleNextPressIn}
-              onPressOut={handleNextPressOut}
             >
               <Text style={styles.nextButtonText}>Next</Text>
-            </AnimatedPressable>
+            </Pressable>
             
-            <AnimatedPressable
-              style={[styles.backButton, backButtonAnimatedStyle as any]}
+            <Pressable
+              style={styles.backButton}
               onPress={handleBack}
-              onPressIn={handleBackPressIn}
-              onPressOut={handleBackPressOut}
             >
               <Text style={styles.backButtonText}>Back</Text>
-            </AnimatedPressable>
-          </Animated.View>
+            </Pressable>
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -465,11 +195,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    paddingTop: 40,
     marginTop: -30,
   },
   contentCard: {
     flex: 1,
-    paddingTop: 24,
   },
   
   // Header
@@ -485,7 +215,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
 
   // Progress
@@ -503,7 +233,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#eafff6',
   },
   activeDash: {
-    backgroundColor: '#17f196',
+    backgroundColor: '#55ffb8',
   },
 
   scrollView: {
@@ -529,20 +259,21 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   title: {
-    fontSize: 30,
+    fontSize: 24,
     fontWeight: '600',
-    color: '#404040',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    color: '#000',
+    fontStyle: 'Semi Bold',
+    fontFamily: 'Helvetica',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#AAA',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontSize: 13,
+    color: '#98a2b3',
+    fontFamily: 'Helvetica',
     fontWeight: '400',
     textAlign: 'center',
-    lineHeight: 17,
+    lineHeight: '130%',
     maxWidth: 320,
     alignSelf: 'center',
   },
@@ -558,16 +289,16 @@ const styles = StyleSheet.create({
     padding: 14,
     paddingLeft: 25,
     borderWidth: 2,
-    borderColor: '#EfEfEf',
+    borderColor: '#eaecf0',
     elevation: 1,
     alignItems: 'flex-start',
   },
   selectedLanguageOption: {
-    borderColor: '#17f196',
+    borderColor: '#59f6b5',
     backgroundColor: '#FFFFFF',
-    shadowColor: '#17f196',
+    shadowColor: '#41ffb0',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 2,
   },
@@ -587,7 +318,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#202020',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     textAlign: 'left',
     marginBottom: 4,
   },
@@ -597,7 +328,7 @@ const styles = StyleSheet.create({
   languageSubtitle: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     textAlign: 'left',
     lineHeight: 18,
   },
@@ -635,10 +366,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 20,
     gap: 16,
+    paddingTop: 50,
   },
   nextButton: {
     width: '100%',
-    height: 56,
+    height: 50,
     backgroundColor: '#17f196',
     borderRadius: 25,
     alignItems: 'center',
@@ -650,32 +382,35 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   nextButtonText: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#FFFFFF',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   backButton: {
     width: '100%',
-    height: 56,
+    height: 50,
     backgroundColor: 'transparent',
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#17f196',
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
   },
   backButtonText: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#17f196',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   questionContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
     gap: 8,
+    marginTop: 20,
     paddingHorizontal: 24,
   },
   questionIconContainer: {
@@ -683,9 +418,14 @@ const styles = StyleSheet.create({
   },
   questionText: {
     fontSize: 16,
-    marginLeft: 15,
+    marginLeft: 10,
+    fontStyle: 'Semi Bold',
     fontWeight: '600',
-    color: '#202020',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    color: '#000',
+    fontFamily: 'Helvetica',
+  },
+  questionIcon: {
+    width: 20,
+    height: 20,
   },
 });

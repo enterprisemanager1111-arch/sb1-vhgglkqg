@@ -297,7 +297,7 @@ export default function FamilySetup() {
 
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.successContainer}>
           <View style={styles.successIcon}>
-            <Check size={40} color="#54FE54" strokeWidth={2.5} />
+            <Check size={40} color="#55ffb8" strokeWidth={2.5} />
           </View>
 
           <Text style={styles.successTitle}>Family created successfully!</Text>
@@ -310,7 +310,7 @@ export default function FamilySetup() {
             <View style={styles.codeDisplay}>
               <Text style={styles.codeText}>{createdCode}</Text>
               <Pressable style={styles.copyButton} onPress={copyCodeToClipboard}>
-                <Copy size={20} color="#54FE54" strokeWidth={2} />
+                <Copy size={20} color="#55ffb8" strokeWidth={2} />
               </Pressable>
             </View>
           </View>
@@ -355,10 +355,10 @@ export default function FamilySetup() {
 
       {/* Progress Indicator */}
       <View style={styles.progressContainer}>
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={[styles.progressDot, styles.activeDot]} />
+        <View style={styles.progressDash} />
+        <View style={styles.progressDash} />
+        <View style={styles.progressDash} />
+        <View style={[styles.progressDash, styles.activeDash]} />
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -385,7 +385,7 @@ export default function FamilySetup() {
                 onPress={() => setMode('create')}
               >
                 <View style={styles.choiceIcon}>
-                  <Plus size={32} color="#54FE54" strokeWidth={2} />
+                  <Plus size={32} color="#55ffb8" strokeWidth={2} />
                 </View>
                 <Text style={styles.choiceTitle}>Create Family</Text>
                 <Text style={styles.choiceDescription}>
@@ -398,7 +398,7 @@ export default function FamilySetup() {
                 onPress={() => setMode('join')}
               >
                 <View style={styles.choiceIcon}>
-                  <Hash size={32} color="#54FE54" strokeWidth={2} />
+                  <Hash size={32} color="#55ffb8" strokeWidth={2} />
                 </View>
                 <Text style={styles.choiceTitle}>Join Family</Text>
                 <Text style={styles.choiceDescription}>
@@ -411,7 +411,7 @@ export default function FamilySetup() {
                 onPress={() => setMode('search')}
               >
                 <View style={styles.choiceIcon}>
-                  <Search size={32} color="#54FE54" strokeWidth={2} />
+                  <Search size={32} color="#55ffb8" strokeWidth={2} />
                 </View>
                 <Text style={styles.choiceTitle}>Search Family</Text>
                 <Text style={styles.choiceDescription}>
@@ -432,7 +432,7 @@ export default function FamilySetup() {
             <View style={styles.formContainer}>
               <View style={styles.inputSection}>
                 <View style={styles.labelContainer}>
-                  <Users size={20} color="#54FE54" strokeWidth={2} />
+                  <Users size={20} color="#55ffb8" strokeWidth={2} />
                   <Text style={styles.inputLabel}>Family Name</Text>
                   <Pressable 
                     style={styles.tooltipButton}
@@ -473,7 +473,7 @@ export default function FamilySetup() {
             <View style={styles.formContainer}>
               <View style={styles.inputSection}>
                 <View style={styles.labelContainer}>
-                  <Search size={20} color="#54FE54" strokeWidth={2} />
+                  <Search size={20} color="#55ffb8" strokeWidth={2} />
                   <Text style={styles.inputLabel}>
                     {getTranslation('family.onboarding.searchFamily', 'Search Family')}
                   </Text>
@@ -523,7 +523,7 @@ export default function FamilySetup() {
                           <Text style={styles.familyResultId}>ID: {family.id.substring(0, 8)}...</Text>
                         </View>
                       </View>
-                      <ChevronRight size={20} color="#54FE54" strokeWidth={2} />
+                      <ChevronRight size={20} color="#55ffb8" strokeWidth={2} />
                     </Pressable>
                   ))}
                 </View>
@@ -553,7 +553,7 @@ export default function FamilySetup() {
             <View style={styles.formContainer}>
               <View style={styles.inputSection}>
                 <View style={styles.labelContainer}>
-                  <Hash size={20} color="#54FE54" strokeWidth={2} />
+                  <Hash size={20} color="#55ffb8" strokeWidth={2} />
                   <Text style={styles.inputLabel}>Family Code</Text>
                   <Pressable 
                     style={styles.tooltipButton}
@@ -689,7 +689,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
 
   // Progress
@@ -700,16 +700,15 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     gap: 8,
   },
-  progressDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#E0E0E0',
-  },
-  activeDot: {
-    backgroundColor: '#54FE54',
+  progressDash: {
     width: 24,
-    borderRadius: 12,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#eafff6',
+    marginHorizontal: 4,
+  },
+  activeDash: {
+    backgroundColor: '#55ffb8',
   },
 
   scrollView: {
@@ -726,19 +725,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#000',
+    fontStyle: 'Semi Bold',
+    fontFamily: 'Helvetica',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontSize: 13,
+    color: '#98a2b3',
+    fontFamily: 'Helvetica',
+    fontWeight: '400',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: '130%',
+    maxWidth: 320,
+    alignSelf: 'center',
   },
 
   // Choice Mode
@@ -747,16 +750,13 @@ const styles = StyleSheet.create({
   },
   choiceCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 24,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    borderRadius: 10,
+    padding: 14,
+    paddingLeft: 25,
+    borderWidth: 2,
+    borderColor: '#eaecf0',
+    elevation: 1,
+    alignItems: 'flex-start',
   },
   choiceIcon: {
     width: 80,
@@ -771,14 +771,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     marginBottom: 12,
     textAlign: 'center',
   },
   choiceDescription: {
     fontSize: 15,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -789,7 +789,7 @@ const styles = StyleSheet.create({
   skipText: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
 
   // Form
@@ -802,14 +802,17 @@ const styles = StyleSheet.create({
   labelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 16,
     gap: 8,
+    marginTop: 20,
+    paddingHorizontal: 24,
   },
   inputLabel: {
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   tooltipButton: {
     padding: 4,
@@ -822,7 +825,7 @@ const styles = StyleSheet.create({
   tooltipText: {
     fontSize: 13,
     color: '#FFFFFF',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     lineHeight: 18,
   },
   textInput: {
@@ -832,7 +835,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     fontSize: 16,
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     borderWidth: 1,
     borderColor: '#E0E0E0',
     shadowColor: '#000000',
@@ -861,13 +864,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     marginBottom: 8,
   },
   infoText: {
     fontSize: 13,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     lineHeight: 18,
   },
 
@@ -891,14 +894,14 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     textAlign: 'center',
     marginBottom: 12,
   },
   successSubtitle: {
     fontSize: 16,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 40,
@@ -912,7 +915,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     marginBottom: 12,
   },
   codeDisplay: {
@@ -935,7 +938,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '700',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     letterSpacing: 4,
   },
   copyButton: {
@@ -961,11 +964,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#54FE54',
+    backgroundColor: '#17f196',
     borderRadius: 25,
-    paddingVertical: 16,
+    height: 50,
     gap: 8,
-    shadowColor: '#54FE54',
+    shadowColor: '#17f196',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -975,10 +978,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0E0E0',
   },
   actionButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
+    color: '#FFFFFF',
+    fontFamily: 'Helvetica',
   },
   disabledText: {
     color: '#999999',
@@ -1007,7 +1011,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     marginBottom: 12,
   },
   familyResultCard: {
@@ -1033,13 +1037,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     marginBottom: 2,
   },
   familyResultCode: {
     fontSize: 14,
     color: '#54FE54',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   searchLoadingContainer: {
     alignItems: 'center',
@@ -1048,7 +1052,7 @@ const styles = StyleSheet.create({
   searchLoadingText: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   noResultsContainer: {
     alignItems: 'center',
@@ -1061,13 +1065,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     marginBottom: 8,
   },
   noResultsText: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: 16,
@@ -1083,43 +1087,44 @@ const styles = StyleSheet.create({
   testCodeText: {
     fontSize: 12,
     color: '#54FE54',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   finishButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#54FE54',
+    backgroundColor: '#17f196',
     borderRadius: 25,
-    paddingVertical: 18,
+    height: 50,
     paddingHorizontal: 32,
     gap: 8,
     marginTop: 20,
-    shadowColor: '#54FE54',
+    shadowColor: '#17f196',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
   finishButtonText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
+    color: '#FFFFFF',
+    fontFamily: 'Helvetica',
   },
   
   // Enhanced Search Styles
   inputDescription: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     marginBottom: 16,
     lineHeight: 20,
   },
   searchHint: {
     fontSize: 12,
     color: '#888888',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     marginTop: 8,
     lineHeight: 16,
     fontStyle: 'italic',
@@ -1132,6 +1137,6 @@ const styles = StyleSheet.create({
   familyResultId: {
     fontSize: 12,
     color: '#888888',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
 });

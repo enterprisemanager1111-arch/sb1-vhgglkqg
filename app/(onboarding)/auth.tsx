@@ -279,12 +279,12 @@ export default function OnboardingAuth() {
 
       {/* Progress Indicator */}
       <View style={styles.progressContainer}>
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
-        <View style={[styles.progressDot, styles.activeDot]} />
-        <View style={styles.progressDot} />
-        <View style={styles.progressDot} />
+        <View style={styles.progressDash} />
+        <View style={styles.progressDash} />
+        <View style={styles.progressDash} />
+        <View style={[styles.progressDash, styles.activeDash]} />
+        <View style={styles.progressDash} />
+        <View style={styles.progressDash} />
       </View>
 
       {/* Content */}
@@ -457,6 +457,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    paddingTop: 40,
     marginTop: -30,
   },
   contentCard: {
@@ -472,16 +473,15 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
     gap: 8,
   },
-  progressDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#E0E0E0',
-  },
-  activeDot: {
-    backgroundColor: '#54FE54',
+  progressDash: {
     width: 24,
-    borderRadius: 12,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#eafff6',
+    marginHorizontal: 4,
+  },
+  activeDash: {
+    backgroundColor: '#55ffb8',
   },
 
   content: {
@@ -494,18 +494,23 @@ const styles = StyleSheet.create({
     marginBottom: 48,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-    marginBottom: 8,
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#000',
+    fontStyle: 'Semi Bold',
+    fontFamily: 'Helvetica',
     textAlign: 'center',
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontSize: 13,
+    color: '#98a2b3',
+    fontFamily: 'Helvetica',
+    fontWeight: '400',
     textAlign: 'center',
+    lineHeight: '130%',
+    maxWidth: 320,
+    alignSelf: 'center',
   },
   form: {
     gap: 16,
@@ -532,7 +537,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   passwordInput: {
     paddingRight: 40,
@@ -543,22 +548,24 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   authButton: {
-    backgroundColor: '#54FE54',
-    borderRadius: 12,
-    paddingVertical: 16,
+    backgroundColor: '#17f196',
+    borderRadius: 25,
+    height: 50,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 12,
-    shadowColor: '#54FE54',
+    shadowColor: '#17f196',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
   },
   authButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
+    color: '#FFFFFF',
+    fontFamily: 'Helvetica',
   },
   authButtonLoading: {
     opacity: 0.8,
@@ -581,13 +588,13 @@ const styles = StyleSheet.create({
   toggleText: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   toggleLink: {
     fontSize: 14,
     fontWeight: '600',
     color: '#54FE54',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
 
   // Notification
@@ -624,7 +631,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#FFFFFF',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     lineHeight: 20,
     letterSpacing: 0.1,
   },

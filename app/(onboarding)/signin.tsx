@@ -12,17 +12,6 @@ import {
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import Animated, { 
-  useSharedValue, 
-  withSpring, 
-  useAnimatedStyle, 
-  withTiming, 
-  withDelay, 
-  withSequence,
-  withRepeat,
-  interpolate,
-  Extrapolate
-} from 'react-native-reanimated';
 import { Mail, Lock, Eye, EyeOff, Apple } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
@@ -30,10 +19,9 @@ import { useLoading } from '@/contexts/LoadingContext';
 import { useCustomAlert } from '@/contexts/CustomAlertContext';
 import { sanitizeInput, validateEmail } from '@/utils/sanitization';
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function SignIn() {
-  const { signIn } = useAuth();
+  const { signIn, profile } = useAuth();
   const { completeStep, updateAuthInfo } = useOnboarding();
   const { showLoading, hideLoading } = useLoading();
   const { showSuccess, showError, showWarning } = useCustomAlert();
@@ -43,160 +31,38 @@ export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [shouldCheckProfile, setShouldCheckProfile] = useState(false);
   
+  // Check profile when it's loaded and we need to check it
+  useEffect(() => {
+    if (shouldCheckProfile && profile !== undefined) {
+      console.log('🔄 Profile loaded, checking if name exists...');
+      
+      // Check if profile exists and has a name
+      if (!profile || !profile.name || profile.name.trim() === '') {
+        console.log('🔄 User profile missing name, redirecting to profile edit page');
+        router.replace('/myProfile/edit');
+      } else {
+        console.log('✅ User profile has name, redirecting to main app');
+        router.replace('/(tabs)');
+      }
+      
+      // Reset the flag
+      setShouldCheckProfile(false);
+    }
+  }, [profile, shouldCheckProfile]);
   
   // Individual button scales
-  const signInButtonScale = useSharedValue(1);
-  const appleButtonScale = useSharedValue(1);
-  const googleButtonScale = useSharedValue(1);
 
-  // Component animations
-  const titleOpacity = useSharedValue(0);
-  const titleTranslateY = useSharedValue(50);
-  const subtitleOpacity = useSharedValue(0);
-  const subtitleTranslateY = useSharedValue(30);
-  const emailInputOpacity = useSharedValue(0);
-  const emailInputTranslateX = useSharedValue(-50);
-  const passwordInputOpacity = useSharedValue(0);
-  const passwordInputTranslateX = useSharedValue(50);
-  const optionsOpacity = useSharedValue(0);
-  const optionsScale = useSharedValue(0.8);
-  const signInButtonOpacity = useSharedValue(0);
-  const signInButtonContainerScale = useSharedValue(0.8);
-  const separatorOpacity = useSharedValue(0);
-  const separatorScale = useSharedValue(0);
-  const socialButtonsOpacity = useSharedValue(0);
-  const socialButtonsTranslateY = useSharedValue(30);
-  const signUpLinkOpacity = useSharedValue(0);
-  const signUpLinkTranslateY = useSharedValue(20);
 
-  // Additional cool animations
-  const iconFloat = useSharedValue(0);
-  const buttonPulse = useSharedValue(1);
-  
-  // Custom alert animations
-  
-  // Checkbox animations
-  const checkboxScale = useSharedValue(1);
-  const checkboxRotation = useSharedValue(0);
-  const checkmarkScale = useSharedValue(0);
-  const checkmarkRotation = useSharedValue(-180);
-
-  const handleSignInPressIn = () => {
-    signInButtonScale.value = withSpring(0.95);
-  };
-
-  const handleSignInPressOut = () => {
-    signInButtonScale.value = withSpring(1);
-  };
-
-  const handleApplePressIn = () => {
-    appleButtonScale.value = withSpring(0.95);
-  };
-
-  const handleApplePressOut = () => {
-    appleButtonScale.value = withSpring(1);
-  };
-
-  const handleGooglePressIn = () => {
-    googleButtonScale.value = withSpring(0.95);
-  };
-
-  const handleGooglePressOut = () => {
-    googleButtonScale.value = withSpring(1);
-  };
-
-  // Checkbox animation handlers
+  // Checkbox handlers
   const handleCheckboxPress = () => {
-    const newValue = !rememberMe;
-    setRememberMe(newValue);
-    
-    if (newValue) {
-      // Check animation
-      checkboxScale.value = withSequence(
-        withTiming(1.2, { duration: 150 }),
-        withSpring(1, { damping: 8, stiffness: 120 })
-      );
-      checkboxRotation.value = withSpring(360, { damping: 10, stiffness: 100 });
-      checkmarkScale.value = withSequence(
-        withDelay(100, withTiming(1.3, { duration: 200 })),
-        withSpring(1, { damping: 8, stiffness: 120 })
-      );
-      checkmarkRotation.value = withSpring(0, { damping: 10, stiffness: 100 });
-    } else {
-      // Uncheck animation
-      checkboxScale.value = withSpring(0.9, { damping: 8, stiffness: 120 });
-      checkboxRotation.value = withSpring(-180, { damping: 10, stiffness: 100 });
-      checkmarkScale.value = withTiming(0, { duration: 150 });
-      checkmarkRotation.value = withTiming(-180, { duration: 150 });
-    }
+    setRememberMe(!rememberMe);
   };
 
 
 
-  // Animation trigger function
-  const triggerAnimations = () => {
-    // Title animation - bounce in from top
-    titleOpacity.value = withTiming(1, { duration: 800 });
-    titleTranslateY.value = withSpring(0, { damping: 15, stiffness: 150 });
 
-    // Subtitle animation - fade in with slight delay
-    subtitleOpacity.value = withDelay(200, withTiming(1, { duration: 600 }));
-    subtitleTranslateY.value = withDelay(200, withSpring(0, { damping: 12, stiffness: 120 }));
-
-    // Email input - slide in from left
-    emailInputOpacity.value = withDelay(400, withTiming(1, { duration: 600 }));
-    emailInputTranslateX.value = withDelay(400, withSpring(0, { damping: 10, stiffness: 100 }));
-
-    // Password input - slide in from right
-    passwordInputOpacity.value = withDelay(600, withTiming(1, { duration: 600 }));
-    passwordInputTranslateX.value = withDelay(600, withSpring(0, { damping: 10, stiffness: 100 }));
-
-    // Options - scale in with bounce
-    optionsOpacity.value = withDelay(800, withTiming(1, { duration: 500 }));
-    optionsScale.value = withDelay(800, withSpring(1, { damping: 8, stiffness: 120 }));
-
-    // Sign In button - scale in with bounce
-    signInButtonOpacity.value = withDelay(1000, withTiming(1, { duration: 500 }));
-    signInButtonContainerScale.value = withDelay(1000, withSpring(1, { damping: 8, stiffness: 120 }));
-
-    // Separator - scale in
-    separatorOpacity.value = withDelay(1200, withTiming(1, { duration: 400 }));
-    separatorScale.value = withDelay(1200, withSpring(1, { damping: 10, stiffness: 100 }));
-
-    // Social buttons - slide up with fade
-    socialButtonsOpacity.value = withDelay(1400, withTiming(1, { duration: 600 }));
-    socialButtonsTranslateY.value = withDelay(1400, withSpring(0, { damping: 12, stiffness: 120 }));
-
-    // Sign up link - fade in from bottom
-    signUpLinkOpacity.value = withDelay(1600, withTiming(1, { duration: 500 }));
-    signUpLinkTranslateY.value = withDelay(1600, withSpring(0, { damping: 10, stiffness: 100 }));
-
-    // Icon floating animation - continuous gentle float
-    iconFloat.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 2000 }),
-        withTiming(0, { duration: 2000 })
-      ),
-      -1,
-      true
-    );
-
-    // Button pulse animation - subtle pulse effect
-    buttonPulse.value = withRepeat(
-      withSequence(
-        withTiming(1.02, { duration: 1500 }),
-        withTiming(1, { duration: 1500 })
-      ),
-      -1,
-      true
-    );
-  };
-
-  // Trigger animations on component mount
-  useEffect(() => {
-    triggerAnimations();
-  }, []);
 
   const handleSignIn = async () => {
     const sanitizedEmail = sanitizeInput(email);
@@ -242,9 +108,8 @@ export default function SignIn() {
       
       showSuccess('Welcome Back!', 'Successfully signed in!');
       
-      setTimeout(() => {
-        router.replace('/(tabs)');
-      }, 2000);
+      // Set flag to check profile when it's loaded
+      setShouldCheckProfile(true);
       
     } catch (error: any) {
       let errorMessage = 'An error occurred';
@@ -272,92 +137,6 @@ export default function SignIn() {
     }
   };
 
-  // Individual animated styles for buttons
-  const signInButtonAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: signInButtonScale.value }],
-  }));
-
-  const appleButtonAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: appleButtonScale.value }],
-  }));
-
-  const googleButtonAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: googleButtonScale.value }],
-  }));
-
-  // Component animated styles
-  const titleAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: titleOpacity.value,
-    transform: [{ translateY: titleTranslateY.value }],
-  }));
-
-  const subtitleAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: subtitleOpacity.value,
-    transform: [{ translateY: subtitleTranslateY.value }],
-  }));
-
-  const emailInputAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: emailInputOpacity.value,
-    transform: [{ translateX: emailInputTranslateX.value }],
-  }));
-
-  const passwordInputAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: passwordInputOpacity.value,
-    transform: [{ translateX: passwordInputTranslateX.value }],
-  }));
-
-  const optionsAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: optionsOpacity.value,
-    transform: [{ scale: optionsScale.value }],
-  }));
-
-  const signInButtonContainerAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: signInButtonOpacity.value,
-    transform: [{ scale: signInButtonContainerScale.value }],
-  }));
-
-  const separatorAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: separatorOpacity.value,
-    transform: [{ scale: separatorScale.value }],
-  }));
-
-  const socialButtonsAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: socialButtonsOpacity.value,
-    transform: [{ translateY: socialButtonsTranslateY.value }],
-  }));
-
-  const signUpLinkAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: signUpLinkOpacity.value,
-    transform: [{ translateY: signUpLinkTranslateY.value }],
-  }));
-
-  // Additional cool animated styles
-  const iconFloatAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ 
-      translateY: interpolate(iconFloat.value, [0, 1], [-3, 3], Extrapolate.CLAMP)
-    }],
-  }));
-
-  const buttonPulseAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonPulse.value }],
-  }));
-
-  // Alert animated styles
-
-  // Checkbox animated styles
-  const checkboxAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: checkboxScale.value },
-      { rotate: `${checkboxRotation.value}deg` }
-    ],
-  }));
-
-  const checkmarkAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: checkmarkScale.value },
-      { rotate: `${checkmarkRotation.value}deg` }
-    ],
-  }));
 
   return (
     <SafeAreaView style={styles.container}>
@@ -381,24 +160,24 @@ export default function SignIn() {
         <View style={styles.contentCard}>
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
             {/* Title */}
-            <Animated.View style={[styles.header, titleAnimatedStyle]}>
+            <View style={styles.header}>
               <Text style={styles.title}>Sign In</Text>
-            </Animated.View>
+            </View>
             
             {/* Subtitle */}
-            <Animated.View style={subtitleAnimatedStyle}>
+            <View>
               <Text style={styles.subtitle}>Sign in to my account</Text>
-            </Animated.View>
+            </View>
 
             {/* Form */}
             <View style={styles.form}>
             {/* Email Input */}
-            <Animated.View style={[styles.inputGroup, emailInputAnimatedStyle]}>
+            <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Email</Text>
               <View style={styles.inputContainer}>
-                <Animated.View style={iconFloatAnimatedStyle}>
+                <View >
                   <Mail size={20} color="#17f196" strokeWidth={1.5} style={styles.inputIcon} />
-                </Animated.View>
+                </View>
                 <TextInput
                   style={styles.input}
                   placeholder="My Email"
@@ -410,15 +189,15 @@ export default function SignIn() {
                   autoComplete="email"
                 />
               </View>
-            </Animated.View>
+            </View>
 
             {/* Password Input */}
-            <Animated.View style={[styles.inputGroup, passwordInputAnimatedStyle]}>
+            <View style={[styles.inputGroup, ]}>
               <Text style={styles.inputLabel}>Password</Text>
               <View style={styles.inputContainer}>
-                <Animated.View style={iconFloatAnimatedStyle}>
+                <View >
                   <Lock size={20} color="#17f196" strokeWidth={1.5} style={styles.inputIcon} />
-                </Animated.View>
+                </View>
                 <TextInput
                   style={[styles.input, styles.passwordInput]}
                   placeholder="My Password"
@@ -432,47 +211,45 @@ export default function SignIn() {
                   style={styles.eyeButton}
                   onPress={() => setShowPassword(!showPassword)}
                 >
-                  <Animated.View style={iconFloatAnimatedStyle}>
+                  <View >
                     {showPassword ? (
                       <EyeOff size={20} color="#17f196" strokeWidth={1.5} />
                     ) : (
                       <Eye size={20} color="#17f196" strokeWidth={1.5} />
                     )}
-                  </Animated.View>
+                  </View>
                 </Pressable>
               </View>
-            </Animated.View>
+            </View>
 
             {/* Options Row */}
-            <Animated.View style={[styles.optionsRow, optionsAnimatedStyle]}>
+            <View style={[styles.optionsRow, ]}>
               <Pressable 
                 style={styles.checkboxContainer}
                 onPress={handleCheckboxPress}
               >
-                <Animated.View style={[styles.checkbox, rememberMe && styles.checkboxChecked, checkboxAnimatedStyle]}>
+                <View style={[styles.checkbox, rememberMe && styles.checkboxChecked, ]}>
                   {rememberMe && (
-                    <Animated.Text style={[styles.checkmark, checkmarkAnimatedStyle]}>✓</Animated.Text>
+                    <Text style={[styles.checkmark, ]}>✓</Text>
                   )}
-                </Animated.View>
+                </View>
                 <Text style={styles.checkboxLabel}>Remember Me</Text>
               </Pressable>
               
               <Pressable onPress={() => router.push('/(onboarding)/resetPwd')}>
                 <Text style={styles.forgotPassword}>Forgot Password</Text>
               </Pressable>
-            </Animated.View>
+            </View>
 
             {/* Sign In Button */}
-            <Animated.View style={signInButtonContainerAnimatedStyle}>
-              <AnimatedPressable
+            <View >
+              <Pressable
                 style={[
                   styles.signInButton, 
-                  signInButtonAnimatedStyle,
+,
                   loading && styles.signInButtonLoading
                 ]}
                 onPress={handleSignIn}
-                onPressIn={handleSignInPressIn}
-                onPressOut={handleSignInPressOut}
                 disabled={loading}
               >
               <Text style={[
@@ -481,48 +258,44 @@ export default function SignIn() {
               ]}>
                 {loading ? 'Signing In...' : 'Sign In'}
               </Text>
-              </AnimatedPressable>
-            </Animated.View>
+              </Pressable>
+            </View>
 
             {/* Separator */}
-            <Animated.View style={[styles.separator, separatorAnimatedStyle]}>
+            <View style={[styles.separator, ]}>
               <View style={styles.separatorLine} />
               <Text style={styles.separatorText}>OR</Text>
               <View style={styles.separatorLine} />
-            </Animated.View>
+            </View>
 
             {/* Social Sign In Buttons */}
-            <Animated.View style={[styles.socialButtons, socialButtonsAnimatedStyle]}>
-              <AnimatedPressable
-                style={[styles.socialButton, appleButtonAnimatedStyle]}
-                onPressIn={handleApplePressIn}
-                onPressOut={handleApplePressOut}
+            <View style={[styles.socialButtons, ]}>
+              <Pressable
+                style={[styles.socialButton, ]}
               >
-                <Animated.View style={iconFloatAnimatedStyle}>
+                <View >
                   <Apple size={20} color="#17f196" strokeWidth={2} />
-                </Animated.View>
+                </View>
                 <Text style={styles.socialButtonText}>Sign in With Apple ID</Text>
-              </AnimatedPressable>
+              </Pressable>
 
-              <AnimatedPressable
-                style={[styles.socialButton, googleButtonAnimatedStyle]}
-                onPressIn={handleGooglePressIn}
-                onPressOut={handleGooglePressOut}
+              <Pressable
+                style={[styles.socialButton, ]}
               >
-                <Animated.View style={[styles.googleIcon, iconFloatAnimatedStyle]}>
+                <View style={[styles.googleIcon, ]}>
                   <Text style={styles.googleIconText}>G</Text>
-                </Animated.View>
+                </View>
                 <Text style={styles.socialButtonText}>Sign in With Google</Text>
-              </AnimatedPressable>
-            </Animated.View>
+              </Pressable>
+            </View>
 
             {/* Sign Up Link */}
-            <Animated.View style={[styles.signUpContainer, signUpLinkAnimatedStyle]}>
+            <View style={[styles.signUpContainer, ]}>
               <Text style={styles.signUpText}>Don't have an account? </Text>
               <Pressable onPress={() => router.push('/(onboarding)/signup')}>
                 <Text style={styles.signUpLink}>Sign Up Here</Text>
               </Pressable>
-            </Animated.View>
+            </View>
             </View>
           </ScrollView>
         </View>
@@ -560,6 +333,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    paddingTop: 40,
     marginTop: -30,
     position: 'relative',
   },
@@ -580,15 +354,19 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontSize: 13,
+    color: '#98a2b3',
+    fontFamily: 'Helvetica',
+    fontWeight: '400',
     textAlign: 'center',
+    lineHeight: '130%',
+    maxWidth: 320,
+    alignSelf: 'center',
   },
 
   // Form
@@ -605,7 +383,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -629,7 +407,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   passwordInput: {
     paddingRight: 40,
@@ -673,12 +451,12 @@ const styles = StyleSheet.create({
   checkboxLabel: {
     fontSize: 14,
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   forgotPassword: {
     fontSize: 14,
     color: '#17f196',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     fontWeight: '450',
   },
 
@@ -686,7 +464,7 @@ const styles = StyleSheet.create({
   // Sign In Button
   signInButton: {
     width: '100%',
-    height: 56,
+    height: 50,
     backgroundColor: '#17f196',
     borderRadius: 25,
     alignItems: 'center',
@@ -699,10 +477,11 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   signInButtonText: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#FFFFFF',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   signInButtonLoading: {
     opacity: 0.8,
@@ -726,7 +505,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     fontSize: 14,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
 
   // Social Buttons
@@ -735,12 +514,12 @@ const styles = StyleSheet.create({
   },
   socialButton: {
     width: '100%',
-    height: 56,
+    height: 50,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#17f196',
     borderRadius: 25,
     paddingHorizontal: 20,
@@ -759,11 +538,12 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   socialButtonText: {
-    fontSize: 17,
+    fontSize: 14,
+    fontStyle: 'medium',
     fontWeight: '500',
     color: '#17f196',
     marginLeft: 15,
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
 
   // Sign Up Link
@@ -776,12 +556,12 @@ const styles = StyleSheet.create({
   signUpText: {
     fontSize: 14,
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   signUpLink: {
     fontSize: 14,
     color: '#17f196',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     fontWeight: '450',
   },
 });

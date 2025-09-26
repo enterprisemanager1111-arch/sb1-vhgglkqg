@@ -284,16 +284,19 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontSize: 13,
+    color: '#98a2b3',
+    fontFamily: 'Helvetica',
+    fontWeight: '400',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: '130%',
+    maxWidth: 320,
+    alignSelf: 'center',
   },
 
   // Permissions List
@@ -333,13 +336,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     marginBottom: 4,
   },
   permissionDescription: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     lineHeight: 18,
   },
   permissionStatus: {
@@ -363,7 +366,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   requiredNotice: {
     marginTop: 12,
@@ -374,7 +377,7 @@ const styles = StyleSheet.create({
   requiredText: {
     fontSize: 12,
     color: '#FF6B6B',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     fontWeight: '500',
   },
 
@@ -391,7 +394,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     marginBottom: 16,
   },
   infoList: {
@@ -401,7 +404,7 @@ const styles = StyleSheet.create({
   infoItem: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     lineHeight: 20,
   },
   infoText: {
@@ -410,7 +413,7 @@ const styles = StyleSheet.create({
   infoFooter: {
     fontSize: 12,
     color: '#888888',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     fontStyle: 'italic',
   },
 
@@ -433,7 +436,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   skipButton: {
     alignItems: 'center',
@@ -442,7 +445,7 @@ const styles = StyleSheet.create({
   skipText: {
     fontSize: 14,
     color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
 
   // Bottom Navigation
@@ -476,6 +479,6 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
 });

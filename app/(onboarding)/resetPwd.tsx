@@ -12,17 +12,6 @@ import {
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import Animated, { 
-  useSharedValue, 
-  withSpring, 
-  useAnimatedStyle, 
-  withTiming, 
-  withDelay, 
-  withSequence,
-  withRepeat,
-  interpolate,
-  Extrapolate
-} from 'react-native-reanimated';
 import { Mail, Lock, ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import { useLoading } from '@/contexts/LoadingContext';
 import { useCustomAlert } from '@/contexts/CustomAlertContext';
@@ -32,7 +21,6 @@ import { resetUserPassword } from '@/lib/passwordReset';
 import { sendVerificationEmailViaSupabase, validateVerificationCode } from '@/lib/supabaseEmailService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function ResetPassword() {
   const { showLoading, hideLoading } = useLoading();
@@ -56,88 +44,8 @@ export default function ResetPassword() {
   
   
   // Animation values
-  const backButtonScale = useSharedValue(1);
-  const sendButtonScale = useSharedValue(1);
-  const iconFloat = useSharedValue(0);
-  const buttonPulse = useSharedValue(1);
 
-  // Component animations
-  const titleOpacity = useSharedValue(0);
-  const titleTranslateY = useSharedValue(50);
-  const subtitleOpacity = useSharedValue(0);
-  const subtitleTranslateY = useSharedValue(30);
-  const emailInputOpacity = useSharedValue(0);
-  const emailInputTranslateX = useSharedValue(-50);
-  const sendButtonOpacity = useSharedValue(0);
-  const sendButtonContainerScale = useSharedValue(0.8);
-  const iconOpacity = useSharedValue(1); // Start visible
-  const iconScale = useSharedValue(1); // Start at normal size
-  const iconTranslateY = useSharedValue(0); // Start at normal position
 
-  const handleBackPressIn = () => {
-    backButtonScale.value = withSpring(0.95);
-  };
-
-  const handleBackPressOut = () => {
-    backButtonScale.value = withSpring(1);
-  };
-
-  const handleSendPressIn = () => {
-    sendButtonScale.value = withSpring(0.95);
-  };
-
-  const handleSendPressOut = () => {
-    sendButtonScale.value = withSpring(1);
-  };
-
-  // Animation trigger function
-  const triggerAnimations = () => {
-    // Icon animation - bounce in from top
-    iconOpacity.value = withTiming(1, { duration: 800 });
-    iconScale.value = withSpring(1, { damping: 15, stiffness: 150 });
-    iconTranslateY.value = withSpring(0, { damping: 15, stiffness: 150 });
-
-    // Title animation - bounce in from top
-    titleOpacity.value = withDelay(200, withTiming(1, { duration: 800 }));
-    titleTranslateY.value = withDelay(200, withSpring(0, { damping: 15, stiffness: 150 }));
-
-    // Subtitle animation - fade in with slight delay
-    subtitleOpacity.value = withDelay(400, withTiming(1, { duration: 600 }));
-    subtitleTranslateY.value = withDelay(400, withSpring(0, { damping: 12, stiffness: 120 }));
-
-    // Email input - slide in from left
-    emailInputOpacity.value = withDelay(600, withTiming(1, { duration: 600 }));
-    emailInputTranslateX.value = withDelay(600, withSpring(0, { damping: 10, stiffness: 100 }));
-
-    // Send button - scale in with bounce
-    sendButtonOpacity.value = withDelay(800, withTiming(1, { duration: 500 }));
-    sendButtonContainerScale.value = withDelay(800, withSpring(1, { damping: 8, stiffness: 120 }));
-
-    // Icon floating animation - continuous gentle float (only for mail icon)
-    iconFloat.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 2000 }),
-        withTiming(0, { duration: 2000 })
-      ),
-      -1,
-      true
-    );
-
-    // Button pulse animation - subtle pulse effect
-    buttonPulse.value = withRepeat(
-      withSequence(
-        withTiming(1.02, { duration: 1500 }),
-        withTiming(1, { duration: 1500 })
-      ),
-      -1,
-      true
-    );
-  };
-
-  // Trigger animations on component mount
-  useEffect(() => {
-    triggerAnimations();
-  }, []);
 
   // Validate email on change
   useEffect(() => {
@@ -459,51 +367,6 @@ export default function ResetPassword() {
     }
   };
 
-  // Animated styles
-  const backButtonAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: backButtonScale.value }],
-  }));
-
-  const sendButtonAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: sendButtonScale.value }],
-  }));
-
-  const titleAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: titleOpacity.value,
-    transform: [{ translateY: titleTranslateY.value }],
-  }));
-
-  const subtitleAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: subtitleOpacity.value,
-    transform: [{ translateY: subtitleTranslateY.value }],
-  }));
-
-  const emailInputAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: emailInputOpacity.value,
-    transform: [{ translateX: emailInputTranslateX.value }],
-  }));
-
-  const sendButtonContainerAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: sendButtonOpacity.value,
-    transform: [{ scale: sendButtonContainerScale.value }],
-  }));
-
-  const lockIconAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: iconOpacity.value,
-    transform: [
-      { scale: iconScale.value }
-    ],
-  }));
-
-  const mailIconAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ 
-      translateY: interpolate(iconFloat.value, [0, 1], [-3, 3], Extrapolate.CLAMP)
-    }],
-  }));
-
-  const buttonPulseAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonPulse.value }],
-  }));
 
   return (
     <SafeAreaView style={styles.container}>
@@ -517,14 +380,12 @@ export default function ResetPassword() {
       />
 
       {/* Back Button */}
-      <AnimatedPressable
-        style={[styles.backButton, backButtonAnimatedStyle]}
+      <Pressable
+        style={styles.backButton}
         onPress={() => router.back()}
-        onPressIn={handleBackPressIn}
-        onPressOut={handleBackPressOut}
       >
         <ArrowLeft size={24} color="#FFFFFF" strokeWidth={2} />
-      </AnimatedPressable>
+      </Pressable>
 
       {/* Upper Section */}
       <View style={styles.upperSection}>
@@ -533,40 +394,40 @@ export default function ResetPassword() {
       {/* Lower Section - White Card */}
       <View style={styles.lowerSection}>
         {/* Teal Icon with Lock - Overlapping the white card */}
-        <Animated.View style={[styles.iconContainer, lockIconAnimatedStyle]}>
+        <View style={styles.iconContainer}>
           <View style={styles.iconBackground}>
             <Lock size={32} color="#FFFFFF" strokeWidth={2} />
           </View>
-        </Animated.View>
+        </View>
         <View style={styles.contentCard}>
             
             {/* Title */}
-            <Animated.View style={[styles.header, titleAnimatedStyle]}>
+            <View style={[styles.header, ]}>
               <Text style={styles.title}>
                 {currentStep === 1 ? 'Forgot Password' : 
                  currentStep === 2 ? 'Verify Code' : 
                  'Set a New Password'}
               </Text>
-            </Animated.View>
+            </View>
             
             {currentStep === 1 ? (
               <>
                 {/* Subtitle */}
-                <Animated.View style={subtitleAnimatedStyle}>
+                <View >
                   <Text style={styles.subtitle}>
                     Reset password code will be sent to your email to reset your password.
                   </Text>
-                </Animated.View>
+                </View>
 
                 {/* Form */}
                 <View style={styles.form}>
                   {/* Email Input */}
-                  <Animated.View style={[styles.inputGroup, emailInputAnimatedStyle]}>
+                  <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>Email</Text>
                     <View style={styles.inputContainer}>
-                      <Animated.View style={mailIconAnimatedStyle}>
+                      <View>
                         <Mail size={20} color="#17f196" strokeWidth={1.5} style={styles.inputIcon} />
-                      </Animated.View>
+                      </View>
                       <TextInput
                         style={styles.input}
                         placeholder="My email"
@@ -578,21 +439,19 @@ export default function ResetPassword() {
                         autoComplete="email"
                       />
                     </View>
-                  </Animated.View>
+                  </View>
 
                   {/* Send Verification Code Button */}
-                  <Animated.View style={sendButtonContainerAnimatedStyle}>
-                    <AnimatedPressable
+                  <View>
+                    <Pressable
                       style={[
                         styles.sendButton, 
-                        sendButtonAnimatedStyle,
-                        buttonPulseAnimatedStyle,
+,
+,
                         loading && styles.sendButtonLoading,
                         !isEmailValid && styles.sendButtonDisabled
                       ]}
                       onPress={handleSendVerificationCode}
-                      onPressIn={handleSendPressIn}
-                      onPressOut={handleSendPressOut}
                       disabled={loading || !isEmailValid}
                     >
                       <Text style={[
@@ -602,25 +461,25 @@ export default function ResetPassword() {
                       ]}>
                         {loading ? 'Sending...' : 'Send Verification Code'}
                       </Text>
-                    </AnimatedPressable>
-                  </Animated.View>
+                    </Pressable>
+                  </View>
                 </View>
               </>
             ) : currentStep === 2 ? (
               <>
                 {/* Verification Code Step */}
-                <Animated.View style={subtitleAnimatedStyle}>
+                <View >
                   <Text style={styles.subtitle}>
                     A reset code has been sent to {email}, check your email to continue the password reset process.
                   </Text>
                   <Text style={[styles.subtitle, { color: '#007bff', marginTop: 10, fontWeight: 'bold' }]}>
                     💡 Use the verification code from the email you received
                   </Text>
-                </Animated.View>
+                </View>
 
                 {/* Verification Code Input */}
                 <View style={styles.form}>
-                  <Animated.View style={[styles.inputGroup, emailInputAnimatedStyle]}>
+                  <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>Verification Code</Text>
                     <View style={styles.verificationCodeContainer}>
                       {verificationCode.map((digit, index) => (
@@ -637,7 +496,7 @@ export default function ResetPassword() {
                         />
                       ))}
                     </View>
-                  </Animated.View>
+                  </View>
 
                   {/* Resend Code Link */}
                   <View style={styles.resendContainer}>
@@ -648,17 +507,15 @@ export default function ResetPassword() {
                   </View>
 
                   {/* Submit Button */}
-                  <Animated.View style={sendButtonContainerAnimatedStyle}>
-                    <AnimatedPressable
+                  <View>
+                    <Pressable
                       style={[
                         styles.sendButton, 
-                        sendButtonAnimatedStyle,
-                        buttonPulseAnimatedStyle,
+,
+,
                         verificationLoading && styles.sendButtonLoading
                       ]}
                       onPress={handleSubmitVerificationCode}
-                      onPressIn={handleSendPressIn}
-                      onPressOut={handleSendPressOut}
                       disabled={verificationLoading}
                     >
                       <Text style={[
@@ -667,24 +524,24 @@ export default function ResetPassword() {
                       ]}>
                         {verificationLoading ? 'Verifying...' : 'Submit'}
                       </Text>
-                    </AnimatedPressable>
+                    </Pressable>
                     
-                  </Animated.View>
+                  </View>
                 </View>
               </>
             ) : (
               <>
                 {/* Set New Password Step */}
-                <Animated.View style={subtitleAnimatedStyle}>
+                <View >
                   <Text style={styles.subtitle}>
                     Please set a new password to secure your Famora account.
                   </Text>
-                </Animated.View>
+                </View>
 
                 {/* Form */}
                 <View style={styles.form}>
                   {/* New Password Input */}
-                  <Animated.View style={[styles.inputGroup, emailInputAnimatedStyle]}>
+                  <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>Password</Text>
                     <View style={styles.inputContainer}>
                       <Lock size={20} color="#17f196" strokeWidth={1.5} style={styles.inputIcon} />
@@ -706,10 +563,10 @@ export default function ResetPassword() {
                         )}
                       </Pressable>
                     </View>
-                  </Animated.View>
+                  </View>
 
                   {/* Confirm Password Input */}
-                  <Animated.View style={[styles.inputGroup, emailInputAnimatedStyle]}>
+                  <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>Confirm Password</Text>
                     <View style={styles.inputContainer}>
                       <Lock size={20} color="#17f196" strokeWidth={1.5} style={styles.inputIcon} />
@@ -731,20 +588,18 @@ export default function ResetPassword() {
                         )}
                       </Pressable>
                     </View>
-                  </Animated.View>
+                  </View>
 
                   {/* Submit Button */}
-                  <Animated.View style={sendButtonContainerAnimatedStyle}>
-                    <AnimatedPressable
+                  <View>
+                    <Pressable
                       style={[
                         styles.sendButton, 
-                        sendButtonAnimatedStyle,
-                        buttonPulseAnimatedStyle,
+,
+,
                         passwordLoading && styles.sendButtonLoading
                       ]}
                       onPress={handleUpdatePassword}
-                      onPressIn={handleSendPressIn}
-                      onPressOut={handleSendPressOut}
                       disabled={passwordLoading || cooldownTime > 0}
                     >
                       <Text style={[
@@ -754,8 +609,8 @@ export default function ResetPassword() {
                         {passwordLoading ? 'Updating...' : 
                          cooldownTime > 0 ? `Wait ${cooldownTime}s` : 'Submit'}
                       </Text>
-                    </AnimatedPressable>
-                  </Animated.View>
+                    </Pressable>
+                  </View>
                 </View>
               </>
             )}
@@ -831,14 +686,12 @@ const styles = StyleSheet.create({
 
   // Lower Section (White Card)
   lowerSection: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    flex: 1,
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    height: '50%', // Increased from 42% to 50%
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 40,
+    marginTop: -30,
     maxHeight: 450, // Increased from 380 to 450
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: -8 },
@@ -863,17 +716,19 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 15,
-    color: '#666666',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-    textAlign: 'left',
-    lineHeight: 18,
-    paddingHorizontal: 0,
+    fontSize: 13,
+    color: '#98a2b3',
+    fontFamily: 'Helvetica',
+    fontWeight: '400',
+    textAlign: 'center',
+    lineHeight: '130%',
+    maxWidth: 320,
+    alignSelf: 'center',
     marginBottom: 24,
   },
 
@@ -890,7 +745,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -914,7 +769,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
 
   // Send Button
@@ -936,7 +791,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#FFFFFF',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   sendButtonLoading: {
     opacity: 0.8,
@@ -988,12 +843,12 @@ const styles = StyleSheet.create({
   resendText: {
     fontSize: 14,
     color: '#161618',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
   },
   resendLink: {
     fontSize: 14,
     color: '#17f196',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily: 'Helvetica',
     fontWeight: '500',
   },
 });

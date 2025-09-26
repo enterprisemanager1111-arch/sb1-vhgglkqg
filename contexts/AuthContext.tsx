@@ -605,9 +605,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       console.log('✅ SignIn successful!');
+      
+      // Load user profile to check if name exists
+      if (data?.user) {
+        console.log('🔄 Loading profile after successful signin...');
+        await loadProfile(data.user.id);
+      }
+      
     } catch (error: any) {
       console.error('❌ SignIn failed:', error);
       throw error;
+    }
+  };
+
+  // Debug function to check AsyncStorage contents
+  const debugAsyncStorage = async () => {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      console.log('🔍 DEBUG: All AsyncStorage keys:', keys);
+      
+      for (const key of keys) {
+        try {
+          const value = await AsyncStorage.getItem(key);
+          console.log(`🔍 DEBUG: ${key} = ${value ? value.substring(0, 100) + '...' : 'null'}`);
+        } catch (error) {
+          console.log(`🔍 DEBUG: ${key} = [error reading value]`);
+        }
+      }
+    } catch (error) {
+      console.error('❌ DEBUG: Error reading AsyncStorage:', error);
     }
   };
 
@@ -616,8 +642,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log('Current user before signout:', user?.id);
     console.log('Current session before signout:', session?.access_token ? 'exists' : 'null');
     
+    // Debug AsyncStorage before cleanup
+    console.log('🔍 DEBUG: AsyncStorage before signOut:');
+    await debugAsyncStorage();
+    
     try {
-      // Try Supabase sign out first
+      // Try Supabase sign out first - this should clear the storage automatically
+      console.log('🔄 Calling supabase.auth.signOut()...');
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -626,6 +657,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         console.log('✅ Successfully signed out from Supabase');
       }
+      
+      // Give Supabase a moment to clear its own storage
+      await new Promise(resolve => setTimeout(resolve, 100));
       
     } catch (supabaseError) {
       console.error('❌ Supabase SignOut failed:', supabaseError);
@@ -640,19 +674,114 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       console.log('✅ Auth state cleared locally');
       
-      // Force clear AsyncStorage
+      // Force clear AsyncStorage - comprehensive cleanup
       try {
         const keys = await AsyncStorage.getAllKeys();
-        const authKeys = keys.filter(key => key.includes('supabase') || key.includes('auth'));
+        console.log('🔍 All AsyncStorage keys before cleanup:', keys);
+        
+        // Comprehensive list of possible auth-related keys
+        const authKeyPatterns = [
+          'sb-eqaxmxbqqiuiwkhjwvvz-auth-token', // Specific token mentioned
+          'supabase.auth.token', // Standard Supabase token key
+          'supabase.auth.refresh_token', // Refresh token
+          'supabase.auth.session', // Session data
+          'supabase.auth.user', // User data
+        ];
+        
+        // Find all keys that match auth patterns
+        const authKeys = keys.filter(key => {
+          // Check exact matches first
+          if (authKeyPatterns.includes(key)) {
+            return true;
+          }
+          
+          // Check pattern matches
+          return (
+            key.includes('supabase') || 
+            key.includes('auth') || 
+            key.includes('sb-') ||
+            key.includes('eqaxmxbqqiuiwkhjwvvz') ||
+            (key.includes('sb-') && key.includes('-auth-token')) ||
+            (key.includes('sb-') && key.includes('-refresh-token')) ||
+            (key.includes('sb-') && key.includes('-session'))
+          );
+        });
+        
+        console.log('🎯 Found auth-related keys to remove:', authKeys);
+        
+        // Remove all auth-related keys
         if (authKeys.length > 0) {
           await AsyncStorage.multiRemove(authKeys);
           console.log('✅ AsyncStorage auth keys cleared:', authKeys);
         }
+        
+        // Also try to clear the entire AsyncStorage if needed (nuclear option)
+        try {
+          // Get all remaining keys after cleanup
+          const remainingKeys = await AsyncStorage.getAllKeys();
+          console.log('🔍 Remaining keys after cleanup:', remainingKeys);
+          
+          // Check if any auth-related keys still exist
+          const stillHasAuthKeys = remainingKeys.some(key => 
+            key.includes('supabase') || 
+            key.includes('auth') || 
+            key.includes('sb-') ||
+            key.includes('eqaxmxbqqiuiwkhjwvvz')
+          );
+          
+          if (stillHasAuthKeys) {
+            console.warn('⚠️ Auth keys still exist after cleanup, attempting individual removal...');
+            
+            // Try to remove each remaining auth key individually
+            for (const key of remainingKeys) {
+              if (key.includes('supabase') || key.includes('auth') || key.includes('sb-') || key.includes('eqaxmxbqqiuiwkhjwvvz')) {
+                try {
+                  await AsyncStorage.removeItem(key);
+                  console.log(`✅ Removed individual key: ${key}`);
+                } catch (individualError) {
+                  console.error(`❌ Failed to remove individual key ${key}:`, individualError);
+                }
+              }
+            }
+          }
+          
+          // Final verification
+          const finalKeys = await AsyncStorage.getAllKeys();
+          const finalAuthKeys = finalKeys.filter(key => 
+            key.includes('supabase') || 
+            key.includes('auth') || 
+            key.includes('sb-') ||
+            key.includes('eqaxmxbqqiuiwkhjwvvz')
+          );
+          
+          if (finalAuthKeys.length === 0) {
+            console.log('✅ All auth tokens successfully removed');
+          } else {
+            console.warn('⚠️ Some auth keys may still exist:', finalAuthKeys);
+            
+            // Nuclear option: Clear ALL AsyncStorage if auth keys persist
+            console.log('🚨 Auth keys persist, attempting complete AsyncStorage clear...');
+            try {
+              await AsyncStorage.clear();
+              console.log('✅ Complete AsyncStorage cleared');
+            } catch (clearError) {
+              console.error('❌ Failed to clear AsyncStorage completely:', clearError);
+            }
+          }
+          
+        } catch (verificationError) {
+          console.error('❌ Error during verification:', verificationError);
+        }
+        
       } catch (storageError) {
         console.warn('⚠️ Could not clear AsyncStorage:', storageError);
       }
       
       console.log('✅ Sign out process completed');
+      
+      // Debug AsyncStorage after cleanup
+      console.log('🔍 DEBUG: AsyncStorage after signOut:');
+      await debugAsyncStorage();
       
     } catch (localError) {
       console.error('❌ Local cleanup failed:', localError);
