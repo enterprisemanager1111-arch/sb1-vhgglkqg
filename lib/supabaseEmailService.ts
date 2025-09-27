@@ -19,8 +19,8 @@ export const sendVerificationEmailViaSupabase = async (
     
     // Use Supabase's resetPasswordForEmail to send an email
     // Supabase will generate its own verification code and send it in the email
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'famora://auth/reset-password-callback'
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: '/resetPwd/enterNewPwd'
     });
 
     if (error) {

@@ -1,4 +1,4 @@
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function OnboardingLayout() {
   const { session, user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const segments = useSegments();
 
   useEffect(() => {
     // Only redirect if we're not loading and user is authenticated
@@ -17,9 +18,19 @@ export default function OnboardingLayout() {
           const showingWelcomeModal = await AsyncStorage.getItem('showing_welcome_modal');
           const isVerifyingSignup = await AsyncStorage.getItem('is_verifying_signup');
           
+          // Check if current route is a password reset page
+          const isOnPasswordResetPage = segments.includes('resetPwd');
+          const isOnEnterNewPwdPage = segments.includes('enterNewPwd');
+          
           if (showingWelcomeModal === 'true' || isVerifyingSignup === 'true') {
             console.log('🔄 Welcome modal or signup verification in progress, staying on onboarding page');
             return; // Don't redirect, let the signup page handle the welcome modal
+          }
+          
+          // If user is on password reset pages, allow them to stay there
+          if (isOnPasswordResetPage || isOnEnterNewPwdPage) {
+            console.log('🔄 User on password reset page, allowing access');
+            return; // Don't redirect, allow password reset flow
           }
           
           console.log('🚫 User is already authenticated, redirecting from onboarding to home...');
@@ -34,7 +45,7 @@ export default function OnboardingLayout() {
       
       checkWelcomeModal();
     }
-  }, [session, user, authLoading, router]);
+  }, [session, user, authLoading, router, segments]);
 
   // Show loading screen while checking authentication
   if (authLoading) {
@@ -67,6 +78,8 @@ export default function OnboardingLayout() {
       <Stack.Screen name="signup" />
       <Stack.Screen name="signin" />
       <Stack.Screen name="final" />
+      <Stack.Screen name="resetPwd/index" />
+      <Stack.Screen name="resetPwd/enterNewPwd" />
     </Stack>
   );
 }

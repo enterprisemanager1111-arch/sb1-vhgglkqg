@@ -33,17 +33,9 @@ export default function ResetPassword() {
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
   const [verificationLoading, setVerificationLoading] = useState(false);
   const [sentVerificationCode, setSentVerificationCode] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [passwordLoading, setPasswordLoading] = useState(false);
   const [lastResetAttempt, setLastResetAttempt] = useState<number | null>(null);
   const [cooldownTime, setCooldownTime] = useState<number>(0);
   const [emailFocused, setEmailFocused] = useState(false);
-  const [newPasswordFocused, setNewPasswordFocused] = useState(false);
-  const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
-  const [showPasswordSuccessModal, setShowPasswordSuccessModal] = useState(false);
   
   // Refs for verification code inputs
   const verificationInputRefs = useRef<(TextInput | null)[]>([]);
@@ -96,57 +88,42 @@ export default function ResetPassword() {
       return;
     }
 
-    // Test Supabase connection first
-    console.log('🔧 Testing Supabase connection...');
-    try {
-      const { data, error: connectionError } = await supabase.auth.getSession();
-      console.log('🔧 Supabase connection test:', { data, connectionError });
-    } catch (connectionTestError) {
-      console.error('❌ Supabase connection failed:', connectionTestError);
-    }
-
     setLoading(true);
-    showLoading('Sending verification code...');
+    showLoading('Sending password reset email...');
     
     try {
-      console.log('🔧 Attempting to send password reset email to:', sanitizedEmail);
+      console.log('🔧 Sending password reset email to:', sanitizedEmail);
       
-      // Send verification email via Supabase (Supabase will generate its own code)
-      console.log('📧 Sending verification email to:', sanitizedEmail);
-      
-      const emailSent = await sendVerificationEmailViaSupabase(sanitizedEmail);
-      
-      if (!emailSent) {
-        throw new Error('Failed to send verification email');
+      // Send password reset email using Supabase
+      const { data, error } = await supabase.auth.resetPasswordForEmail(sanitizedEmail, {
+        redirectTo: "/resetPwd/enterNewPwd",
+      });
+
+      if (error) {
+        console.error('❌ Password reset email error:', error);
+        
+        if (error.message?.includes('Too Many Requests')) {
+          throw new Error('Too many password reset requests. Please wait a moment and try again.');
+        }
+        
+        if (error.message?.includes('User not found')) {
+          throw new Error('No account found with this email address.');
+        }
+        
+        throw new Error('Failed to send password reset email. Please try again.');
       }
-      
-      console.log('✅ Verification email sent successfully');
+
+      console.log('✅ Password reset email sent successfully');
       console.log('📧 Email sent to:', sanitizedEmail);
-      console.log('💡 Check your email for the verification code from Supabase');
-      console.log('💡 Use the code from the email, not the debug display');
       
-      showSuccess('Code Sent!', 'A verification code has been sent to your email address. Please check your email and use the code from the Supabase email.');
+      showSuccess('Code Sent!', 'A verification code has been sent to your email address. Please check your email and enter the code.');
       
       // Move to verification code step
       setCurrentStep(2);
       
     } catch (error: any) {
-      console.error('❌ Error in handleSendVerificationCode:', error);
-      let errorMessage = 'An error occurred while sending the verification code';
-      
-      if (error.message?.includes('Email not found') || error.message?.includes('User not found')) {
-        errorMessage = 'No account found with this email address.';
-      } else       if (error.message?.includes('Rate limited') || error.message?.includes('you can only request this after')) {
-        const timeMatch = error.message.match(/(\d+) seconds/);
-        const waitTime = timeMatch ? timeMatch[1] : '60';
-        errorMessage = `Rate limited. Please wait ${waitTime} seconds before requesting another verification code.`;
-      } else if (error.message?.includes('Invalid email')) {
-        errorMessage = 'Please enter a valid email address.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      showError('Failed to Send Code', errorMessage);
+      console.error('❌ Error sending password reset email:', error);
+      showError('Failed to Send Email', error.message || 'Failed to send password reset email. Please try again.');
     } finally {
       setLoading(false);
       hideLoading();
@@ -187,10 +164,6 @@ export default function ResetPassword() {
     }
   };
 
-  const handleSignInPress = () => {
-    setShowPasswordSuccessModal(false);
-    router.push('/(onboarding)/signin');
-  };
 
   const handleSubmitVerificationCode = async () => {
     const code = verificationCode.join('');
@@ -205,31 +178,49 @@ export default function ResetPassword() {
     }
 
     setVerificationLoading(true);
-    showLoading('Processing...');
+    showLoading('Verifying code...');
     
     try {
-      // Debug logging
-      console.log('🔍 ===== STORING VERIFICATION CODE =====');
-      console.log('🔍 Entered code:', code);
-      console.log('🔍 Email:', email);
-      console.log('🔍 Code length:', code.length);
-      console.log('🔍 ===================================');
+      console.log('🔍 Verifying OTP code:', code);
+      console.log('📧 Email:', email);
       
-      // Just store the code, no verification yet
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Verify the OTP using Supabase
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: email,
+        token: code,       // e.g. "123456"
+        type: "recovery",  // recovery = password reset
+      });
+
+      if (error) {
+        console.error('❌ OTP verification error:', error);
+        
+        if (error.message?.includes('Invalid token')) {
+          throw new Error('Invalid verification code. Please check and try again.');
+        }
+        
+        if (error.message?.includes('Token has expired')) {
+          throw new Error('Verification code has expired. Please request a new one.');
+        }
+        
+        throw new Error('Failed to verify code. Please try again.');
+      }
       
-      console.log('✅ Verification code stored successfully:', code);
+      console.log('✅ OTP verification successful');
+      console.log('👤 User session:', data.user);
       
-      showSuccess('Code Received!', 'Please set your new password.');
+      // Store the verified code for password update
+      setSentVerificationCode(code);
       
-      // Move to step 3: Set new password
+      showSuccess('Code Verified!', 'Please set your new password.');
+      
+      // Navigate to the new password entry page
       setTimeout(() => {
-        setCurrentStep(3);
+        router.push('/resetPwd/enterNewPwd');
       }, 1500);
       
     } catch (error: any) {
-      console.error('❌ Error storing code:', error);
-      showError('Processing Failed', 'Failed to process verification code. Please try again.');
+      console.error('❌ Error verifying OTP:', error);
+      showError('Verification Failed', error.message || 'Failed to verify code. Please try again.');
     } finally {
       setVerificationLoading(false);
       hideLoading();
@@ -278,102 +269,6 @@ export default function ResetPassword() {
     );
   };
 
-  const handleUpdatePassword = async () => {
-    if (!newPassword.trim()) {
-      showError('Missing Information', 'Please enter a new password');
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      showError('Invalid Password', 'Password must be at least 6 characters long');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      showError('Password Mismatch', 'Passwords do not match');
-      return;
-    }
-
-    if (passwordLoading) {
-      return;
-    }
-
-    // Check for rate limiting
-    if (lastResetAttempt) {
-      const timeSinceLastAttempt = Date.now() - lastResetAttempt;
-      const cooldownPeriod = 60 * 1000; // 60 seconds in milliseconds
-      
-      if (timeSinceLastAttempt < cooldownPeriod) {
-        const remainingTime = Math.ceil((cooldownPeriod - timeSinceLastAttempt) / 1000);
-        showError('Rate Limited', `Please wait ${remainingTime} seconds before requesting another password reset.`);
-        return;
-      }
-    }
-
-    setPasswordLoading(true);
-    showLoading('Updating password...');
-    
-    try {
-      console.log('🔧 Attempting to update password for:', email);
-      console.log('🔐 New password length:', newPassword.length);
-      
-      // First, verify the stored verification code
-      const code = verificationCode.join('');
-      console.log('🔍 Verifying stored code:', code);
-      
-      const isValid = await validateVerificationCode(email, code);
-      
-      if (!isValid) {
-        console.log('❌ Verification code validation failed');
-        throw new Error('Invalid verification code. Please go back and re-enter your code.');
-      }
-      
-      console.log('✅ Verification code validated successfully');
-      
-      // Now that we've verified the code, reset the password
-      console.log('🔍 Resetting password using Supabase reset flow...');
-      
-      // Send a password reset email - this will allow the user to set a new password
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'famora://auth/reset-password-callback'
-      });
-      
-      if (resetError) {
-        console.error('❌ Password reset error:', resetError);
-        
-        // Handle specific errors
-        if (resetError.message?.includes('Too Many Requests')) {
-          throw new Error('Too many password reset requests. Please wait a moment and try again.');
-        }
-        
-        if (resetError.message?.includes('User not found')) {
-          throw new Error('No account found with this email address.');
-        }
-        
-        throw new Error('Failed to initiate password reset. Please try again.');
-      }
-      
-      console.log('✅ Password reset email sent successfully');
-      console.log('📧 User will receive an email to complete password reset');
-      
-      console.log('✅ Password reset process initiated successfully');
-      console.log('📧 Reset email sent to:', email);
-      console.log('💡 User should check their email to complete password reset');
-      
-      // Record successful reset attempt
-      setLastResetAttempt(Date.now());
-      
-      // Show password success modal
-      setShowPasswordSuccessModal(true);
-      
-    } catch (error: any) {
-      console.error('❌ Error updating password:', error);
-      showError('Update Failed', error.message || 'Failed to update password. Please try again.');
-    } finally {
-      setPasswordLoading(false);
-      hideLoading();
-    }
-  };
 
 
   return (
@@ -460,8 +355,6 @@ export default function ResetPassword() {
                     <Pressable
                       style={[
                         styles.sendButton, 
-,
-,
                         loading && styles.sendButtonLoading,
                         !isEmailValid && styles.sendButtonDisabled
                       ]}
@@ -479,7 +372,7 @@ export default function ResetPassword() {
                   </View>
                 </View>
               </>
-            ) : currentStep === 2 ? (
+            ) : (
               <>
                 {/* Verification Code Step */}
                 <View >
@@ -524,8 +417,6 @@ export default function ResetPassword() {
                     <Pressable
                       style={[
                         styles.sendButton, 
-,
-,
                         verificationLoading && styles.sendButtonLoading
                       ]}
                       onPress={handleSubmitVerificationCode}
@@ -542,139 +433,9 @@ export default function ResetPassword() {
                   </View>
                 </View>
               </>
-            ) : (
-              <>
-                {/* Set New Password Step */}
-                <View >
-                  <Text style={styles.subtitle}>
-                    Please set a new password to secure your Famora account.
-                  </Text>
-                </View>
-
-                {/* Form */}
-                <View style={styles.form}>
-                  {/* New Password Input */}
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Password</Text>
-                    <View style={[styles.inputContainer, newPasswordFocused && styles.inputContainerFocused]}>
-                      <RNImage 
-                        source={require('@/assets/images/icon/password.png')}
-                        style={styles.inputIcon}
-                        resizeMode="contain"
-                      />
-                      <TextInput
-                        style={styles.input}
-                        placeholder="Input Password"
-                        placeholderTextColor="#888888"
-                        value={newPassword}
-                        onChangeText={setNewPassword}
-                        secureTextEntry={!showPassword}
-                        autoCapitalize="none"
-                        autoComplete="new-password"
-                        onFocus={() => setNewPasswordFocused(true)}
-                        onBlur={() => setNewPasswordFocused(false)}
-                      />
-                      <Pressable onPress={() => setShowPassword(!showPassword)}>
-                        {showPassword ? (
-                          <EyeOff size={20} color="#17f196" strokeWidth={1.5} />
-                        ) : (
-                          <Eye size={20} color="#17f196" strokeWidth={1.5} />
-                        )}
-                      </Pressable>
-                    </View>
-                  </View>
-
-                  {/* Confirm Password Input */}
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Confirm Password</Text>
-                    <View style={[styles.inputContainer, confirmPasswordFocused && styles.inputContainerFocused]}>
-                      <RNImage 
-                        source={require('@/assets/images/icon/password.png')}
-                        style={styles.inputIcon}
-                        resizeMode="contain"
-                      />
-                      <TextInput
-                        style={styles.input}
-                        placeholder="Re Enter Your Password"
-                        placeholderTextColor="#888888"
-                        value={confirmPassword}
-                        onChangeText={setConfirmPassword}
-                        secureTextEntry={!showConfirmPassword}
-                        autoCapitalize="none"
-                        autoComplete="new-password"
-                        onFocus={() => setConfirmPasswordFocused(true)}
-                        onBlur={() => setConfirmPasswordFocused(false)}
-                      />
-                      <Pressable onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                        {showConfirmPassword ? (
-                          <EyeOff size={20} color="#17f196" strokeWidth={1.5} />
-                        ) : (
-                          <Eye size={20} color="#17f196" strokeWidth={1.5} />
-                        )}
-                      </Pressable>
-                    </View>
-                  </View>
-
-                  {/* Submit Button */}
-                  <View>
-                    <Pressable
-                      style={[
-                        styles.sendButton, 
-,
-,
-                        passwordLoading && styles.sendButtonLoading
-                      ]}
-                      onPress={handleUpdatePassword}
-                      disabled={passwordLoading || cooldownTime > 0}
-                    >
-                      <Text style={[
-                        styles.sendButtonText,
-                        passwordLoading && styles.sendButtonTextLoading
-                      ]}>
-                        {passwordLoading ? 'Updating...' : 
-                         cooldownTime > 0 ? `Wait ${cooldownTime}s` : 'Submit'}
-                      </Text>
-                    </Pressable>
-                  </View>
-                </View>
-              </>
             )}
         </View>
       </View>
-
-      {/* Password Success Modal */}
-      {showPasswordSuccessModal && (
-        <View style={styles.passwordSuccessModalOverlay}>
-          <View style={styles.passwordSuccessModalContainer}>
-            {/* Icon */}
-            <View style={styles.passwordSuccessIconContainer}>
-              <View style={styles.passwordSuccessIcon}>
-                <RNImage 
-                  source={require('@/assets/images/icon/security-safe.png')}
-                  style={styles.passwordSuccessIconImage}
-                  resizeMode="contain"
-                />
-              </View>
-            </View>
-
-            {/* Title */}
-            <Text style={styles.passwordSuccessTitle}>Password Reset Email Sent</Text>
-
-            {/* Description */}
-            <Text style={styles.passwordSuccessDescription}>
-              Please check your email and click the reset link to set your new password. After setting your new password, you can sign in to your account.
-            </Text>
-
-            {/* Sign In Button */}
-            <Pressable
-              style={styles.passwordSuccessButton}
-              onPress={handleSignInPress}
-            >
-              <Text style={styles.passwordSuccessButtonText}>Sign In</Text>
-            </Pressable>
-          </View>
-        </View>
-      )}
     </SafeAreaView>
   );
 }
