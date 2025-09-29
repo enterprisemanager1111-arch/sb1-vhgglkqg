@@ -64,7 +64,7 @@ export default function EnterNewPassword() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('🔄 Auth state change in enterNewPwd:', event, session?.user?.id);
       
-      if (event === 'USER_UPDATED' && passwordLoading) {
+      if (event === 'USER_UPDATED') {
         console.log('🎉 Password update detected via auth state change');
         // Password was updated successfully, show modal
         setTimeout(() => {
@@ -77,7 +77,7 @@ export default function EnterNewPassword() {
     });
 
     return () => subscription.unsubscribe();
-  }, [passwordLoading]);
+  }, []);
 
   const handleUpdatePassword = async () => {
     if (!newPassword.trim()) {
@@ -108,7 +108,7 @@ export default function EnterNewPassword() {
       setPasswordLoading(false);
       hideLoading();
       showError('Timeout', 'Password update is taking too long. Please try again.');
-    }, 30000); // 30 second timeout
+    }, 10000); // 10 second timeout
     
     try {
       console.log('🔧 Starting password update process...');
@@ -131,22 +131,14 @@ export default function EnterNewPassword() {
       
       console.log('✅ Password update API call successful');
       
-      console.log('🎉 Password update completed - waiting for auth state change...');
-      
       // Clear the timeout since we succeeded
       clearTimeout(timeoutId);
       
-      // Backup: If auth state change doesn't trigger, show modal after 2 seconds
-      setTimeout(() => {
-        if (passwordLoading) {
-          console.log('🔄 Backup: Showing modal after timeout');
-          setPasswordLoading(false);
-          hideLoading();
-          setShowPasswordSuccessModal(true);
-        }
-      }, 2000);
-      
-      // Note: The modal will be shown by the auth state change listener
+      // Show modal immediately since the API call was successful
+      console.log('🎉 Showing modal immediately after successful API call');
+      setPasswordLoading(false);
+      hideLoading();
+      setShowPasswordSuccessModal(true);
       
     } catch (error: any) {
       console.error('❌ Error updating password:', error);

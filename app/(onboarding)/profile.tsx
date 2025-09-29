@@ -274,7 +274,11 @@ export default function ProfileCompletion() {
                 />
               ) : (
                 <View style={styles.placeholderAvatar}>
-                  <User size={40} color="#666666" strokeWidth={1.5} />
+                  <RNImage
+                    source={require('@/assets/images/icon/user_input.png')}
+                    style={styles.profileIconImage}
+                    resizeMode="contain"
+                  />
                 </View>
               )}
               <View style={styles.cameraButton}>
@@ -291,7 +295,11 @@ export default function ProfileCompletion() {
               </Pressable>
               
               <Pressable style={styles.avatarActionButton} onPress={handleAvatarUpload}>
-                <User size={18} color="#55ffb8" strokeWidth={2} />
+                <RNImage
+                  source={require('@/assets/images/icon/user_input.png')}
+                  style={styles.inputIconImage}
+                  resizeMode="contain"
+                />
                 <Text style={styles.avatarActionText}>From Gallery</Text>
               </Pressable>
             </View>
@@ -491,6 +499,14 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     backgroundColor: '#E0E0E0',
+  },
+  profileIconImage: {
+    width: 40,
+    height: 40,
+  },
+  inputIconImage: {
+    width: 18,
+    height: 18,
   },
   placeholderAvatar: {
     width: 120,

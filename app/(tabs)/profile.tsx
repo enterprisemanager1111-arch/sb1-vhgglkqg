@@ -1069,7 +1069,11 @@ export default function UserProfile() {
                 onPress={() => handleImagePicker('library')}
               >
                 <View style={styles.imagePickerIcon}>
-                  <User size={24} color="#54FE54" strokeWidth={2} />
+                  <RNImage
+                    source={require('@/assets/images/icon/user_input.png')}
+                    style={styles.inputIconImage}
+                    resizeMode="contain"
+                  />
                 </View>
                 <Text style={styles.imagePickerOptionText}>{t('profile.imagePicker.library')}</Text>
                 <Text style={styles.imagePickerOptionSubtext}>{t('profile.imagePicker.libraryDescription')}</Text>
@@ -1620,6 +1624,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
+  },
+  inputIconImage: {
+    width: 24,
+    height: 24,
   },
   imagePickerOptionText: {
     flex: 1,

@@ -300,34 +300,34 @@ const styles = StyleSheet.create({
   // Add Button Container - positioned higher
   addButtonContainer: {
     position: 'absolute',
-    top: -25, // Positioned higher for half circle
+    top: -20, // Positioned higher for half circle
     left: '50%',
-    marginLeft: -35, // Adjusted for Add button size
+    marginLeft: -24, // Adjusted for Add button size
     zIndex: 10,
   },
 
   // Gray half circle background (page background color) - pointing downward
   grayHalfCircleBackground: {
     position: 'absolute',
-    width: 90,
-    height: 50, // Half the height for half circle
+    width: 64,
+    height: 40, // Half the height for half circle
     backgroundColor: '#F5F5F5', // Gray color matching page background
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
     borderBottomLeftRadius: 50,
     borderBottomRightRadius: 50,
-    top: 42, // Center of bottom side aligns with center of Add button
-    left: -11,
+    top: 36, // Center of bottom side aligns with center of Add button
+    left: -8,
     zIndex: 0,
     boxShadow: '0 -2px 4px 0px rgba(0, 0, 0, 0.1) inset',
   },
 
   // Add Button - Green circular button (no white outline)
   addButton: {
-    top: 10,
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    top: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#17f196', // Updated green color
     justifyContent: 'center',
     alignItems: 'center',

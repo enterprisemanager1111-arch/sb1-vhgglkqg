@@ -789,13 +789,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const updateProfile = async (updates: Partial<Pick<Profile, 'name' | 'birth_date' | 'avatar_url' | 'role' | 'interests'>>) => {
-    if (!user) throw new Error('No user logged in');
-    if (!session?.access_token) throw new Error('No valid session found');
+  const updateProfile = async (updates: Partial<Pick<Profile, 'name' | 'birth_date' | 'avatar_url' | 'role' | 'interests' | 'company_ID' | 'phone_num'>>) => {
+    console.log('🚀 updateProfile function called');
+    console.log('🚀 Updates received:', updates);
+    
+    if (!user) {
+      console.error('❌ No user logged in');
+      throw new Error('No user logged in');
+    }
+    if (!session?.access_token) {
+      console.error('❌ No valid session found');
+      throw new Error('No valid session found');
+    }
 
     console.log('📝 updateProfile called with updates:', updates);
     console.log('📝 User ID:', user.id);
     console.log('📝 Session available:', !!session);
+    console.log('📝 Session token length:', session?.access_token?.length || 0);
+    console.log('📝 Supabase client available:', !!supabase);
 
     const updateData = {
       ...updates,
@@ -803,16 +814,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     
     console.log('📝 Update data being sent:', updateData);
+    console.log('📝 Supabase URL:', process.env.EXPO_PUBLIC_SUPABASE_URL);
+    console.log('📝 Supabase Key available:', !!process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY);
 
     // Use Supabase client with proper authentication
     try {
       console.log('🚀 Using Supabase client with session authentication...');
       
-      const { data, error } = await supabase
+      // First, check if profile exists
+      console.log('🔍 Checking if profile exists for user:', user.id);
+      const { data: existingProfile, error: checkError } = await supabase
         .from('profiles')
-        .update(updateData)
+        .select('id')
         .eq('id', user.id)
-        .select();
+        .single();
+      
+      console.log('🔍 Profile existence check result:');
+      console.log('🔍 - existingProfile:', existingProfile);
+      console.log('🔍 - checkError:', checkError);
+      console.log('🔍 - checkError code:', checkError?.code);
+      
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('❌ Error checking profile existence:', checkError);
+        throw new Error(`Failed to check profile: ${checkError.message}`);
+      }
+      
+      let data, error;
+      
+      if (existingProfile) {
+        // Profile exists, update it
+        console.log('📝 Profile exists, updating...');
+        console.log('📝 Update data:', updateData);
+        const updateResult = await supabase
+          .from('profiles')
+          .update(updateData)
+          .eq('id', user.id)
+          .select();
+        data = updateResult.data;
+        error = updateResult.error;
+        console.log('📝 Update result - data:', data);
+        console.log('📝 Update result - error:', error);
+      } else {
+        // Profile doesn't exist, create it
+        console.log('📝 Profile doesn\'t exist, creating new profile...');
+        const createData = {
+          id: user.id,
+          ...updateData,
+          created_at: new Date().toISOString(),
+        };
+        console.log('📝 Create data:', createData);
+        const createResult = await supabase
+          .from('profiles')
+          .insert([createData])
+          .select();
+        data = createResult.data;
+        error = createResult.error;
+        console.log('📝 Create result - data:', data);
+        console.log('📝 Create result - error:', error);
+      }
 
       if (error) {
         console.error('❌ Supabase update error:', error);
@@ -822,7 +881,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           details: error.details,
           hint: error.hint
         });
-        throw error;
+        
+        // Provide specific error messages for common issues
+        if (error.message?.includes('fetch failed') || error.message?.includes('TypeError: fetch failed')) {
+          throw new Error('Unable to connect to the server. Please check your internet connection and try again. If the problem persists, the server might be temporarily unavailable.');
+        } else if (error.message?.includes('JWT') || error.message?.includes('user_not_found')) {
+          throw new Error('Authentication error. Please try signing in again.');
+        } else if (error.message?.includes('duplicate key')) {
+          throw new Error('Profile already exists. Please try refreshing the page.');
+        } else {
+          throw error;
+        }
       }
 
       console.log('✅ Profile updated successfully:', data);
@@ -884,7 +953,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
       } catch (fetchError: any) {
         console.error('❌ Direct fetch fallback also failed:', fetchError);
-        throw new Error(`Profile update failed: ${error.message}. Fallback error: ${fetchError.message}`);
+        
+        // Provide specific error messages for connectivity issues
+        if (fetchError.message?.includes('fetch failed') || fetchError.message?.includes('TypeError: fetch failed')) {
+          throw new Error('Unable to connect to the server. Please check your internet connection and try again. If the problem persists, the server might be temporarily unavailable.');
+        } else if (fetchError.message?.includes('Failed to fetch')) {
+          throw new Error('Network connection failed. Please check your internet connection and try again.');
+        } else {
+          throw new Error(`Profile update failed: ${error.message}. Fallback error: ${fetchError.message}`);
+        }
       }
     }
   };

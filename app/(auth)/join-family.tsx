@@ -102,7 +102,11 @@ export default function SignUp() {
         <View style={styles.form}>
           {/* Full Name Input */}
           <View style={styles.inputContainer}>
-            <User size={20} color="#666666" strokeWidth={1.5} style={styles.inputIcon} />
+            <RNImage
+              source={require('@/assets/images/icon/user_input.png')}
+              style={styles.inputIconImage}
+              resizeMode="contain"
+            />
             <TextInput
               style={styles.input}
               placeholder={t('common.name')}
@@ -246,6 +250,10 @@ const styles = StyleSheet.create({
   },
   inputIcon: {
     marginRight: 12,
+  },
+  inputIconImage: {
+    width: 20,
+    height: 20,
   },
   input: {
     flex: 1,

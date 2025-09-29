@@ -198,11 +198,14 @@ export default function SignUp() {
 
 
   const handleSetUpProfile = async () => {
+    console.log('🎯 Set Up Profile button clicked!');
     hideWelcomeModal();
     // Clear the welcome modal flag
     await AsyncStorage.removeItem('showing_welcome_modal');
+    console.log('🔄 Navigating to /myProfile/edit...');
     // Navigate to profile edit page
     router.push('/myProfile/edit');
+    console.log('✅ Navigation call completed');
   };
 
   const handleExploreApp = async () => {

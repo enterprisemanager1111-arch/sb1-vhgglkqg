@@ -257,8 +257,8 @@ export default function SignUp() {
 
   const handleSetUpProfile = () => {
     hideWelcomeModal();
-    // Navigate to profile setup
-    router.push('/(onboarding)/profile-setup');
+    // Navigate to profile edit page
+    router.push('/myProfile/edit');
   };
 
   const handleExploreApp = () => {

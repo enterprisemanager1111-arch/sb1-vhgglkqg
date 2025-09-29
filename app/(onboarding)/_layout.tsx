@@ -5,47 +5,59 @@ import { useAuth } from '@/contexts/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function OnboardingLayout() {
-  const { session, user, loading: authLoading } = useAuth();
+  const { session, user, profile, loading: authLoading } = useAuth();
   const router = useRouter();
   const segments = useSegments();
 
   useEffect(() => {
     // Only redirect if we're not loading and user is authenticated
     if (!authLoading && session && user) {
-      // Check if welcome modal should be shown before redirecting
-      const checkWelcomeModal = async () => {
-        try {
-          const showingWelcomeModal = await AsyncStorage.getItem('showing_welcome_modal');
-          const isVerifyingSignup = await AsyncStorage.getItem('is_verifying_signup');
-          
-          // Check if current route is a password reset page
-          const isOnPasswordResetPage = segments.includes('resetPwd');
-          const isOnEnterNewPwdPage = segments.includes('enterNewPwd');
-          
-          if (showingWelcomeModal === 'true' || isVerifyingSignup === 'true') {
-            console.log('🔄 Welcome modal or signup verification in progress, staying on onboarding page');
-            return; // Don't redirect, let the signup page handle the welcome modal
+      // Add a small delay to ensure signup page logic runs first
+      const timeoutId = setTimeout(async () => {
+        // Check if welcome modal should be shown before redirecting
+        const checkWelcomeModal = async () => {
+          try {
+            const showingWelcomeModal = await AsyncStorage.getItem('showing_welcome_modal');
+            const isVerifyingSignup = await AsyncStorage.getItem('is_verifying_signup');
+            
+            // Check if current route is a password reset page, new family page, or profile edit page
+            const currentPath = segments.join('/');
+            const isOnPasswordResetPage = currentPath.includes('resetPwd');
+            const isOnEnterNewPwdPage = currentPath.includes('enterNewPwd');
+            const isOnNewFamilyPage = currentPath.includes('newFamily');
+            const isOnWorkProfileEmptyPage = currentPath.includes('workProfileEmpty');
+            const isOnSignupPage = currentPath.includes('signup');
+            const isOnProfileEditPage = currentPath.includes('myProfile/edit');
+            
+            if (showingWelcomeModal === 'true' || isVerifyingSignup === 'true') {
+              console.log('🔄 Welcome modal or signup verification in progress, staying on onboarding page');
+              return; // Don't redirect, let the signup page handle the welcome modal
+            }
+            
+            // If user is on password reset pages, new family pages, signup page, or profile edit page, allow them to stay there
+            if (isOnPasswordResetPage || isOnEnterNewPwdPage || isOnNewFamilyPage || isOnWorkProfileEmptyPage || isOnSignupPage || isOnProfileEditPage) {
+              console.log('🔄 User on special page, allowing access');
+              return; // Don't redirect, allow special flow
+            }
+            
+            // For authenticated users on onboarding pages, redirect to home
+            // Note: Profile completion check is only done during signup flow (Set Up Profile button)
+            console.log('🚫 User is already authenticated, redirecting from onboarding to home...');
+            router.replace('/(tabs)');
+          } catch (error) {
+            console.error('Error checking welcome modal flag:', error);
+            // If there's an error, proceed with normal redirect
+            console.log('🚫 User is already authenticated, redirecting from onboarding to home...');
+            router.replace('/(tabs)');
           }
-          
-          // If user is on password reset pages, allow them to stay there
-          if (isOnPasswordResetPage || isOnEnterNewPwdPage) {
-            console.log('🔄 User on password reset page, allowing access');
-            return; // Don't redirect, allow password reset flow
-          }
-          
-          console.log('🚫 User is already authenticated, redirecting from onboarding to home...');
-          router.replace('/(tabs)');
-        } catch (error) {
-          console.error('Error checking welcome modal flag:', error);
-          // If there's an error, proceed with normal redirect
-          console.log('🚫 User is already authenticated, redirecting from onboarding to home...');
-          router.replace('/(tabs)');
-        }
-      };
+        };
+        
+        checkWelcomeModal();
+      }, 100); // Small delay to let signup page logic run first
       
-      checkWelcomeModal();
+      return () => clearTimeout(timeoutId);
     }
-  }, [session, user, authLoading, router, segments]);
+  }, [session, user, profile, authLoading, router, segments]);
 
   // Show loading screen while checking authentication
   if (authLoading) {
@@ -74,6 +86,8 @@ export default function OnboardingLayout() {
       <Stack.Screen name="auth" />
       <Stack.Screen name="profile" />
       <Stack.Screen name="family" />
+      <Stack.Screen name="newFamily" />
+      <Stack.Screen name="newFamily/workProfileEmpty" />
       <Stack.Screen name="overview" />
       <Stack.Screen name="signup" />
       <Stack.Screen name="signin" />

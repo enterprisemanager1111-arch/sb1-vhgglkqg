@@ -808,7 +808,11 @@ export default function PersonalInfoScreen() {
           {/* Role Selection */}
           <View style={styles.inputSection}>
             <View style={styles.sectionHeader}>
-              <User size={20} color="#55ffb8" strokeWidth={2} />
+              <RNImage
+                source={require('@/assets/images/icon/user_input.png')}
+                style={styles.inputIconImage}
+                resizeMode="contain"
+              />
               <Text style={styles.sectionTitle}>
                 {currentLanguage.code === 'en' ? 'What is your role in the family?' : 
                  currentLanguage.code === 'de' ? 'Was ist Ihre Rolle in der Familie?' : 
@@ -1060,6 +1064,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#202020',
     fontFamily: 'Helvetica',
+  },
+  inputIconImage: {
+    width: 20,
+    height: 20,
   },
   labelContainer: {
     flexDirection: 'row',

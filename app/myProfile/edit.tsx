@@ -24,7 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function EditProfile() {
-  const { profile, updateProfile, user } = useAuth();
+  const { profile, updateProfile, user, loading: authLoading } = useAuth();
   const { showSuccess, showError } = useCustomAlert();
   
   const [firstName, setFirstName] = useState('');
@@ -87,6 +87,19 @@ export default function EditProfile() {
   };
 
   useEffect(() => {
+    console.log('🔄 Profile edit page useEffect triggered');
+    console.log('🔄 Auth loading:', authLoading);
+    console.log('🔄 Profile value:', profile);
+    console.log('🔄 Profile type:', typeof profile);
+    console.log('🔄 Profile is null:', profile === null);
+    console.log('🔄 Profile is undefined:', profile === undefined);
+    
+    // Don't process if AuthContext is still loading
+    if (authLoading) {
+      console.log('🔄 AuthContext still loading, waiting...');
+      return;
+    }
+    
     if (profile) {
       console.log('📋 Current profile data:', profile);
       console.log('📋 Profile fields:', Object.keys(profile));
@@ -104,14 +117,36 @@ export default function EditProfile() {
       if (profile.birth_date) {
         setSelectedDate(new Date(profile.birth_date));
       }
-      
-      // Stop loading user data
-      setIsLoadingUserData(false);
+    } else {
+      console.log('📋 No profile data available, setting empty values');
+      // Set empty values when no profile
+      setFirstName('');
+      setLastName('');
+      setDateOfBirth('');
+      setPosition('');
+      setAvatarUri(null);
+      setAvatarUrl(null);
     }
+    
+    // Always stop loading user data after processing (whether profile exists or not)
+    console.log('🔄 Setting isLoadingUserData to false');
+    setIsLoadingUserData(false);
     
     // Load interests from localStorage
     loadInterestsFromStorage();
-  }, [profile]);
+  }, [profile, authLoading]);
+
+  // Fallback timeout to ensure loading state is cleared
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (isLoadingUserData) {
+        console.log('⚠️ Loading timeout reached, forcing loading state to false');
+        setIsLoadingUserData(false);
+      }
+    }, 5000); // 5 second timeout
+
+    return () => clearTimeout(timeoutId);
+  }, [isLoadingUserData]);
 
   // Monitor avatar URI changes
   useEffect(() => {
@@ -711,7 +746,6 @@ export default function EditProfile() {
 
   const handleExploreApp = () => {
     hideSuccessModal();
-    router.replace('/(tabs)');
   };
 
   // Upload avatar to Supabase Storage
@@ -872,6 +906,13 @@ export default function EditProfile() {
     
     // Start loading for profile update
     setIsUpdatingProfile(true);
+    
+    // Add timeout to prevent infinite loading
+    const loadingTimeout = setTimeout(() => {
+      console.log('⚠️ Profile update timeout reached, stopping loading state');
+      setIsUpdatingProfile(false);
+      showError('Update Timeout', 'Profile update is taking longer than expected. Please check your internet connection and try again.');
+    }, 30000); // 30 second timeout
     try {
       const fullName = `${firstName.trim()} ${lastName.trim()}`;
         
@@ -1114,7 +1155,8 @@ export default function EditProfile() {
         
         showError('Update Failed', errorMessage);
     } finally {
-      // Stop loading animations
+      // Clear timeout and stop loading animations
+      clearTimeout(loadingTimeout);
       setIsUpdatingProfile(false);
     }
   };
@@ -1235,7 +1277,11 @@ export default function EditProfile() {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>First Name</Text>
               <View style={styles.inputContainer}>
-                <User size={20} color="#17f196" style={styles.inputIcon} />
+                <RNImage
+                  source={require('@/assets/images/icon/user_input.png')}
+                  style={styles.inputIconImage}
+                  resizeMode="contain"
+                />
                 <TextInput
                   style={styles.textInput}
                   value={firstName}
@@ -1250,7 +1296,11 @@ export default function EditProfile() {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Last Name</Text>
               <View style={styles.inputContainer}>
-                <User size={20} color="#17f196" style={styles.inputIcon} />
+                <RNImage
+                  source={require('@/assets/images/icon/user_input.png')}
+                  style={styles.inputIconImage}
+                  resizeMode="contain"
+                />
                 <TextInput
                   style={styles.textInput}
                   value={lastName}
@@ -1914,6 +1964,10 @@ const styles = StyleSheet.create({
   },
   inputIcon: {
     marginRight: 12,
+  },
+  inputIconImage: {
+    width: 20,
+    height: 20,
   },
   uploadIcon: {
     width: 16,
