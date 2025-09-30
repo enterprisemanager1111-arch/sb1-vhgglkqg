@@ -264,8 +264,13 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
         setupRealtimeSubscription(family.id);
       } else {
         // User is not in a family
-        console.log('❌ User is not in any family');
-        console.log('❌ Membership result:', membership);
+        console.log('🔍 === FAMILY LOADING RESULT ===');
+        console.log('🔍 User is not in any family');
+        console.log('🔍 Membership result:', membership);
+        console.log('🔍 memberships array:', memberships);
+        console.log('🔍 Setting currentFamily to null');
+        console.log('🔍 Setting isInFamily to false');
+        console.log('🔍 === END FAMILY LOADING ===');
         setCurrentFamily(null);
         setFamilyMembers([]);
         setUserRole(null);
@@ -292,6 +297,11 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
       setFamilyMembers([]);
       setUserRole(null);
     } finally {
+      console.log('🔍 === FAMILY LOADING COMPLETE ===');
+      console.log('🔍 Setting familyLoading to false');
+      console.log('🔍 Final currentFamily:', !!currentFamily);
+      console.log('🔍 Final isInFamily will be:', !!currentFamily);
+      console.log('🔍 === END FAMILY LOADING COMPLETE ===');
       setLoading(false);
     }
   }, [user, t]);
@@ -344,8 +354,15 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     console.log('🔄 FamilyContext useEffect triggered, user:', user?.id);
     loadFamilyData();
     
+    // Add fallback timeout to ensure loading never stays true indefinitely
+    const fallbackTimeout = setTimeout(() => {
+      console.warn('⚠️ Family loading timeout reached, forcing loading to false');
+      setLoading(false);
+    }, 15000); // 15 second timeout (longer than auth since family data can take more time)
+    
     // Cleanup real-time subscription on unmount
     return () => {
+      clearTimeout(fallbackTimeout);
       if (realtimeChannelRef.current) {
         realtimeChannelRef.current.unsubscribe();
       }

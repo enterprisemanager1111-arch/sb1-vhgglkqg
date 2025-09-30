@@ -9,45 +9,20 @@ import {
   Image,
   StatusBar,
 } from 'react-native';
-import { 
-  Bell, 
-  ChevronRight, 
-  Calendar, 
-  SquareCheck as CheckSquare, 
-  Users, 
-  ShoppingCart, 
-  ArrowRight, 
-  Flame,
-  Clock,
-  ListTodo,
-  TrendingUp,
-  Video,
-  Zap,
-  CheckCircle,
-  Plus
-} from 'lucide-react-native';
-import Svg, { Path } from 'react-native-svg';
+// Removed unused lucide-react-native imports
 import { useAuth } from '@/contexts/AuthContext';
 import { router } from 'expo-router';
 
 // Custom verification icon component
 const VerificationIcon = ({ size = 16 }: { size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24">
-    {/* Starburst/Cog shape - made much bigger for better visibility */}
-    <Path
-      d="M12 0L15 5L22 3L17 8L22 13L15 11L12 16L9 11L2 13L7 8L2 3L9 5L12 0Z"
-      fill="#55fdb7"
-    />
-    {/* White checkmark - properly contained within the much larger starburst */}
-    <Path
-      d="M8.5 12L10.5 14L15.5 9"
-      stroke="white"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      fill="none"
-    />
-  </Svg>
+  <Image
+    source={require('@/assets/images/icon/verification.png')}
+    style={{
+      width: size,
+      height: size,
+      resizeMode: 'contain'
+    }}
+  />
 );
 
 export default function HomeDashboard() {
@@ -145,49 +120,51 @@ export default function HomeDashboard() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
-      <ScrollView 
-        style={styles.scrollView} 
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header Section */}
-        <View style={styles.header}>
-          <View style={styles.profileSection}>
-            <View style={styles.profileInfo}>
-              <View style={styles.avatarContainer}>
-                {profile?.avatar_url ? (
-                  <Image 
-                    source={{ uri: profile.avatar_url }} 
-                    style={styles.avatar}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{getUserInitials()}</Text>
-                  </View>
-                )}
-              </View>
-              <View style={styles.profileDetails}>
-                <View style={styles.nameRow}>
-                  <Text style={styles.userName}>{userName}</Text>
-                  <View style={styles.verifiedIcon}>
-                    <VerificationIcon size={16} />
-                  </View>
-                </View>
-                <Text style={styles.userRole}>Family {getUserRole()}</Text>
-              </View>
-            </View>
-            
-            <View style={styles.headerActions}>
-              <Pressable style={styles.notificationButton}>
+      {/* Fixed Header Section */}
+      <View style={styles.fixedHeader}>
+        <View style={styles.profileSection}>
+          <View style={styles.profileInfo}>
+            <View style={styles.avatarContainer}>
+              {profile?.avatar_url ? (
                 <Image 
-                  source={require('@/assets/images/icon/notification.png')}
-                  style={styles.notificationIcon}
-                  resizeMode="contain"
+                  source={{ uri: profile.avatar_url }} 
+                  style={styles.avatar}
+                  resizeMode="cover"
                 />
-              </Pressable>
+              ) : (
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>{getUserInitials()}</Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.profileDetails}>
+              <View style={styles.nameRow}>
+                <Text style={styles.userName}>{userName}</Text>
+                <View style={styles.verifiedIcon}>
+                  <VerificationIcon size={20} />
+                </View>
+              </View>
+              <Text style={styles.userRole}>Family {getUserRole()}</Text>
             </View>
           </View>
+          
+          <View style={styles.headerActions}>
+            <Pressable style={styles.notificationButton}>
+              <Image 
+                source={require('@/assets/images/icon/notification.png')}
+                style={styles.notificationIcon}
+                resizeMode="contain"
+              />
+            </Pressable>
+          </View>
         </View>
+      </View>
+      
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
 
         {/* Futures Elements Section */}
         <View style={styles.futuresElementsPanel}>
@@ -203,7 +180,14 @@ export default function HomeDashboard() {
             {/* Tasks */}
             <Pressable style={styles.quickActionButton}>
               <View style={styles.quickActionIcon}>
-                <ListTodo size={24} color="#17f196" fill="#17f196" />
+                <Image
+                  source={require('@/assets/images/icon/tasks.png')}
+                  style={{
+                    width: 18,
+                    height: 18,
+                    resizeMode: 'contain'
+                  }}
+                />
               </View>
               <Text style={styles.quickActionTitle}>Tasks</Text>
               <Text style={styles.quickActionSubtitle}>Start now!</Text>
@@ -212,7 +196,14 @@ export default function HomeDashboard() {
             {/* Calendar */}
             <Pressable style={styles.quickActionButton}>
               <View style={styles.quickActionIcon}>
-                <Calendar size={24} color="#17f196" fill="#17f196" />
+                <Image
+                  source={require('@/assets/images/icon/calendar2.png')}
+                  style={{
+                    width: 18,
+                    height: 18,
+                    resizeMode: 'contain'
+                  }}
+                />
               </View>
               <Text style={styles.quickActionTitle}>Calander</Text>
               <Text style={styles.quickActionSubtitle}>Your Event</Text>
@@ -221,7 +212,14 @@ export default function HomeDashboard() {
             {/* Shop List */}
             <Pressable style={styles.quickActionButton}>
               <View style={styles.quickActionIcon}>
-                <ShoppingCart size={24} color="#17f196" fill="#17f196" />
+                <Image
+                  source={require('@/assets/images/icon/shop_list.png')}
+                  style={{
+                    width: 18,
+                    height: 18,
+                    resizeMode: 'contain'
+                  }}
+                />
               </View>
               <Text style={styles.quickActionTitle}>Shop List</Text>
               <Text style={styles.quickActionSubtitle}>Buy Items</Text>
@@ -230,7 +228,14 @@ export default function HomeDashboard() {
             {/* Soon */}
             <Pressable style={[styles.quickActionButton, styles.quickActionButtonDisabled]}>
               <View style={[styles.quickActionIcon, styles.quickActionIconDisabled]}>
-                <Clock size={24} color="#999999" fill="#999999" />
+                <Image
+                  source={require('@/assets/images/icon/soon_dis.png')}
+                  style={{
+                    width: 18,
+                    height: 18,
+                    resizeMode: 'contain'
+                  }}
+                />
               </View>
               <Text style={[styles.quickActionTitle, styles.quickActionTitleDisabled]}>Soon</Text>
               <Text style={[styles.quickActionSubtitle, styles.quickActionSubtitleDisabled]}>Hyped?</Text>
@@ -246,16 +251,21 @@ export default function HomeDashboard() {
               <Text style={styles.workSummarySubtitle}>Today task & presence activity</Text>
             </View>
             <View style={styles.workSummaryIcon}>
-              <Video size={24} color="#FFFFFF" fill="#FFFFFF" />
-              <View style={styles.sparkle1} />
-              <View style={styles.sparkle2} />
-              <View style={styles.sparkle3} />
+              <Image
+                source={require('@/assets/images/icon/sparkling_camera.png')}
+                style={{
+                  width: 117,
+                  height: 85,
+                  resizeMode: 'contain'
+                }}
+              />
+
             </View>
           </View>
         </View>
 
         {/* Today on the Calendar Section */}
-        <View style={styles.section}>
+        <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Today on the Calander</Text>
             <View style={styles.badge}>
@@ -264,13 +274,53 @@ export default function HomeDashboard() {
           </View>
           <Text style={styles.sectionSubtitle}>Your schedule for the day</Text>
           
-          <View style={styles.emptyCalendarArea}>
-            {/* Empty white area as shown in the image */}
+          <View style={styles.calendarEventCard}>
+            <View style={styles.eventHeader}>
+              <Text style={styles.eventMainTitle}>Bob's Birthday</Text>
+              <Text style={styles.eventPrivateMessage}>Private message: Don't forget the gifts</Text>
+            </View>
+            
+             <View style={styles.eventDetailsContainer}>
+               <View style={styles.eventDetailsGroup}>
+                 <View style={styles.eventDetailItem}>
+                   <Text style={styles.eventDetailLabel}>Event Title</Text>
+                   <Text style={styles.eventDetailValue}>Birthday Party</Text>
+                 </View>
+                 <View style={styles.eventDetailItem}>
+                   <Text style={styles.eventDetailLabel}>Start Time</Text>
+                   <Text style={styles.eventDetailValue}>20:00 Uhr</Text>
+                 </View>
+                 <View style={styles.eventDetailItem}>
+                   <Text style={styles.eventDetailLabel}>Duration</Text>
+                   <Text style={styles.eventDetailValue}>30min</Text>
+                 </View>
+               </View>
+             </View>
+             
+               <View style={styles.eventDateContainer}>
+                 <Image
+                   source={require('@/assets/images/icon/calendar2_dis.png')}
+                   style={{
+                     width: 16,
+                     height: 16,
+                     resizeMode: 'contain'
+                   }}
+                 />
+                 <Text style={styles.eventDate}>20, September</Text>
+               </View>
+            
+            <View style={styles.eventFooter}>
+              <View style={styles.eventAttendees}>
+                <View style={[styles.attendeeAvatar, { backgroundColor: '#FFB6C1' }]} />
+                <View style={[styles.attendeeAvatar, { backgroundColor: '#87CEEB' }]} />
+                <View style={[styles.attendeeAvatar, { backgroundColor: '#FFD700' }]} />
+              </View>
+            </View>
           </View>
         </View>
 
         {/* Today Task Section */}
-        <View style={styles.section}>
+        <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Today Task</Text>
             <View style={styles.badge}>
@@ -280,23 +330,44 @@ export default function HomeDashboard() {
           <Text style={styles.sectionSubtitle}>The tasks assigned to you for today</Text>
           
           <View style={styles.taskCard}>
-            <View style={styles.taskHeader}>
-              <View style={styles.taskIcon}>
-                <Zap size={20} color="#17f196" fill="#17f196" />
-              </View>
-              <Text style={styles.taskTitle}>Wiring Dashboard Analytics</Text>
-            </View>
+             <View style={styles.taskHeader}>
+               <View style={styles.taskIcon}>
+                 <Image
+                   source={require('@/assets/images/icon/flash.png')}
+                   style={{
+                     width: 20,
+                     height: 20,
+                     resizeMode: 'contain'
+                   }}
+                 />
+               </View>
+               <Text style={styles.taskTitle}>Wiring Dashboard Analytics</Text>
+             </View>
             
-            <View style={styles.taskTags}>
-              <View style={styles.statusTag}>
-                <View style={styles.statusTagIcon} />
-                <Text style={styles.statusTagText}>In Progress</Text>
-              </View>
-              <View style={styles.priorityTag}>
-                <View style={styles.priorityTagIcon} />
-                <Text style={styles.priorityTagText}>High</Text>
-              </View>
-            </View>
+             <View style={styles.taskTags}>
+               <View style={styles.statusTag}>
+                 <Image
+                   source={require('@/assets/images/icon/in_progress.png')}
+                   style={{
+                     width: 10,
+                     height: 10,
+                     resizeMode: 'contain'
+                   }}
+                 />
+                 <Text style={styles.statusTagText}>In Progress</Text>
+               </View>
+               <View style={styles.priorityTag}>
+                 <Image
+                   source={require('@/assets/images/icon/flag.png')}
+                   style={{
+                     width: 10,
+                     height: 10,
+                     resizeMode: 'contain'
+                   }}
+                 />
+                 <Text style={styles.priorityTagText}>High</Text>
+               </View>
+             </View>
             
             <View style={styles.progressBar}>
               <View style={[styles.progressFill, { width: '60%' }]} />
@@ -308,16 +379,23 @@ export default function HomeDashboard() {
                 <View style={[styles.assigneeAvatar, styles.assigneeAvatar2]} />
                 <View style={[styles.assigneeAvatar, styles.assigneeAvatar3]} />
               </View>
-              <View style={styles.dueDateContainer}>
-                <Calendar size={16} color="#17f196" fill="#17f196" />
-                <Text style={styles.dueDate}>27 April</Text>
-              </View>
+               <View style={styles.dueDateContainer}>
+                 <Image
+                   source={require('@/assets/images/icon/calendar2_dis.png')}
+                   style={{
+                     width: 16,
+                     height: 16,
+                     resizeMode: 'contain'
+                   }}
+                 />
+                 <Text style={styles.dueDate}>27 April</Text>
+               </View>
             </View>
           </View>
         </View>
 
         {/* Today added to Shopping list Section */}
-        <View style={styles.section}>
+        <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Today added to Shopping list</Text>
             <View style={styles.badge}>
@@ -326,8 +404,49 @@ export default function HomeDashboard() {
           </View>
           <Text style={styles.sectionSubtitle}>Your schedule for the day</Text>
           
-          <View style={styles.emptyShoppingArea}>
-            {/* Empty white area as shown in the image */}
+          <View style={styles.shoppingListItemCard}>
+            <View style={styles.shoppingItemHeader}>
+              <Image
+                source={require('@/assets/images/icon/shop_date.png')}
+                style={{
+                  width: 20,
+                  height: 20,
+                  resizeMode: 'contain'
+                }}
+              />
+              <Text style={styles.shoppingItemDate}>18 September 2024</Text>
+            </View>
+            
+            <View style={styles.shoppingItemDetailsGroup}>
+              <View style={styles.shoppingItemLeft}>
+                <Text style={styles.shoppingItemLabel}>Item</Text>
+                <Text style={styles.shoppingItemName}>Pizza Tonno</Text>
+              </View>
+              <View style={styles.shoppingItemRight}>
+                <Text style={styles.shoppingItemLabel}>Quantity</Text>
+                <Text style={styles.shoppingItemQuantity}>2 stk.</Text>
+              </View>
+            </View>
+            
+            <View style={styles.shoppingItemFooter}>
+              <View style={styles.purchaseStatus}>
+                <Image
+                  source={require('@/assets/images/icon/check.png')}
+                  style={{
+                    width: 16,
+                    height: 16,
+                    resizeMode: 'contain'
+                  }}
+                />
+                <Text style={styles.purchaseStatusText}>Purchased at 19 Sept 2024</Text>
+              </View>
+              <View style={styles.purchaserInfo}>
+                <View style={styles.purchaserAvatar}>
+                  <Text style={styles.purchaserAvatarText}>E</Text>
+                </View>
+                <Text style={styles.purchaserName}>Elaine</Text>
+              </View>
+            </View>
           </View>
         </View>
 
@@ -346,13 +465,26 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  scrollContent: {
+    paddingTop: 108, // Add padding to account for fixed header (44 + 20 + 20 + 24 for safe area)
+  },
   
-  // Header Section
-  header: {
+  // Fixed Header Section
+  fixedHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
     backgroundColor: '#FFFFFF',
     paddingTop: 44,
     paddingHorizontal: 20,
     paddingBottom: 20,
+    shadowColor: '#2d2d2d',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 5,
   },
   profileSection: {
     flexDirection: 'row',
@@ -443,12 +575,12 @@ const styles = StyleSheet.create({
   // Section Styling
   section: {
     paddingHorizontal: 20,
-    paddingVertical: 20,
+    // paddingVertical: 20,
   },
   futuresElementsPanel: {
     backgroundColor: '#FFFFFF',
     marginHorizontal: 10,
-    marginVertical: 20,
+    marginVertical: 12,
     borderRadius: 12,
     padding: 20,
     elevation: 2,
@@ -456,8 +588,8 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
+    // gap: 8,
+    // marginBottom: 8,
   },
   sectionTitle: {
     fontSize: 14,
@@ -481,8 +613,11 @@ const styles = StyleSheet.create({
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#666666',
-    marginBottom: 16,
+    color: '#466759',
+    fontStyle: 'normal',
+    fontWeight: '400',
+    lineHeight: '140%',
+    marginBottom: 6,
   },
 
   // Quick Actions Grid
@@ -492,7 +627,7 @@ const styles = StyleSheet.create({
   },
   quickActionButton: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#F9FAFB',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 0,
@@ -508,7 +643,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#17f196',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
@@ -540,9 +675,9 @@ const styles = StyleSheet.create({
 
   // Work Summary Banner
   workSummaryBanner: {
-    backgroundColor: '#17f196',
-    marginHorizontal: 20,
-    marginVertical: 20,
+    backgroundColor: '#17F196',
+    marginHorizontal: 10,
+    marginVertical: 0,
     borderRadius: 12,
     padding: 20,
   },
@@ -555,21 +690,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   workSummaryTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 4,
+    color: '#FFF',
+    fontSize: 16,
+    fontStyle: 'normal',
+    fontWeight: '600',
+    lineHeight: 'normal',
+    letterSpacing: '-0.5px',
   },
   workSummarySubtitle: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    opacity: 0.9,
+    color: '#EDEAFF',
+    fontSize: 13,
+    fontStyle: 'normal',
+    fontWeight: 500,
+    lineHeight: 'normal',
+    letterSpacing: '-0.5px',
   },
   workSummaryIcon: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -602,17 +741,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
 
-  // Empty Areas
-  emptyCalendarArea: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    height: 120,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
   emptyShoppingArea: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
@@ -709,13 +837,10 @@ const styles = StyleSheet.create({
 
   // Task Card
   taskCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FEFEFE',
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    border: '1px solid #EAECF0',
     elevation: 2,
   },
   taskHeader: {
@@ -728,14 +853,14 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#17F196',
     justifyContent: 'center',
     alignItems: 'center',
   },
   taskTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#2B2B2B',
     flex: 1,
   },
   taskTags: {
@@ -833,5 +958,173 @@ const styles = StyleSheet.create({
   // Bottom spacing
   bottomSpacing: {
     height: 100,
+  },
+
+  // Calendar Event Card
+  calendarEventCard: {
+    border: '1px solid #EAECF0',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    marginTop: 8,
+  },
+  eventHeader: {
+    marginBottom: 16,
+  },
+  eventMainTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#101828',
+    marginBottom: 4,
+  },
+  eventPrivateMessage: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#101828',
+    lineHeight: 18,
+  },
+   eventDetailsContainer: {
+     marginBottom: 16,
+   },
+   eventDetailsGroup: {
+     flexDirection: 'row',
+     borderWidth: 1,
+     borderColor: '#EAECF0',
+     borderRadius: 8,
+     padding: 12,
+     paddingHorizontal: 15,
+     backgroundColor: '#F9FAFB',
+     gap: 12,
+   },
+   eventDetailItem: {
+    //  flex: -1,
+    padding:5,
+   },
+   eventDetailLabel: {
+     fontSize: 12,
+     fontWeight: '500',
+     color: '#475467',
+     marginBottom: 2,
+   },
+   eventDetailValue: {
+     fontSize: 16,
+     fontWeight: '500',
+     color: '#344054',
+   },
+   eventDateContainer: {
+    position :'absolute',
+    right : 20,
+    bottom : 0,
+     flexDirection: 'row',
+     alignItems: 'center',
+     gap: 6,
+     alignSelf: 'flex-end',
+     marginBottom: 16,
+   },
+   eventDate: {
+     fontSize: 12,
+     color: '#666666',
+   },
+  eventFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+  },
+  eventAttendees: {
+    flexDirection: 'row',
+    gap: -8,
+  },
+
+  // Shopping List Item Card
+  shoppingListItemCard: {
+    backgroundColor: '#FEFEFE',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 8,
+    border: '1px solid #EAECF0',
+    elevation: 2,
+  },
+  shoppingItemHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 8,
+  },
+  shoppingItemDate: {
+    fontSize: 14,
+    color: '#101828',
+    fontWeight: '600',
+  },
+  shoppingItemDetailsGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#EAECF0',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    backgroundColor: '#F9FAFB',
+  },
+  shoppingItemLeft: {
+    flex: 1,
+  },
+  shoppingItemRight: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  shoppingItemLabel: {
+    fontSize: 12,
+    color: '#667085',
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  shoppingItemName: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#344054',
+  },
+  shoppingItemQuantity: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#344054',
+  },
+  shoppingItemFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  purchaseStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  purchaseStatusText: {
+    fontSize: 12,
+    color: '#19B36E',
+    fontWeight: '500',
+  },
+  purchaserInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  purchaserAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#FFB6C1',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  purchaserAvatarText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  purchaserName: {
+    fontSize: 12,
+    color: '#2d2d2d',
+    fontWeight: '500',
   },
 });

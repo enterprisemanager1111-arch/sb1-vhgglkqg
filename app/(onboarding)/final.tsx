@@ -11,15 +11,21 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function OnboardingFinal() {
   const { t, currentLanguage } = useLanguage();
+  const { session, user, loading: authLoading } = useAuth();
   
-  
-
-
+  // Redirect authenticated users immediately
+  useEffect(() => {
+    if (!authLoading && session && user) {
+      console.log('🔄 Authenticated user on final page, redirecting to home');
+      router.replace('/(tabs)');
+    }
+  }, [session, user, authLoading]);
 
   const handleGetStarted = () => {
     router.replace('/(tabs)');
@@ -32,13 +38,15 @@ export default function OnboardingFinal() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#17f196" />
 
-      {/* Upper Section with Background Image */}
+      {/* Full Screen Background Image */}
+      <RNImage 
+        source={require('@/assets/images/newImg/background.jpg')} 
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      />
+
+      {/* Upper Section */}
       <View style={styles.upperSection}>
-        <RNImage 
-          source={require('@/assets/images/newImg/background.jpg')} 
-          style={styles.backgroundImage}
-          resizeMode="cover"
-        />
         {/* App Logo */}
         <View style={styles.logoContainer}>
           <RNImage 
@@ -109,7 +117,7 @@ export default function OnboardingFinal() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#17f196',
+    backgroundColor: 'transparent', // Let background image show through
     justifyContent: 'flex-end',
   },
 
@@ -119,6 +127,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+    backgroundColor: 'transparent', // Let background image show through
   },
   backgroundImage: {
     position: 'absolute',
@@ -128,6 +137,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     height: '100%',
+    zIndex: -1, // Ensure it stays behind all content
   },
 
   // App Logo

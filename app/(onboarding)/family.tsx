@@ -140,7 +140,7 @@ export default function FamilySetup() {
     }
     
     setLoading(true);
-    showLoading(t('family.onboarding.joining'));
+    showLoading(t('family.onboarding.joining') || 'Joining family...');
     
     try {
       await joinFamily(codeValidation.sanitized);

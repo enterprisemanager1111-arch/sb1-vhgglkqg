@@ -1,6 +1,6 @@
 import { Tabs, useRouter } from 'expo-router';
-import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
-import { Home, Users, Flame, Settings, Plus, Zap } from 'lucide-react-native';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator, Image } from 'react-native';
+import { Plus } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
 import AddItemModal from '@/components/AddItemModal';
@@ -61,35 +61,58 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
 
               // Get the appropriate icon and label
               const getIconAndLabel = () => {
-                const iconColor = isFocused ? '#17f196' : '#888888'; // Bright green for active, muted gray for inactive
                 const iconSize = 24;
                 
                 switch (route.name) {
                    case 'index':
                      return {
                        icon: (
-                         <View style={{ position: 'relative' }}>
-                           <Home size={iconSize} color={iconColor} fill={iconColor} />
-                           <View style={{ 
-                             position: 'absolute', 
-                             top: '50%', 
-                             left: '50%', 
-                             transform: [{ translateX: -6 }, { translateY: -6 }] 
-                           }}>
-                             <Zap size={12} color={iconColor} fill={iconColor} />
-                           </View>
-                         </View>
+                         <Image
+                           source={isFocused ? 
+                             require('@/assets/images/icon/home_active.png') : 
+                             require('@/assets/images/icon/home_normal.png')
+                           }
+                           style={{
+                             width: iconSize,
+                             height: iconSize,
+                             resizeMode: 'contain'
+                           }}
+                         />
                        ),
                        label: 'Home'
                      };
                    case 'family':
                      return {
-                       icon: <Users size={iconSize} color={iconColor} fill={iconColor} />,
+                       icon: (
+                         <Image
+                           source={isFocused ? 
+                             require('@/assets/images/icon/family_active.png') : 
+                             require('@/assets/images/icon/family_normal.png')
+                           }
+                           style={{
+                             width: iconSize,
+                             height: iconSize,
+                             resizeMode: 'contain'
+                           }}
+                         />
+                       ),
                        label: 'Family'
                      };
                    default:
                      return {
-                       icon: <Home size={iconSize} color={iconColor} fill={iconColor} />,
+                       icon: (
+                         <Image
+                           source={isFocused ? 
+                             require('@/assets/images/icon/home_active.png') : 
+                             require('@/assets/images/icon/home_normal.png')
+                           }
+                           style={{
+                             width: iconSize,
+                             height: iconSize,
+                             resizeMode: 'contain'
+                           }}
+                         />
+                       ),
                        label: 'Home'
                      };
                 }
@@ -139,23 +162,58 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
 
               // Get the appropriate icon and label
               const getIconAndLabel = () => {
-                const iconColor = isFocused ? '#17f196' : '#888888'; // Bright green for active, muted gray for inactive
                 const iconSize = 24;
                 
                  switch (route.name) {
                    case 'flames':
                      return {
-                       icon: <Flame size={iconSize} color={iconColor} fill={iconColor} />,
+                       icon: (
+                         <Image
+                           source={isFocused ? 
+                             require('@/assets/images/icon/flames_active.png') : 
+                             require('@/assets/images/icon/flames_normal.png')
+                           }
+                           style={{
+                             width: iconSize,
+                             height: iconSize,
+                             resizeMode: 'contain'
+                           }}
+                         />
+                       ),
                        label: 'Flames'
                      };
                    case 'profile':
                      return {
-                       icon: <Settings size={iconSize} color={iconColor} fill={iconColor} />,
+                       icon: (
+                         <Image
+                           source={isFocused ? 
+                             require('@/assets/images/icon/person_active.png') : 
+                             require('@/assets/images/icon/person_normal.png')
+                           }
+                           style={{
+                             width: iconSize,
+                             height: iconSize,
+                             resizeMode: 'contain'
+                           }}
+                         />
+                       ),
                        label: 'Profile'
                      };
                    default:
                      return {
-                       icon: <Home size={iconSize} color={iconColor} fill={iconColor} />,
+                       icon: (
+                         <Image
+                           source={isFocused ? 
+                             require('@/assets/images/icon/home_active.png') : 
+                             require('@/assets/images/icon/home_normal.png')
+                           }
+                           style={{
+                             width: iconSize,
+                             height: iconSize,
+                             resizeMode: 'contain'
+                           }}
+                         />
+                       ),
                        label: 'Home'
                      };
                  }
@@ -294,7 +352,7 @@ const styles = StyleSheet.create({
   tabBarContainer: {
     position: 'relative',
     backgroundColor: 'transparent',
-    height: 100,
+    height: 110,
   },
 
   // Add Button Container - positioned higher
@@ -310,21 +368,18 @@ const styles = StyleSheet.create({
   grayHalfCircleBackground: {
     position: 'absolute',
     width: 64,
-    height: 40, // Half the height for half circle
+    height: 64, // Half the height for half circle
     backgroundColor: '#F5F5F5', // Gray color matching page background
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-    borderBottomLeftRadius: 50,
-    borderBottomRightRadius: 50,
-    top: 36, // Center of bottom side aligns with center of Add button
+    borderRadius: 30,
+    top: 24, // Center of bottom side aligns with center of Add button
     left: -8,
+    boxShadow: '0 -2px 4px 0px rgba(0, 0, 0, 0.05) inset',
     zIndex: 0,
-    boxShadow: '0 -2px 4px 0px rgba(0, 0, 0, 0.1) inset',
   },
 
   // Add Button - Green circular button (no white outline)
   addButton: {
-    top: 20,
+    top: 30,
     width: 48,
     height: 48,
     borderRadius: 24,
@@ -349,10 +404,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF', // White background like the image
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    boxShadow: '0 -1px 4px 0px rgba(0, 0, 0, 0.05)',
     elevation: 4,
   },
 

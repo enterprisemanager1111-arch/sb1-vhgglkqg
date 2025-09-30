@@ -3,6 +3,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useLanguage } from '@/contexts/LanguageContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSegments } from 'expo-router';
 
 interface Profile {
   id: string;
@@ -37,6 +38,123 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const { t } = useLanguage();
+  const segments = useSegments();
+  
+  // Track if we're on a protected page where tokens should NOT be deleted
+  const isOnProtectedPage = () => {
+    const currentPath = segments.join('/');
+    return currentPath.includes('newFamily') || 
+           currentPath.includes('workProfileEmpty') || 
+           currentPath.includes('resetPwd') || 
+           currentPath.includes('myProfile/edit') ||
+           currentPath.includes('final');
+  };
+  
+  // Smart token protection - only protect valid tokens
+  const protectedAsyncStorage = {
+    removeItem: async (key: string) => {
+      if (key === 'sb-eqaxmxbqqiuiwkhjwvvz-auth-token' && isOnProtectedPage()) {
+        // Check if we have a valid session - if not, the token is likely corrupted/expired
+        if (session && user) {
+          console.log('🛡️ BLOCKED: Protecting valid auth token on protected page:', segments.join('/'));
+          return; // Don't delete valid tokens
+        } else {
+          console.log('🧹 ALLOWING: Removing expired/corrupted auth token even on protected page');
+        }
+      }
+      return AsyncStorage.removeItem(key);
+    },
+    multiRemove: async (keys: string[]) => {
+      const authTokenKey = 'sb-eqaxmxbqqiuiwkhjwvvz-auth-token';
+      if (keys.includes(authTokenKey) && isOnProtectedPage()) {
+        // Check if we have a valid session - if not, allow cleanup
+        if (session && user) {
+          console.log('🛡️ BLOCKED: Protecting valid auth token (multiRemove) on protected page:', segments.join('/'));
+          // Remove the auth token from the keys to delete
+          const filteredKeys = keys.filter(key => key !== authTokenKey);
+          if (filteredKeys.length > 0) {
+            return AsyncStorage.multiRemove(filteredKeys);
+          }
+          return;
+        } else {
+          console.log('🧹 ALLOWING: Removing expired/corrupted auth tokens (multiRemove) even on protected page');
+        }
+      }
+      return AsyncStorage.multiRemove(keys);
+    },
+    clear: async () => {
+      if (isOnProtectedPage()) {
+        // Only block clear if we have a valid session
+        if (session && user) {
+          console.log('🛡️ BLOCKED: Preventing AsyncStorage clear on protected page with valid session:', segments.join('/'));
+          return; // Don't clear storage if session is valid
+        } else {
+          console.log('🧹 ALLOWING: AsyncStorage clear on protected page - no valid session');
+        }
+      }
+      return AsyncStorage.clear();
+    }
+  };
+
+  // Check network connectivity to Supabase
+  const checkConnectivity = async (): Promise<boolean> => {
+    try {
+      // Simple connectivity test
+      const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/`, {
+        method: 'HEAD',
+        signal: AbortSignal.timeout(5000), // 5 second timeout
+      });
+      return response.ok;
+    } catch (error) {
+      console.log('🌐 Connectivity check failed:', error);
+      return false;
+    }
+  };
+
+  // Clean up corrupted or expired auth tokens
+  const cleanupAuthTokens = async (bypassRouteCheck = false) => {
+    console.log('🧹 Cleaning up auth tokens...');
+    
+    // Smart safety check: Only protect if we have valid session AND on protected page
+    if (!bypassRouteCheck && isOnProtectedPage()) {
+      if (session && user) {
+        console.log('🛡️ Preventing token cleanup - user has valid session on protected page:', segments.join('/'));
+        if (segments.join('/').includes('newFamily')) {
+          console.log('🔐 Specifically protecting newFamily page with valid session from token deletion');
+        }
+        return;
+      } else {
+        console.log('🧹 Allowing token cleanup on protected page - no valid session to protect');
+      }
+    }
+    
+    try {
+      // Remove the main auth token (with smart protection)
+      await protectedAsyncStorage.removeItem('sb-eqaxmxbqqiuiwkhjwvvz-auth-token');
+      
+      // Also remove any other potential auth-related keys
+      const keys = await AsyncStorage.getAllKeys();
+      const authKeys = keys.filter(key => 
+        key.includes('supabase') || 
+        key.includes('auth') || 
+        key.includes('sb-') ||
+        key.includes('eqaxmxbqqiuiwkhjwvvz')
+      );
+      
+      if (authKeys.length > 0) {
+        await protectedAsyncStorage.multiRemove(authKeys);
+        console.log('🧹 Removed auth keys:', authKeys);
+      }
+      
+      // Clear auth state
+      setSession(null);
+      setUser(null);
+      setProfile(null);
+      
+    } catch (error) {
+      console.error('Error cleaning up auth tokens:', error);
+    }
+  };
 
   // Load user profile
   const loadProfile = async (userId: string) => {
@@ -229,44 +347,154 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    let authSuccessful = false; // Track if auth was successful to prevent timeout cleanup
     
     const loadInitialData = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        console.log('🔄 Loading initial auth data...');
+        const { data: { session }, error } = await supabase.auth.getSession();
         
         if (!mounted) return;
         
+        if (error) {
+          console.error('❌ Error getting session:', error);
+          
+          // If it's a network error, try to clear any corrupted auth tokens
+          if (error.message?.includes('fetch') || error.message?.includes('network') || error.message?.includes('ERR_TUNNEL_CONNECTION_FAILED')) {
+            console.log('🧹 Network error detected, cleaning up potentially corrupted auth tokens...');
+            await cleanupAuthTokens();
+          }
+          
+          // Set states to null and stop loading
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          return;
+        }
+        
+        console.log('✅ Session loaded:', !!session);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          console.log('👤 User found, loading profile...');
           await loadProfile(session.user.id);
+        } else {
+          console.log('👤 No user found');
         }
-      } catch (error) {
-        console.error('Error loading initial auth data:', error);
+      } catch (error: any) {
+        console.error('❌ Error loading initial auth data:', error);
+        
+        // Handle network connectivity issues
+        if (error.message?.includes('fetch') || error.message?.includes('network') || error.message?.includes('ERR_TUNNEL_CONNECTION_FAILED')) {
+          console.log('🌐 Network connectivity issue detected, cleaning up auth state...');
+          await cleanupAuthTokens();
+        }
+        
+        // Always clear auth state on error
+        setSession(null);
+        setUser(null);
+        setProfile(null);
       } finally {
         if (mounted) {
+          console.log('✅ Auth loading completed');
           setLoading(false);
         }
       }
     };
 
-    loadInitialData();
+     // Add fallback timeout to ensure loading never stays true indefinitely
+    const fallbackTimeout = setTimeout(async () => {
+      if (mounted) {
+        console.warn('⚠️ Auth loading timeout reached');
+        
+        // IMPORTANT: Don't clean up tokens if we have a valid session/user, even if loading is slow
+        if (session && user) {
+          console.log('✅ Valid session and user found during timeout - just setting loading to false');
+          setLoading(false);
+          return;
+        }
+        
+        // Also don't clean up if auth was successful at any point
+        if (authSuccessful) {
+          console.log('✅ Auth was successful during this session - just setting loading to false');
+          setLoading(false);
+          return;
+        }
+        
+        // Check if there's a stored auth token but no session (network issue scenario)
+        // BUT be careful not to clean up tokens during normal navigation/loading
+        try {
+          const authToken = await AsyncStorage.getItem('sb-eqaxmxbqqiuiwkhjwvvz-auth-token');
+          if (authToken && !session && !user) {
+             // Only clean up tokens if we're sure it's a network/corruption issue
+             // Don't clean up if we might just be in the middle of normal loading/navigation
+             console.warn('⚠️ Auth token exists but session failed to load');
+             
+              // Only preserve tokens if there's a chance of valid auth state
+              if (isOnProtectedPage()) {
+                // If we're in a retry loop and still no session, it's likely a bad token
+                console.log('🔍 On protected page but no session after timeout - likely expired token');
+                console.log('🧹 Proceeding with token cleanup for corrupted/expired token');
+              }
+             
+             // Try to test connectivity before cleaning up tokens
+             try {
+               const connectivityTest = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/`, {
+                 method: 'HEAD',
+                 signal: AbortSignal.timeout(3000),
+               });
+               
+               if (!connectivityTest.ok) {
+                 console.warn('⚠️ Connectivity test failed - clearing potentially corrupted tokens');
+                 await cleanupAuthTokens();
+               } else {
+                 console.log('✅ Connectivity OK - keeping auth token, might just be loading delay');
+               }
+             } catch (connectivityError) {
+               console.warn('⚠️ Connectivity test failed - clearing tokens due to network issue');
+               await cleanupAuthTokens();
+             }
+           }
+         } catch (error) {
+           console.error('Error checking auth token during timeout:', error);
+         }
+         
+         setLoading(false);
+       }
+     }, 15000); // 15 second timeout (increased to give more time for auth to complete)
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
-      
-      console.log('🔄 Auth state change:', event, 'User ID:', session?.user?.id);
-      console.log('Session exists:', !!session);
-      console.log('User exists:', !!session?.user);
-      
+     loadInitialData();
+
+     const {
+       data: { subscription },
+     } = supabase.auth.onAuthStateChange(async (event, session) => {
+       if (!mounted) return;
+       
+       console.log('🔄 Auth state change:', event, 'User ID:', session?.user?.id);
+       console.log('Session exists:', !!session);
+       console.log('User exists:', !!session?.user);
+       
+       // Handle TOKEN_REFRESHED and SIGNED_OUT events specially
+       if (event === 'TOKEN_REFRESHED') {
+         console.log('🔄 Token refreshed successfully');
+       } else if (event === 'SIGNED_OUT') {
+         console.log('🚪 User signed out');
+         setSession(null);
+         setUser(null);
+         setProfile(null);
+         if (mounted) {
+           setLoading(false);
+         }
+         return;
+       }
+       
       setSession(session);
       setUser(session?.user ?? null);
 
-      if (session?.user) {
-        console.log('👤 User logged in, checking email verification...');
+     if (session?.user) {
+       authSuccessful = true; // Mark auth as successful
+       console.log('👤 User logged in, checking email verification...');
         
         // Check if we're in the middle of signup verification
         const isVerifyingSignup = await AsyncStorage.getItem('is_verifying_signup');
@@ -292,10 +520,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', session.user.id)
           .maybeSingle();
 
-        if (profileError) {
-          console.error('❌ Error loading profile:', profileError);
-          return;
-        }
+         if (profileError) {
+           console.error('❌ Error loading profile:', profileError);
+           // Even if there's a profile error, we should still set loading to false
+           // to prevent infinite loading state
+           if (mounted) {
+             setLoading(false);
+           }
+           return;
+         }
 
         if (existingProfile) {
           console.log('✅ Existing profile found, setting profile state');
@@ -327,10 +560,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+     return () => {
+       mounted = false;
+       clearTimeout(fallbackTimeout);
+       subscription.unsubscribe();
+     };
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string, birthDate?: string, role?: string, interests?: string[], companyID?: string, phoneNum?: string) => {
@@ -637,10 +871,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signOut = async () => {
+  const signOut = async (forceSignOut = false) => {
     console.log('🚪 Starting signOut process...');
     console.log('Current user before signout:', user?.id);
     console.log('Current session before signout:', session?.access_token ? 'exists' : 'null');
+    
+    // Smart protection - only protect if we have valid session and it's not forced
+    if (!forceSignOut && isOnProtectedPage() && session && user) {
+      console.log('🛡️ BLOCKED: Preventing signOut on protected page with valid session:', segments.join('/'));
+      console.log('🛡️ If this signOut is intentional, call signOut(true)');
+      return;
+    }
+    
+    if (!forceSignOut && isOnProtectedPage() && (!session || !user)) {
+      console.log('🧹 ALLOWING: SignOut on protected page - no valid session to protect');
+    }
     
     // Debug AsyncStorage before cleanup
     console.log('🔍 DEBUG: AsyncStorage before signOut:');
@@ -709,9 +954,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         console.log('🎯 Found auth-related keys to remove:', authKeys);
         
-        // Remove all auth-related keys
+        // Remove all auth-related keys (with protection)
         if (authKeys.length > 0) {
-          await AsyncStorage.multiRemove(authKeys);
+          await protectedAsyncStorage.multiRemove(authKeys);
           console.log('✅ AsyncStorage auth keys cleared:', authKeys);
         }
         
@@ -736,7 +981,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             for (const key of remainingKeys) {
               if (key.includes('supabase') || key.includes('auth') || key.includes('sb-') || key.includes('eqaxmxbqqiuiwkhjwvvz')) {
                 try {
-                  await AsyncStorage.removeItem(key);
+                  await protectedAsyncStorage.removeItem(key);
                   console.log(`✅ Removed individual key: ${key}`);
                 } catch (individualError) {
                   console.error(`❌ Failed to remove individual key ${key}:`, individualError);
@@ -762,7 +1007,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Nuclear option: Clear ALL AsyncStorage if auth keys persist
             console.log('🚨 Auth keys persist, attempting complete AsyncStorage clear...');
             try {
-              await AsyncStorage.clear();
+              await protectedAsyncStorage.clear();
               console.log('✅ Complete AsyncStorage cleared');
             } catch (clearError) {
               console.error('❌ Failed to clear AsyncStorage completely:', clearError);

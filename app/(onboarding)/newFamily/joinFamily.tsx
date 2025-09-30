@@ -19,6 +19,7 @@ import { useLoading } from '@/contexts/LoadingContext';
 import { useFamilyPoints } from '@/hooks/useFamilyPoints';
 import { useNotifications } from '@/components/NotificationSystem';
 import { validateFamilyCode } from '@/utils/sanitization';
+import { supabase } from '@/lib/supabase';
 
 export default function JoinFamily() {
   const { t } = useLanguage();
@@ -95,7 +96,7 @@ export default function JoinFamily() {
     }
     
     setLoading(true);
-    showLoading(t('family.onboarding.joining') || 'Joining family...');
+    showLoading(t('family.onboarding.joining') || 'Joining...');
     
     try {
       await joinFamily(codeValidation.sanitized);
@@ -124,13 +125,42 @@ export default function JoinFamily() {
         console.error('Error awarding points for joining family:', pointsError);
       }
       
+      // Get the family name from the result if available
+      const familyName = await (async () => {
+        try {
+          const { data: familyData } = await supabase
+            .from('families')
+            .select('name')
+            .eq('code', codeValidation.sanitized)
+            .single();
+          return familyData?.name;
+        } catch {
+          return null;
+        }
+      })();
+
+      // Show custom success alert with family name if available
+      const successTitle = t('family.onboarding.joinSuccess') || 'Successfully joined!';
+      const successMessage = familyName 
+        ? (t('family.onboarding.joinSuccessMessageWithName', { name: familyName }) || `You are now a member of "${familyName}".`)
+        : (t('family.onboarding.joinSuccessMessage') || 'You are now a member of the family.');
+
       Alert.alert(
-        t('family.onboarding.joinSuccess') || 'Success!',
-        t('family.onboarding.joinSuccessMessage') || 'You have successfully joined the family!',
-        [{ text: t('common.ok') || 'OK', onPress: () => router.replace('/(tabs)') }]
+        successTitle,
+        successMessage,
+        [{ 
+          text: t('common.ok') || 'OK', 
+          onPress: () => router.replace('/(tabs)') 
+        }],
+        { cancelable: false }
       );
     } catch (error: any) {
-      Alert.alert(t('common.error') || 'Error', error.message || t('family.onboarding.joinError') || 'Failed to join family');
+      Alert.alert(
+        t('common.error') || 'Error', 
+        error.message || t('family.onboarding.joinError') || 'Could not join family',
+        [{ text: t('common.ok') || 'OK' }],
+        { cancelable: false }
+      );
     } finally {
       setLoading(false);
       hideLoading();
