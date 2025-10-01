@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,553 +6,171 @@ import {
   ScrollView,
   Pressable,
   SafeAreaView,
-  Alert,
-  RefreshControl,
-  Image as RNImage,
+  StatusBar,
+  Image,
 } from 'react-native';
-import Animated, { useSharedValue, withSpring, withDelay, useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, MapPin, User, Trash2 } from 'lucide-react-native';
-
-import { useFamily } from '@/contexts/FamilyContext';
-import { useFamilyCalendarEvents } from '@/hooks/useFamilyCalendarEvents';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { NotificationSystem, useNotifications } from '@/components/NotificationSystem';
-import EmptyState from '@/components/EmptyState';
-import FamilyPrompt from '@/components/FamilyPrompt';
-import AddItemModal from '@/components/AddItemModal';
-
-const AnimatedView = Animated.createAnimatedComponent(View);
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+import { router } from 'expo-router';
 
 export default function Calendar() {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const { t } = useLanguage();
-  const [refreshing, setRefreshing] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  
-  const { isInFamily, currentFamily, loading: familyLoading } = useFamily();
-  const { 
-    events, 
-    loading: eventsLoading, 
-    error: eventsError,
-    deleteEvent,
-    refreshEvents,
-    getEventsForDate,
-    getUpcomingEvents 
-  } = useFamilyCalendarEvents();
-  const { notifications, dismissNotification, showMemberActivity } = useNotifications();
-  
-  const headerOpacity = useSharedValue(0);
-  const calendarScale = useSharedValue(0.8);
-  const eventsTranslateY = useSharedValue(30);
+  const [selectedDate, setSelectedDate] = useState('20 Sun');
 
-  useEffect(() => {
-    if (!isLoaded && !familyLoading && !eventsLoading) {
-      headerOpacity.value = withTiming(1, { duration: 600 });
-      calendarScale.value = withDelay(200, withSpring(1, { damping: 18 }));
-      eventsTranslateY.value = withDelay(400, withSpring(0, { damping: 20 }));
-      setIsLoaded(true);
-    }
-  }, [isLoaded, familyLoading, eventsLoading]);
-
-  const headerAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: headerOpacity.value,
-  }));
-
-  const calendarAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: calendarScale.value }],
-  }));
-
-  const eventsAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: eventsTranslateY.value }],
-    opacity: eventsTranslateY.value === 0 ? 1 : 0.7,
-  }));
-
-  // Show family prompt if user is not in a family
-  if (!familyLoading && !isInFamily) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <FamilyPrompt />
-      </SafeAreaView>
-    );
-  }
-
-  // Show loading only during initial load
-  if (familyLoading && !isLoaded) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <View style={styles.loadingIcon}>
-            <CalendarIcon size={32} color="#54FE54" strokeWidth={2} />
-          </View>
-          <Text style={styles.loadingText}>{t('calendar.loading')}</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // Show error state
-  if (eventsError) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorTitle}>{t('calendar.error.loading')}</Text>
-          <Text style={styles.errorText}>{eventsError}</Text>
-          <Pressable style={styles.retryButton} onPress={refreshEvents}>
-            <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  const onRefresh = async () => {
-    setRefreshing(true);``
-    try {
-      await refreshEvents();
-    } catch (error) {
-      console.error('Error refreshing calendar events:', error);
-    } finally {
-      setRefreshing(false);
-    }
+  // Mock data for the design
+  const mockData = {
+    currentDate: 'September, 25',
+    progress: {
+      today: '2, Events',
+      nextEvent: "Bob's Birthday"
+    },
+    events: [
+      {
+        id: 1,
+        title: "Bob's Birthday",
+        message: "Private message: Don't forget the gifts",
+        eventTitle: "Birthday Party",
+        startTime: "20:00 Uhr",
+        duration: "30min",
+        date: "20, September",
+        attendees: ['A', 'B', 'C']
+      },
+      {
+        id: 2,
+        title: "Private Meeting",
+        message: "Private message: Don't forget the gifts",
+        eventTitle: "Private Meeting",
+        startTime: "21:00 Uhr",
+        duration: "1h",
+        date: "20, September",
+        attendees: ['A', 'B', 'C']
+      }
+    ]
   };
 
-  const handleDeleteEvent = async (eventId: string) => {
-    Alert.alert(
-      t('calendar.delete.title'),
-      t('calendar.delete.message'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteEvent(eventId);
-              showMemberActivity(t('common.familyMember'), 'deleted an event');
-            } catch (error: any) {
-              Alert.alert(t('common.error'), t('calendar.error.delete') + ' ' + error.message);
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const monthNames = [
-    t('calendar.months.january'), t('calendar.months.february'), t('calendar.months.march'), t('calendar.months.april'), t('calendar.months.may'), t('calendar.months.june'),
-    t('calendar.months.july'), t('calendar.months.august'), t('calendar.months.september'), t('calendar.months.october'), t('calendar.months.november'), t('calendar.months.december')
-  ];
-
-  const monthNamesShort = [
-    t('calendar.monthsShort.january'), t('calendar.monthsShort.february'), t('calendar.monthsShort.march'), t('calendar.monthsShort.april'), t('calendar.monthsShort.may'), t('calendar.monthsShort.june'),
-    t('calendar.monthsShort.july'), t('calendar.monthsShort.august'), t('calendar.monthsShort.september'), t('calendar.monthsShort.october'), t('calendar.monthsShort.november'), t('calendar.monthsShort.december')
-  ];
-
-  const dayNamesShort = [t('calendar.days.sunday'), t('calendar.days.monday'), t('calendar.days.tuesday'), t('calendar.days.wednesday'), t('calendar.days.thursday'), t('calendar.days.friday'), t('calendar.days.saturday')];
-
-  const getDaysInMonth = (date: Date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
-
-    const days = [];
-    
-    // Add empty cells for days before the first day of the month
-    for (let i = 0; i < startingDayOfWeek; i++) {
-      days.push(null);
-    }
-    
-    // Add all days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      days.push(day);
-    }
-    
-    return days;
-  };
-
-  const getWeekDays = (date: Date) => {
-    const startOfWeek = new Date(date);
-    const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Monday is first day
-    startOfWeek.setDate(diff);
-    
-    const weekDays = [];
-    for (let i = 0; i < 7; i++) {
-      const weekDay = new Date(startOfWeek);
-      weekDay.setDate(startOfWeek.getDate() + i);
-      weekDays.push(weekDay);
-    }
-    return weekDays;
-  };
-
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    const newDate = new Date(currentDate);
-    if (direction === 'prev') {
-      newDate.setMonth(newDate.getMonth() - 1);
-    } else {
-      newDate.setMonth(newDate.getMonth() + 1);
-    }
-    setCurrentDate(newDate);
-  };
-
-  const selectDate = (day: number) => {
-    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    setSelectedDate(newDate);
-  };
-
-  const selectWeekDate = (date: Date) => {
-    setSelectedDate(date);
-    setCurrentDate(date);
-  };
-
-  const isToday = (day: number | null) => {
-    if (day === null) return false;
-    const today = new Date();
-    return (
-      day === today.getDate() &&
-      currentDate.getMonth() === today.getMonth() &&
-      currentDate.getFullYear() === today.getFullYear()
-    );
-  };
-
-  const isTodayWeek = (date: Date) => {
-    const today = new Date();
-    return (
-      date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear()
-    );
-  };
-
-  const isSelected = (day: number | null) => {
-    if (day === null) return false;
-    return (
-      day === selectedDate.getDate() &&
-      currentDate.getMonth() === selectedDate.getMonth() &&
-      currentDate.getFullYear() === selectedDate.getFullYear()
-    );
-  };
-
-  const isSelectedWeek = (date: Date) => {
-    return (
-      date.getDate() === selectedDate.getDate() &&
-      date.getMonth() === selectedDate.getMonth() &&
-      date.getFullYear() === selectedDate.getFullYear()
-    );
-  };
-
-  const hasEvent = (day: number | null) => {
-    if (day === null) return false;
-    const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    const dayEvents = getEventsForDate(dayDate.toISOString().split('T')[0]);
-    return dayEvents.length > 0;
-  };
-
-  const hasEventWeek = (date: Date) => {
-    const dayEvents = getEventsForDate(date.toISOString().split('T')[0]);
-    return dayEvents.length > 0;
-  };
-
-  const days = getDaysInMonth(currentDate);
-  const weekDays = getWeekDays(selectedDate);
-  const selectedDateString = selectedDate.toLocaleDateString('de-DE', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-
-  const selectedDateEvents = getEventsForDate(selectedDate.toISOString().split('T')[0]);
-  const upcomingEvents = getUpcomingEvents(7);
-  const todayEvents = getEventsForDate(new Date().toISOString().split('T')[0]);
-
-  // Show empty state if no events at all
-  if (isLoaded && events.length === 0) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <EmptyState
-          icon={<CalendarIcon size={40} color="#54FE54" strokeWidth={1.5} />}
-          title={t('calendar.empty.title')}
-          description={t('calendar.empty.description')}
-          buttonText={t('calendar.empty.button')}
-          onButtonPress={() => setShowAddModal(true)}
-        />
-      </SafeAreaView>
-    );
-  }
+  const dates = ['19 Sat', '20 Sun', '21 Mon', '22 Tue', '23 Sun'];
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Background Image */}
-      <RNImage 
-        source={require('@/assets/images/newImg/background.jpg')} 
-        style={styles.backgroundImage}
-        resizeMode="cover"
-      />
-      {/* Dark Overlay */}
-      <View style={styles.darkOverlay} />
+      <StatusBar barStyle="light-content" backgroundColor="#17f196" />
       
-      {/* Notification System */}
-      <NotificationSystem
-        notifications={notifications}
-        onDismiss={dismissNotification}
-      />
-      
-      <ScrollView 
-        style={styles.scrollView} 
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
-            onRefresh={onRefresh}
-            tintColor="#54FE54"
-          />
-        }
-      >
-        {/* Header */}
-        <AnimatedView style={[styles.header, headerAnimatedStyle]}>
-          <View style={styles.headerContent}>
-            <View style={styles.headerLeft}>
-              <Text style={styles.monthTitle}>
-                {monthNames[selectedDate.getMonth()]}, {selectedDate.getDate()}
-              </Text>
-              <Text style={styles.taskCountText}>{todayEvents.length} {t('calendar.today')}</Text>
-            </View>
-            <Pressable 
-              style={styles.addButton}
-              onPress={() => setShowAddModal(true)}
-            >
-              <Plus size={20} color="#FFFFFF" strokeWidth={2} />
-            </Pressable>
+      {/* Header Section */}
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>Calendar Events</Text>
+            <Text style={styles.subtitle}>Don't miss your clock in schedule</Text>
           </View>
-        </AnimatedView>
-
-        {/* Week View */}
-        <AnimatedView style={[styles.section, calendarAnimatedStyle]}>
-          <View style={styles.weekView}>
-            {weekDays.map((date, index) => {
-              const dayNumber = date.getDate();
-              const dayName = dayNamesShort[date.getDay()];
-              const isToday = isTodayWeek(date);
-              const isSelected = isSelectedWeek(date);
-              const hasEvents = hasEventWeek(date);
-              
-              return (
-                <AnimatedPressable
-                  key={index}
-                  style={[
-                    styles.weekDayItem,
-                    (isToday || isSelected) && styles.weekDaySelected
-                  ]}
-                  onPress={() => selectWeekDate(date)}
-                >
-                  <Text style={[
-                    styles.weekDayNumber,
-                    (isToday || isSelected) && styles.weekDayNumberSelected
-                  ]}>
-                    {dayNumber}
-                  </Text>
-                  <Text style={[
-                    styles.weekDayName,
-                    (isToday || isSelected) && styles.weekDayNameSelected
-                  ]}>
-                    {dayName}
-                  </Text>
-                  {hasEvents && !isSelected && !isToday && (
-                    <View style={styles.weekEventDot} />
-                  )}
-                </AnimatedPressable>
-              );
-            })}
+          <View style={styles.headerIllustration}>
+            <Image
+              source={require('@/assets/images/icon/clock_calendar.png')}
+              style={styles.illustrationImage}
+            />
           </View>
-        </AnimatedView>
+        </View>
+      </View>
 
-        {/* Month Navigation */}
-        <AnimatedView style={[styles.section, calendarAnimatedStyle]}>
-          <View style={styles.monthNavigation}>
-            <AnimatedPressable style={styles.monthNavButton} onPress={() => navigateMonth('prev')}>
-              <ChevronLeft size={20} color="#54FE54" strokeWidth={2} />
-            </AnimatedPressable>
-            <Text style={styles.monthNavTitle}>
-              {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-            </Text>
-            <AnimatedPressable style={styles.monthNavButton} onPress={() => navigateMonth('next')}>
-              <ChevronRight size={20} color="#54FE54" strokeWidth={2} />
-            </AnimatedPressable>
-          </View>
-        </AnimatedView>
-
-        {/* Calendar Grid */}
-        <AnimatedView style={[styles.section, calendarAnimatedStyle]}>
-          <View style={styles.calendar}>
-            {/* Day headers */}
-            <View style={styles.weekHeader}>
-              {dayNamesShort.map((day) => (
-                <Text key={day} style={styles.dayHeader}>
-                  {day}
-                </Text>
-              ))}
-            </View>
-
-            {/* Calendar days */}
-            <View style={styles.daysGrid}>
-              {days.map((day, index) => (
-                <AnimatedPressable
-                  key={index}
-                  style={[
-                    styles.dayCell,
-                    day === null && styles.emptyDayCell,
-                    isToday(day) && styles.todayCell,
-                    isSelected(day) && styles.selectedDayCell,
-                  ]}
-                  onPress={() => day && selectDate(day)}
-                  disabled={day === null}
-                >
-                  {day && (
-                    <>
-                      <Text
-                        style={[
-                          styles.dayText,
-                          isToday(day) && styles.todayText,
-                          isSelected(day) && styles.selectedDayText,
-                        ]}
-                      >
-                        {day}
-                      </Text>
-                      {hasEvent(day) && !isSelected(day) && !isToday(day) && (
-                        <View style={styles.eventDot} />
-                      )}
-                    </>
-                  )}
-                </AnimatedPressable>
-              ))}
-            </View>
-          </View>
-        </AnimatedView>
-
-        {/* Selected Date Events */}
-        <AnimatedView style={[styles.section, eventsAnimatedStyle]}>
-          <View style={styles.sectionHeader}>
-            <CalendarIcon size={20} color="#161618" strokeWidth={1.5} />
-            <Text style={styles.sectionTitle}>{t('calendar.eventsFor', { date: selectedDate.getDate().toString(), month: monthNames[selectedDate.getMonth()] })}</Text>
-          </View>
-
-          <View style={styles.eventsList}>
-            {selectedDateEvents.length > 0 ? (
-              selectedDateEvents.map((event) => (
-                <View key={event.id} style={styles.eventCard}>
-                  <View style={styles.eventLeftSection}>
-                    <View style={styles.eventTimeContainer}>
-                      <Clock size={14} color="#54FE54" strokeWidth={2} />
-                      <Text style={styles.eventTimeText}>
-                        {new Date(event.event_date).toLocaleTimeString('de-DE', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </Text>
-                    </View>
-                    <View style={styles.eventIndicator} />
-                  </View>
-                  
-                  <View style={styles.eventContent}>
-                    <Text style={styles.eventTitle}>{event.title}</Text>
-                    {event.description && (
-                      <Text style={styles.eventDescription}>{event.description}</Text>
-                    )}
-                    
-                    <View style={styles.eventMeta}>
-                      {event.location && (
-                        <View style={styles.eventMetaItem}>
-                          <MapPin size={12} color="#666666" strokeWidth={1.5} />
-                          <Text style={styles.eventLocation}>{event.location}</Text>
-                        </View>
-                      )}
-                      <View style={styles.eventMetaItem}>
-                        <User size={12} color="#666666" strokeWidth={1.5} />
-                        <Text style={styles.eventCreator}>
-                          {event.creator_profile?.name || t('calendar.unknown')}
-                        </Text>
-                      </View>
-                      <View style={styles.eventPoints}>
-                        <Text style={styles.eventPointsText}>{t('calendar.pointsEarned')}</Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  <Pressable 
-                    style={styles.deleteButton}
-                    onPress={() => handleDeleteEvent(event.id)}
-                  >
-                    <Trash2 size={16} color="#666666" strokeWidth={1.5} />
-                  </Pressable>
-                </View>
-              ))
-            ) : (
-              <View style={styles.emptyDayContainer}>
-                <CalendarIcon size={24} color="#E0E0E0" strokeWidth={1.5} />
-                <Text style={styles.emptyDayText}>{t('calendar.noEventsForDay') || 'No events for this day'}</Text>
-                <Pressable 
-                  style={styles.addEventButton}
-                  onPress={() => setShowAddModal(true)}
-                >
-                  <Plus size={16} color="#54FE54" strokeWidth={2} />
-                  <Text style={styles.addEventButtonText}>{t('calendar.addEvent')}</Text>
-                </Pressable>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Current Date and Progress */}
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryTitle}>{mockData.currentDate}</Text>
+          <Text style={styles.summarySubtitle}>Your current calendar progress</Text>
+          
+          <View style={styles.progressCards}>
+            <View style={styles.progressCard}>
+              <View style={styles.progressCardHeader}>
+                <Image
+                  source={require('@/assets/images/icon/clock.png')}
+                  style={styles.progressIcon}
+                />
+                <Text style={styles.progressCardTitle}>Today</Text>
               </View>
-            )}
-          </View>
-        </AnimatedView>
-
-        {/* Upcoming Events Preview */}
-        {upcomingEvents.length > 0 && (
-          <AnimatedView style={[styles.section, eventsAnimatedStyle]}>
-            <View style={styles.sectionHeader}>
-              <Clock size={20} color="#161618" strokeWidth={1.5} />
-              <Text style={styles.sectionTitle}>{t('calendar.thisWeek')}</Text>
+              <Text style={styles.progressCardValue}>{mockData.progress.today}</Text>
             </View>
             
-            <View style={styles.upcomingEventsList}>
-              {upcomingEvents.slice(0, 3).map((event) => (
-                <View key={event.id} style={styles.upcomingEventCard}>
-                  <View style={styles.upcomingEventDate}>
-                    <Text style={styles.upcomingEventDay}>
-                      {new Date(event.event_date).getDate()}
-                    </Text>
-                    <Text style={styles.upcomingEventMonth}>
-                      {monthNamesShort[new Date(event.event_date).getMonth()]}
-                    </Text>
+            <View style={styles.progressCard}>
+              <View style={styles.progressCardHeader}>
+                <Image
+                  source={require('@/assets/images/icon/clock.png')}
+                  style={styles.progressIcon}
+                />
+                <Text style={styles.progressCardTitle}>Next Event</Text>
+              </View>
+              <Text style={styles.progressCardValue}>{mockData.progress.nextEvent}</Text>
+            </View>
+          </View>
+
+          {/* Date Selector */}
+          <View style={styles.dateSelector}>
+            {dates.map((date, index) => (
+              <Pressable
+                  key={index}
+                  style={[
+                  styles.dateCard,
+                  selectedDate === date && styles.dateCardSelected
+                  ]}
+                onPress={() => setSelectedDate(date)}
+                >
+                  <Text style={[
+                  styles.dateNumber,
+                  selectedDate === date && styles.dateNumberSelected
+                  ]}>
+                  {date.split(' ')[0]}
+                  </Text>
+                  <Text style={[
+                  styles.dateDay,
+                  selectedDate === date && styles.dateDaySelected
+                  ]}>
+                  {date.split(' ')[1]}
+                  </Text>
+              </Pressable>
+              ))}
+            </View>
+          </View>
+
+         {/* Event Cards */}
+         <View style={styles.contentContainer}>
+           <View style={styles.eventsContainer}>
+             {mockData.events.map((event) => (
+               <View key={event.id} style={styles.calendarEventCard}>
+                 <View style={styles.eventHeader}>
+                   <Text style={styles.eventMainTitle}>{event.title}</Text>
+                   <Text style={styles.eventPrivateMessage}>{event.message}</Text>
+          </View>
+
+                 <View style={styles.eventDetailsContainer}>
+                     <View style={styles.eventDetailsGroup}>
+                       <View style={styles.eventDetailItemLeft}>
+                         <Text style={styles.eventDetailLabel}>Event Title</Text>
+                         <Text style={styles.eventDetailValue} numberOfLines={1}>{event.eventTitle}</Text>
+                    </View>
+                       <View style={styles.eventDetailItemCenter}>
+                         <Text style={styles.eventDetailLabel}>Start Time</Text>
+                         <Text style={styles.eventDetailValue} numberOfLines={1}>{event.startTime}</Text>
                   </View>
-                  <View style={styles.upcomingEventContent}>
-                    <Text style={styles.upcomingEventTitle}>{event.title}</Text>
-                    <Text style={styles.upcomingEventTime}>
-                      {new Date(event.event_date).toLocaleTimeString('de-DE', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                      {event.location && ` • ${event.location}`}
-                    </Text>
+                       <View style={styles.eventDetailItemRight}>
+                         <Text style={styles.eventDetailLabel}>Duration</Text>
+                         <Text style={styles.eventDetailValue} numberOfLines={1}>{event.duration}</Text>
+                      </View>
+                    </View>
+                  </View>
+
+                 <View style={styles.eventFooter}>
+                   <View style={styles.eventAttendees}>
+                     {event.attendees.map((attendee, index) => (
+                       <View key={index} style={[styles.attendeeAvatar, { backgroundColor: ['#FFB6C1', '#87CEEB', '#FFD700'][index] }]} />
+                     ))}
+                </View>
+                   <View style={styles.eventDateContainer}>
+                     <Image
+                       source={require('@/assets/images/icon/calendar2_dis.png')}
+                       style={styles.calendarIcon}
+                     />
+                     <Text style={styles.eventDate}>{event.date}</Text>
+                  </View>
                   </View>
                 </View>
               ))}
             </View>
-          </AnimatedView>
-        )}
-
-        {/* Bottom spacing für Tab Bar */}
-        <View style={styles.bottomSpacing} />
+         </View>
       </ScrollView>
-
-      {/* Add Event Modal */}
-      <AddItemModal
-        visible={showAddModal}
-        onClose={() => setShowAddModal(false)}
-      />
     </SafeAreaView>
   );
 }
@@ -561,483 +178,243 @@ export default function Calendar() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#102118',
+    backgroundColor: '#f1f3f8',
   },
-  backgroundImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: '100%',
-    height: '100%',
-  },
-  darkOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#102118',
-    opacity: 0.7,
-    zIndex: 1,
-  },
-  scrollView: {
-    flex: 1,
-    zIndex: 2,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-  },
-  loadingIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(84, 254, 84, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#666666',
-    fontFamily: 'Montserrat-Regular',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    gap: 16,
-  },
-  errorTitle: {
-    fontSize: 20,
-    fontFamily: 'Montserrat-Bold',
-    color: '#FF0000',
-    marginBottom: 8,
-  },
-  errorText: {
-    fontSize: 14,
-    fontFamily: 'Montserrat-Regular',
-    color: '#666666',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  retryButton: {
-    backgroundColor: '#54FE54',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    shadowColor: '#54FE54',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  retryButtonText: {
-    fontSize: 16,
-    fontFamily: 'Montserrat-SemiBold',
-    color: '#161618',
-  },
-
-  // Header - App-Design konform
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 24,
+    backgroundColor: '#17f196',
+    paddingTop: 40,
+    minHeight: 230,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    marginBottom: -90,
+    paddingHorizontal: 20,
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    // paddingTop: 20,
   },
-  headerLeft: {
+  headerText: {
     flex: 1,
   },
-  monthTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#161618',
-    fontFamily: 'Montserrat-Bold',
+  title: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#FEFEFE',
     marginBottom: 4,
   },
-  taskCountText: {
+  subtitle: {
     fontSize: 14,
-    color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+    fontWeight: '500',
+    color: '#D9D6FE',
   },
-  addButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#54FE54',
+  headerIllustration: {
+    marginLeft: 16,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#54FE54',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
   },
-
-  // Sections
-  section: {
-    paddingHorizontal: 24,
-    marginBottom: 24,
+  illustrationImage: {
+    width: 87,
+    height: 80,
+    resizeMode: 'contain',
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    gap: 8,
+  scrollView: {
+    flex: 1,
+    marginTop: -10,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
-  },
-
-  // Week View - App-Design konform
-  weekView: {
-    flexDirection: 'row',
+  summaryCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 8,
-    gap: 4,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+    marginHorizontal: 10,
+    marginBottom: 16,
+    borderRadius: 8,
+    padding: 20,
     elevation: 4,
   },
-  weekDayItem: {
+  summaryTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#101828',
+    lineHeight: 19.6, // 140% of 14px
+    marginBottom: 4,
+  },
+  summarySubtitle: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#475467',
+    lineHeight: 16.8, // 140% of 12px
+    marginBottom: 16,
+  },
+  progressCards: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  contentContainer: {
+    paddingHorizontal: 10,
+    // paddingTop: 20,
+  },
+  progressCard: {
     flex: 1,
-    alignItems: 'center',
-    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    backgroundColor: 'transparent',
-    position: 'relative',
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#EAECF0',
   },
-  weekDaySelected: {
-    backgroundColor: '#54FE54',
+  progressCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
   },
-  weekDayNumber: {
+  progressIcon: {
+    width: 16,
+    height: 16,
+    resizeMode: 'contain',
+  },
+  progressCardTitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#475467',
+  },
+  progressCardValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+    color: '#2D2D2D',
+  },
+  dateSelector: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 16,
+  },
+  dateCard: {
+    width: 64,
+    height: 118,
+    flexShrink: 0,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#EBECEE',
+    backgroundColor: '#F9F9F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateCardSelected: {
+    backgroundColor: '#17f196',
+  },
+  dateNumber: {
+    fontSize: 25,
+    fontWeight: '500',
+    color: '#2D2D2D',
     marginBottom: 2,
   },
-  weekDayNumberSelected: {
+  dateNumberSelected: {
     color: '#FFFFFF',
   },
-  weekDayName: {
-    fontSize: 11,
+  dateDay: {
+    fontSize: 14,
     fontWeight: '500',
-    color: '#666666',
-    fontFamily: 'Montserrat-Medium',
+    color: '#475467',
   },
-  weekDayNameSelected: {
+  dateDaySelected: {
     color: '#FFFFFF',
   },
-  weekEventDot: {
-    position: 'absolute',
-    bottom: 4,
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#54FE54',
+  eventsContainer: {
+    gap: 16,
+    paddingBottom: 100,
   },
-
-  // Month Navigation
-  monthNavigation: {
+  calendarEventCard: {
+    border: '1px solid #EAECF0',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    marginTop: 8,
+  },
+  eventHeader: {
+    marginBottom: 16,
+  },
+  eventMainTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#101828',
+    marginBottom: 4,
+  },
+  eventPrivateMessage: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#101828',
+  },
+  eventDetailsContainer: {
+    marginBottom: 16,
+  },
+  eventDetailsGroup: {
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: '#EAECF0',
+    borderRadius: 8,
+    padding: 12,
+    paddingHorizontal: 15,
+    backgroundColor: '#F9FAFB',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  eventDetailItem: {
+    padding: 5,
+  },
+  eventDetailItemLeft: {
+    flex: 2,
+    padding: 5,
+    alignItems: 'flex-start',
+  },
+  eventDetailItemCenter: {
+    flex: 1,
+    padding: 5,
+    alignItems: 'center',
+  },
+  eventDetailItemRight: {
+    flex: 1,
+    padding: 5,
+    alignItems: 'flex-end',
+  },
+  eventDetailLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#475467',
+    marginBottom: 2,
+  },
+  eventDetailValue: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#344054',
+  },
+  eventDateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  calendarIcon: {
+    width: 16,
+    height: 16,
+    resizeMode: 'contain',
+  },
+  eventDate: {
+    fontSize: 12,
+    color: '#475467',
+  },
+  eventFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+  },
+  eventAttendees: {
+    flexDirection: 'row',
+    gap: -8,
+  },
+  attendeeAvatar: {
+    width: 24,
+    height: 24,
     borderRadius: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  monthNavButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(84, 254, 84, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  monthNavTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
-  },
-
-  // Calendar Grid
-  calendar: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  weekHeader: {
-    flexDirection: 'row',
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-    marginBottom: 8,
-  },
-  dayHeader: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#666666',
-    fontFamily: 'Montserrat-SemiBold',
-  },
-  daysGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  dayCell: {
-    width: '14.28%',
-    aspectRatio: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-    marginBottom: 4,
-    borderRadius: 8,
-  },
-  emptyDayCell: {
-    opacity: 0,
-  },
-  todayCell: {
-    backgroundColor: '#54FE54',
-  },
-  selectedDayCell: {
-    backgroundColor: '#54FE54',
-  },
-  dayText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#161618',
-    fontFamily: 'Montserrat-Medium',
-  },
-  todayText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  selectedDayText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  eventDot: {
-    position: 'absolute',
-    bottom: 2,
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#54FE54',
-  },
-
-  // Events List
-  eventsList: {
-    gap: 12,
-  },
-  eventCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  eventLeftSection: {
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  eventTimeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(84, 254, 84, 0.1)',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    gap: 4,
-    marginBottom: 8,
-  },
-  eventTimeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#54FE54',
-    fontFamily: 'Montserrat-SemiBold',
-  },
-  eventIndicator: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#54FE54',
-  },
-  eventContent: {
-    flex: 1,
-  },
-  eventTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
-    marginBottom: 4,
-  },
-  eventDescription: {
-    fontSize: 14,
-    color: '#666666',
-    fontFamily: 'Montserrat-Regular',
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-  eventMeta: {
-    gap: 4,
-  },
-  eventMetaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  eventLocation: {
-    fontSize: 12,
-    color: '#666666',
-    fontFamily: 'Montserrat-Regular',
-  },
-  eventCreator: {
-    fontSize: 12,
-    color: '#666666',
-    fontFamily: 'Montserrat-Regular',
-  },
-  eventPoints: {
-    backgroundColor: 'rgba(84, 254, 84, 0.1)',
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  eventPointsText: {
-    fontSize: 10,
-    color: '#54FE54',
-    fontFamily: 'Montserrat-SemiBold',
-  },
-  deleteButton: {
-    padding: 4,
-    borderRadius: 8,
-    backgroundColor: '#F8F8F8',
-  },
-
-  // Empty Day
-  emptyDayContainer: {
-    alignItems: 'center',
-    paddingVertical: 32,
-    backgroundColor: 'rgba(84, 254, 84, 0.05)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(84, 254, 84, 0.1)',
-  },
-  emptyDayText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#666666',
-    fontFamily: 'Montserrat-Medium',
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  addEventButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(84, 254, 84, 0.1)',
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(84, 254, 84, 0.2)',
-  },
-  addEventButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#54FE54',
-    fontFamily: 'Montserrat-SemiBold',
-  },
-
-  // Upcoming Events
-  upcomingEventsList: {
-    gap: 8,
-  },
-  upcomingEventCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  upcomingEventDate: {
-    width: 50,
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  upcomingEventDay: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#161618',
-    fontFamily: 'Montserrat-Bold',
-  },
-  upcomingEventMonth: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: '#54FE54',
-    fontFamily: 'Montserrat-Medium',
-    textTransform: 'uppercase',
-  },
-  upcomingEventContent: {
-    flex: 1,
-  },
-  upcomingEventTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
-    marginBottom: 2,
-  },
-  upcomingEventTime: {
-    fontSize: 13,
-    color: '#666666',
-    fontFamily: 'Montserrat-Regular',
-  },
-
-  // Bottom spacing
-  bottomSpacing: {
-    height: 100,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
 });

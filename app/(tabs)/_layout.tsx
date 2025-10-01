@@ -45,7 +45,9 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
           <View style={styles.leftGroup}>
             {visibleRoutes.slice(0, 2).map((route: any) => {
               const originalIndex = state.routes.findIndex((r: any) => r.key === route.key);
-              const isFocused = state.index === originalIndex;
+              // Make home icon active when on tasks page or calendar page
+              const isFocused = state.index === originalIndex || 
+                (route.name === 'index' && (state.routes[state.index]?.name === 'tasks' || state.routes[state.index]?.name === 'calendar'));
 
               const onPress = () => {
                 const event = navigation.emit({
@@ -56,6 +58,9 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
 
                 if (!isFocused && !event.defaultPrevented) {
                   navigation.navigate(route.name);
+                } else if (route.name === 'index' && (state.routes[state.index]?.name === 'tasks' || state.routes[state.index]?.name === 'calendar')) {
+                  // If on tasks page or calendar page and clicking home icon, navigate to home
+                  navigation.navigate('index');
                 }
               };
 
@@ -246,11 +251,13 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
       </View>
     </View>
 
-    {/* Add Item Modal */}
-    <AddItemModal
-      visible={showAddItemModal}
-      onClose={() => setShowAddItemModal(false)}
-    />
+    {/* Add Item Modal - Only render when visible */}
+    {showAddItemModal && (
+      <AddItemModal
+        visible={showAddItemModal}
+        onClose={() => setShowAddItemModal(false)}
+      />
+    )}
     </>
   );
 }

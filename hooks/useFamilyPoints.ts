@@ -345,10 +345,62 @@ export const useFamilyPoints = (): UseFamilyPointsReturn => {
     try {
       setError(null);
       
-      // Load points activities
-      const { data: activitiesData, error: activitiesError } = await withTimeout(
-        supabase
-          .from('family_points_activities')
+      // Load points activities with better error handling
+      let activitiesData = [];
+      try {
+        const { data, error: activitiesError } = await withTimeout(
+          supabase
+            .from('family_points_activities')
+            .select(`
+              *,
+              user_profile:profiles!user_id (
+                name,
+                avatar_url
+              )
+            `)
+            .eq('family_id', currentFamily.id)
+            .order('created_at', { ascending: false })
+            .limit(100),
+          5000
+        );
+
+        if (activitiesError) {
+          console.warn('Warning: Could not load points activities:', activitiesError.message);
+        } else {
+          activitiesData = data || [];
+        }
+      } catch (error) {
+        console.warn('Warning: Points activities table may not exist:', error);
+      }
+
+      // Load family goals with better error handling
+      let goalsData = [];
+      try {
+        const { data, error: goalsError } = await supabase
+          .from('family_goals')
+          .select(`
+            *,
+            creator_profile:profiles!created_by (
+              name
+            )
+          `)
+          .eq('family_id', currentFamily.id)
+          .order('created_at', { ascending: false });
+
+        if (goalsError) {
+          console.warn('Warning: Could not load family goals:', goalsError.message);
+        } else {
+          goalsData = data || [];
+        }
+      } catch (error) {
+        console.warn('Warning: Family goals table may not exist:', error);
+      }
+
+      // Load achievements with better error handling
+      let achievementsData = [];
+      try {
+        const { data, error: achievementsError } = await supabase
+          .from('family_achievements')
           .select(`
             *,
             user_profile:profiles!user_id (
@@ -357,45 +409,20 @@ export const useFamilyPoints = (): UseFamilyPointsReturn => {
             )
           `)
           .eq('family_id', currentFamily.id)
-          .order('created_at', { ascending: false })
-          .limit(100),
-        5000
-      );
+          .order('unlocked_at', { ascending: false });
 
-      if (activitiesError) throw activitiesError;
+        if (achievementsError) {
+          console.warn('Warning: Could not load achievements:', achievementsError.message);
+        } else {
+          achievementsData = data || [];
+        }
+      } catch (error) {
+        console.warn('Warning: Family achievements table may not exist:', error);
+      }
 
-      // Load family goals
-      const { data: goalsData, error: goalsError } = await supabase
-        .from('family_goals')
-        .select(`
-          *,
-          creator_profile:profiles!created_by (
-            name
-          )
-        `)
-        .eq('family_id', currentFamily.id)
-        .order('created_at', { ascending: false });
-
-      if (goalsError) throw goalsError;
-
-      // Load achievements
-      const { data: achievementsData, error: achievementsError } = await supabase
-        .from('family_achievements')
-        .select(`
-          *,
-          user_profile:profiles!user_id (
-            name,
-            avatar_url
-          )
-        `)
-        .eq('family_id', currentFamily.id)
-        .order('unlocked_at', { ascending: false });
-
-      if (achievementsError) throw achievementsError;
-
-      setActivities(activitiesData || []);
-      setGoals(goalsData || []);
-      setAchievements(achievementsData || []);
+      setActivities(activitiesData);
+      setGoals(goalsData);
+      setAchievements(achievementsData);
     } catch (error: any) {
       console.error('Error loading points data:', error);
       setError(error.message);
@@ -599,6 +626,16 @@ export const useFamilyPoints = (): UseFamilyPointsReturn => {
   // Load data on mount and family change
   useEffect(() => {
     loadData();
+    
+    // Add fallback timeout to prevent infinite loading
+    const fallbackTimeout = setTimeout(() => {
+      if (loading) {
+        console.warn('⚠️ Points loading timeout reached, forcing loading to false');
+        setLoading(false);
+      }
+    }, 10000); // 10 second timeout
+    
+    return () => clearTimeout(fallbackTimeout);
   }, [currentFamily?.id, user?.id]); // Use stable dependencies instead of loadData
 
   // Setup real-time subscriptions with debouncing

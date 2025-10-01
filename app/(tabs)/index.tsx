@@ -178,7 +178,10 @@ export default function HomeDashboard() {
           
           <View style={styles.quickActionsGrid}>
             {/* Tasks */}
-            <Pressable style={styles.quickActionButton}>
+            <Pressable 
+              style={styles.quickActionButton}
+              onPress={() => router.push('/(tabs)/tasks')}
+            >
               <View style={styles.quickActionIcon}>
                 <Image
                   source={require('@/assets/images/icon/tasks.png')}
@@ -194,7 +197,10 @@ export default function HomeDashboard() {
             </Pressable>
 
             {/* Calendar */}
-            <Pressable style={styles.quickActionButton}>
+            <Pressable 
+              style={styles.quickActionButton}
+              onPress={() => router.push('/(tabs)/calendar')}
+            >
               <View style={styles.quickActionIcon}>
                 <Image
                   source={require('@/assets/images/icon/calendar2.png')}
@@ -210,7 +216,10 @@ export default function HomeDashboard() {
             </Pressable>
 
             {/* Shop List */}
-            <Pressable style={styles.quickActionButton}>
+            <Pressable 
+              style={styles.quickActionButton}
+              onPress={() => router.push('/(tabs)/shopList')}
+            >
               <View style={styles.quickActionIcon}>
                 <Image
                   source={require('@/assets/images/icon/shop_list.png')}
@@ -282,17 +291,17 @@ export default function HomeDashboard() {
             
              <View style={styles.eventDetailsContainer}>
                <View style={styles.eventDetailsGroup}>
-                 <View style={styles.eventDetailItem}>
+                 <View style={styles.eventDetailItemLeft}>
                    <Text style={styles.eventDetailLabel}>Event Title</Text>
-                   <Text style={styles.eventDetailValue}>Birthday Party</Text>
+                   <Text style={styles.eventDetailValue} numberOfLines={1}>Birthday Party</Text>
                  </View>
-                 <View style={styles.eventDetailItem}>
+                 <View style={styles.eventDetailItemCenter}>
                    <Text style={styles.eventDetailLabel}>Start Time</Text>
-                   <Text style={styles.eventDetailValue}>20:00 Uhr</Text>
+                   <Text style={styles.eventDetailValue} numberOfLines={1}>20:00 Uhr</Text>
                  </View>
-                 <View style={styles.eventDetailItem}>
+                 <View style={styles.eventDetailItemRight}>
                    <Text style={styles.eventDetailLabel}>Duration</Text>
-                   <Text style={styles.eventDetailValue}>30min</Text>
+                   <Text style={styles.eventDetailValue} numberOfLines={1}>30min</Text>
                  </View>
                </View>
              </View>
@@ -995,11 +1004,27 @@ const styles = StyleSheet.create({
      padding: 12,
      paddingHorizontal: 15,
      backgroundColor: '#F9FAFB',
-     gap: 12,
+     justifyContent: 'space-between',
+     alignItems: 'center',
    },
    eventDetailItem: {
     //  flex: -1,
     padding:5,
+   },
+   eventDetailItemLeft: {
+     flex: 2,
+     padding: 5,
+     alignItems: 'flex-start',
+   },
+   eventDetailItemCenter: {
+     flex: 1,
+     padding: 5,
+     alignItems: 'center',
+   },
+   eventDetailItemRight: {
+     flex: 1,
+     padding: 5,
+     alignItems: 'flex-end',
    },
    eventDetailLabel: {
      fontSize: 12,

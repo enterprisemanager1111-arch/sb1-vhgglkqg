@@ -357,50 +357,63 @@ export default function FamilyDashboard() {
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Family Members</Text>
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>3</Text>
+                <Text style={styles.badgeText}>{familyMembers ? familyMembers.length : 0}</Text>
               </View>
             </View>
             <Text style={styles.sectionSubtitle}>Alle Family Members are here listed</Text>
             
             <View style={styles.memberCards}>
-              <View style={styles.memberCard}>
-                <View style={styles.memberAvatar}>
-                  <Text style={styles.memberAvatarText}>T</Text>
+              {familyMembers && familyMembers.length > 0 ? (
+                familyMembers.slice(0, 4).map((member, index) => {
+                  const memberName = member.profiles?.name || 'Unknown';
+                  const nameParts = memberName.split(' ');
+                  const firstName = nameParts[0] || '';
+                  const lastName = nameParts.slice(1).join(' ') || '';
+                  const initials = nameParts.map(part => part.charAt(0).toUpperCase()).join('').slice(0, 2);
+                  
+                  return (
+                    <View key={member.user_id || index} style={styles.memberCard}>
+                      <View style={styles.memberAvatar}>
+                        {member.profiles?.avatar_url ? (
+                          <Image
+                            source={{ uri: member.profiles.avatar_url }}
+                            style={styles.memberAvatarImage}
+                          />
+                        ) : (
+                          <Text style={styles.memberAvatarText}>{initials}</Text>
+                        )}
+                      </View>
+                      <Text style={styles.memberName}>{firstName}</Text>
+                      <Text style={styles.memberLastName}>{lastName}</Text>
+                    </View>
+                  );
+                })
+              ) : (
+                <View style={styles.memberCard}>
+                  <View style={styles.memberAvatar}>
+                    <Text style={styles.memberAvatarText}>?</Text>
+                  </View>
+                  <Text style={styles.memberName}>No</Text>
+                  <Text style={styles.memberLastName}>Members</Text>
                 </View>
-                <Text style={styles.memberName}>Tonald</Text>
-                <Text style={styles.memberLastName}>Drump</Text>
-              </View>
+              )}
               
-              <View style={styles.memberCard}>
-                <View style={styles.memberAvatar}>
-                  <Text style={styles.memberAvatarText}>A</Text>
-                </View>
-                <Text style={styles.memberName}>Alice</Text>
-                <Text style={styles.memberLastName}>Smith</Text>
-              </View>
-              
-              <View style={styles.memberCard}>
-                <View style={styles.memberAvatar}>
-                  <Text style={styles.memberAvatarText}>B</Text>
-                </View>
-                <Text style={styles.memberName}>Bob</Text>
-                <Text style={styles.memberLastName}>Johnson</Text>
-              </View>
-              
-              <Pressable style={styles.inviteMemberCard} onPress={handleInvitePress}>
-                <View style={styles.inviteIcon}>
-                  <Image
-                    source={require('@/assets/images/icon/link.png')}
-                    style={{
-                      width: 18,
-                      height: 18,
-                      resizeMode: 'contain'
-                    }}
-                  />
-                </View>
-                <Text style={styles.inviteTitle}>Invite</Text>
-                <Text style={styles.inviteSubtitle}>Member</Text>
-              </Pressable>
+              {(!familyMembers || familyMembers.length < 4) && (
+                <Pressable style={styles.inviteMemberCard} onPress={handleInvitePress}>
+                  <View style={styles.inviteIcon}>
+                    <Image
+                      source={require('@/assets/images/icon/link_dis.png')}
+                      style={{
+                        width: 18,
+                        height: 18,
+                        resizeMode: 'contain'
+                      }}
+                    />
+                  </View>
+                  <Text style={styles.inviteTitle}>Invite</Text>
+                  <Text style={styles.inviteSubtitle}>Member</Text>
+                </Pressable>
+              )}
             </View>
           </View>
         </View>
@@ -953,16 +966,17 @@ const styles = StyleSheet.create({
   // === MEMBER CARDS ===
   memberCards: {
     flexDirection: 'row',
-    gap: 12,
+    justifyContent: 'flex-start',
+    gap: 8,
   },
   memberCard: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F9FAFB',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E8F5E8',
+    borderColor: '#EAECF0',
+    minWidth: 80,
   },
   memberAvatar: {
     width: 50,
@@ -972,6 +986,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
+  },
+  memberAvatarImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
   },
   memberAvatarText: {
     fontSize: 18,
@@ -989,11 +1008,11 @@ const styles = StyleSheet.create({
     color: '#666666',
   },
   inviteMemberCard: {
-    flex: 1,
     backgroundColor: '#F5F5F5',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
+    minWidth: 80,
   },
   inviteIcon: {
     width: 50,

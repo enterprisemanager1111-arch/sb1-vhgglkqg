@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,451 +6,251 @@ import {
   ScrollView,
   Pressable,
   SafeAreaView,
-  TextInput,
-  Alert,
-  RefreshControl,
+  Image,
+  StatusBar,
 } from 'react-native';
-import Animated, { useSharedValue, withSpring, withDelay, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
-import { Plus, CircleCheck as CheckCircle, Circle, Trophy, Star, User, Filter, Trash2, Calendar } from 'lucide-react-native';
-
-import { useFamily } from '@/contexts/FamilyContext';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { useFamilyTasks } from '@/hooks/useFamilyTasks';
-import { NotificationSystem, useNotifications } from '@/components/NotificationSystem';
-import EmptyState from '@/components/EmptyState';
-import FamilyPrompt from '@/components/FamilyPrompt';
-
-const AnimatedView = Animated.createAnimatedComponent(View);
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+import { useAuth } from '@/contexts/AuthContext';
+import { router } from 'expo-router';
 
 export default function Tasks() {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [newTask, setNewTask] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'household' | 'personal' | 'work' | 'family'>('all');
-  
-  const { isInFamily, currentFamily, familyMembers, loading: familyLoading } = useFamily();
-  const { t } = useLanguage();
-  const { 
-    tasks, 
-    loading: tasksLoading, 
-    error: tasksError,
-    createTask, 
-    toggleTaskCompletion, 
-    deleteTask,
-    refreshTasks,
-    getCompletedTasks,
-    getPendingTasks 
-  } = useFamilyTasks();
-  const { notifications, dismissNotification, showPointsEarned, showMemberActivity } = useNotifications();
-  
-  const headerOpacity = useSharedValue(0);
-  const leaderboardTranslateX = useSharedValue(-50);
-  const addTaskScale = useSharedValue(0.9);
-  const tasksListOpacity = useSharedValue(0);
-  
-  useEffect(() => {
-    if (!isLoaded) {
-      headerOpacity.value = withTiming(1, { duration: 600 });
-      leaderboardTranslateX.value = withDelay(300, withSpring(0, { damping: 20 }));
-      addTaskScale.value = withDelay(500, withSpring(1, { damping: 15 }));
-      tasksListOpacity.value = withDelay(700, withTiming(1, { duration: 800 }));
-      setIsLoaded(true);
+  const { user, profile } = useAuth();
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'inProgress' | 'finish'>('inProgress');
+
+  // Extract full name for greeting
+  const userName = (() => {
+    if (profile?.name) {
+      return profile.name;
     }
-  }, []);
-
-  const headerAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: headerOpacity.value,
-  }));
-
-  const leaderboardAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: leaderboardTranslateX.value }],
-  }));
-
-  const addTaskAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: addTaskScale.value }],
-  }));
-
-  const tasksListAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: tasksListOpacity.value,
-  }));
-
-  // Show family prompt if user is not in a family
-  if (!familyLoading && !isInFamily) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <FamilyPrompt />
-      </SafeAreaView>
-    );
-  }
-
-  // Show loading while family data is being fetched
-  if (familyLoading || tasksLoading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>{t('tasks.loading') || 'Loading tasks...'}</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // Show error state
-  if (tasksError) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorTitle}>{t('tasks.error.loading')}</Text>
-          <Text style={styles.errorText}>{tasksError}</Text>
-          <Pressable style={styles.retryButton} onPress={refreshTasks}>
-            <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await refreshTasks();
-    } catch (error) {
-      console.error('Error refreshing tasks:', error);
-    } finally {
-      setRefreshing(false);
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name;
     }
-  };
+    return 'Tonald Drump';
+  })();
 
-  const handleAddTask = async () => {
-    if (!newTask.trim()) {
-      Alert.alert(t('common.error') || 'Error', t('tasks.error.empty') || 'Task cannot be empty');
-      return;
-    }
-
-    try {
-      await createTask({
-        title: newTask.trim(),
-        category: selectedCategory === 'all' ? 'household' : selectedCategory,
-        completed: false,
-        points: 15, // Fixed points for tasks
-      });
-      setNewTask('');
-    } catch (error: any) {
-      Alert.alert(t('common.error'), t('tasks.error.create') + ' ' + error.message);
-    }
-  };
-
-  const handleToggleTask = async (taskId: string) => {
-    try {
-      const task = tasks.find(t => t.id === taskId);
-      const wasCompleted = task?.completed || false;
-      
-      await toggleTaskCompletion(taskId);
-      
-      // Show notification when task is completed
-      if (!wasCompleted && task) {
-        showPointsEarned(15, t('tasks.notifications.completed', { task: task.title }));
-        
-        // Show member activity notification for other family members
-        showMemberActivity(
-          task.assignee_profile?.name || t('tasks.list.unknown'),
-          t('tasks.notifications.memberCompleted', { task: task.title })
-        );
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    if (profile?.name) {
+      const names = profile.name.split(' ');
+      if (names.length >= 2) {
+        return (names[0][0] + names[names.length - 1][0]).toUpperCase();
       }
-    } catch (error: any) {
-      Alert.alert(t('common.error'), t('tasks.error.toggle') + ' ' + error.message);
+      return names[0][0].toUpperCase();
     }
+    return 'TD';
   };
 
-  const handleDeleteTask = async (taskId: string) => {
-    Alert.alert(
-      t('tasks.delete.title'),
-      t('tasks.delete.message'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteTask(taskId);
-            } catch (error: any) {
-              Alert.alert(t('common.error'), t('tasks.error.delete') + ' ' + error.message);
-            }
-          },
-        },
-      ]
-    );
-  };
+  // Mock data for tasks
+  const mockTasks = [
+    {
+      id: 1,
+      title: 'Wiring Dashboard Analytics',
+      status: 'In Progress',
+      priority: 'High',
+      progress: 85,
+      assignees: ['A', 'B', 'C'],
+      dueDate: '27 April'
+    },
+    {
+      id: 2,
+      title: 'API Dashboard Analytics Integration',
+      status: 'In Progress',
+      priority: 'High',
+      progress: 70,
+      assignees: ['A', 'B', 'C'],
+      dueDate: '27 April'
+    }
+  ];
 
-  const filteredTasks = selectedCategory === 'all' 
-    ? tasks 
-    : tasks.filter(task => task.category === selectedCategory);
-
-  const completedTasks = getCompletedTasks();
-  const pendingTasks = getPendingTasks();
-  const totalPoints = completedTasks.reduce((sum, task) => sum + task.points, 0);
-
-  // Calculate leaderboard from family members
-  const leaderboard = familyMembers.map(member => {
-    const memberTasks = completedTasks.filter(task => task.assignee_id === member.user_id);
-    const points = memberTasks.reduce((sum, task) => sum + (task.points || 0), 0);
-    return {
-      name: member.profiles?.name || 'Unbekannt',
-      points: points,
-      avatar: member.profiles?.name?.charAt(0).toUpperCase() || 'U',
-    };
-  }).sort((a, b) => b.points - a.points);
-
-  // Show empty state if no tasks
-  if (isLoaded && tasks.length === 0) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <EmptyState
-          icon={<CheckCircle size={40} color="#54FE54" strokeWidth={1.5} />}
-          title={t('tasks.empty.title')}
-          description={t('tasks.empty.description')}
-          buttonText={t('tasks.empty.button')}
-          onButtonPress={() => {
-            // Focus on the input field
-          }}
-        />
-      </SafeAreaView>
-    );
-  }
+  const filteredTasks = selectedFilter === 'all' 
+    ? mockTasks 
+    : selectedFilter === 'inProgress' 
+    ? mockTasks.filter(task => task.status === 'In Progress')
+    : mockTasks.filter(task => task.status === 'Done');
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Notification System */}
-      <NotificationSystem
-        notifications={notifications}
-        onDismiss={dismissNotification}
-      />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
-      <ScrollView 
-        style={styles.scrollView} 
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
-            onRefresh={onRefresh}
-            tintColor="#54FE54"
-          />
-        }
-      >
-        {/* Header */}
-        <AnimatedView style={[styles.header, headerAnimatedStyle]}>
-          <Text style={styles.title}>{t('tasks.title') || 'Tasks'}</Text>
-          <View style={styles.headerStats}>
-            <Text style={styles.statText}>{completedTasks.length} {t('tasks.stats.completed')}</Text>
-            <Text style={styles.pointsText}>{totalPoints} {t('tasks.stats.pointsCollected')}</Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerTop}>
+          <View style={styles.statusBarIcons}>
+            {/* Status bar icons would go here */}
           </View>
-        </AnimatedView>
-
-        {/* Leaderboard */}
-        {leaderboard.length > 0 && (
-          <AnimatedView style={[styles.section, leaderboardAnimatedStyle]}>
-            <View style={styles.sectionHeader}>
-              <Trophy size={20} color="#161618" strokeWidth={1.5} />
-              <Text style={styles.sectionTitle}>{t('tasks.leaderboard.title')}</Text>
-            </View>
-            <AnimatedView style={styles.glassCard}>
-              {leaderboard.map((member, index) => (
-                <View key={member.name} style={styles.leaderboardItem}>
-                  <View style={styles.leaderboardRank}>
-                    {index === 0 && <Star size={16} color="#54FE54" strokeWidth={1.5} />}
-                    <Text style={styles.rankNumber}>{index + 1}</Text>
-                  </View>
-                  <View style={[styles.memberAvatar, index === 1 && styles.dadAvatar, index === 2 && styles.kidAvatar]}>
-                    <Text style={styles.avatarText}>{member.avatar}</Text>
-                  </View>
-                  <Text style={styles.memberName}>{member.name}</Text>
-                  <Text style={styles.memberPoints}>{member.points} pts</Text>
-                </View>
-              ))}
-            </AnimatedView>
-          </AnimatedView>
-        )}
-
-        {/* Add New Task */}
-        <AnimatedView style={[styles.section, addTaskAnimatedStyle]}>
-          <Text style={styles.sectionTitle}>{t('tasks.add.title')}</Text>
-          <View style={styles.addTaskContainer}>
-            <TextInput
-              style={styles.taskInput}
-              placeholder={t('tasks.add.placeholder') || 'Add a new task...'}
-              value={newTask}
-              onChangeText={setNewTask}
-              placeholderTextColor="#888888"
+        </View>
+        
+        <View style={styles.headerContent}>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>Task Awaiting</Text>
+            <Text style={styles.subtitle}>Let's tackle your to do list</Text>
+          </View>
+          <View style={styles.headerIllustration}>
+            <Image
+              source={require('@/assets/images/icon/task_header.png')}
+              style={styles.illustrationImage}
             />
-            <AnimatedPressable 
-              style={[styles.addTaskButton, newTask.trim() ? styles.addTaskButtonActive : null]}
-              onPress={handleAddTask}
-              disabled={!newTask.trim()}
-            >
-              <Plus size={20} color={newTask.trim() ? "#161618" : "#666666"} strokeWidth={1.5} />
-            </AnimatedPressable>
           </View>
-        </AnimatedView>
+        </View>
+      </View>
 
-        {/* Filter Buttons */}
-        <AnimatedView style={[styles.section, addTaskAnimatedStyle]}>
-          <View style={styles.filterContainer}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
-              {['all', 'household', 'personal', 'work', 'family'].map((category) => (
-                <AnimatedPressable
-                  key={category}
-                  style={[
-                    styles.filterButton,
-                    selectedCategory === category && styles.filterButtonActive
-                  ]}
-                  onPress={() => setSelectedCategory(category as any)}
-                >
-                  <Text style={[
-                    styles.filterButtonText,
-                    selectedCategory === category && styles.filterButtonTextActive
-                  ]}>
-                    {t(`tasks.filter.categories.${category}`)}
-                  </Text>
-                </AnimatedPressable>
-              ))}
-            </ScrollView>
-          </View>
-        </AnimatedView>
-
-        {/* Tasks List */}
-        <AnimatedView style={[styles.section, tasksListAnimatedStyle]}>
-          <View style={styles.sectionHeader}>
-            <Filter size={20} color="#161618" strokeWidth={1.5} />
-            <Text style={styles.sectionTitle}>
-              {selectedCategory === 'all' ? t('tasks.filter.all') : t(`tasks.filter.categories.${selectedCategory}`)}
-            </Text>
-          </View>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Summary of Your Work */}
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryTitle}>Summary of Your Work</Text>
+          <Text style={styles.summarySubtitle}>Your current task progress</Text>
           
-          {/* Pending Tasks */}
-          <View style={styles.tasksList}>
-            <Text style={styles.subsectionTitle}>{t('tasks.list.pending')} ({pendingTasks.filter(task => selectedCategory === 'all' || task.category === selectedCategory).length})</Text>
-            {filteredTasks.filter(task => !task.completed).map((task) => (
-              <AnimatedView key={task.id} style={styles.glassTaskCard}>
-                <AnimatedPressable 
-                  style={styles.taskCheckbox}
-                  onPress={() => handleToggleTask(task.id)}
-                  disabled={task.completed}
-                >
-                  {task.completed ? (
-                    <CheckCircle size={20} color="#54FE54" strokeWidth={1.5} />
-                  ) : (
-                    <Circle size={20} color="#161618" strokeWidth={1.5} />
-                  )}
-                </AnimatedPressable>
-                
-                <View style={styles.taskContent}>
-                  <Text style={styles.taskTitle}>{task.title}</Text>
-                  {task.description && (
-                    <Text style={styles.taskDescription}>{task.description}</Text>
-                  )}
-                  <View style={styles.taskMeta}>
-                    <View style={styles.taskAssignee}>
-                      <User size={12} color="#161618" strokeWidth={1.5} />
-                      <Text style={styles.assigneeText}>
-                        {task.assignee_profile?.name || t('tasks.list.unassigned')}
-                      </Text>
-                    </View>
-                    <View style={styles.taskCategory}>
-                      <Text style={styles.categoryText}>
-                        {t(`tasks.filter.categories.${task.category}`)}
-                      </Text>
-                    </View>
-                    {task.due_date && (
-                      <View style={styles.taskDueDate}>
-                        <Calendar size={12} color="#666666" strokeWidth={1.5} />
-                        <Text style={styles.dueDateText}>
-                          {new Date(task.due_date).toLocaleDateString('de-DE')}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                </View>
-
-                <View style={styles.taskActions}>
-                  <Text style={styles.pointsText}>{task.points} pts</Text>
-                  <AnimatedPressable 
-                    style={styles.deleteButton}
-                    onPress={() => handleDeleteTask(task.id)}
-                  >
-                    <Trash2 size={16} color="#666666" strokeWidth={1.5} />
-                  </AnimatedPressable>
-                </View>
-              </AnimatedView>
-            ))}
-
-            {/* Completed Tasks */}
-            {/* Completed Tasks - Show for 24h then auto-delete */}
-            {completedTasks.filter(t => selectedCategory === 'all' || t.category === selectedCategory).length > 0 && (
-              <>
-                <Text style={[styles.subsectionTitle, styles.completedSubsection]}>
-                  {t('tasks.list.completed')} ({completedTasks.filter(task => selectedCategory === 'all' || task.category === selectedCategory).length})
-                </Text>
-                <View style={styles.completedNotice}>
-                  <Text style={styles.completedNoticeText}>
-                    {t('tasks.list.completedNotice')}
-                  </Text>
-                </View>
-                {filteredTasks.filter(task => task.completed).map((task) => {
-                  const completedTime = new Date(task.updated_at);
-                  const timeRemaining = 24 - Math.floor((Date.now() - completedTime.getTime()) / (1000 * 60 * 60));
-                  
-                  return (
-                    <AnimatedView key={task.id} style={[styles.glassTaskCard, styles.completedTaskCard]}>
-                      <View style={styles.taskCheckbox}>
-                        <CheckCircle size={20} color="#54FE54" strokeWidth={1.5} />
-                      </View>
-                      
-                      <View style={styles.taskContent}>
-                        <Text style={[styles.taskTitle, styles.completedTaskTitle]}>
-                          {task.title}
-                        </Text>
-                        {task.description && (
-                          <Text style={[styles.taskDescription, styles.completedTaskDescription]}>
-                            {task.description}
-                          </Text>
-                        )}
-                        <View style={styles.taskMeta}>
-                          <View style={styles.taskAssignee}>
-                            <User size={12} color="#666666" strokeWidth={1.5} />
-                            <Text style={styles.assigneeText}>
-                              {task.assignee_profile?.name || t('tasks.list.unassigned')}
-                            </Text>
-                          </View>
-                          <View style={styles.taskCategory}>
-                            <Text style={styles.categoryText}>
-                              {t(`tasks.filter.categories.${task.category}`)}
-                            </Text>
-                          </View>
-                          <View style={styles.timeRemaining}>
-                            <Text style={styles.timeRemainingText}>
-                              {t('tasks.list.timeRemaining', { hours: Math.max(0, timeRemaining).toString() })}
-                            </Text>
-                          </View>
-                        </View>
-                      </View>
-
-                      <View style={styles.taskActions}>
-                        <Text style={styles.pointsText}>+{task.points} pts</Text>
-                        <AnimatedPressable 
-                          style={styles.deleteButton}
-                          onPress={() => handleDeleteTask(task.id)}
-                        >
-                          <Trash2 size={16} color="#888888" strokeWidth={1.5} />
-                        </AnimatedPressable>
-                      </View>
-                    </AnimatedView>
-                  );
-                })}
-              </>
-            )}
+          <View style={styles.progressCards}>
+            <View style={styles.progressCard}>
+              <View style={styles.progressCardContent}>
+                <Image
+                  source={require('@/assets/images/icon/code-circle.png')}
+                  style={styles.progressIconImage}
+                />
+                <Text style={styles.progressLabel}>To Do</Text>
+              </View>
+              <Text style={styles.progressNumber}>5</Text>
+            </View>
+            
+            <View style={styles.progressCard}>
+              <View style={styles.progressCardContent}>
+                <Image
+                  source={require('@/assets/images/icon/task_clock.png')}
+                  style={styles.progressIconImage}
+                />
+                <Text style={styles.progressLabel}>In Progress</Text>
+              </View>
+              <Text style={styles.progressNumber}>2</Text>
+            </View>
+            
+            <View style={styles.progressCard}>
+              <View style={styles.progressCardContent}>
+                <Image
+                  source={require('@/assets/images/icon/tick-circle.png')}
+                  style={styles.progressIconImage}
+                />
+                <Text style={styles.progressLabel}>Done</Text>
+              </View>
+              <Text style={styles.progressNumber}>1</Text>
+            </View>
           </View>
-        </AnimatedView>
+        </View>
+
+        {/* Sprint Stats */}
+        <View style={styles.sprintCard}>
+          <View style={styles.sprintHeader}>
+            <View style={styles.sprintTitleContainer}>
+              <Text style={styles.sprintTitle}>Sprint 20 - Burnout Stats</Text>
+              <View style={styles.statusTag1}>
+                <Text style={styles.statusTagText1}>Poor</Text>
+              </View>
+            </View>
+          </View>
+          <Text style={styles.sprintDescription}>
+            You've completed 8 more tasks than usual, maintain your task with your supervisor
+          </Text>
+          <View style={styles.burnoutIndicatorContainer}>
+            <View style={styles.burnoutIndicator}>
+              <Image
+                source={require('@/assets/images/icon/poor.png')}
+                style={styles.burnoutIcon}
+                resizeMode="contain"
+              />
+              <View style={styles.sprintProgressBar}>
+                <View style={[styles.sprintProgressFill, { width: '85%' }]} />
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Filter Bar */}
+        <View style={styles.filterBarContainer}>
+          <View style={styles.filterBar}>
+            <Pressable 
+              style={[styles.filterButton, selectedFilter === 'all' && styles.filterButtonActive]}
+              onPress={() => setSelectedFilter('all')}
+            >
+              <Text style={[styles.filterText, selectedFilter === 'all' && styles.filterTextActive]}>All</Text>
+              <View style={styles.filterBadge}>
+                <Text style={styles.filterBadgeText}>3</Text>
+              </View>
+            </Pressable>
+            
+            <Pressable 
+              style={[styles.filterButton, selectedFilter === 'inProgress' && styles.filterButtonActive]}
+              onPress={() => setSelectedFilter('inProgress')}
+            >
+              <Text style={[styles.filterText, selectedFilter === 'inProgress' && styles.filterTextActive]}>In Progress</Text>
+              <View style={[styles.filterBadge, selectedFilter === 'inProgress' && styles.filterBadgeActive]}>
+                <Text style={[styles.filterBadgeText, selectedFilter === 'inProgress' && styles.filterBadgeTextActive]}>2</Text>
+              </View>
+            </Pressable>
+            
+            <Pressable 
+              style={[styles.filterButton, selectedFilter === 'finish' && styles.filterButtonActive]}
+              onPress={() => setSelectedFilter('finish')}
+            >
+              <Text style={[styles.filterText, selectedFilter === 'finish' && styles.filterTextActive]}>Finish</Text>
+              <View style={styles.filterBadge}>
+                <Text style={styles.filterBadgeText}>2</Text>
+              </View>
+            </Pressable>
+          </View>
+        </View>
+
+        {/* Task List */}
+        <View style={styles.taskList}>
+          {filteredTasks.map((task) => (
+            <View key={task.id} style={styles.taskCard}>
+             <View style={styles.taskHeader}>
+               <View style={styles.taskIcon}>
+                 <Image
+                   source={require('@/assets/images/icon/flash.png')}
+                   style={styles.taskIconImage}
+                 />
+               </View>
+               <Text style={styles.taskTitle}>{task.title}</Text>
+             </View>
+             
+             <View style={styles.taskTags}>
+               <View style={styles.statusTag}>
+                 <Image
+                   source={require('@/assets/images/icon/in_progress.png')}
+                   style={styles.statusTagIcon}
+                 />
+                 <Text style={styles.statusTagText}>{task.status}</Text>
+               </View>
+               <View style={styles.priorityTag}>
+                 <Image
+                   source={require('@/assets/images/icon/flag.png')}
+                   style={styles.priorityIcon}
+                 />
+                 <Text style={styles.priorityText}>{task.priority}</Text>
+               </View>
+             </View>
+             
+             <View style={styles.progressBar}>
+               <View style={[styles.progressFill, { width: `${task.progress}%` }]} />
+             </View>
+              
+              <View style={styles.taskFooter}>
+                <View style={styles.assignees}>
+                  {task.assignees.map((assignee, index) => (
+                    <View key={index} style={[styles.assigneeAvatar, { marginLeft: index > 0 ? -8 : 0 }]}>
+                      <Text style={styles.assigneeText}>{assignee}</Text>
+                    </View>
+                  ))}
+                </View>
+                <View style={styles.dueDate}>
+                  <Image
+                    source={require('@/assets/images/icon/calendar2_dis.png')}
+                    style={styles.calendarIcon}
+                  />
+                  <Text style={styles.dueDateText}>{task.dueDate}</Text>
+                </View>
+              </View>
+            </View>
+          ))}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -462,379 +261,391 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F3F3F5',
   },
-  scrollView: {
+  header: {
+    backgroundColor: '#17f196',
+    paddingTop: 40,
+    minHeight: 230,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    marginBottom: -90,
+    paddingHorizontal: 20,
+    // paddingBottom: 20,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    // marginBottom: 20,
+  },
+  time: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2d2d2d',
+  },
+  statusBarIcons: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerText: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 16,
-  },
-  addTaskHeaderButton: {
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: '#54FE54',
-    shadowColor: '#54FE54',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  headerStatsContainer: {
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-  },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#161618',
-    fontFamily: 'Montserrat-Bold',
-    marginBottom: 8,
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#FEFEFE',
+    marginBottom: 4,
   },
-  headerStats: {
+  subtitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#D9D6FE',
+  },
+  headerIllustration: {
+    marginLeft: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  illustrationImage: {
+    width: 87,
+    height: 80,
+    resizeMode: 'contain',
+  },
+  scrollView: {
+    flex: 1,
+    marginTop: -10,
+  },
+  summaryCard: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 10,
+    marginBottom: 16,
+    borderRadius: 8,
+    padding: 20,
+    elevation: 4,
+  },
+  summaryTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#101828',
+    lineHeight: 19.6, // 140% of 14px
+    marginBottom: 4,
+  },
+  summarySubtitle: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#475467',
+    lineHeight: 16.8, // 140% of 12px
+    marginBottom: 16,
+  },
+  progressCards: {
     flexDirection: 'row',
     gap: 16,
   },
-  statText: {
-    fontSize: 14,
-    color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+  progressCard: {
+    flex: 1,
+    alignItems: 'left',
+    backgroundColor: '#F9F9F9',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#EBECEE',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    gap: 4,
   },
-  pointsText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#54FE54',
-    fontFamily: 'Montserrat-SemiBold',
-  },
-  section: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
-  },
-  sectionHeader: {
+  progressCardContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
     gap: 8,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
+  progressIconImage: {
+    width: 16,
+    height: 16,
+    resizeMode: 'contain',
   },
-  glassCard: {
-    backgroundColor: 'rgba(191, 232, 236, 0.15)',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+  progressLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#475467',
+    letterSpacing: -0.5,
+  },
+  progressNumber: {
+    fontSize: 20,
+    fontWeight: '400',
+    color: '#101828',
+    letterSpacing: -0.5,
+  },
+  sprintCard: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 10,
+    marginBottom: 16,
+    borderRadius: 8,
+    padding: 20,
     elevation: 4,
   },
-  leaderboardItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(191, 232, 236, 0.3)',
-  },
-  leaderboardRank: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: 40,
-    marginRight: 12,
-    gap: 4,
-  },
-  memberAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#54FE54',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  dadAvatar: {
-    backgroundColor: 'rgba(191, 232, 236, 0.8)',
-  },
-  kidAvatar: {
-    backgroundColor: 'rgba(255, 192, 203, 0.8)',
-  },
-  avatarText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
-  },
-  rankNumber: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666666',
-    fontFamily: 'Montserrat-SemiBold',
-  },
-  memberName: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#161618',
-    fontFamily: 'Montserrat-Medium',
-  },
-  memberPoints: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#54FE54',
-    fontFamily: 'Montserrat-SemiBold',
-  },
-  addTaskContainer: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  taskInput: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    fontFamily: 'Montserrat-Regular',
-    color: '#161618',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  addTaskButton: {
-    backgroundColor: '#E0E0E0',
-    borderRadius: 12,
-    padding: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addTaskButtonActive: {
-    backgroundColor: '#54FE54',
-    shadowColor: '#54FE54',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  filterContainer: {
-    marginTop: -16,
-  },
-  filterScroll: {
-    paddingRight: 24,
-  },
-  filterButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  filterButtonActive: {
-    backgroundColor: '#54FE54',
-    borderColor: '#54FE54',
-    shadowColor: '#54FE54',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  filterButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#666666',
-    fontFamily: 'Montserrat-Medium',
-  },
-  filterButtonTextActive: {
-    color: '#161618',
-  },
-  tasksList: {
-    gap: 12,
-  },
-  subsectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#161618',
-    fontFamily: 'Montserrat-SemiBold',
-    marginBottom: 12,
-  },
-  completedSubsection: {
-    marginTop: 20,
-  },
-  glassTaskCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  completedTaskCard: {
-    opacity: 0.7,
-    backgroundColor: 'rgba(84, 254, 84, 0.05)',
-  },
-  taskCheckbox: {
-    marginRight: 12,
-    marginTop: 2,
-  },
-  taskContent: {
-    flex: 1,
-  },
-  taskTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#161618',
-    fontFamily: 'Montserrat-Medium',
-    marginBottom: 4,
-  },
-  completedTaskTitle: {
-    textDecorationLine: 'line-through',
-    color: '#666666',
-  },
-  taskDescription: {
-    fontSize: 14,
-    color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+  sprintHeader: {
     marginBottom: 8,
   },
-  completedTaskDescription: {
-    color: '#888888',
-  },
-  taskMeta: {
+  sprintTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexWrap: 'wrap',
+    gap: 8,
+  },
+  sprintTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#101828',
+    lineHeight: 19.6, // 140% of 14px
+  },
+  statusTag1: {
+    backgroundColor: '#FD824C',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  statusTagText1: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  sprintDescription: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#475467',
+    lineHeight: 16.8, // 140% of 12px
+    marginBottom: 16,
+  },
+  burnoutIndicatorContainer: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#EAECF0',
+    padding: 12,
+  },
+  burnoutIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
   },
-  taskAssignee: {
+  burnoutIcon: {
+    width: 32,
+    height: 32,
+  },
+  sprintProgressBar: {
+    flex: 1,
+    height: 4,
+    backgroundColor: '#E5E5E5',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  sprintProgressFill: {
+    height: '100%',
+    backgroundColor: '#FD824C',
+    borderRadius: 4,
+  },
+  progressBar: {
+    flex: 1,
+    height: 4,
+    backgroundColor: '#E5E5E5',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#FD824C',
+    borderRadius: 4,
+  },
+  filterBarContainer: {
+    marginHorizontal: 10,
+    marginBottom: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#EAECF0',
+    padding: 0,
+    padding: 4,
+    alignItems: 'center',
+    elevation: 2,
+  },
+  filterBar: {
+    flexDirection: 'row',
+    gap: 4,
+    width: '100%',
+  },
+  filterButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: 'transparent',
+  },
+  filterButtonActive: {
+    backgroundColor: '#17f196',
+  },
+  filterText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#475467',
+    numberOfLines: 1,
+  },
+  filterTextActive: {
+    color: '#fefefe',
+  },
+  filterBadge: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  filterBadgeActive: {
+    backgroundColor: '#F1F5F9',
+  },
+  filterBadgeText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#475467',
+  },
+  filterBadgeTextActive: {
+    color: '#475467',
+  },
+  taskList: {
+    paddingHorizontal: 10,
+    gap: 16,
+  },
+  taskCard: {
+    backgroundColor: '#FEFEFE',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#EAECF0',
+    elevation: 2,
+  },
+  taskHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  taskIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#17F196',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  taskIconImage: {
+    width: 20,
+    height: 20,
+    resizeMode: 'contain',
+  },
+  taskTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#2B2B2B',
+    flex: 1,
+  },
+  taskTags: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  statusTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E0E0E0',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     gap: 4,
   },
-  assigneeText: {
-    fontSize: 12,
-    color: '#666666',
-    fontFamily: 'Montserrat-Regular',
+  statusTagIcon: {
+    width: 10,
+    height: 10,
+    resizeMode: 'contain',
   },
-  taskCategory: {
-    backgroundColor: 'rgba(84, 254, 84, 0.1)',
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  categoryText: {
+  statusTagText: {
     fontSize: 10,
     fontWeight: '500',
-    color: '#54FE54',
-    fontFamily: 'Montserrat-Medium',
+    color: '#666666',
   },
-  taskDueDate: {
+  priorityTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FF6B6B',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    gap: 4,
+  },
+  priorityIcon: {
+    width: 10,
+    height: 10,
+    resizeMode: 'contain',
+  },
+  priorityText: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: '#FFFFFF',
+  },
+  progressBar: {
+    height: 4,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 2,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#17f196',
+    borderRadius: 2,
+  },
+  taskFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  assignees: {
+    flexDirection: 'row',
+  },
+  assigneeAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#17f196',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  assigneeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  dueDate: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+  },
+  calendarIcon: {
+    width: 16,
+    height: 16,
+    resizeMode: 'contain',
   },
   dueDateText: {
     fontSize: 12,
-    color: '#666666',
-    fontFamily: 'Montserrat-Regular',
-  },
-  taskActions: {
-    alignItems: 'flex-end',
-    gap: 8,
-  },
-  deleteButton: {
-    padding: 4,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#666666',
-    fontFamily: 'Montserrat-Regular',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    gap: 16,
-  },
-  errorTitle: {
-    fontSize: 20,
-    fontFamily: 'Montserrat-Bold',
-    color: '#FF0000',
-    marginBottom: 8,
-  },
-  errorText: {
-    fontSize: 14,
-    fontFamily: 'Montserrat-Regular',
-    color: '#666666',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  retryButton: {
-    backgroundColor: '#54FE54',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    shadowColor: '#54FE54',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  retryButtonText: {
-    fontSize: 16,
-    fontFamily: 'Montserrat-SemiBold',
-    color: '#161618',
-  },
-  completedNotice: {
-    backgroundColor: 'rgba(84, 254, 84, 0.1)',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(84, 254, 84, 0.2)',
-  },
-  completedNoticeText: {
-    fontSize: 12,
-    color: '#54FE54',
-    fontFamily: 'Montserrat-Medium',
-    textAlign: 'center',
-  },
-  timeRemaining: {
-    backgroundColor: 'rgba(84, 254, 84, 0.1)',
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  timeRemainingText: {
-    fontSize: 9,
-    color: '#54FE54',
-    fontFamily: 'Montserrat-Medium',
+    fontWeight: '400',
+    color: '#475467',
+    lineHeight: 16.8, // 140% of 12px
   },
 });
