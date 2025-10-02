@@ -44,54 +44,63 @@ export default function CustomAlert({
   cancelText = 'Cancel',
 }: CustomAlertProps) {
   // Animation values
-  const modalOpacity = useSharedValue(0);
-  const modalScale = useSharedValue(0.3);
-  const modalTranslateY = useSharedValue(50);
-  const iconScale = useSharedValue(0);
-  const iconRotation = useSharedValue(0);
-  const iconPulse = useSharedValue(1);
-  const buttonScale = useSharedValue(1);
-  const buttonPulse = useSharedValue(1);
+  const alertOpacity = useSharedValue(0);
+  const alertTranslateY = useSharedValue(-100); // Start higher for top positioning
+  const progressWidth = useSharedValue(0); // Start at 0% (empty)
+  const [timeLeft, setTimeLeft] = React.useState(1.5);
 
-  // Trigger animations when modal becomes visible
+  // Trigger animations when alert becomes visible
   useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+    
     if (visible) {
       triggerAnimations();
+      intervalId = startCountdown();
     } else {
       triggerExitAnimations();
     }
+
+    // Cleanup function
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, [visible]);
 
+  const startCountdown = () => {
+    setTimeLeft(1.5);
+    
+    // Timeline countdown animation (1.5 seconds) - goes from 0% to 100%
+    progressWidth.value = withTiming(1, { duration: 1500 });
+    
+    // Update time left every 0.1 seconds for smoother countdown
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 0.1) {
+          clearInterval(interval);
+          // Auto-close after 1.5 seconds
+          setTimeout(() => {
+            onClose();
+          }, 100);
+          return 0;
+        }
+        return prev - 0.1;
+      });
+    }, 100);
+
+    return interval;
+  };
+
   const triggerAnimations = () => {
-    // Modal entrance animation
-    modalOpacity.value = withTiming(1, { duration: 300 });
-    modalScale.value = withSpring(1, { damping: 8, stiffness: 120 });
-    modalTranslateY.value = withSpring(0, { damping: 10, stiffness: 100 });
-
-    // Icon animation
-    iconScale.value = withSequence(
-      withTiming(1.3, { duration: 200 }),
-      withSpring(1, { damping: 8, stiffness: 120 })
-    );
-    iconRotation.value = withSpring(360, { damping: 10, stiffness: 100 });
-
-    // Continuous pulse animation
-    iconPulse.value = withSequence(
-      withTiming(1.1, { duration: 1000 }),
-      withTiming(1, { duration: 1000 })
-    );
-
-    // Button pulse animation
-    buttonPulse.value = withSequence(
-      withTiming(1.05, { duration: 1500 }),
-      withTiming(1, { duration: 1500 })
-    );
+    // Alert entrance animation - slides down from top
+    alertOpacity.value = withTiming(1, { duration: 300 });
+    alertTranslateY.value = withSpring(0, { damping: 12, stiffness: 120 });
   };
 
   const triggerExitAnimations = () => {
-    modalOpacity.value = withTiming(0, { duration: 200 });
-    modalScale.value = withTiming(0.3, { duration: 200 });
-    modalTranslateY.value = withTiming(50, { duration: 200 });
+    alertOpacity.value = withTiming(0, { duration: 200 });
+    alertTranslateY.value = withTiming(-100, { duration: 200 });
   };
 
   const handleConfirm = () => {
@@ -105,34 +114,14 @@ export default function CustomAlert({
     onClose();
   };
 
-  const handleButtonPressIn = () => {
-    buttonScale.value = withSpring(0.95);
-  };
-
-  const handleButtonPressOut = () => {
-    buttonScale.value = withSpring(1);
-  };
-
   // Animated styles
-  const modalAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: modalOpacity.value,
-    transform: [
-      { scale: modalScale.value },
-      { translateY: modalTranslateY.value }
-    ],
+  const alertAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: alertOpacity.value,
+    transform: [{ translateY: alertTranslateY.value }],
   }));
 
-  const iconAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: iconScale.value * iconPulse.value },
-      { rotate: `${iconRotation.value}deg` }
-    ],
-  }));
-
-  const buttonAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: buttonScale.value * buttonPulse.value }
-    ],
+  const progressAnimatedStyle = useAnimatedStyle(() => ({
+    width: `${progressWidth.value * 100}%`,
   }));
 
   // Get icon and colors based on type
@@ -141,37 +130,32 @@ export default function CustomAlert({
       case 'success':
         return {
           icon: '✓',
-          backgroundColor: '#4CAF50',
-          iconBackgroundColor: '#2E7D32',
-          borderColor: '#1B5E20',
+          iconBackgroundColor: '#4CAF50',
+          progressColor: '#4CAF50',
         };
       case 'error':
         return {
           icon: '✕',
-          backgroundColor: '#F44336',
-          iconBackgroundColor: '#C62828',
-          borderColor: '#B71C1C',
+          iconBackgroundColor: '#F44336',
+          progressColor: '#F44336',
         };
       case 'warning':
         return {
           icon: '⚠',
-          backgroundColor: '#FF9800',
-          iconBackgroundColor: '#F57C00',
-          borderColor: '#E65100',
+          iconBackgroundColor: '#FF9800',
+          progressColor: '#FF9800',
         };
       case 'info':
         return {
           icon: 'ℹ',
-          backgroundColor: '#2196F3',
-          iconBackgroundColor: '#1565C0',
-          borderColor: '#0D47A1',
+          iconBackgroundColor: '#2196F3',
+          progressColor: '#2196F3',
         };
       default:
         return {
           icon: 'ℹ',
-          backgroundColor: '#2196F3',
-          iconBackgroundColor: '#1565C0',
-          borderColor: '#0D47A1',
+          iconBackgroundColor: '#2196F3',
+          progressColor: '#2196F3',
         };
     }
   };
@@ -186,39 +170,53 @@ export default function CustomAlert({
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <Animated.View style={[styles.modal, modalAnimatedStyle]}>
-          {/* Icon */}
-          <Animated.View style={[styles.iconContainer, { backgroundColor: config.iconBackgroundColor }, iconAnimatedStyle]}>
-            <Text style={styles.iconText}>{config.icon}</Text>
-          </Animated.View>
+        <Animated.View style={[styles.alertContainer, alertAnimatedStyle]}>
+          {/* Alert Card */}
+          <View style={styles.alertCard}>
+            {/* Icon and Content Row */}
+            <View style={styles.contentRow}>
+              {/* Status Icon */}
+              <View style={[styles.statusIcon, { backgroundColor: config.iconBackgroundColor }]}>
+                <Text style={styles.iconText}>{config.icon}</Text>
+              </View>
 
-          {/* Title */}
-          <Text style={styles.title}>{title}</Text>
+              {/* Text Content */}
+              <View style={styles.textContent}>
+                <Text style={styles.alertTitle}>{title}</Text>
+                <Text style={styles.alertMessage}>{message}</Text>
+              </View>
+            </View>
 
-          {/* Message */}
-          <Text style={styles.message}>{message}</Text>
+            {/* Progress Bar */}
+            <View style={styles.progressBarContainer}>
+              <Animated.View 
+                style={[
+                  styles.progressBar, 
+                  { backgroundColor: config.progressColor },
+                  progressAnimatedStyle
+                ]} 
+              />
+            </View>
 
-          {/* Buttons */}
-          <View style={styles.buttonContainer}>
-            {showCancel && (
-              <AnimatedPressable
-                style={[styles.button, styles.cancelButton, buttonAnimatedStyle]}
-                onPress={handleCancel}
-                onPressIn={handleButtonPressIn}
-                onPressOut={handleButtonPressOut}
-              >
-                <Text style={styles.cancelButtonText}>{cancelText}</Text>
-              </AnimatedPressable>
+            {/* Action Buttons */}
+            {(showCancel || onConfirm) && (
+              <View style={styles.buttonContainer}>
+                {showCancel && (
+                  <Pressable style={styles.cancelButton} onPress={handleCancel}>
+                    <Text style={styles.cancelButtonText}>{cancelText}</Text>
+                  </Pressable>
+                )}
+                
+                {onConfirm && (
+                  <Pressable 
+                    style={[styles.confirmButton, { backgroundColor: config.iconBackgroundColor }]} 
+                    onPress={handleConfirm}
+                  >
+                    <Text style={styles.confirmButtonText}>{confirmText}</Text>
+                  </Pressable>
+                )}
+              </View>
             )}
-            
-            <AnimatedPressable
-              style={[styles.button, styles.confirmButton, { backgroundColor: config.backgroundColor }, buttonAnimatedStyle]}
-              onPress={handleConfirm}
-              onPressIn={handleButtonPressIn}
-              onPressOut={handleButtonPressOut}
-            >
-              <Text style={styles.confirmButtonText}>{confirmText}</Text>
-            </AnimatedPressable>
           </View>
         </Animated.View>
       </View>
@@ -226,98 +224,102 @@ export default function CustomAlert({
   );
 }
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-start',
     alignItems: 'center',
+    paddingTop: 80, // Position from top of screen (accounting for status bar)
     paddingHorizontal: 20,
   },
-  modal: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 24,
+  alertContainer: {
+    width: '100%',
+    maxWidth: 320,
     alignItems: 'center',
-    minWidth: 280,
-    maxWidth: screenWidth - 40,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 20,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  iconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
+  alertCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    width: '100%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 8,
   },
+  contentRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  statusIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    flexShrink: 0,
+  },
   iconText: {
-    fontSize: 28,
+    fontSize: 14,
     color: '#FFFFFF',
     fontWeight: 'bold',
   },
-  title: {
-    fontSize: 20,
+  textContent: {
+    flex: 1,
+  },
+  alertTitle: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#000000',
-    textAlign: 'center',
-    marginBottom: 8,
-    fontFamily: 'Arial',
+    marginBottom: 4,
   },
-  message: {
-    fontSize: 16,
+  alertMessage: {
+    fontSize: 14,
     color: '#666666',
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 24,
-    fontFamily: 'Arial',
+    lineHeight: 20,
+  },
+  progressBarContainer: {
+    height: 4,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 2,
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  progressBar: {
+    height: '100%',
+    borderRadius: 2,
   },
   buttonContainer: {
     flexDirection: 'row',
     gap: 12,
-    width: '100%',
-  },
-  button: {
-    flex: 1,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 6,
   },
   confirmButton: {
-    // backgroundColor will be set dynamically
+    flex: 1,
+    height: 36,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   confirmButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#FFFFFF',
-    fontFamily: 'Arial',
   },
   cancelButton: {
+    flex: 1,
+    height: 36,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#E0E0E0',
   },
   cancelButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#666666',
-    fontFamily: 'Arial',
   },
 });
