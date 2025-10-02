@@ -130,14 +130,14 @@ export default function CustomAlert({
       case 'success':
         return {
           icon: '✓',
-          iconBackgroundColor: '#4CAF50',
-          progressColor: '#4CAF50',
+          iconBackgroundColor: '#17F196',
+          progressColor: '#17F196',
         };
       case 'error':
         return {
           icon: '✕',
-          iconBackgroundColor: '#F44336',
-          progressColor: '#F44336',
+          iconBackgroundColor: '#EB3737',
+          progressColor: '#EB3737',
         };
       case 'warning':
         return {
