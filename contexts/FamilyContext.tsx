@@ -358,7 +358,7 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     const fallbackTimeout = setTimeout(() => {
       console.warn('⚠️ Family loading timeout reached, forcing loading to false');
       setLoading(false);
-    }, 15000); // 15 second timeout (longer than auth since family data can take more time)
+    }, 8000); // 8 second timeout to prevent blocking navigation
     
     // Cleanup real-time subscription on unmount
     return () => {

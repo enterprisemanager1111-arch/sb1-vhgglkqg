@@ -415,7 +415,7 @@ export default function WorkProfileEmpty() {
 
   const handleGoToHomePage = () => {
     setShowSuccessModal(false);
-    router.replace('/(tabs)');
+    window.location = '/(tabs)';
   };
 
 

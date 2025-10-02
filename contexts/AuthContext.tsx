@@ -462,7 +462,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
          
          setLoading(false);
        }
-     }, 15000); // 15 second timeout (increased to give more time for auth to complete)
+     }, 8000); // 8 second timeout to prevent blocking navigation
 
      loadInitialData();
 

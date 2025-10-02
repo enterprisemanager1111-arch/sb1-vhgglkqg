@@ -11,7 +11,7 @@ import {
   Image as RNImage,
   Alert,
 } from 'react-native';
-import { router } from 'expo-router';
+// import { router } from 'expo-router';
 import { Mail, Phone, Building, Lock, Eye, EyeOff, Check } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLoading } from '@/contexts/LoadingContext';
@@ -20,9 +20,11 @@ import { sanitizeInput, validateEmail, sanitizeEmail } from '@/utils/sanitizatio
 import { supabase } from '@/lib/supabase';
 import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
 
 export default function SignUp() {
+  const router = useRouter()
   const { session, user } = useAuth();
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -220,7 +222,7 @@ export default function SignUp() {
     // Add a small delay to ensure the navigation completes before any other logic runs
     setTimeout(() => {
       // Navigate to profile edit page (replace to exit onboarding stack)
-      router.replace('/myProfile/edit');
+      window.location = '/myProfile/edit';
       console.log('✅ Navigation call completed');
     }, 100);
   };

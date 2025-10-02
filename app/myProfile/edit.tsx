@@ -28,7 +28,7 @@ export default function EditProfile() {
   const { profile, updateProfile, user, session, loading: authLoading } = useAuth();
   const { loading: familyLoading } = useFamily();
   const { showError } = useCustomAlert();
-  
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
@@ -46,13 +46,13 @@ export default function EditProfile() {
   const [cropMode, setCropMode] = useState(false);
   const [cropArea, setCropArea] = useState({ x: 0, y: 0, width: 300, height: 300 });
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ 
-    x: 0, 
-    y: 0, 
-    cropX: 0, 
-    cropY: 0, 
-    cropWidth: 0, 
-    cropHeight: 0 
+  const [dragStart, setDragStart] = useState({
+    x: 0,
+    y: 0,
+    cropX: 0,
+    cropY: 0,
+    cropWidth: 0,
+    cropHeight: 0
   });
   const [isResizing, setIsResizing] = useState(false);
   const [resizeCorner, setResizeCorner] = useState<string | null>(null);
@@ -71,7 +71,7 @@ export default function EditProfile() {
     try {
       const STORAGE_KEY = '@famora_onboarding_data';
       const storedData = await AsyncStorage.getItem(STORAGE_KEY);
-      
+
       if (storedData) {
         const parsedData = JSON.parse(storedData);
         const interestsData = parsedData.personalInfo?.interests || [];
@@ -97,30 +97,30 @@ export default function EditProfile() {
     console.log('🔄 Profile is undefined:', profile === undefined);
     console.log('🔄 User available:', !!user);
     console.log('🔄 Session available:', !!session);
-    
+
     // Don't process if AuthContext or FamilyContext is still loading
     if (authLoading || familyLoading) {
       console.log('🔄 AuthContext or FamilyContext still loading, waiting...');
       return;
     }
-    
+
     // Wait for profile data to be loaded (even if it's null, we need to know it's been checked)
     // This prevents the page from rendering with empty data when navigating from signup
     if (profile === undefined) {
       console.log('🔄 Profile data not yet loaded, waiting...');
       return;
     }
-    
+
     // Ensure user and session are available before proceeding
     if (!user || !session) {
       console.log('🔄 User or session not available, waiting...');
       return;
     }
-    
+
     if (profile) {
       console.log('📋 Current profile data:', profile);
       console.log('📋 Profile fields:', Object.keys(profile));
-      
+
       // Split the name into first and last name
       const nameParts = profile.name ? profile.name.split(' ') : ['', ''];
       setFirstName(nameParts[0] || '');
@@ -129,7 +129,7 @@ export default function EditProfile() {
       setPosition(profile.role || '');
       setAvatarUri(profile.avatar_url || null);
       setAvatarUrl(profile.avatar_url || null);
-      
+
       // Set selectedDate if birth_date exists
       if (profile.birth_date) {
         setSelectedDate(new Date(profile.birth_date));
@@ -144,12 +144,12 @@ export default function EditProfile() {
       setAvatarUri(null);
       setAvatarUrl(null);
     }
-    
+
     // Only mark as loaded when we have user, session, and profile data (even if null)
     console.log('🔄 Setting isLoadingUserData to false');
     setIsLoadingUserData(false);
     setIsProfileDataLoaded(true);
-    
+
     // Load interests from localStorage
     loadInterestsFromStorage();
   }, [profile, authLoading, familyLoading, user, session]);
@@ -170,7 +170,7 @@ export default function EditProfile() {
   useEffect(() => {
     console.log('🔍 isLoadingUserData changed to:', isLoadingUserData);
   }, [isLoadingUserData]);
-  
+
   useEffect(() => {
     console.log('🔍 isProfileDataLoaded changed to:', isProfileDataLoaded);
   }, [isProfileDataLoaded]);
@@ -193,17 +193,17 @@ export default function EditProfile() {
   const requestPermissions = async () => {
     const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
     const { status: libraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
+
     if (cameraStatus !== 'granted') {
       showError('Permission Required', 'Camera permission is required to take photos.');
       return false;
     }
-    
+
     if (libraryStatus !== 'granted') {
       showError('Permission Required', 'Photo library permission is required to select photos.');
       return false;
     }
-    
+
     return true;
   };
 
@@ -242,7 +242,7 @@ export default function EditProfile() {
   const pickImageFromLibrary = async () => {
     console.log('🖼️ Starting image picker...');
     console.log('Platform:', Platform.OS);
-    
+
     // For web, we don't need to request permissions
     if (Platform.OS !== 'web') {
       const hasPermission = await requestPermissions();
@@ -252,24 +252,24 @@ export default function EditProfile() {
     try {
       setIsUploadingAvatar(true);
       console.log('📱 Launching image library...');
-      
+
       // For web, use a simpler approach without editing
       // For mobile, try with editing first
-      const pickerOptions = Platform.OS === 'web' 
+      const pickerOptions = Platform.OS === 'web'
         ? {
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: false, // Disable editing on web
-            quality: 0.8,
-          }
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: false, // Disable editing on web
+          quality: 0.8,
+        }
         : {
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true, // Enable editing on mobile
-            aspect: [1, 1] as [number, number],
-            quality: 0.8,
-          };
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true, // Enable editing on mobile
+          aspect: [1, 1] as [number, number],
+          quality: 0.8,
+        };
 
       console.log('📱 Picker options:', pickerOptions);
-      
+
       const result = await ImagePicker.launchImageLibraryAsync(pickerOptions);
 
       console.log('📸 Image picker result:', result);
@@ -310,11 +310,11 @@ export default function EditProfile() {
       const squareSize = 150;
       const centerX = (300 - squareSize) / 2;
       const centerY = (300 - squareSize) / 2;
-      setCropArea({ 
-        x: Math.max(0, centerX), 
-        y: Math.max(0, centerY), 
-        width: squareSize, 
-        height: squareSize 
+      setCropArea({
+        x: Math.max(0, centerX),
+        y: Math.max(0, centerY),
+        width: squareSize,
+        height: squareSize
       });
     }
   };
@@ -324,11 +324,11 @@ export default function EditProfile() {
     const squareSize = 150;
     const centerX = (300 - squareSize) / 2;
     const centerY = (300 - squareSize) / 2;
-    setCropArea({ 
-      x: Math.max(0, centerX), 
-      y: Math.max(0, centerY), 
-      width: squareSize, 
-      height: squareSize 
+    setCropArea({
+      x: Math.max(0, centerX),
+      y: Math.max(0, centerY),
+      width: squareSize,
+      height: squareSize
     });
     setImageRotation(0);
   };
@@ -364,25 +364,25 @@ export default function EditProfile() {
 
   const handleOverlayMove = (event: any) => {
     if (!isCreatingCrop || !cropMode) return;
-    
+
     const touch = event.nativeEvent.touches ? event.nativeEvent.touches[0] : event.nativeEvent;
     const clientX = touch.clientX || touch.pageX;
     const clientY = touch.clientY || touch.pageY;
-    
+
     const newX = Math.min(cropStart.x, clientX);
     const newY = Math.min(cropStart.y, clientY);
     const newWidth = Math.abs(clientX - cropStart.x);
     const newHeight = Math.abs(clientY - cropStart.y);
-    
+
     // Make it square by using the larger dimension
     const squareSize = Math.max(newWidth, newHeight);
-    
+
     // Ensure minimum size and stay within image boundaries
     if (squareSize > 50) {
       const constrainedX = Math.max(0, Math.min(300 - squareSize, newX));
       const constrainedY = Math.max(0, Math.min(300 - squareSize, newY));
       const constrainedSize = Math.min(300 - Math.max(constrainedX, constrainedY), squareSize);
-      
+
       setCropArea({
         x: constrainedX,
         y: constrainedY,
@@ -398,20 +398,20 @@ export default function EditProfile() {
 
   const handleCropAreaMove = (event: any) => {
     if (!isDragging || !cropMode) return;
-    
+
     const touch = event.nativeEvent.touches ? event.nativeEvent.touches[0] : event.nativeEvent;
     const clientX = touch.clientX || touch.pageX;
     const clientY = touch.clientY || touch.pageY;
-    
+
     // Calculate delta from initial position
     const deltaX = clientX - dragStart.x;
     const deltaY = clientY - dragStart.y;
-    
+
     // Calculate new position based on initial crop area + delta
     const newX = Math.max(0, Math.min(300 - dragStart.cropWidth, dragStart.cropX + deltaX));
     const newY = Math.max(0, Math.min(300 - dragStart.cropHeight, dragStart.cropY + deltaY));
-    
-    
+
+
     setCropArea({
       x: newX,
       y: newY,
@@ -431,12 +431,12 @@ export default function EditProfile() {
     if (!cropMode) return;
     setIsResizing(true);
     setResizeCorner(corner);
-    
+
     // Get the touch position
     const touch = event.nativeEvent.touches ? event.nativeEvent.touches[0] : event.nativeEvent;
     const clientX = touch.clientX || touch.pageX;
     const clientY = touch.clientY || touch.pageY;
-    
+
     // Store the initial crop area state for delta calculations
     setDragStart({
       x: clientX,
@@ -450,91 +450,91 @@ export default function EditProfile() {
 
   const handleCornerMove = (event: any) => {
     if (!isResizing || !cropMode || !resizeCorner) return;
-    
+
     // Get the touch position from responder event
     const touch = event.nativeEvent.touches ? event.nativeEvent.touches[0] : event.nativeEvent;
     const clientX = touch.clientX || touch.pageX;
     const clientY = touch.clientY || touch.pageY;
-    
-    
+
+
     const minSize = 50;
     const maxSize = 300;
-    
+
     // Calculate delta from initial position
     const deltaX = clientX - dragStart.x;
     const deltaY = clientY - dragStart.y;
-    
-    
+
+
     let newX = dragStart.cropX;
     let newY = dragStart.cropY;
     let newWidth = dragStart.cropWidth;
     let newHeight = dragStart.cropHeight;
-    
+
     switch (resizeCorner) {
       case 'topLeft':
         // Calculate new position based on delta movement from initial state
         const newTopLeftX = Math.max(0, Math.min(dragStart.cropX + dragStart.cropWidth - minSize, dragStart.cropX + deltaX));
         const newTopLeftY = Math.max(0, Math.min(dragStart.cropY + dragStart.cropHeight - minSize, dragStart.cropY + deltaY));
-        
+
         // Calculate new size maintaining square aspect ratio
         const newWidthFromTopLeft = dragStart.cropX + dragStart.cropWidth - newTopLeftX;
         const newHeightFromTopLeft = dragStart.cropY + dragStart.cropHeight - newTopLeftY;
         const newSizeFromTopLeft = Math.min(newWidthFromTopLeft, newHeightFromTopLeft);
-        
+
         newWidth = Math.max(minSize, Math.min(maxSize, newSizeFromTopLeft));
         newHeight = newWidth;
-        
+
         // Adjust position to maintain square
         newX = dragStart.cropX + dragStart.cropWidth - newWidth;
         newY = dragStart.cropY + dragStart.cropHeight - newHeight;
         break;
-        
+
       case 'topRight':
         const newTopRightY = Math.max(0, Math.min(dragStart.cropY + dragStart.cropHeight - minSize, dragStart.cropY + deltaY));
-        
+
         const newWidthFromTopRight = dragStart.cropWidth + deltaX;
         const newHeightFromTopRight = dragStart.cropY + dragStart.cropHeight - newTopRightY;
         const newSizeFromTopRight = Math.min(newWidthFromTopRight, newHeightFromTopRight);
-        
+
         newWidth = Math.max(minSize, Math.min(maxSize, newSizeFromTopRight));
         newHeight = newWidth;
-        
+
         newX = dragStart.cropX;
         newY = dragStart.cropY + dragStart.cropHeight - newHeight;
         break;
-        
+
       case 'bottomLeft':
         const newBottomLeftX = Math.max(0, Math.min(dragStart.cropX + dragStart.cropWidth - minSize, dragStart.cropX + deltaX));
-        
+
         const newWidthFromBottomLeft = dragStart.cropX + dragStart.cropWidth - newBottomLeftX;
         const newHeightFromBottomLeft = dragStart.cropHeight + deltaY;
         const newSizeFromBottomLeft = Math.min(newWidthFromBottomLeft, newHeightFromBottomLeft);
-        
+
         newWidth = Math.max(minSize, Math.min(maxSize, newSizeFromBottomLeft));
         newHeight = newWidth;
-        
+
         newX = dragStart.cropX + dragStart.cropWidth - newWidth;
         newY = dragStart.cropY;
         break;
-        
+
       case 'bottomRight':
         const newWidthFromBottomRight = dragStart.cropWidth + deltaX;
         const newHeightFromBottomRight = dragStart.cropHeight + deltaY;
         const newSizeFromBottomRight = Math.min(newWidthFromBottomRight, newHeightFromBottomRight);
-        
+
         newWidth = Math.max(minSize, Math.min(maxSize, newSizeFromBottomRight));
         newHeight = newWidth;
-        
+
         newX = dragStart.cropX;
         newY = dragStart.cropY;
         break;
     }
-    
+
     // Ensure the crop area stays within bounds
     newX = Math.max(0, Math.min(maxSize - newWidth, newX));
     newY = Math.max(0, Math.min(maxSize - newHeight, newY));
-    
-    
+
+
     setCropArea({
       x: newX,
       y: newY,
@@ -546,70 +546,70 @@ export default function EditProfile() {
   const handleSaveEditedImage = async () => {
     if (editingImageUri) {
       try {
-        
+
         // Validate crop area
         if (cropArea.width <= 0 || cropArea.height <= 0) {
           showError('Error', 'Invalid crop area. Please select a valid area to crop.');
           return;
         }
-        
-        if (cropArea.x < 0 || cropArea.y < 0 || 
-            cropArea.x + cropArea.width > 300 || 
-            cropArea.y + cropArea.height > 300) {
+
+        if (cropArea.x < 0 || cropArea.y < 0 ||
+          cropArea.x + cropArea.width > 300 ||
+          cropArea.y + cropArea.height > 300) {
           showError('Error', 'Crop area is outside image bounds. Please adjust your selection.');
           return;
         }
-        
+
         // Create a canvas to apply crop and rotation
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const img = new Image();
-        
+
         // Convert blob URL to data URL to avoid CORS issues
         const response = await fetch(editingImageUri);
         const blob = await response.blob();
         const reader = new FileReader();
-        
+
         const dataUrl = await new Promise<string>((resolve, reject) => {
           reader.onload = () => resolve(reader.result as string);
           reader.onerror = reject;
           reader.readAsDataURL(blob);
         });
-        
+
         img.onload = () => {
-          
+
           // Set canvas size to crop area
           canvas.width = cropArea.width;
           canvas.height = cropArea.height;
-          
+
           if (ctx) {
-            
+
             // Apply rotation
             ctx.translate(canvas.width / 2, canvas.height / 2);
             ctx.rotate((imageRotation * Math.PI) / 180);
             ctx.translate(-canvas.width / 2, -canvas.height / 2);
-            
+
             // Calculate scaled crop coordinates based on actual image dimensions
             const scaleX = img.width / 300; // 300 is the display container width
             const scaleY = img.height / 300; // 300 is the display container height
-            
+
             const scaledCropX = cropArea.x * scaleX;
             const scaledCropY = cropArea.y * scaleY;
             const scaledCropWidth = cropArea.width * scaleX;
             const scaledCropHeight = cropArea.height * scaleY;
-            
-            
+
+
             // Clear canvas first
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
+
             // Draw cropped and rotated image
             ctx.drawImage(
               img,
               scaledCropX, scaledCropY, scaledCropWidth, scaledCropHeight,
               0, 0, cropArea.width, cropArea.height
             );
-            
-            
+
+
             // Create a preview to verify the crop
             const previewCanvas = document.createElement('canvas');
             const previewCtx = previewCanvas.getContext('2d');
@@ -618,12 +618,12 @@ export default function EditProfile() {
             if (previewCtx) {
               previewCtx.drawImage(canvas, 0, 0, 100, 100);
             }
-            
+
             // Convert to blob and create new URI
             canvas.toBlob((blob) => {
               if (blob) {
                 const newUri = URL.createObjectURL(blob);
-                
+
                 // Test if the blob URL is accessible
                 const testImg = new Image();
                 testImg.onload = () => {
@@ -644,12 +644,12 @@ export default function EditProfile() {
             }, 'image/png', 0.9);
           }
         };
-        
+
         img.onerror = () => {
           console.error('🔧 Failed to load image');
           showError('Error', 'Failed to load image. Please try again.');
         };
-        
+
         img.src = dataUrl;
       } catch (error) {
         console.error('Error processing image:', error);
@@ -676,12 +676,12 @@ export default function EditProfile() {
   // Avatar selection handlers
   const handleAvatarPress = () => {
     console.log('🖼️ Avatar pressed!');
-    
+
     if (isUploadingAvatar) {
       console.log('⏳ Avatar upload in progress, ignoring press');
       return;
     }
-    
+
     // Directly open file picker for all platforms
     console.log('📁 Opening file picker directly...');
     pickImageFromLibrary();
@@ -739,11 +739,11 @@ export default function EditProfile() {
   const uploadAvatarToSupabase = async (avatarUri: string): Promise<string> => {
     try {
       console.log('📤 Starting avatar upload to Supabase Storage...');
-      
+
       if (!user) {
         throw new Error('User not authenticated');
       }
-      
+
       // Ensure we have a valid session before attempting upload
       let currentSession = session;
       if (!currentSession?.access_token) {
@@ -759,107 +759,104 @@ export default function EditProfile() {
           currentSession = refreshedSession;
           console.log('✅ Session refreshed successfully');
         } catch (refreshError) {
-          throw new Error(`Session refresh failed: ${refreshError.message}`);
+          throw new Error(`Session refresh failed: ${refreshError}`);
         }
       }
-      
+
       // Convert blob URL to file
       console.log('📤 Fetching avatar from URI...');
       const response = await fetch(avatarUri);
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch avatar: ${response.status} ${response.statusText}`);
       }
-      
+
       const blob = await response.blob();
       console.log('📤 Blob created, size:', blob.size, 'bytes');
-      
+
       if (blob.size === 0) {
         throw new Error('Avatar file is empty');
       }
-      
+
       // Create a file from the blob
       const file = new File([blob], 'avatar.png', { type: 'image/png' });
-      
+
       // Generate unique filename with user ID in path
       const timestamp = Date.now();
       const filename = `${user.id}/avatar-${timestamp}.png`;
-      
+
       // Try uploading to different buckets in order of preference
       const buckets = ['avatar'];
-      
-      for (const bucketName of buckets) {
-        try {
-          console.log(`📤 Attempting upload to bucket: ${bucketName}`);
-          console.log('📤 bucketName:', bucketName);
-          console.log('📤 filename:', filename);
-          console.log('📤 file size:', file.size, 'bytes');
-          console.log('📤 user ID:', user.id);
-          console.log('📤 session available:', !!currentSession);
-          console.log('📤 access token length:', currentSession?.access_token?.length || 0);
-          
-          // Add timeout to prevent hanging
-          const uploadPromise = supabase.storage
-            .from(bucketName)
-            .upload(filename, file, {
-              cacheControl: '3600',
-              upsert: true
-            });
-          
-          const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Upload timeout after 30 seconds')), 30000)
-          );
-          
-          const { data, error } = await Promise.race([uploadPromise, timeoutPromise]) as any;
-          
-          console.log('📤 Upload response received');
-          console.log('📤 data:', data);
-          console.log('📤 error:', error);
-          
-          if (error) {
-            console.log(`❌ Upload to ${bucketName} failed:`, error.message);
-            continue; // Try next bucket
-          }
-          
-          console.log(`✅ Upload successful to bucket: ${bucketName}`);
-          
-          // Get public URL
-          const { data: urlData } = supabase.storage
-            .from(bucketName)
-            .getPublicUrl(filename);
-          
-          if (!urlData?.publicUrl) {
-            console.log(`❌ Failed to get public URL from ${bucketName}`);
-            continue; // Try next bucket
-          }
-          
-          console.log('✅ Avatar public URL:', urlData.publicUrl);
-          return urlData.publicUrl;
-          
-        } catch (bucketError) {
-          console.log(`❌ Bucket ${bucketName} error:`, bucketError);
-          console.log(`❌ Error type:`, typeof bucketError);
-          console.log(`❌ Error message:`, bucketError.message);
-          continue; // Try next bucket
+
+      // for (const "avatar" of buckets) {
+      try {
+        console.log(`📤 Attempting upload to bucket: ${"avatar"}`);
+        console.log('📤 "avatar":', "avatar");
+        console.log('📤 filename:', filename);
+        console.log('📤 file size:', file.size, 'bytes');
+        console.log('📤 user ID:', user.id);
+        console.log('📤 session available:', !!currentSession);
+        console.log('📤 access token length:', currentSession?.access_token?.length || 0);
+
+        // Add timeout to prevent hanging
+        const { data, error } = await supabase.storage
+          .from("avatar")
+          .upload(filename, file);
+
+        // const timeoutPromise = new Promise((_, reject) =>
+        //   setTimeout(() => reject(new Error('Upload timeout after 30 seconds')), 30000)
+        // );
+
+        // const { data, error } = await Promise.race([uploadPromise, timeoutPromise]) as any;
+
+        console.log('📤 Upload response received');
+        console.log('📤 data:', data);
+        console.log('📤 error:', error);
+
+        if (error) {
+          console.log(`❌ Upload to ${"avatar"} failed:`, error.message);
+          // continue; // Try next bucket
         }
+
+        console.log(`✅ Upload successful to bucket: ${"avatar"}`);
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from("avatar")
+          .getPublicUrl(filename);
+
+        if (!urlData?.publicUrl) {
+          console.log(`❌ Failed to get public URL from ${"avatar"}`);
+          // continue; // Try next bucket
+        }
+
+        console.log('✅ Avatar public URL:', urlData.publicUrl);
+        return urlData.publicUrl;
+
+      } catch (bucketError) {
+        console.log(`❌ Bucket ${"avatar"} error:`, bucketError);
+        console.log(`❌ Error type:`, typeof bucketError);
+        console.log(`❌ Error message:`, bucketError);
+        // continue; // Try next bucket
       }
-      
+      // }
+
       // If all buckets fail
       throw new Error('Failed to upload avatar to any available storage bucket');
-      
+
     } catch (error: any) {
       console.error('❌ Avatar upload failed:', error);
-      
+
       // Check if it's a bucket not found error
       if (error.message?.includes('Bucket not found') || error.message?.includes('not found')) {
         throw new Error('Storage bucket not configured. Please contact support to set up storage buckets.');
       }
-      
+
       // Check if it's an authentication error
       if (error.message?.includes('JWT') || error.message?.includes('auth')) {
         throw new Error('Authentication failed. Please log in again.');
       }
-      
+
       throw new Error(`Avatar upload failed: ${error.message}`);
     }
   };
@@ -870,7 +867,7 @@ export default function EditProfile() {
     console.log('🚀 lastName:', lastName);
     console.log('🚀 isUpdatingProfile:', isUpdatingProfile);
     console.log('🚀 isLoadingUserData:', isLoadingUserData);
-    
+
     if (!firstName.trim() || !lastName.trim()) {
       console.log('❌ Validation failed - missing first or last name');
       showError('Validation Error', 'Please fill in both first name and last name.');
@@ -907,12 +904,12 @@ export default function EditProfile() {
     console.log('🚀 Current user:', user);
     console.log('🚀 Current session:', session);
     console.log('🚀 updateProfile function available:', typeof updateProfile);
-    
+
     hideConfirmationModal();
-    
+
     // Start loading for profile update
     setIsUpdatingProfile(true);
-    
+
     // Add timeout to prevent infinite loading
     const loadingTimeout = setTimeout(() => {
       console.log('⚠️ Profile update timeout reached, stopping loading state');
@@ -924,7 +921,7 @@ export default function EditProfile() {
       if (!user || !session) {
         throw new Error('Authentication required. Please sign in again.');
       }
-      
+
       if (!session.access_token) {
         console.log('🔄 No valid session found, attempting to refresh...');
         try {
@@ -941,300 +938,300 @@ export default function EditProfile() {
         }
       }
       const fullName = `${firstName.trim()} ${lastName.trim()}`;
-        
-        // Prepare update data with validation
-        
-        // Ensure name is not empty
-        if (!fullName || fullName.trim() === '') {
-          throw new Error('Name cannot be empty. Please enter both first and last name.');
-        }
-        
-        console.log('🔍 Debug - Current state values:');
-        console.log('🔍 firstName:', firstName, '(type:', typeof firstName, ')');
-        console.log('🔍 lastName:', lastName, '(type:', typeof lastName, ')');
-        console.log('🔍 fullName:', fullName, '(type:', typeof fullName, ')');
-        console.log('🔍 dateOfBirth:', dateOfBirth, '(type:', typeof dateOfBirth, ')');
-        console.log('🔍 position:', position, '(type:', typeof position, ')');
-        console.log('🔍 avatarUri:', avatarUri, '(type:', typeof avatarUri, ')');
-        console.log('🔍 avatarUri length:', avatarUri?.length);
-        console.log('🔍 avatarUrl (state):', avatarUrl, '(type:', typeof avatarUrl, ')');
-        console.log('🔍 interests (from localStorage):', interests, '(type:', typeof interests, ')');
-        
-        console.log('🔍 Field processing starting...');
-        
-        // Initialize finalAvatarUrl with current state
-        let finalAvatarUrl = avatarUrl; // Start with existing avatarUrl state
-        
-        // Always add birth_date (even if empty, let user clear it)
-        // updateData.birth_date = dateOfBirth && dateOfBirth.trim() ? dateOfBirth.trim() : null;
-        // console.log('✅ Added birth_date (Date of Birth from picker):', updateData.birth_date);
-        console.log('✅ This will be saved to profiles.birth_date in Supabase');
-        
-        // Always add role (even if empty, let user clear it)
-        const roleValue = position && position.trim() ? position.trim() : null;
-        
-        // Validate role against database constraint only if it has a value
-        if (roleValue && !validRoles.includes(roleValue)) {
-          console.error('❌ Invalid role value:', roleValue);
-          console.error('❌ Allowed roles:', validRoles);
-          throw new Error(`Invalid role selected. Please choose from: ${validRoles.join(', ')}`);
-        }
-        
-        // updateData.role = roleValue;
-        // console.log('✅ Added role (from position field):', updateData.role);
-        
-        // Add interests field (empty array for now - can be enhanced later)
-        // updateData.interests = [];
-        // console.log('✅ Added interests:', updateData.interests);
-        
-        // Log current updateData state
-        // console.log('📊 Current updateData after field processing:', updateData);
-        
-        // Process avatar if available - upload to Supabase Storage
-        
-        if (avatarUri && avatarUri.trim()) {
-          try {
-            console.log('📤 Uploading avatar to Supabase Storage...');
-            console.log('📤 avatarUri:', avatarUri);
-            console.log('📤 avatarUri type:', typeof avatarUri);
-            console.log('📤 avatarUri length:', avatarUri.length);
-            console.log('📤 About to call uploadAvatarToSupabase function...');
-            console.log('📤 uploadAvatarToSupabase function type:', typeof uploadAvatarToSupabase);
-            
-            // Validate uploadAvatarToSupabase function exists
-            if (typeof uploadAvatarToSupabase !== 'function') {
-              throw new Error('uploadAvatarToSupabase function is not available');
-            }
-            
-            // Try upload with retry mechanism
-            let uploadedAvatarUrl;
-            let uploadAttempts = 0;
-            const maxAttempts = 3;
-            
-            while (uploadAttempts < maxAttempts) {
-              try {
-                uploadAttempts++;
-                console.log(`📤 Upload attempt ${uploadAttempts}/${maxAttempts}`);
-                
-                uploadedAvatarUrl = await uploadAvatarToSupabase(avatarUri);
-                console.log('📤 uploadAvatarToSupabase returned:', uploadedAvatarUrl);
-                
-                if (uploadedAvatarUrl && uploadedAvatarUrl.trim()) {
-                  console.log('✅ Upload successful on attempt', uploadAttempts);
-                  break;
-                } else {
-                  throw new Error('Upload returned empty URL');
-                }
-              } catch (attemptError: any) {
-                console.error(`❌ Upload attempt ${uploadAttempts} failed:`, attemptError);
-                
-                if (uploadAttempts >= maxAttempts) {
-                  throw attemptError; // Re-throw the last error
-                }
-                
-                // Wait before retry
-                await new Promise(resolve => setTimeout(resolve, 1000 * uploadAttempts));
-              }
-            }
-            
-            setAvatarUrl(uploadedAvatarUrl || '');
-            finalAvatarUrl = uploadedAvatarUrl || ''; // Use the uploaded URL directly
-            console.log('✅ Avatar uploaded to Supabase Storage!');
-            console.log('✅ Supabase Storage URL saved as avatar_url:', uploadedAvatarUrl);
-            console.log('✅ This URL will be saved to profiles.avatar_url in database');
-          } catch (uploadError: any) {
-            console.error('❌ Avatar upload failed:', uploadError);
-            
-            // Fallback: Convert to data URL and store in database
+
+      // Prepare update data with validation
+
+      // Ensure name is not empty
+      if (!fullName || fullName.trim() === '') {
+        throw new Error('Name cannot be empty. Please enter both first and last name.');
+      }
+
+      console.log('🔍 Debug - Current state values:');
+      console.log('🔍 firstName:', firstName, '(type:', typeof firstName, ')');
+      console.log('🔍 lastName:', lastName, '(type:', typeof lastName, ')');
+      console.log('🔍 fullName:', fullName, '(type:', typeof fullName, ')');
+      console.log('🔍 dateOfBirth:', dateOfBirth, '(type:', typeof dateOfBirth, ')');
+      console.log('🔍 position:', position, '(type:', typeof position, ')');
+      console.log('🔍 avatarUri:', avatarUri, '(type:', typeof avatarUri, ')');
+      console.log('🔍 avatarUri length:', avatarUri?.length);
+      console.log('🔍 avatarUrl (state):', avatarUrl, '(type:', typeof avatarUrl, ')');
+      console.log('🔍 interests (from localStorage):', interests, '(type:', typeof interests, ')');
+
+      console.log('🔍 Field processing starting...');
+
+      // Initialize finalAvatarUrl with current state
+      let finalAvatarUrl = avatarUrl; // Start with existing avatarUrl state
+
+      // Always add birth_date (even if empty, let user clear it)
+      // updateData.birth_date = dateOfBirth && dateOfBirth.trim() ? dateOfBirth.trim() : null;
+      // console.log('✅ Added birth_date (Date of Birth from picker):', updateData.birth_date);
+      console.log('✅ This will be saved to profiles.birth_date in Supabase');
+
+      // Always add role (even if empty, let user clear it)
+      const roleValue = position && position.trim() ? position.trim() : null;
+
+      // Validate role against database constraint only if it has a value
+      if (roleValue && !validRoles.includes(roleValue)) {
+        console.error('❌ Invalid role value:', roleValue);
+        console.error('❌ Allowed roles:', validRoles);
+        throw new Error(`Invalid role selected. Please choose from: ${validRoles.join(', ')}`);
+      }
+
+      // updateData.role = roleValue;
+      // console.log('✅ Added role (from position field):', updateData.role);
+
+      // Add interests field (empty array for now - can be enhanced later)
+      // updateData.interests = [];
+      // console.log('✅ Added interests:', updateData.interests);
+
+      // Log current updateData state
+      // console.log('📊 Current updateData after field processing:', updateData);
+
+      // Process avatar if available - upload to Supabase Storage
+
+      if (avatarUri && avatarUri.trim()) {
+        try {
+          console.log('📤 Uploading avatar to Supabase Storage...');
+          console.log('📤 avatarUri:', avatarUri);
+          console.log('📤 avatarUri type:', typeof avatarUri);
+          console.log('📤 avatarUri length:', avatarUri.length);
+          console.log('📤 About to call uploadAvatarToSupabase function...');
+          console.log('📤 uploadAvatarToSupabase function type:', typeof uploadAvatarToSupabase);
+
+          // Validate uploadAvatarToSupabase function exists
+          if (typeof uploadAvatarToSupabase !== 'function') {
+            throw new Error('uploadAvatarToSupabase function is not available');
+          }
+
+          // Try upload with retry mechanism
+          let uploadedAvatarUrl;
+          let uploadAttempts = 0;
+          const maxAttempts = 3;
+
+          while (uploadAttempts < maxAttempts) {
             try {
-              console.log('🔄 Falling back to data URL storage...');
+              uploadAttempts++;
+              console.log(`📤 Upload attempt ${uploadAttempts}/${maxAttempts}`);
+
+              uploadedAvatarUrl = await uploadAvatarToSupabase(avatarUri);
+              console.log('📤 uploadAvatarToSupabase returned:', uploadedAvatarUrl);
+
+              if (uploadedAvatarUrl && uploadedAvatarUrl.trim()) {
+                console.log('✅ Upload successful on attempt', uploadAttempts);
+                break;
+              } else {
+                throw new Error('Upload returned empty URL');
+              }
+            } catch (attemptError: any) {
+              console.error(`❌ Upload attempt ${uploadAttempts} failed:`, attemptError);
+
+              if (uploadAttempts >= maxAttempts) {
+                throw attemptError; // Re-throw the last error
+              }
+
+              // Wait before retry
+              await new Promise(resolve => setTimeout(resolve, 1000 * uploadAttempts));
+            }
+          }
+
+          setAvatarUrl(uploadedAvatarUrl || '');
+          finalAvatarUrl = uploadedAvatarUrl || ''; // Use the uploaded URL directly
+          console.log('✅ Avatar uploaded to Supabase Storage!');
+          console.log('✅ Supabase Storage URL saved as avatar_url:', uploadedAvatarUrl);
+          console.log('✅ This URL will be saved to profiles.avatar_url in database');
+        } catch (uploadError: any) {
+          console.error('❌ Avatar upload failed:', uploadError);
+
+          // Fallback: Convert to data URL and store in database
+          try {
+            console.log('🔄 Falling back to data URL storage...');
+            const response = await fetch(avatarUri);
+            const blob = await response.blob();
+
+            // Compress if too large
+            if (blob.size > 500000) {
+              console.log('🔄 Compressing large avatar...');
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+              const img = new Image();
+
+              // Convert blob URL to data URL to avoid CORS issues
               const response = await fetch(avatarUri);
               const blob = await response.blob();
-              
-              // Compress if too large
-              if (blob.size > 500000) {
-                console.log('🔄 Compressing large avatar...');
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const img = new Image();
-                
-                // Convert blob URL to data URL to avoid CORS issues
-                const response = await fetch(avatarUri);
-                const blob = await response.blob();
-                const reader = new FileReader();
-                
-                const dataUrl = await new Promise<string>((resolve, reject) => {
-                  reader.onload = () => resolve(reader.result as string);
-                  reader.onerror = reject;
-                  reader.readAsDataURL(blob);
-                });
-                
-                const compressedDataUrl = await new Promise<string>((resolve, reject) => {
-                  img.onload = () => {
-                    const maxSize = 200;
-                    const ratio = Math.min(maxSize / img.width, maxSize / img.height);
-                    canvas.width = img.width * ratio;
-                    canvas.height = img.height * ratio;
-                    
-                    ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.7));
-                  };
-                  img.onerror = reject;
-                  img.src = dataUrl;
-                });
-                
-                setAvatarUrl(compressedDataUrl);
-                finalAvatarUrl = compressedDataUrl; // Use the compressed data URL directly
-                console.log('✅ Avatar stored as compressed data URL');
-              } else {
-                const reader = new FileReader();
-                const dataUrl = await new Promise<string>((resolve, reject) => {
-                  reader.onload = () => resolve(reader.result as string);
-                  reader.onerror = reject;
-                  reader.readAsDataURL(blob);
-                });
-                
-                setAvatarUrl(dataUrl);
-                finalAvatarUrl = dataUrl; // Use the data URL directly
-                console.log('✅ Avatar stored as data URL');
-              }
-            } catch (fallbackError) {
-              console.error('❌ Data URL fallback also failed:', fallbackError);
-              console.log('⚠️ Continuing without avatar...');
+              const reader = new FileReader();
+
+              const dataUrl = await new Promise<string>((resolve, reject) => {
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+              });
+
+              const compressedDataUrl = await new Promise<string>((resolve, reject) => {
+                img.onload = () => {
+                  const maxSize = 200;
+                  const ratio = Math.min(maxSize / img.width, maxSize / img.height);
+                  canvas.width = img.width * ratio;
+                  canvas.height = img.height * ratio;
+
+                  ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+                  resolve(canvas.toDataURL('image/jpeg', 0.7));
+                };
+                img.onerror = reject;
+                img.src = dataUrl;
+              });
+
+              setAvatarUrl(compressedDataUrl);
+              finalAvatarUrl = compressedDataUrl; // Use the compressed data URL directly
+              console.log('✅ Avatar stored as compressed data URL');
+            } else {
+              const reader = new FileReader();
+              const dataUrl = await new Promise<string>((resolve, reject) => {
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+              });
+
+              setAvatarUrl(dataUrl);
+              finalAvatarUrl = dataUrl; // Use the data URL directly
+              console.log('✅ Avatar stored as data URL');
             }
+          } catch (fallbackError) {
+            console.error('❌ Data URL fallback also failed:', fallbackError);
+            console.log('⚠️ Continuing without avatar...');
           }
-        } else {
-          console.log('❌ No avatarUri to add');
         }
-        
-        console.log('🔍 finalAvatarUrl (final value):', finalAvatarUrl, '(type:', typeof finalAvatarUrl, ')');
-        
-        const updateData: any = {
-          name: fullName,
-          birth_date: dateOfBirth,
-          role: roleValue,
-          avatar_url: finalAvatarUrl,
-          interests: interests,
-        };
-        // Log final updateData state after all processing
-        console.log('📊 Final updateData after all processing:', updateData);
-        console.log('📝 Final update data being sent:', updateData);
-        console.log('📝 Field mappings to profiles table:');
-        console.log('📝 - name (firstName + lastName):', updateData.name);
-        console.log('📝 - birth_date (dateOfBirth):', updateData.birth_date);
-        console.log('📝 - role (position):', updateData.role);
-        console.log('📝 - avatar_url (Supabase Storage URL):', updateData.avatar_url ? 'Present' : 'Not present');
-        console.log('📝 - interests (from localStorage):', updateData.interests);
-        
-        // Verify all required fields are present
-        console.log('🔍 Field verification:');
-        console.log('🔍 - name field:', updateData.name ? '✅ Present' : '❌ Missing');
-        console.log('🔍 - birth_date field:', updateData.birth_date ? '✅ Present' : '⚠️ Empty/Null');
-        console.log('🔍 - role field (position):', updateData.role ? '✅ Present' : '⚠️ Empty/Null');
-        console.log('🔍 - avatar_url field (Supabase Storage URL):', updateData.avatar_url ? '✅ Present' : '⚠️ Empty/Null');
-        console.log('🔍 - interests field:', updateData.interests ? '✅ Present' : '⚠️ Empty/Null');
-        
-        // Final validation before sending
-        if (!updateData.name || updateData.name.trim() === '') {
-          throw new Error('Name is required and cannot be empty');
+      } else {
+        console.log('❌ No avatarUri to add');
+      }
+
+      console.log('🔍 finalAvatarUrl (final value):', finalAvatarUrl, '(type:', typeof finalAvatarUrl, ')');
+
+      const updateData: any = {
+        name: fullName,
+        birth_date: dateOfBirth,
+        role: roleValue,
+        avatar_url: finalAvatarUrl,
+        interests: interests,
+      };
+      // Log final updateData state after all processing
+      console.log('📊 Final updateData after all processing:', updateData);
+      console.log('📝 Final update data being sent:', updateData);
+      console.log('📝 Field mappings to profiles table:');
+      console.log('📝 - name (firstName + lastName):', updateData.name);
+      console.log('📝 - birth_date (dateOfBirth):', updateData.birth_date);
+      console.log('📝 - role (position):', updateData.role);
+      console.log('📝 - avatar_url (Supabase Storage URL):', updateData.avatar_url ? 'Present' : 'Not present');
+      console.log('📝 - interests (from localStorage):', updateData.interests);
+
+      // Verify all required fields are present
+      console.log('🔍 Field verification:');
+      console.log('🔍 - name field:', updateData.name ? '✅ Present' : '❌ Missing');
+      console.log('🔍 - birth_date field:', updateData.birth_date ? '✅ Present' : '⚠️ Empty/Null');
+      console.log('🔍 - role field (position):', updateData.role ? '✅ Present' : '⚠️ Empty/Null');
+      console.log('🔍 - avatar_url field (Supabase Storage URL):', updateData.avatar_url ? '✅ Present' : '⚠️ Empty/Null');
+      console.log('🔍 - interests field:', updateData.interests ? '✅ Present' : '⚠️ Empty/Null');
+
+      // Final validation before sending
+      if (!updateData.name || updateData.name.trim() === '') {
+        throw new Error('Name is required and cannot be empty');
+      }
+
+      console.log('✅ All validations passed, sending update to database...');
+
+      try {
+        console.log('🚀 About to call updateProfile function...');
+        console.log('🚀 updateData being sent:', updateData);
+        console.log('🚀 updateProfile function type:', typeof updateProfile);
+        console.log('🚀 updateProfile function:', updateProfile);
+
+        if (typeof updateProfile !== 'function') {
+          throw new Error('updateProfile is not a function');
         }
-        
-        console.log('✅ All validations passed, sending update to database...');
-        
-        try {
-          console.log('🚀 About to call updateProfile function...');
-          console.log('🚀 updateData being sent:', updateData);
-          console.log('🚀 updateProfile function type:', typeof updateProfile);
-          console.log('🚀 updateProfile function:', updateProfile);
-          
-          if (typeof updateProfile !== 'function') {
-            throw new Error('updateProfile is not a function');
-          }
-          
-          // Add a small delay to ensure session is fully established when navigating from signup
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          const result = await updateProfile(updateData);
-          console.log('✅ Profile update successful!');
-          console.log('✅ Profile update result:', result);
-          console.log('✅ Data saved to profiles table:');
-          console.log('✅ - name:', updateData.name);
-          console.log('✅ - birth_date:', updateData.birth_date);
-          console.log('✅ - role:', updateData.role);
-          console.log('✅ - avatar_url:', updateData.avatar_url);
-          
-          // Confirm all fields were saved
-          console.log('🎉 All fields successfully saved to profiles table!');
-          console.log('🎉 - Name (firstName + lastName):', updateData.name);
-          console.log('🎉 - Birth Date (birth_date):', updateData.birth_date || 'Not set');
-          console.log('🎉 - Position/Role (role):', updateData.role || 'Not set');
-          console.log('🎉 - Avatar URL (avatar_url - Supabase Storage):', updateData.avatar_url || 'Not set');
-          console.log('🎉 - Interests (from localStorage):', updateData.interests || 'Not set');
-          // Show success modal instead of alert
-          showSuccessModal();
-        } catch (updateError: any) {
-          console.error('❌ Profile update failed, trying fallback approach:', updateError);
-          
-          // Try updating without avatar first (avatar might be too large)
-          if (updateData.avatar_url) {
-            console.log('🔄 Trying update without avatar...');
-            const updateDataWithoutAvatar = { ...updateData };
-            delete updateDataWithoutAvatar.avatar_url;
-            
-            try {
-              await updateProfile(updateDataWithoutAvatar);
-              showError('Partial Update', 'Profile updated successfully, but avatar could not be saved. Please try uploading a smaller image.');
-              router.replace('/(tabs)');
-              return;
-            } catch (fallbackError) {
-              console.error('❌ Fallback update also failed:', fallbackError);
-            }
-          }
-          
-          // Try updating with minimal data (just name)
-          console.log('🔄 Trying update with minimal data...');
-          const minimalUpdateData = {
-            name: updateData.name,
-            updated_at: new Date().toISOString(),
-          };
-          
+
+        // Add a small delay to ensure session is fully established when navigating from signup
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const result = await updateProfile(updateData);
+        console.log('✅ Profile update successful!');
+        console.log('✅ Profile update result:', result);
+        console.log('✅ Data saved to profiles table:');
+        console.log('✅ - name:', updateData.name);
+        console.log('✅ - birth_date:', updateData.birth_date);
+        console.log('✅ - role:', updateData.role);
+        console.log('✅ - avatar_url:', updateData.avatar_url);
+
+        // Confirm all fields were saved
+        console.log('🎉 All fields successfully saved to profiles table!');
+        console.log('🎉 - Name (firstName + lastName):', updateData.name);
+        console.log('🎉 - Birth Date (birth_date):', updateData.birth_date || 'Not set');
+        console.log('🎉 - Position/Role (role):', updateData.role || 'Not set');
+        console.log('🎉 - Avatar URL (avatar_url - Supabase Storage):', updateData.avatar_url || 'Not set');
+        console.log('🎉 - Interests (from localStorage):', updateData.interests || 'Not set');
+        // Show success modal instead of alert
+        showSuccessModal();
+      } catch (updateError: any) {
+        console.error('❌ Profile update failed, trying fallback approach:', updateError);
+
+        // Try updating without avatar first (avatar might be too large)
+        if (updateData.avatar_url) {
+          console.log('🔄 Trying update without avatar...');
+          const updateDataWithoutAvatar = { ...updateData };
+          delete updateDataWithoutAvatar.avatar_url;
+
           try {
-            await updateProfile(minimalUpdateData);
-            showError('Partial Update', 'Only name was updated. Please try again for other fields.');
+            await updateProfile(updateDataWithoutAvatar);
+            showError('Partial Update', 'Profile updated successfully, but avatar could not be saved. Please try uploading a smaller image.');
             router.replace('/(tabs)');
             return;
-          } catch (minimalError) {
-            console.error('❌ Minimal update also failed:', minimalError);
-            throw updateError; // Re-throw original error
+          } catch (fallbackError) {
+            console.error('❌ Fallback update also failed:', fallbackError);
           }
         }
-    } catch (error: any) {
-        console.error('❌ Profile update error in edit page:', error);
-        console.error('❌ Error details:', {
-          message: error.message,
-          code: error.code,
-          details: error.details,
-          hint: error.hint,
-          stack: error.stack
-        });
-        
-        let errorMessage = 'Failed to update profile. Please try again.';
-        
-        if (error.message?.includes('role_check') || error.message?.includes('profiles_role_check') || error.message?.includes('violates check constraint')) {
-          errorMessage = `Invalid position selected. Please choose from: ${validRoles.join(', ')}`;
-        } else if (error.message?.includes('avatar')) {
-          errorMessage = 'Failed to update avatar. Please try again.';
-        } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
-          errorMessage = 'Network error. Please check your connection and try again.';
-        } else if (error.message?.includes('No user logged in')) {
-          errorMessage = 'You are not logged in. Please sign in again.';
-        } else if (error.message?.includes('No valid session found')) {
-          errorMessage = 'Your session has expired. Please sign in again.';
-        } else if (error.message) {
-          errorMessage = error.message;
+
+        // Try updating with minimal data (just name)
+        console.log('🔄 Trying update with minimal data...');
+        const minimalUpdateData = {
+          name: updateData.name,
+          updated_at: new Date().toISOString(),
+        };
+
+        try {
+          await updateProfile(minimalUpdateData);
+          showError('Partial Update', 'Only name was updated. Please try again for other fields.');
+          router.replace('/(tabs)');
+          return;
+        } catch (minimalError) {
+          console.error('❌ Minimal update also failed:', minimalError);
+          throw updateError; // Re-throw original error
         }
-        
-        showError('Update Failed', errorMessage);
+      }
+    } catch (error: any) {
+      console.error('❌ Profile update error in edit page:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        stack: error.stack
+      });
+
+      let errorMessage = 'Failed to update profile. Please try again.';
+
+      if (error.message?.includes('role_check') || error.message?.includes('profiles_role_check') || error.message?.includes('violates check constraint')) {
+        errorMessage = `Invalid position selected. Please choose from: ${validRoles.join(', ')}`;
+      } else if (error.message?.includes('avatar')) {
+        errorMessage = 'Failed to update avatar. Please try again.';
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error.message?.includes('No user logged in')) {
+        errorMessage = 'You are not logged in. Please sign in again.';
+      } else if (error.message?.includes('No valid session found')) {
+        errorMessage = 'Your session has expired. Please sign in again.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      showError('Update Failed', errorMessage);
     } finally {
       // Clear timeout and stop loading animations
       clearTimeout(loadingTimeout);
@@ -1245,7 +1242,7 @@ export default function EditProfile() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      
+
       {/* Loading Interface for User Data */}
       {(isLoadingUserData || !isProfileDataLoaded || authLoading || familyLoading) && (
         <View style={styles.loadingOverlay}>
@@ -1262,7 +1259,7 @@ export default function EditProfile() {
           </View>
         </View>
       )}
-      
+
       {/* Loading Interface for Profile Update */}
       {isUpdatingProfile && (
         <View style={styles.loadingOverlay}>
@@ -1279,11 +1276,11 @@ export default function EditProfile() {
           </View>
         </View>
       )}
-      
+
       {/* Header */}
       <View style={styles.header}>
-        <Pressable 
-          style={styles.backButton} 
+        <Pressable
+          style={styles.backButton}
           onPress={() => router.replace('/(tabs)')}
         >
           <ChevronLeft size={24} color="#17f196" />
@@ -1301,33 +1298,33 @@ export default function EditProfile() {
 
           {/* Profile Photo Upload Section */}
           <View style={styles.photoUploadSection}>
-            
+
             <View style={styles.photoPlaceholder}>
-              <Pressable 
+              <Pressable
                 style={styles.avatarMainArea}
                 onPress={handleAvatarPress}
                 disabled={isUploadingAvatar}
               >
                 {avatarUri ? (
-                  <RNImage 
+                  <RNImage
                     key={avatarUri} // Force re-render when URI changes
-                    source={{ uri: avatarUri }} 
+                    source={{ uri: avatarUri }}
                     style={styles.avatarImage}
                     resizeMode="cover"
                   />
                 ) : (
                   <View style={styles.photoIcon}>
-                <RNImage 
-                  source={require('@/assets/images/icon/image.png')}
-                  style={styles.placeholderIcon}
-                  resizeMode="contain"
-                />
+                    <RNImage
+                      source={require('@/assets/images/icon/image.png')}
+                      style={styles.placeholderIcon}
+                      resizeMode="contain"
+                    />
                   </View>
                 )}
               </Pressable>
-              
+
               {/* Refresh Button (Top Right) */}
-              <Pressable 
+              <Pressable
                 style={[styles.uploadButton, isUploadingAvatar && styles.uploadButtonLoading]}
                 onPress={avatarUri ? handleRefreshClick : handleAvatarPress}
                 disabled={isUploadingAvatar}
@@ -1335,11 +1332,11 @@ export default function EditProfile() {
                 {avatarUri ? (
                   <RefreshCw size={16} color={isUploadingAvatar ? "#CCCCCC" : "#FFFFFF"} />
                 ) : (
-                  <RNImage 
-                  source={require('@/assets/images/icon/upload.png')}
-                  style={[styles.uploadIcon, isUploadingAvatar && styles.uploadIconDisabled]}
-                  resizeMode="contain"
-                />
+                  <RNImage
+                    source={require('@/assets/images/icon/upload.png')}
+                    style={[styles.uploadIcon, isUploadingAvatar && styles.uploadIconDisabled]}
+                    resizeMode="contain"
+                  />
                 )}
               </Pressable>
 
@@ -1395,11 +1392,11 @@ export default function EditProfile() {
             {/* Date of Birth */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Date of Birth</Text>
-              <Pressable 
-                style={styles.inputContainer} 
+              <Pressable
+                style={styles.inputContainer}
                 onPress={handleDatePickerOpen}
               >
-                <RNImage 
+                <RNImage
                   source={require('@/assets/images/icon/calendar.png')}
                   style={styles.inputIcon}
                   resizeMode="contain"
@@ -1414,11 +1411,11 @@ export default function EditProfile() {
             {/* Position */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Position</Text>
-              <Pressable 
-                style={styles.inputContainer} 
+              <Pressable
+                style={styles.inputContainer}
                 onPress={handlePositionPickerOpen}
               >
-                <RNImage 
+                <RNImage
                   source={require('@/assets/images/icon/keyboard.png')}
                   style={styles.inputIcon}
                   resizeMode="contain"
@@ -1435,7 +1432,7 @@ export default function EditProfile() {
 
       {/* Update Profile Button */}
       <View style={styles.buttonContainer}>
-        <Pressable 
+        <Pressable
           style={[styles.updateButton, (isUpdatingProfile || isLoadingUserData || !isProfileDataLoaded || authLoading || familyLoading) && styles.updateButtonDisabled]}
           onPress={() => {
             console.log('🔘 Update Profile button pressed!');
@@ -1457,10 +1454,10 @@ export default function EditProfile() {
             {isUpdatingProfile ? 'Updating...' : 'Update Profile'}
           </Text>
         </Pressable>
-        
+
         {/* Debug button to force enable */}
         {(isLoadingUserData || !isProfileDataLoaded || authLoading || familyLoading) && (
-          <Pressable 
+          <Pressable
             style={[styles.updateButton, { backgroundColor: '#ff6b6b', marginTop: 10 }]}
             onPress={() => {
               console.log('🔧 Force enabling button by setting loading states to false');
@@ -1483,15 +1480,15 @@ export default function EditProfile() {
         <View style={styles.datePickerOverlay}>
           <View style={styles.datePickerContainer}>
             <View style={styles.datePickerHeader}>
-              <Pressable 
-                onPress={handleDatePickerClose} 
+              <Pressable
+                onPress={handleDatePickerClose}
                 style={styles.datePickerCancelButton}
               >
                 <Text style={styles.datePickerCancelText}>Cancel</Text>
               </Pressable>
               <Text style={styles.datePickerTitle}>Select Date of Birth</Text>
-              <Pressable 
-                onPress={handleDatePickerClose} 
+              <Pressable
+                onPress={handleDatePickerClose}
                 style={styles.datePickerDoneButton}
               >
                 <Text style={styles.datePickerDoneText}>Done</Text>
@@ -1527,7 +1524,7 @@ export default function EditProfile() {
                         ))}
                       </ScrollView>
                     </View>
-                    
+
                     <View style={styles.datePickerColumn}>
                       <Text style={styles.datePickerLabel}>Month</Text>
                       <ScrollView style={styles.monthScrollView} showsVerticalScrollIndicator={true}>
@@ -1557,7 +1554,7 @@ export default function EditProfile() {
                         ))}
                       </ScrollView>
                     </View>
-                    
+
                     <View style={styles.datePickerColumn}>
                       <Text style={styles.datePickerLabel}>Day</Text>
                       <ScrollView style={styles.dayScrollView} showsVerticalScrollIndicator={true}>
@@ -1611,15 +1608,15 @@ export default function EditProfile() {
         <View style={styles.datePickerOverlay}>
           <View style={styles.datePickerContainer}>
             <View style={styles.datePickerHeader}>
-              <Pressable 
-                onPress={handlePositionPickerClose} 
+              <Pressable
+                onPress={handlePositionPickerClose}
                 style={styles.datePickerCancelButton}
               >
                 <Text style={styles.datePickerCancelText}>Cancel</Text>
               </Pressable>
               <Text style={styles.datePickerTitle}>Select Position</Text>
-              <Pressable 
-                onPress={handlePositionPickerClose} 
+              <Pressable
+                onPress={handlePositionPickerClose}
                 style={styles.datePickerDoneButton}
               >
                 <Text style={styles.datePickerDoneText}>Done</Text>
@@ -1661,15 +1658,15 @@ export default function EditProfile() {
           <View style={styles.imageEditorContainer}>
             {/* Header */}
             <View style={styles.imageEditorHeader}>
-              <Pressable 
-                onPress={handleCancelEdit} 
+              <Pressable
+                onPress={handleCancelEdit}
                 style={styles.imageEditorCancelButton}
               >
                 <X size={24} color="#666666" />
               </Pressable>
               <Text style={styles.imageEditorTitle}>Edit Image</Text>
-              <Pressable 
-                onPress={handleSaveEditedImage} 
+              <Pressable
+                onPress={handleSaveEditedImage}
                 style={styles.imageEditorSaveButton}
               >
                 <Check size={24} color="#17f196" />
@@ -1680,7 +1677,7 @@ export default function EditProfile() {
             <View style={styles.imageEditorContent}>
               {editingImageUri && (
                 <View style={styles.imageEditorImageWrapper}>
-                  <View 
+                  <View
                     style={[
                       styles.imageEditorImageContainer,
                       {
@@ -1691,36 +1688,36 @@ export default function EditProfile() {
                       }
                     ]}
                   >
-                    <RNImage 
-                      source={{ uri: editingImageUri }} 
+                    <RNImage
+                      source={{ uri: editingImageUri }}
                       style={styles.imageEditorImage}
                       resizeMode="contain"
                     />
                   </View>
-                  
+
                   {/* Crop Overlay */}
                   {cropMode && (
                     <View style={styles.cropOverlay}>
                       {/* Dark overlay parts */}
                       <View style={[styles.cropOverlayTop, { height: cropArea.y }]} />
-                      <View style={[styles.cropOverlayBottom, { 
+                      <View style={[styles.cropOverlayBottom, {
                         top: cropArea.y + cropArea.height,
-                        height: 300 - cropArea.y - cropArea.height 
+                        height: 300 - cropArea.y - cropArea.height
                       }]} />
-                      <View style={[styles.cropOverlayLeft, { 
+                      <View style={[styles.cropOverlayLeft, {
                         top: cropArea.y,
                         width: cropArea.x,
-                        height: cropArea.height 
+                        height: cropArea.height
                       }]} />
-                      <View style={[styles.cropOverlayRight, { 
+                      <View style={[styles.cropOverlayRight, {
                         left: cropArea.x + cropArea.width,
                         top: cropArea.y,
                         width: 300 - cropArea.x - cropArea.width,
-                        height: cropArea.height 
+                        height: cropArea.height
                       }]} />
-                      
+
                       {/* Bright selected area */}
-                      <View 
+                      <View
                         style={[
                           styles.cropArea,
                           {
@@ -1734,9 +1731,9 @@ export default function EditProfile() {
                         onTouchMove={handleCropAreaMove}
                         onTouchEnd={handleCropAreaRelease}
                       />
-                      
+
                       {/* Corner handles - outside of crop area to avoid event conflicts */}
-                      <View 
+                      <View
                         style={[styles.cropCorner, {
                           left: cropArea.x - 14,
                           top: cropArea.y - 14,
@@ -1748,7 +1745,7 @@ export default function EditProfile() {
                         onTouchMove={handleCornerMove}
                         onTouchEnd={handleCropAreaRelease}
                       />
-                      <View 
+                      <View
                         style={[styles.cropCorner, styles.cropCornerTopRight, {
                           left: cropArea.x + cropArea.width - 14,
                           top: cropArea.y - 14,
@@ -1760,7 +1757,7 @@ export default function EditProfile() {
                         onTouchMove={handleCornerMove}
                         onTouchEnd={handleCropAreaRelease}
                       />
-                      <View 
+                      <View
                         style={[styles.cropCorner, styles.cropCornerBottomLeft, {
                           left: cropArea.x - 14,
                           top: cropArea.y + cropArea.height - 14,
@@ -1772,7 +1769,7 @@ export default function EditProfile() {
                         onTouchMove={handleCornerMove}
                         onTouchEnd={handleCropAreaRelease}
                       />
-                      <View 
+                      <View
                         style={[styles.cropCorner, styles.cropCornerBottomRight, {
                           left: cropArea.x + cropArea.width - 14,
                           top: cropArea.y + cropArea.height - 14,
@@ -1792,7 +1789,7 @@ export default function EditProfile() {
 
             {/* Control Buttons */}
             <View style={styles.imageEditorControls}>
-              <Pressable 
+              <Pressable
                 style={[styles.imageEditorControlButton, cropMode && styles.imageEditorControlButtonActive]}
                 onPress={handleToggleCropMode}
               >
@@ -1802,7 +1799,7 @@ export default function EditProfile() {
                 </Text>
               </Pressable>
 
-              <Pressable 
+              <Pressable
                 style={styles.imageEditorControlButton}
                 onPress={handleRotateImage}
               >
@@ -1810,7 +1807,7 @@ export default function EditProfile() {
                 <Text style={styles.imageEditorControlText}>Rotate</Text>
               </Pressable>
 
-              <Pressable 
+              <Pressable
                 style={styles.imageEditorControlButton}
                 onPress={handleResetCrop}
               >
@@ -1834,22 +1831,22 @@ export default function EditProfile() {
             {/* Icon */}
             <View style={styles.confirmationIconContainer}>
               <View style={styles.confirmationIcon}>
-                <RNImage 
+                <RNImage
                   source={require('@/assets/images/icon/user.png')}
                   style={styles.confirmationIconImage}
                   resizeMode="contain"
                 />
               </View>
             </View>
-            
+
             {/* Title */}
             <Text style={styles.confirmationTitle}>Update Profile</Text>
-            
+
             {/* Message */}
             <Text style={styles.confirmationMessage}>
               Are you sure you want to update your profile? This will help us improve your experience and provide personalized features.
             </Text>
-            
+
             {/* Buttons */}
             <View style={styles.confirmationButtons}>
               <Pressable
@@ -1858,7 +1855,7 @@ export default function EditProfile() {
               >
                 <Text style={styles.confirmButtonText}>Yes, Update Profile</Text>
               </Pressable>
-              
+
               <Pressable
                 style={[styles.confirmationButton, styles.cancelButton]}
                 onPress={hideConfirmationModal}
@@ -1882,7 +1879,7 @@ export default function EditProfile() {
             {/* Icon */}
             <View style={styles.successIconContainer}>
               <View style={styles.successIcon}>
-                <RNImage 
+                <RNImage
                   source={require('@/assets/images/icon/user.png')}
                   style={styles.successIconImage}
                   resizeMode="contain"
@@ -2571,7 +2568,7 @@ const styles = StyleSheet.create({
     color: '#17f196',
     fontFamily: 'Helvetica',
   },
-  
+
   // Success Modal Styles
   successModalOverlay: {
     position: 'absolute',
@@ -2669,7 +2666,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontFamily: 'Helvetica',
   },
-  
+
   // Loading Interface Styles
   loadingOverlay: {
     position: 'absolute',
