@@ -20,7 +20,6 @@ import { router } from 'expo-router';
 import { useFamily } from '@/contexts/FamilyContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFamilyPoints } from '@/hooks/useFamilyPoints';
-import FamilyPrompt from '@/components/FamilyPrompt';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRealTimeFamily } from '@/hooks/useRealTimeFamily';
 

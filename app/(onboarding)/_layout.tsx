@@ -31,10 +31,10 @@ export default function OnboardingLayout() {
           const isOnEnterNewPwdPage = currentPath.includes('enterNewPwd');
           const isOnNewFamilyPage = currentPath.includes('newFamily');
           const isOnWorkProfileEmptyPage = currentPath.includes('workProfileEmpty');
-          const isOnProfileEditPage = currentPath.includes('myProfile/edit');
           
           // Allow only specific pages for authenticated users
-          if (isOnPasswordResetPage || isOnEnterNewPwdPage || isOnProfileEditPage) {
+          // Note: myProfile/edit is handled by the main app layout, not onboarding layout
+          if (isOnPasswordResetPage || isOnEnterNewPwdPage) {
             console.log('🔄 Auth token found but user on allowed page:', currentPath);
             return;
           }
@@ -57,6 +57,39 @@ export default function OnboardingLayout() {
             }
           }
           
+          // Check if this is a new user on signup page before redirecting
+          if (currentPath.includes('signup')) {
+            // Check if this is a new user (created recently)
+            if (user?.created_at) {
+              const userCreatedAt = new Date(user.created_at);
+              const now = new Date();
+              const timeSinceCreation = now.getTime() - userCreatedAt.getTime();
+              const isNewUser = timeSinceCreation < 10 * 60 * 1000; // Less than 10 minutes ago
+              
+              if (isNewUser) {
+                console.log('🆕 New user on signup page (auth token check), allowing welcome modal to show');
+                console.log('🔍 DEBUG: User created at:', user.created_at);
+                console.log('🔍 DEBUG: Time since creation:', timeSinceCreation, 'ms');
+                return; // Allow signup page for new users
+              }
+            }
+            
+            // Check if user just confirmed their email
+            if (user?.email_confirmed_at) {
+              const emailConfirmedAt = new Date(user.email_confirmed_at);
+              const now = new Date();
+              const timeSinceConfirmation = now.getTime() - emailConfirmedAt.getTime();
+              const justConfirmedEmail = timeSinceConfirmation < 5 * 60 * 1000; // Less than 5 minutes ago
+              
+              if (justConfirmedEmail && !isInFamily) {
+                console.log('📧 User just confirmed email on signup page (auth token check), allowing welcome modal to show');
+                console.log('🔍 DEBUG: Email confirmed at:', user.email_confirmed_at);
+                console.log('🔍 DEBUG: Time since confirmation:', timeSinceConfirmation, 'ms');
+                return; // Allow signup page for recently confirmed users
+              }
+            }
+          }
+          
           // For all other onboarding pages, redirect immediately
           console.log('🚫 Auth token found, redirecting from onboarding page:', currentPath);
           router.replace('/(tabs)');
@@ -73,35 +106,72 @@ export default function OnboardingLayout() {
     if (!authLoading && session && user) {
       // Add a small delay to ensure signup page logic runs first
       const timeoutId = setTimeout(async () => {
-        // Check if welcome modal should be shown before redirecting
-        const checkWelcomeModal = async () => {
+        // Check if user is on allowed pages before redirecting
+        const checkAllowedPages = async () => {
           try {
-            const showingWelcomeModal = await AsyncStorage.getItem('showing_welcome_modal');
-            const isVerifyingSignup = await AsyncStorage.getItem('is_verifying_signup');
-            
-            // Check if current route is a password reset page, new family page, or profile edit page
+            // Check if current route is a password reset page, new family page, or signup page
             const currentPath = segments.join('/');
             const isOnPasswordResetPage = currentPath.includes('resetPwd');
             const isOnEnterNewPwdPage = currentPath.includes('enterNewPwd');
             const isOnNewFamilyPage = currentPath.includes('newFamily');
             const isOnWorkProfileEmptyPage = currentPath.includes('workProfileEmpty');
             const isOnSignupPage = currentPath.includes('signup');
-            const isOnProfileEditPage = currentPath.includes('myProfile/edit');
             
-            if (showingWelcomeModal === 'true' || isVerifyingSignup === 'true') {
-              console.log('🔄 Welcome modal or signup verification in progress, staying on onboarding page');
-              return; // Don't redirect, let the signup page handle the welcome modal
+            // Early exit: If user is not on any onboarding page, don't interfere
+            // This prevents the onboarding layout from redirecting users who have navigated away
+            if (!isOnPasswordResetPage && !isOnEnterNewPwdPage && !isOnNewFamilyPage && 
+                !isOnWorkProfileEmptyPage && !isOnSignupPage && 
+                !currentPath.includes('language') && !currentPath.includes('personal') && 
+                !currentPath.includes('preferences') && !currentPath.includes('permissions') && 
+                !currentPath.includes('auth') && !currentPath.includes('overview') && 
+                !currentPath.includes('signin') && !currentPath.includes('final')) {
+              console.log('🔍 User is not on an onboarding page, onboarding layout will not interfere');
+              return;
+            }
+            
+            // Check if user is in signup verification flow (using time-based detection)
+            if (isOnSignupPage) {
+              // Check if this is a new user (created recently)
+              if (user?.created_at) {
+                const userCreatedAt = new Date(user.created_at);
+                const now = new Date();
+                const timeSinceCreation = now.getTime() - userCreatedAt.getTime();
+                const isNewUser = timeSinceCreation < 10 * 60 * 1000; // Less than 10 minutes ago
+                
+                if (isNewUser) {
+                  console.log('🆕 New user on signup page (main navigation), allowing welcome modal to show');
+                  console.log('🔍 DEBUG: User created at:', user.created_at);
+                  console.log('🔍 DEBUG: Time since creation:', timeSinceCreation, 'ms');
+                  return; // Allow signup page for new users
+                }
+              }
+              
+              // Check if user just confirmed their email
+              if (user?.email_confirmed_at) {
+                const emailConfirmedAt = new Date(user.email_confirmed_at);
+                const now = new Date();
+                const timeSinceConfirmation = now.getTime() - emailConfirmedAt.getTime();
+                const justConfirmedEmail = timeSinceConfirmation < 5 * 60 * 1000; // Less than 5 minutes ago
+                
+                if (justConfirmedEmail && !isInFamily) {
+                  console.log('📧 User just confirmed email on signup page (main navigation), allowing welcome modal to show');
+                  console.log('🔍 DEBUG: Email confirmed at:', user.email_confirmed_at);
+                  console.log('🔍 DEBUG: Time since confirmation:', timeSinceConfirmation, 'ms');
+                  return; // Allow signup page for recently confirmed users
+                }
+              }
             }
             
                 // Only allow authenticated users on these specific pages:
                 // - Password reset pages (they might need to reset password even when logged in)
                 // - New family pages (authenticated users without family ONLY)
-                // - Profile edit pages (authenticated users editing profile)
                 // - Final page (temporary access for redirect purposes)
+                // Note: Profile edit pages are handled by the main app layout, not onboarding layout
                 // DO NOT allow: signup, signin, language, personal, preferences, permissions, auth, family setup, etc.
                 const isOnFinalPage = currentPath.includes('final');
-                if (isOnPasswordResetPage || isOnEnterNewPwdPage || isOnProfileEditPage || isOnFinalPage) {
+                if (isOnPasswordResetPage || isOnEnterNewPwdPage || isOnFinalPage) {
                   console.log('🔄 User on allowed authenticated page, allowing access');
+                  console.log('🔍 DEBUG: Current path:', currentPath);
                   return; // Don't redirect, allow special flow
                 }
             
@@ -123,26 +193,19 @@ export default function OnboardingLayout() {
               }
             }
             
-            // IMPORTANT: Do not allow signup/signin pages for authenticated users
-            if (isOnSignupPage) {
-              console.log('🚫 Authenticated user trying to access signup page, redirecting to home');
-              router.replace('/(tabs)');
-              return;
-            }
-            
-            // For authenticated users on onboarding pages, redirect to home
-            // Note: Profile completion check is only done during signup flow (Set Up Profile button)
-            console.log('🚫 User is already authenticated, redirecting from onboarding to home...');
+            // For all other authenticated users on onboarding pages, redirect to home
+            console.log('🚫 Authenticated user trying to access onboarding page, redirecting to home');
             router.replace('/(tabs)');
+            return;
           } catch (error) {
-            console.error('Error checking welcome modal flag:', error);
+            console.error('Error checking allowed pages:', error);
             // If there's an error, proceed with normal redirect
             console.log('🚫 User is already authenticated, redirecting from onboarding to home...');
             router.replace('/(tabs)');
           }
         };
         
-        checkWelcomeModal();
+        checkAllowedPages();
       }, 100); // Small delay to let signup page logic run first
       
         return () => clearTimeout(timeoutId);
@@ -168,16 +231,45 @@ export default function OnboardingLayout() {
     const isOnPasswordResetPage = currentPath.includes('resetPwd');
     const isOnNewFamilyPage = currentPath.includes('newFamily');
     const isOnWorkProfileEmptyPage = currentPath.includes('workProfileEmpty');
-    const isOnProfileEditPage = currentPath.includes('myProfile/edit');
     const isOnFinalPage = currentPath.includes('final');
+    const isOnSignupPage = currentPath.includes('signup');
     
-    // Always allow password reset, profile edit, and final pages
-    const isOnAlwaysAllowedPage = isOnPasswordResetPage || isOnProfileEditPage || isOnFinalPage;
+    // Always allow password reset and final pages
+    // Note: Profile edit pages are handled by the main app layout, not onboarding layout
+    const isOnAlwaysAllowedPage = isOnPasswordResetPage || isOnFinalPage;
     
     // Only allow newFamily pages if user doesn't have a family
     const isOnConditionallyAllowedPage = (isOnNewFamilyPage || isOnWorkProfileEmptyPage) && !isInFamily;
     
-    const isOnAllowedPage = isOnAlwaysAllowedPage || isOnConditionallyAllowedPage;
+    // Allow signup page for new users to show welcome modal
+    let isOnSignupAllowedPage = false;
+    if (isOnSignupPage) {
+      // Check if this is a new user (created recently)
+      if (user?.created_at) {
+        const userCreatedAt = new Date(user.created_at);
+        const now = new Date();
+        const timeSinceCreation = now.getTime() - userCreatedAt.getTime();
+        const isNewUser = timeSinceCreation < 10 * 60 * 1000; // Less than 10 minutes ago
+        
+        if (isNewUser) {
+          isOnSignupAllowedPage = true;
+        }
+      }
+      
+      // Check if user just confirmed their email
+      if (!isOnSignupAllowedPage && user?.email_confirmed_at) {
+        const emailConfirmedAt = new Date(user.email_confirmed_at);
+        const now = new Date();
+        const timeSinceConfirmation = now.getTime() - emailConfirmedAt.getTime();
+        const justConfirmedEmail = timeSinceConfirmation < 5 * 60 * 1000; // Less than 5 minutes ago
+        
+        if (justConfirmedEmail && !isInFamily) {
+          isOnSignupAllowedPage = true;
+        }
+      }
+    }
+    
+    const isOnAllowedPage = isOnAlwaysAllowedPage || isOnConditionallyAllowedPage || isOnSignupAllowedPage;
     
     // If not on an allowed page, show loading while redirecting
     if (!isOnAllowedPage) {
@@ -198,8 +290,6 @@ export default function OnboardingLayout() {
       <Stack.Screen name="preferences" />
       <Stack.Screen name="permissions" />
       <Stack.Screen name="auth" />
-      <Stack.Screen name="profile" />
-      <Stack.Screen name="family" />
       <Stack.Screen name="newFamily" />
       <Stack.Screen name="newFamily/workProfileEmpty" />
       <Stack.Screen name="overview" />

@@ -36,6 +36,11 @@ export default function OnboardingWelcome() {
     router.push('/(onboarding)/language');
   };
 
+  const handleSkip = () => {
+    console.log('🚀 Skip button clicked, navigating to final page');
+    router.push('/(onboarding)/final');
+  };
+
 
 
   return (
@@ -120,7 +125,10 @@ export default function OnboardingWelcome() {
               </Text>
             </Pressable>
             
-            <Pressable style={styles.skipButton}>
+            <Pressable 
+              style={styles.skipButton}
+              onPress={handleSkip}
+            >
               <Text style={styles.skipButtonText}>
                 {currentLanguage.code === 'en' ? 'Skip' : 
                  currentLanguage.code === 'de' ? 'Überspringen' : 

@@ -496,12 +496,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
        authSuccessful = true; // Mark auth as successful
        console.log('👤 User logged in, checking email verification...');
         
-        // Check if we're in the middle of signup verification
-        const isVerifyingSignup = await AsyncStorage.getItem('is_verifying_signup');
-        if (isVerifyingSignup === 'true') {
-          console.log('🔄 Signup verification in progress, skipping profile loading...');
-          return; // Exit early, don't proceed with profile loading
-        }
+        // Note: Removed AsyncStorage check for is_verifying_signup
+        // The signup verification is now handled entirely through React state
         
         // CRITICAL SECURITY CHECK: Block unverified users
         if (!session.user.email_confirmed_at) {

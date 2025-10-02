@@ -23,7 +23,6 @@ import { useFamily } from '@/contexts/FamilyContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFamilyPoints } from '@/hooks/useFamilyPoints';
-import FamilyPrompt from '@/components/FamilyPrompt';
 
 // Custom verification icon component
 const VerificationIcon = ({ size = 16 }: { size?: number }) => (
@@ -70,11 +69,13 @@ export default function FlamesScreen() {
     contentOpacity.value = withDelay(200, withTiming(1, { duration: 800 }));
   }, []);
 
-  // Show family prompt if user is not in a family
-  if (!familyLoading && !isInFamily) {
+  // Show loading screen while checking family status
+  if (familyLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <FamilyPrompt />
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -790,5 +791,18 @@ const styles = StyleSheet.create({
   // Bottom spacing
   bottomSpacing: {
     height: 100,
+  },
+
+  // Loading styles
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f1f3f8',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666666',
+    marginTop: 12,
   },
 });

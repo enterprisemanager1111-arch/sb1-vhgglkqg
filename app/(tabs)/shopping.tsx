@@ -19,7 +19,6 @@ import { useFamilyShoppingItems } from '@/hooks/useFamilyShoppingItems';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { NotificationSystem, useNotifications } from '@/components/NotificationSystem';
 import EmptyState from '@/components/EmptyState';
-import FamilyPrompt from '@/components/FamilyPrompt';
 import AddItemModal from '@/components/AddItemModal';
 
 const AnimatedView = Animated.createAnimatedComponent(View);
@@ -95,7 +94,10 @@ export default function Shopping() {
   if (!familyLoading && !isInFamily) {
     return (
       <SafeAreaView style={styles.container}>
-        <FamilyPrompt />
+        <View style={styles.noFamilyContainer}>
+          <Text style={styles.noFamilyText}>No family found</Text>
+          <Text style={styles.noFamilySubtext}>Please create or join a family to continue</Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -760,5 +762,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Montserrat-SemiBold',
     color: '#161618',
+  },
+  noFamilyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 36,
+  },
+  noFamilyText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#161618',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  noFamilySubtext: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'center',
   },
 });

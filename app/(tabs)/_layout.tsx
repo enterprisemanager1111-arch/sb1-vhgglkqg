@@ -6,11 +6,13 @@ import { useState, useEffect } from 'react';
 import AddItemModal from '@/components/AddItemModal';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFamily } from '@/contexts/FamilyContext';
 
 // Custom Tab Bar Component with Dented Design
 function CustomTabBar({ state, descriptors, navigation }: any) {
   const insets = useSafeAreaInsets();
   const [showAddItemModal, setShowAddItemModal] = useState(false);
+  const { currentFamily, isInFamily } = useFamily();
   
   // Filter to only show the 4 main tabs
   const visibleRoutes = state.routes.filter((route: any) => 
@@ -57,7 +59,25 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                 });
 
                 if (!isFocused && !event.defaultPrevented) {
-                  navigation.navigate(route.name);
+                  // Special handling for family button
+                  if (route.name === 'family') {
+                    console.log('🔍 Family button clicked!');
+                    console.log('🔍 isInFamily:', isInFamily);
+                    console.log('🔍 currentFamily:', !!currentFamily);
+                    console.log('🔍 currentFamily name:', currentFamily?.name);
+                    
+                    if (isInFamily && currentFamily) {
+                      // User has a family, navigate to family page
+                      console.log('✅ User has family, navigating to /(tabs)/family');
+                      router.push('/(tabs)/family');
+                    } else {
+                      // User doesn't have a family, navigate to newFamily page
+                      console.log('❌ User has no family, navigating to newFamily page');
+                      router.push('/(onboarding)/newFamily');
+                    }
+                  } else {
+                    navigation.navigate(route.name);
+                  }
                 } else if (route.name === 'index' && (state.routes[state.index]?.name === 'tasks' || state.routes[state.index]?.name === 'calendar')) {
                   // If on tasks page or calendar page and clicking home icon, navigate to home
                   navigation.navigate('index');

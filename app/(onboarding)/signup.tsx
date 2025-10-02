@@ -39,6 +39,10 @@ export default function SignUp() {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [verificationLoading, setVerificationLoading] = useState(false);
   const [isVerifyingSignup, setIsVerifyingSignup] = useState(false);
+  
+  // Use ref to track verification state to prevent race conditions
+  const isVerifyingRef = useRef(false);
+  const showWelcomeModalRef = useRef(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
   const [generatedVerificationCode, setGeneratedVerificationCode] = useState('');
@@ -149,72 +153,91 @@ export default function SignUp() {
 
 
 
-  // Check if user is already authenticated and should show welcome modal
+  // Check if user is already authenticated (but not during signup verification)
   useEffect(() => {
-    const checkAuthAndWelcomeModal = async () => {
+    const checkAuth = async () => {
       if (session && user) {
-        try {
-          const showingWelcomeModal = await AsyncStorage.getItem('showing_welcome_modal');
-          if (showingWelcomeModal === 'true') {
-            console.log('🔄 User authenticated and welcome modal flag set, showing welcome modal');
-            showWelcomeModalHandler();
-            return;
-          }
-        } catch (error) {
-          console.error('Error checking welcome modal flag:', error);
+        // Check if we're in the middle of signup verification using refs for immediate access
+        if (isVerifyingRef.current || showWelcomeModalRef.current) {
+          console.log('🔄 Signup verification in progress or welcome modal showing, not redirecting yet');
+          console.log('🔍 DEBUG: isVerifyingRef.current:', isVerifyingRef.current);
+          console.log('🔍 DEBUG: showWelcomeModalRef.current:', showWelcomeModalRef.current);
+          return; // Don't redirect during verification or when welcome modal is shown
         }
         
-        // If no welcome modal flag, redirect to main app
+        // User is already authenticated and not in verification flow, redirect to main app
         console.log('User is already authenticated, redirecting to main app');
         router.replace('/(tabs)');
       }
     };
     
-    checkAuthAndWelcomeModal();
-  }, [session, user]);
+    checkAuth();
+  }, [session, user, isVerifyingSignup, showWelcomeModal]);
 
-  // Cleanup effect to clear verification flag on unmount
-  useEffect(() => {
-    return () => {
-      AsyncStorage.removeItem('is_verifying_signup');
-    };
-  }, []);
+  // Note: Using React state only for verification flag management
+  // No AsyncStorage flags are used anymore
 
   // Welcome modal handlers
   const showWelcomeModalHandler = () => {
     console.log('🎊 showWelcomeModalHandler called');
     console.log('🔍 Current showWelcomeModal state before setState:', showWelcomeModal);
+    
+    // Set ref immediately to prevent race conditions
+    showWelcomeModalRef.current = true;
     setShowWelcomeModal(true);
+    
     console.log('✅ showWelcomeModal state set to true');
+    console.log('✅ showWelcomeModalRef.current set to true');
     console.log('🔍 showWelcomeModal state after setState (may not be updated yet):', showWelcomeModal);
     
     console.log('🎬 Starting welcome modal...');
     console.log('✅ Welcome modal started');
+    
+    // Debug: Check flag status when showing modal
+    setTimeout(() => {
+      console.log('🔍 DEBUG: isVerifyingSignup state when showing welcome modal:', isVerifyingSignup);
+      console.log('🔍 DEBUG: showWelcomeModalRef.current when showing welcome modal:', showWelcomeModalRef.current);
+    }, 100);
   };
 
   const hideWelcomeModal = () => {
     setShowWelcomeModal(false);
+    showWelcomeModalRef.current = false;
   };
 
 
   const handleSetUpProfile = async () => {
     console.log('🎯 Set Up Profile button clicked!');
     hideWelcomeModal();
-    // Clear the welcome modal flag
-    await AsyncStorage.removeItem('showing_welcome_modal');
+    
+    // Clear the verification flag now that user has made a choice
+    setIsVerifyingSignup(false);
+    isVerifyingRef.current = false;
+    console.log('🔓 Verification flag cleared in handleSetUpProfile, allowing normal auth flow');
+    
     console.log('🔄 Navigating to /myProfile/edit...');
-    // Navigate to profile edit page
-    router.push('/myProfile/edit');
-    console.log('✅ Navigation call completed');
+    
+    // Add a small delay to ensure the navigation completes before any other logic runs
+    setTimeout(() => {
+      // Navigate to profile edit page (replace to exit onboarding stack)
+      router.replace('/myProfile/edit');
+      console.log('✅ Navigation call completed');
+    }, 100);
   };
 
   const handleExploreApp = async () => {
+    console.log('🎯 Explore App button clicked!');
     hideWelcomeModal();
-    // Clear the welcome modal flag
-    await AsyncStorage.removeItem('showing_welcome_modal');
+    
+    // Clear the verification flag now that user has made a choice
+    setIsVerifyingSignup(false);
+    isVerifyingRef.current = false;
+    console.log('🔓 Verification flag cleared in handleExploreApp, allowing normal auth flow');
+    
     // Navigate to main app (account already created)
     router.replace('/(tabs)');
   };
+
 
   // Verification modal handlers
   const showVerificationModalHandler = () => {
@@ -336,9 +359,7 @@ export default function SignUp() {
     try {
       setVerificationLoading(true);
       setIsVerifyingSignup(true); // Set flag to prevent auth redirect
-      
-      // Set flag in AsyncStorage to prevent auth redirect
-      await AsyncStorage.setItem('is_verifying_signup', 'true');
+      isVerifyingRef.current = true; // Set ref for immediate access
       
       console.log('🔐 Verifying OTP code:', code);
       
@@ -404,16 +425,25 @@ export default function SignUp() {
       // Show success message
       showSuccess('Account Created!', 'Your account has been successfully created and verified.');
       
-      // Set flag to prevent main app routing from interfering
-      await AsyncStorage.setItem('showing_welcome_modal', 'true');
-      
-      // Clear the verification flag to allow normal auth flow
-      setIsVerifyingSignup(false);
-      await AsyncStorage.removeItem('is_verifying_signup');
-      
-      // Show welcome modal after successful verification
+      // Show welcome modal after successful verification with a delay to ensure auth state is processed
       console.log('📱 Showing welcome modal after verification...');
-      showWelcomeModalHandler();
+      
+      // Add a small delay to ensure authentication state is fully processed
+      setTimeout(() => {
+        showWelcomeModalHandler();
+      }, 100);
+      
+      // Keep the verification flag active until user interacts with welcome modal
+      // This prevents AuthContext from redirecting to home page
+      console.log('🔒 Keeping verification flag active to prevent auto-redirect');
+      
+      // Debug: Check if modal state actually updated
+      setTimeout(() => {
+        console.log('🔍 DEBUG: showWelcomeModal state after 500ms:', showWelcomeModal);
+        console.log('🔍 DEBUG: isVerifyingSignup state after 500ms:', isVerifyingSignup);
+        console.log('🔍 DEBUG: showWelcomeModalRef.current after 500ms:', showWelcomeModalRef.current);
+        console.log('🔍 DEBUG: isVerifyingRef.current after 500ms:', isVerifyingRef.current);
+      }, 500);
       
     } catch (error: any) {
       console.error('Error during verification:', error);
@@ -421,7 +451,7 @@ export default function SignUp() {
       
       // Clear the verification flag on error
       setIsVerifyingSignup(false);
-      await AsyncStorage.removeItem('is_verifying_signup');
+      isVerifyingRef.current = false;
     } finally {
       setVerificationLoading(false);
     }
@@ -904,14 +934,16 @@ Your Rights: You can access, update, or delete your personal data at any time th
       )}
 
       {/* Welcome Modal */}
-      {showWelcomeModal && (
-        <View style={styles.welcomeModalOverlay}>
-          <BlurView
-            style={styles.welcomeBlurOverlay}
-            intensity={80}
-            tint="dark"
-          />
-          <View style={styles.welcomeModalContainer}>
+      {showWelcomeModal && (() => {
+        console.log('🎭 DEBUG: Welcome modal is rendering! showWelcomeModal =', showWelcomeModal);
+        return (
+          <View style={styles.welcomeModalOverlay}>
+            <BlurView
+              style={styles.welcomeBlurOverlay}
+              intensity={80}
+              tint="dark"
+            />
+            <View style={styles.welcomeModalContainer}>
             {/* Icon */}
             <View style={styles.welcomeIconContainer}>
               <View style={styles.welcomeIcon}>
@@ -949,7 +981,8 @@ Your Rights: You can access, update, or delete your personal data at any time th
             </View>
           </View>
         </View>
-      )}
+        );
+      })()}
     </SafeAreaView>
   );
 }

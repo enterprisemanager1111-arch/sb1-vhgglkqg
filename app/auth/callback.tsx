@@ -22,11 +22,10 @@ export default function AuthCallback() {
           
           // Check if this is a new user verification (from signup)
           const isVerifyingSignup = await AsyncStorage.getItem('is_verifying_signup');
-          const showingWelcomeModal = await AsyncStorage.getItem('showing_welcome_modal');
           
-          if (isVerifyingSignup === 'true' || showingWelcomeModal === 'true') {
-            console.log('🔄 New user verification detected, redirecting to signup page for welcome modal');
-            // Redirect back to signup page to show welcome modal
+          if (isVerifyingSignup === 'true') {
+            console.log('🔄 New user verification detected, redirecting to signup page');
+            // Redirect back to signup page
             router.replace('/(onboarding)/signup');
           } else {
             console.log('🔄 Existing user verification, redirecting to main app');
