@@ -50,6 +50,14 @@
         "nature": "Natuur",
         "technology": "Technologie"
       },
+      "validation": {
+        "roleRequired": "Rol vereist",
+        "roleRequiredMessage": "Je moet je familierol selecteren voordat je doorgaat."
+      },
+      "error": {
+        "saveFailed": "Fout bij het opslaan van informatie",
+        "tryAgain": "Probeer het opnieuw."
+      },
       "datePicker": {
         "title": "Selecteer geboortedatum",
         "year": "Jaar",
@@ -61,26 +69,42 @@
       "ageDisplay": "{{age}} jaar oud, {{zodiac}}"
     },
     "language": {
-      "title": "Selecteer taal",
-      "subtitle": "Kies je voorkeurstaal voor de app"
+      "title": "Kies je taal",
+      "subtitle": "Selecteer je voorkeurstaal voor Famora, voor de perfecte ervaring.",
+      "question": "Welke taal spreek je?",
+      "next": "Volgende",
+      "back": "Terug"
     },
     "preferences": {
       "title": "Je doelen & voorkeuren",
+      "subtitle": "Laat ons Famora aanpassen aan jouw behoeften",
       "goals": {
         "title": "Wat wil je bereiken?",
         "subtitle": "Selecteer maximaal 3 hoofddoelen die belangrijk voor je zijn",
-        "organization": "Betere organisatie",
-        "organizationDesc": "Structuur en overzicht in het gezinsleven",
-        "communication": "Communicatie verbeteren",
-        "communicationDesc": "Beter contact en uitwisseling binnen het gezin",
-        "timeManagement": "Tijdbeheer",
-        "timeManagementDesc": "Efficiënter omgaan met tijd en afspraken",
-        "taskDistribution": "Taken verdelen",
-        "taskDistributionDesc": "Eerlijke verdeling van huishoudelijke taken",
-        "familyTime": "Meer gezinstijd",
-        "familyTimeDesc": "Meer tijd samen doorbrengen als gezin",
-        "stressReduction": "Stress verminderen",
-        "stressReductionDesc": "Minder chaos en meer rust in het dagelijks leven"
+        "organization": {
+          "label": "Betere organisatie",
+          "description": "Structuur en overzicht in het gezinsleven"
+        },
+        "communication": {
+          "label": "Communicatie verbeteren",
+          "description": "Beter contact en uitwisseling binnen het gezin"
+        },
+        "responsibility": {
+          "label": "Verantwoordelijkheid delen",
+          "description": "Taken eerlijk verdelen"
+        },
+        "memories": {
+          "label": "Herinneringen vastleggen",
+          "description": "Bijzondere momenten verzamelen"
+        },
+        "routine": {
+          "label": "Routines opzetten",
+          "description": "Regelmatige werkstromen creëren"
+        },
+        "fun": {
+          "label": "Meer plezier hebben",
+          "description": "Activiteiten samen plannen"
+        }
       }
     },
     "auth": {
@@ -96,7 +120,9 @@
         "fullName": "Volledige naam",
         "email": "E-mailadres",
         "password": "Wachtwoord",
-        "confirmPassword": "Bevestig wachtwoord"
+        "confirmPassword": "Bevestig wachtwoord",
+        "emailPlaceholder": "Mijn E-mail",
+        "passwordPlaceholder": "Mijn Wachtwoord"
       },
       "buttons": {
         "login": "Inloggen",
@@ -105,10 +131,19 @@
         "signingUp": "Account aanmaken..."
       },
       "toggle": {
-        "toSignup": "Nog geen account?",
-        "toLogin": "Heb je al een account?",
+        "toSignup": "Nog geen account? ",
+        "toLogin": "Al een account? ",
         "signupLink": "Account aanmaken",
         "loginLink": "Inloggen"
+      },
+      "options": {
+        "rememberMe": "Onthoud mij",
+        "forgotPassword": "Wachtwoord vergeten"
+      },
+      "separator": "OF",
+      "social": {
+        "signInWithApple": "Inloggen met Apple ID",
+        "signInWithGoogle": "Inloggen met Google"
       },
       "errors": {
         "invalidEmail": "Voer een geldig e-mailadres in",
@@ -118,10 +153,82 @@
         "emailNotConfirmed": "Bevestig je e-mailadres via de link in de e-mail.",
         "tooManyRequests": "Te veel pogingen. Wacht even en probeer opnieuw.",
         "passwordRequirement": "Wachtwoord moet minimaal 6 tekens bevatten.",
-        "emailInvalid": "Voer een geldig e-mailadres in."
+        "emailInvalid": "Voer een geldig e-mailadres in.",
+        "missingInformation": "Ontbrekende informatie",
+        "missingInformationMessage": "Vul alle velden in",
+        "weakPassword": "Zwak wachtwoord",
+        "weakPasswordMessage": "Wachtwoord moet minimaal 6 tekens bevatten",
+        "signInFailed": "Inloggen mislukt",
+        "generalError": "Er is een fout opgetreden",
+        "termsRequired": "Voorwaarden vereist",
+        "termsRequiredMessage": "Ga akkoord met de algemene voorwaarden",
+        "signupFailed": "Registratie mislukt",
+        "incompleteCode": "Onvolledige code",
+        "incompleteCodeMessage": "Voer de volledige 6-cijferige verificatiecode in",
+        "verificationFailed": "Verificatie mislukt",
+        "resendFailed": "Opnieuw verzenden mislukt"
       },
       "success": {
-        "accountCreated": "Account succesvol aangemaakt!"
+        "welcomeBack": "Welkom terug!",
+        "signInSuccess": "Succesvol ingelogd!",
+        "accountCreated": "Account succesvol aangemaakt!",
+        "verificationCodeSent": "Verificatiecode verzonden!",
+        "verificationCodeSentMessage": "Een 6-cijferige verificatiecode is naar je e-mail verzonden. Voer deze in om de registratie te voltooien.",
+        "codeResent": "Code opnieuw verzonden!",
+        "codeResentMessage": "Een nieuwe 6-cijferige verificatiecode is naar je e-mail verzonden.",
+        "accountCreatedSuccess": "Account aangemaakt!",
+        "accountCreatedMessage": "Je account is succesvol aangemaakt en geverifieerd."
+      },
+      "signup": {
+        "title": "Famora",
+        "subtitle": "Registreer met je inloggegevens",
+        "form": {
+          "email": "E-mail",
+          "emailPlaceholder": "Voer je e-mail in",
+          "phoneNumber": "Telefoonnummer (optioneel)",
+          "phonePlaceholder": "+62 0000 0000 0000",
+          "companyId": "Bedrijfs-ID (optioneel)",
+          "companyPlaceholder": "Voer bedrijfs-ID in",
+          "password": "Wachtwoord",
+          "passwordPlaceholder": "Mijn wachtwoord",
+          "confirmPassword": "Bevestig wachtwoord",
+          "confirmPasswordPlaceholder": "Bevestig mijn wachtwoord"
+        },
+        "terms": {
+          "agreeText": "Ik ga akkoord met",
+          "termsLink": "de algemene voorwaarden",
+          "and": "en",
+          "privacyLink": "het privacybeleid"
+        },
+        "buttons": {
+          "signUp": "Registreren",
+          "creatingAccount": "Account aanmaken...",
+          "alreadyHaveAccount": "Heb je al een account?",
+          "signInHere": "Log hier in"
+        },
+        "modals": {
+          "terms": {
+            "title": "Algemene voorwaarden en\nPrivacybeleid",
+            "content": "Algemene voorwaarden:\nAcceptatie: Door de Re-Dus app te gebruiken, ga je akkoord met het naleven van alle toepasselijke algemene voorwaarden.\n\nGebruik: Deze app is alleen voor persoonlijk gebruik en mag niet voor commerciële doeleinden worden gebruikt zonder toestemming.\n\nAccount: Je bent verantwoordelijk voor de beveiliging van je account en alle activiteiten die daarin plaatsvinden.\n\nInhoud: Je mag geen inhoud uploaden die auteursrechten, privacy of toepasselijke wetten schendt.\n\nWijzigingen: We behouden ons het recht voor om de algemene voorwaarden op elk moment te wijzigen en zullen je op de hoogte stellen van deze wijzigingen via de app of per e-mail.\n\nPrivacybeleid:\nGegevensverzameling: We verzamelen persoonlijke gegevens zoals naam, e-mail en locatie om transacties te verwerken en onze diensten te verbeteren.\n\nGegevensgebruik: Je gegevens worden gebruikt voor interne doeleinden zoals accountbeheer, gebruiksanalyse en serviceaanbiedingen.\n\nBeveiliging: We beschermen je gegevens met passende beveiligingsmaatregelen om onbevoegde toegang te voorkomen.\n\nGegevensdeling: We delen je persoonlijke gegevens niet met derden zonder je toestemming, behalve wanneer de wet dit vereist.\n\nJe rechten: Je kunt op elk moment toegang krijgen tot, bijwerken of verwijderen van je persoonlijke gegevens via de app-instellingen of door contact met ons op te nemen.",
+            "agree": "Ik ga akkoord",
+            "decline": "Afwijzen"
+          },
+          "verification": {
+            "title": "E-mailverificatie verzonden!",
+            "description": "Een verificatiecode wordt verzonden naar het e-mailadres",
+            "forVerification": "voor je accountverificatieproces.",
+            "resendText": "Heb je de verificatiecode niet ontvangen?",
+            "resendLink": "Verstuur opnieuw.",
+            "verifyButton": "Verifieer code",
+            "verifying": "Verificeren..."
+          },
+          "welcome": {
+            "title": "Welkom bij Work Mate!",
+            "description": "Om je gebruikerservaring te verbeteren, stel eerst je profiel in. Dit helpt ons de app aan te passen aan je behoeften en ervoor te zorgen dat je het maximale uit onze functies haalt!",
+            "setUpProfile": "Mijn profiel instellen",
+            "exploreApp": "App eerst verkennen"
+          }
+        }
       }
     },
     "family": {
@@ -144,6 +251,18 @@
       "title": "Alles klaar!",
       "subtitle": "Je hebt Famora succesvol ingesteld",
       "description": "Welkom in je nieuwe digitale gezin. Begin nu met het organiseren van je gezinsleven!"
+    },
+    "familySetup": {
+      "title": "Familie Instellen",
+      "description": "Familie aanmaken of aansluiten bij bestaande"
+    },
+    "family-setup-title": "Familie Instellen",
+    "family-setup-description": "Familie aanmaken of aansluiten bij bestaande",
+    "final": {
+      "title": "Jouw Famora Account",
+      "description": "Maak een account aan of log in om alle functies te ervaren.",
+      "signIn": "Inloggen",
+      "signUp": "Registreren"
     }
   },
   "common": {
@@ -403,14 +522,6 @@
     "createFamily": "Familie Aanmaken",
     "joinFamily": "Bij Familie Aansluiten",
     "setupLater": "Later instellen"
-  },
-  "onboarding": {
-    "familySetup": {
-      "title": "Familie Instellen",
-      "description": "Familie aanmaken of aansluiten bij bestaande"
-    },
-    "family-setup-title": "Familie Instellen",
-    "family-setup-description": "Familie aanmaken of aansluiten bij bestaande"
   },
   "tabs": {
     "addNew": "Nieuw Toevoegen",

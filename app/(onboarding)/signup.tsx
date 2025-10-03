@@ -16,6 +16,7 @@ import { Mail, Phone, Building, Lock, Eye, EyeOff, Check } from 'lucide-react-na
 import { useAuth } from '@/contexts/AuthContext';
 import { useLoading } from '@/contexts/LoadingContext';
 import { useCustomAlert } from '@/contexts/CustomAlertContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { sanitizeInput, validateEmail, sanitizeEmail } from '@/utils/sanitization';
 import { supabase } from '@/lib/supabase';
 import { BlurView } from 'expo-blur';
@@ -41,6 +42,7 @@ export default function SignUp() {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [verificationLoading, setVerificationLoading] = useState(false);
   const [isVerifyingSignup, setIsVerifyingSignup] = useState(false);
+  const [shouldShowWelcomeModal, setShouldShowWelcomeModal] = useState(false);
   
   // Use ref to track verification state to prevent race conditions
   const isVerifyingRef = useRef(false);
@@ -66,6 +68,7 @@ export default function SignUp() {
   const { signUp } = useAuth();
   const { showLoading, hideLoading } = useLoading();
   const { showSuccess, showError, showWarning } = useCustomAlert();
+  const { t } = useLanguage();
 
   // Generate a 6-digit verification code
   const generateVerificationCode = (): string => {
@@ -160,21 +163,32 @@ export default function SignUp() {
     const checkAuth = async () => {
       if (session && user) {
         // Check if we're in the middle of signup verification using refs for immediate access
-        if (isVerifyingRef.current || showWelcomeModalRef.current) {
+        if (isVerifyingRef.current || showWelcomeModalRef.current || shouldShowWelcomeModal) {
           console.log('🔄 Signup verification in progress or welcome modal showing, not redirecting yet');
           console.log('🔍 DEBUG: isVerifyingRef.current:', isVerifyingRef.current);
           console.log('🔍 DEBUG: showWelcomeModalRef.current:', showWelcomeModalRef.current);
+          console.log('🔍 DEBUG: shouldShowWelcomeModal:', shouldShowWelcomeModal);
+          console.log('🔍 DEBUG: isVerifyingSignup state:', isVerifyingSignup);
+          console.log('🔍 DEBUG: showWelcomeModal state:', showWelcomeModal);
           return; // Don't redirect during verification or when welcome modal is shown
         }
         
-        // User is already authenticated and not in verification flow, redirect to main app
-        console.log('User is already authenticated, redirecting to main app');
-        router.replace('/(tabs)');
+        // Add a small delay to ensure any pending state updates complete
+        console.log('User is already authenticated, waiting before redirect...');
+        setTimeout(() => {
+          // Double-check flags after delay
+          if (!isVerifyingRef.current && !showWelcomeModalRef.current && !shouldShowWelcomeModal) {
+            console.log('Redirecting to main app after delay');
+            router.replace('/(tabs)');
+          } else {
+            console.log('Flags still active after delay, not redirecting');
+          }
+        }, 200);
       }
     };
     
     checkAuth();
-  }, [session, user, isVerifyingSignup, showWelcomeModal]);
+  }, [session, user, isVerifyingSignup, showWelcomeModal, shouldShowWelcomeModal]);
 
   // Note: Using React state only for verification flag management
   // No AsyncStorage flags are used anymore
@@ -205,6 +219,7 @@ export default function SignUp() {
   const hideWelcomeModal = () => {
     setShowWelcomeModal(false);
     showWelcomeModalRef.current = false;
+    setShouldShowWelcomeModal(false);
   };
 
 
@@ -341,11 +356,17 @@ export default function SignUp() {
       setVerificationCode(['', '', '', '', '', '']);
       
       console.log('✅ OTP verification code resent successfully');
-      showSuccess('Code Resent!', 'A new 6-digit verification code has been sent to your email.');
+      showSuccess(
+        t('onboarding.auth.success.codeResent') || 'Code Resent!',
+        t('onboarding.auth.success.codeResentMessage') || 'A new 6-digit verification code has been sent to your email.'
+      );
       
     } catch (error: any) {
       console.error('❌ Error resending verification:', error);
-      showError('Resend Failed', error.message || 'Failed to resend verification code. Please try again.');
+      showError(
+        t('onboarding.auth.errors.resendFailed') || 'Resend Failed',
+        error.message || 'Failed to resend verification code. Please try again.'
+      );
     } finally {
       setVerificationLoading(false);
     }
@@ -354,7 +375,10 @@ export default function SignUp() {
   const handleSubmitVerification = async () => {
     const code = verificationCode.join('');
     if (code.length !== 6) {
-      showError('Incomplete Code', 'Please enter the complete 6-digit verification code');
+      showError(
+        t('onboarding.auth.errors.incompleteCode') || 'Incomplete Code',
+        t('onboarding.auth.errors.incompleteCodeMessage') || 'Please enter the complete 6-digit verification code'
+      );
       return;
     }
     
@@ -362,6 +386,12 @@ export default function SignUp() {
       setVerificationLoading(true);
       setIsVerifyingSignup(true); // Set flag to prevent auth redirect
       isVerifyingRef.current = true; // Set ref for immediate access
+      
+      // Set welcome modal flags BEFORE verification to prevent race condition
+      console.log('📱 Setting welcome modal flags BEFORE verification...');
+      showWelcomeModalRef.current = true;
+      setShowWelcomeModal(true);
+      setShouldShowWelcomeModal(true);
       
       console.log('🔐 Verifying OTP code:', code);
       
@@ -398,6 +428,20 @@ export default function SignUp() {
       console.log('👤 User ID:', data.user?.id);
       console.log('🔐 Session created:', !!data.session);
       
+      // Welcome modal flags already set before verification
+      console.log('📱 Welcome modal flags already set, modal should be visible');
+      
+      // Force update modal state to ensure it's visible
+      setTimeout(() => {
+        console.log('🔍 DEBUG: Force updating welcome modal state...');
+        showWelcomeModalRef.current = true;
+        setShowWelcomeModal(true);
+        setShouldShowWelcomeModal(true);
+        console.log('🔍 showWelcomeModal state after force update:', showWelcomeModal);
+        console.log('🔍 showWelcomeModalRef.current after force update:', showWelcomeModalRef.current);
+        console.log('🔍 shouldShowWelcomeModal after force update:', shouldShowWelcomeModal);
+      }, 100);
+      
       // Now update the user's password since OTP doesn't set a password (async to not block UI)
       if (data.user && tempSignupData.password) {
         console.log('🔑 Setting user password asynchronously...');
@@ -425,15 +469,13 @@ export default function SignUp() {
       hideVerificationModal();
       
       // Show success message
-      showSuccess('Account Created!', 'Your account has been successfully created and verified.');
+      showSuccess(
+        t('onboarding.auth.success.accountCreatedSuccess') || 'Account Created!',
+        t('onboarding.auth.success.accountCreatedMessage') || 'Your account has been successfully created and verified.'
+      );
       
-      // Show welcome modal after successful verification with a delay to ensure auth state is processed
-      console.log('📱 Showing welcome modal after verification...');
-      
-      // Add a small delay to ensure authentication state is fully processed
-      setTimeout(() => {
-        showWelcomeModalHandler();
-      }, 100);
+      // Show welcome modal after successful verification
+      console.log('📱 Welcome modal flags already set, modal should be visible');
       
       // Keep the verification flag active until user interacts with welcome modal
       // This prevents AuthContext from redirecting to home page
@@ -449,7 +491,10 @@ export default function SignUp() {
       
     } catch (error: any) {
       console.error('Error during verification:', error);
-      showError('Verification Failed', error.message || 'An error occurred during verification. Please try again.');
+      showError(
+        t('onboarding.auth.errors.verificationFailed') || 'Verification Failed',
+        error.message || 'An error occurred during verification. Please try again.'
+      );
       
       // Clear the verification flag on error
       setIsVerifyingSignup(false);
@@ -474,27 +519,42 @@ export default function SignUp() {
 
   const handleSignUp = async () => {
     if (!email || !password || !confirmPassword) {
-      showError('Missing Information', 'Please fill in all required fields');
+      showError(
+        t('onboarding.auth.errors.missingInformation') || 'Missing Information',
+        t('onboarding.auth.errors.missingInformationMessage') || 'Please fill in all required fields'
+      );
       return;
     }
 
     if (password !== confirmPassword) {
-      showError('Password Mismatch', 'Passwords do not match');
+      showError(
+        t('onboarding.auth.errors.passwordMismatch') || 'Password Mismatch',
+        t('onboarding.auth.errors.passwordMismatchMessage') || 'Passwords do not match'
+      );
       return;
     }
 
     if (password.length < 6) {
-      showError('Weak Password', 'Password must be at least 6 characters');
+      showError(
+        t('onboarding.auth.errors.weakPassword') || 'Weak Password',
+        t('onboarding.auth.errors.weakPasswordMessage') || 'Password must be at least 6 characters'
+      );
       return;
     }
 
     if (!agreeToTerms) {
-      showWarning('Terms Required', 'Please agree to the terms and conditions');
+      showWarning(
+        t('onboarding.auth.errors.termsRequired') || 'Terms Required',
+        t('onboarding.auth.errors.termsRequiredMessage') || 'Please agree to the terms and conditions'
+      );
       return;
     }
 
     if (!validateEmail(email)) {
-      showError('Invalid Email', 'Please enter a valid email address');
+      showError(
+        t('onboarding.auth.errors.invalidEmail') || 'Invalid Email',
+        t('onboarding.auth.errors.invalidEmail') || 'Please enter a valid email address'
+      );
       return;
     }
 
@@ -557,11 +617,17 @@ export default function SignUp() {
       
       // Show verification modal
       showVerificationModalHandler();
-      showSuccess('Verification Code Sent!', 'A 6-digit verification code has been sent to your email. Please enter it to complete signup.');
+      showSuccess(
+        t('onboarding.auth.success.verificationCodeSent') || 'Verification Code Sent!',
+        t('onboarding.auth.success.verificationCodeSentMessage') || 'A 6-digit verification code has been sent to your email. Please enter it to complete signup.'
+      );
       
     } catch (error: any) {
       console.error('Error during signup:', error);
-      showError('Signup Failed', error.message || 'An unexpected error occurred. Please try again.');
+      showError(
+        t('onboarding.auth.errors.signupFailed') || 'Signup Failed',
+        error.message || 'An unexpected error occurred. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
@@ -590,19 +656,19 @@ export default function SignUp() {
 
         {/* Title */}
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>Famora</Text>
+          <Text style={styles.title}>{t('onboarding.auth.signup.title') || 'Famora'}</Text>
         </View>
 
         {/* Subtitle */}
         <View style={styles.subtitleContainer}>
-          <Text style={styles.subtitle}>Register Using Your Credentials</Text>
+          <Text style={styles.subtitle}>{t('onboarding.auth.signup.subtitle') || 'Register Using Your Credentials'}</Text>
         </View>
 
         {/* Form */}
         <View style={styles.formContainer}>
           {/* Email Field */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Email</Text>
+            <Text style={styles.inputLabel}>{t('onboarding.auth.signup.form.email') || 'Email'}</Text>
             <View style={[styles.inputContainer, emailFocused && styles.inputContainerFocused]}>
               <RNImage 
                 source={require('@/assets/images/icon/email_address.png')}
@@ -611,7 +677,7 @@ export default function SignUp() {
               />
               <TextInput
                 style={styles.textInput}
-                placeholder="Enter Your Email"
+                placeholder={t('onboarding.auth.signup.form.emailPlaceholder') || 'Enter Your Email'}
                 placeholderTextColor="#888888"
                 value={email}
                 onChangeText={setEmail}
@@ -626,7 +692,7 @@ export default function SignUp() {
 
           {/* Phone Number Field */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Phone Number (optional)</Text>
+            <Text style={styles.inputLabel}>{t('onboarding.auth.signup.form.phoneNumber') || 'Phone Number (optional)'}</Text>
             <View style={[styles.inputContainer, phoneNumberFocused && styles.inputContainerFocused]}>
               <View style={styles.countryCodeContainer}>
                 <Text style={styles.countryCode}>INA</Text>
@@ -635,7 +701,7 @@ export default function SignUp() {
               <Phone size={20} color="#88faca" strokeWidth={2} style={styles.inputIcon} />
               <TextInput
                 style={styles.textInput}
-                placeholder="+62 0000 0000 0000"
+                placeholder={t('onboarding.auth.signup.form.phonePlaceholder') || '+62 0000 0000 0000'}
                 placeholderTextColor="#888888"
                 value={phoneNumber}
                 onChangeText={setPhoneNumber}
@@ -648,7 +714,7 @@ export default function SignUp() {
 
           {/* Company ID Field */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Company ID (optional)</Text>
+            <Text style={styles.inputLabel}>{t('onboarding.auth.signup.form.companyId') || 'Company ID (optional)'}</Text>
             <View style={[styles.inputContainer, companyIdFocused && styles.inputContainerFocused]}>
               <RNImage 
                 source={require('@/assets/images/icon/email_address.png')}
@@ -657,7 +723,7 @@ export default function SignUp() {
               />
               <TextInput
                 style={styles.textInput}
-                placeholder="Enter Company ID"
+                placeholder={t('onboarding.auth.signup.form.companyPlaceholder') || 'Enter Company ID'}
                 placeholderTextColor="#888888"
                 value={companyId}
                 onChangeText={setCompanyId}
@@ -671,7 +737,7 @@ export default function SignUp() {
 
           {/* Password Field */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Password</Text>
+            <Text style={styles.inputLabel}>{t('onboarding.auth.signup.form.password') || 'Password'}</Text>
             <View style={[styles.inputContainer, passwordFocused && styles.inputContainerFocused]}>
               <RNImage 
                 source={require('@/assets/images/icon/password.png')}
@@ -680,7 +746,7 @@ export default function SignUp() {
               />
               <TextInput
                 style={styles.textInput}
-                placeholder="My Password"
+                placeholder={t('onboarding.auth.signup.form.passwordPlaceholder') || 'My Password'}
                 placeholderTextColor="#888888"
                 value={password}
                 onChangeText={setPassword}
@@ -705,7 +771,7 @@ export default function SignUp() {
 
           {/* Confirm Password Field */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Confirm Password</Text>
+            <Text style={styles.inputLabel}>{t('onboarding.auth.signup.form.confirmPassword') || 'Confirm Password'}</Text>
             <View style={[styles.inputContainer, confirmPasswordFocused && styles.inputContainerFocused]}>
               <RNImage 
                 source={require('@/assets/images/icon/password.png')}
@@ -714,7 +780,7 @@ export default function SignUp() {
               />
               <TextInput
                 style={styles.textInput}
-                placeholder="Confirm My Password"
+                placeholder={t('onboarding.auth.signup.form.confirmPasswordPlaceholder') || 'Confirm My Password'}
                 placeholderTextColor="#888888"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
@@ -749,10 +815,10 @@ export default function SignUp() {
                 )}
               </View>
               <Text style={styles.termsText}>
-                I agree with{' '}
-                <Text style={styles.termsLink}>terms & conditions</Text>
-                {' '}and{' '}
-                <Text style={styles.termsLink}>privacy policy</Text>
+                {t('onboarding.auth.signup.terms.agreeText') || 'I agree with'}{' '}
+                <Text style={styles.termsLink}>{t('onboarding.auth.signup.terms.termsLink') || 'terms & conditions'}</Text>
+                {' '}{t('onboarding.auth.signup.terms.and') || 'and'}{' '}
+                <Text style={styles.termsLink}>{t('onboarding.auth.signup.terms.privacyLink') || 'privacy policy'}</Text>
               </Text>
             </Pressable>
           </View>
@@ -772,7 +838,7 @@ export default function SignUp() {
                styles.signUpButtonText,
                (!isFormValid() || loading) && styles.signUpButtonTextDisabled
              ]}>
-               {loading ? 'Creating Account...' : 'Sign Up'}
+               {loading ? (t('onboarding.auth.signup.buttons.creatingAccount') || 'Creating Account...') : (t('onboarding.auth.signup.buttons.signUp') || 'Sign Up')}
              </Text>
            </Pressable>
          </View>
@@ -780,11 +846,11 @@ export default function SignUp() {
         {/* Sign In Link */}
         <View style={styles.linkContainer}>
           <Text style={styles.linkText}>
-            Already have an account?{' '}
+            {t('onboarding.auth.signup.buttons.alreadyHaveAccount') || 'Already have an account?'}{' '}
             <Pressable
               onPress={() => router.push('/(onboarding)/signin')}
             >
-              <Text style={styles.signInLink}>Sign in here</Text>
+              <Text style={styles.signInLink}>{t('onboarding.auth.signup.buttons.signInHere') || 'Sign in here'}</Text>
             </Pressable>
           </Text>
         </View>
@@ -801,55 +867,23 @@ export default function SignUp() {
           <View style={styles.modalContainer}>
              <View style={styles.modalHeader}>
                <Text style={styles.modalTitle}>
-                 Terms & Conditions and 
-                 {'\n'}Privacy Policy
+                 {t('onboarding.auth.signup.modals.terms.title') || 'Terms & Conditions and\nPrivacy Policy'}
                </Text>
              </View>
             
             <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={true}>
               <Text style={styles.modalText}>
-                Terms and Conditions:
-                {'\n'}
-Acceptance: By using the Re-Dus app, you agree to comply with all applicable terms and conditions.
-{'\n'}
-{'\n'}
-Usage: This app is for personal use only and may not be used for commercial purposes without permission.
-{'\n'}
-{'\n'}
-Account: You are responsible for the security of your account and all activities that occur within it.
-{'\n'}
-{'\n'}
-Content: You must not upload content that violates copyright, privacy, or applicable laws.
-{'\n'}
-{'\n'}
-Changes: We reserve the right to change the terms and conditions at any time and will notify you of these changes through the app or via email.
-{'\n'}
-{'\n'}
-Privacy Policy:
-{'\n'}
-Data Collection: We collect personal data such as name, email, and location to process transactions and improve our services.
-{'\n'}
-{'\n'}
-Data Usage: Your data is used for internal purposes such as account management, usage analysis, and service offerings.
-{'\n'}
-{'\n'}
-Security: We protect your data with appropriate security measures to prevent unauthorized access.
-{'\n'}
-{'\n'}
-Data Sharing: We do not share your personal data with third parties without your consent, except as required by law.
-{'\n'}
-{'\n'}
-Your Rights: You can access, update, or delete your personal data at any time through the app settings or by contacting us.
+                {t('onboarding.auth.signup.modals.terms.content') || 'Terms and Conditions:\nAcceptance: By using the Re-Dus app, you agree to comply with all applicable terms and conditions.\n\nUsage: This app is for personal use only and may not be used for commercial purposes without permission.\n\nAccount: You are responsible for the security of your account and all activities that occur within it.\n\nContent: You must not upload content that violates copyright, privacy, or applicable laws.\n\nChanges: We reserve the right to change the terms and conditions at any time and will notify you of these changes through the app or via email.\n\nPrivacy Policy:\nData Collection: We collect personal data such as name, email, and location to process transactions and improve our services.\n\nData Usage: Your data is used for internal purposes such as account management, usage analysis, and service offerings.\n\nSecurity: We protect your data with appropriate security measures to prevent unauthorized access.\n\nData Sharing: We do not share your personal data with third parties without your consent, except as required by law.\n\nYour Rights: You can access, update, or delete your personal data at any time through the app settings or by contacting us.'}
               </Text>
             </ScrollView>
             
             {/* Modal Buttons */}
             <View style={styles.modalButtons}>
               <Pressable onPress={handleAgree} style={styles.agreeButton}>
-                <Text style={styles.agreeButtonText}>I Agree</Text>
+                <Text style={styles.agreeButtonText}>{t('onboarding.auth.signup.modals.terms.agree') || 'I Agree'}</Text>
               </Pressable>
               <Pressable onPress={handleDecline} style={styles.declineButton}>
-                <Text style={styles.declineButtonText}>Decline</Text>
+                <Text style={styles.declineButtonText}>{t('onboarding.auth.signup.modals.terms.decline') || 'Decline'}</Text>
               </Pressable>
             </View>
           </View>
@@ -877,13 +911,13 @@ Your Rights: You can access, update, or delete your personal data at any time th
             </View>
 
             {/* Title */}
-            <Text style={styles.verificationTitle}>Email Verification Sent!</Text>
+            <Text style={styles.verificationTitle}>{t('onboarding.auth.signup.modals.verification.title') || 'Email Verification Sent!'}</Text>
 
             {/* Description */}
             <Text style={styles.verificationDescription}>
-            A verification code will be sent to the email{' '}
+            {t('onboarding.auth.signup.modals.verification.description') || 'A verification code will be sent to the email'}{' '}
               {email}{' '}
-              for your account verification process.
+              {t('onboarding.auth.signup.modals.verification.forVerification') || 'for your account verification process.'}
             </Text>
 
             {/* Verification Code Input */}
@@ -908,9 +942,9 @@ Your Rights: You can access, update, or delete your personal data at any time th
             {/* Resend Link */}
             <View style={styles.resendContainer}>
               <Text style={styles.resendText}>
-                Haven't received the verification code?{' '}
+                {t('onboarding.auth.signup.modals.verification.resendText') || "Haven't received the verification code?"}{' '}
                 <Text style={styles.resendLink} onPress={handleResendVerification}>
-                  Resend it.
+                  {t('onboarding.auth.signup.modals.verification.resendLink') || 'Resend it.'}
                 </Text>
               </Text>
             </View>
@@ -928,7 +962,7 @@ Your Rights: You can access, update, or delete your personal data at any time th
                 styles.verificationSubmitButtonText,
                 (verificationCode.join('').length !== 6 || verificationLoading) && styles.verificationSubmitButtonTextDisabled
               ]}>
-                {verificationLoading ? 'Verifying...' : 'Verify Code'}
+                {verificationLoading ? (t('onboarding.auth.signup.modals.verification.verifying') || 'Verifying...') : (t('onboarding.auth.signup.modals.verification.verifyButton') || 'Verify Code')}
               </Text>
             </Pressable>
           </View>
@@ -936,8 +970,10 @@ Your Rights: You can access, update, or delete your personal data at any time th
       )}
 
       {/* Welcome Modal */}
-      {showWelcomeModal && (() => {
+      {(showWelcomeModal || shouldShowWelcomeModal) && (() => {
         console.log('🎭 DEBUG: Welcome modal is rendering! showWelcomeModal =', showWelcomeModal);
+        console.log('🎭 DEBUG: shouldShowWelcomeModal =', shouldShowWelcomeModal);
+        console.log('🎭 DEBUG: showWelcomeModalRef.current =', showWelcomeModalRef.current);
         return (
           <View style={styles.welcomeModalOverlay}>
             <BlurView
@@ -958,11 +994,11 @@ Your Rights: You can access, update, or delete your personal data at any time th
             </View>
 
             {/* Title */}
-            <Text style={styles.welcomeTitle}>Welcome To Work Mate!</Text>
+            <Text style={styles.welcomeTitle}>{t('onboarding.auth.signup.modals.welcome.title') || 'Welcome To Work Mate!'}</Text>
 
             {/* Description */}
             <Text style={styles.welcomeDescription}>
-              To enhance your user experience, please set up your profile first. This will help us tailor the app to your needs and ensure you get the most out of our features!
+              {t('onboarding.auth.signup.modals.welcome.description') || 'To enhance your user experience, please set up your profile first. This will help us tailor the app to your needs and ensure you get the most out of our features!'}
             </Text>
 
             {/* Buttons */}
@@ -971,14 +1007,14 @@ Your Rights: You can access, update, or delete your personal data at any time th
                 style={styles.welcomePrimaryButton}
                 onPress={handleSetUpProfile}
               >
-                <Text style={styles.welcomePrimaryButtonText}>Set Up My Profile</Text>
+                <Text style={styles.welcomePrimaryButtonText}>{t('onboarding.auth.signup.modals.welcome.setUpProfile') || 'Set Up My Profile'}</Text>
               </Pressable>
               
               <Pressable 
                 style={styles.welcomeSecondaryButton}
                 onPress={handleExploreApp}
               >
-                <Text style={styles.welcomeSecondaryButtonText}>Explore The App First</Text>
+                <Text style={styles.welcomeSecondaryButtonText}>{t('onboarding.auth.signup.modals.welcome.exploreApp') || 'Explore The App First'}</Text>
               </Pressable>
             </View>
           </View>

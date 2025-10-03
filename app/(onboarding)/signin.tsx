@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useLoading } from '@/contexts/LoadingContext';
 import { useCustomAlert } from '@/contexts/CustomAlertContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { sanitizeInput, validateEmail } from '@/utils/sanitization';
 
 
@@ -25,6 +26,7 @@ export default function SignIn() {
   const { completeStep, updateAuthInfo } = useOnboarding();
   const { showLoading, hideLoading } = useLoading();
   const { showSuccess, showError, showWarning } = useCustomAlert();
+  const { t } = useLanguage();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -71,17 +73,26 @@ export default function SignIn() {
     const sanitizedPassword = sanitizeInput(password);
     
     if (!sanitizedEmail || !sanitizedPassword) {
-      showError('Missing Information', 'Please fill in all fields');
+      showError(
+        t('onboarding.auth.errors.missingInformation') || 'Missing Information',
+        t('onboarding.auth.errors.missingInformationMessage') || 'Please fill in all fields'
+      );
       return;
     }
 
     if (!validateEmail(sanitizedEmail)) {
-      showError('Invalid Email', 'Please enter a valid email address');
+      showError(
+        t('onboarding.auth.errors.invalidEmail') || 'Invalid Email',
+        t('onboarding.auth.errors.invalidEmail') || 'Please enter a valid email address'
+      );
       return;
     }
 
     if (sanitizedPassword.length < 6) {
-      showError('Weak Password', 'Password must be at least 6 characters');
+      showError(
+        t('onboarding.auth.errors.weakPassword') || 'Weak Password',
+        t('onboarding.auth.errors.weakPasswordMessage') || 'Password must be at least 6 characters'
+      );
       return;
     }
 
@@ -108,31 +119,37 @@ export default function SignIn() {
         method: 'login'
       });
       
-      showSuccess('Welcome Back!', 'Successfully signed in!');
+      showSuccess(
+        t('onboarding.auth.success.welcomeBack') || 'Welcome Back!',
+        t('onboarding.auth.success.signInSuccess') || 'Successfully signed in!'
+      );
       
       // Set flag to check profile when it's loaded
       setShouldCheckProfile(true);
       
     } catch (error: any) {
-      let errorMessage = 'An error occurred';
+      let errorMessage = t('onboarding.auth.errors.generalError') || 'An error occurred';
       
       if (error.message?.includes('User already registered') || error.message?.includes('user_already_exists')) {
-        errorMessage = 'This email is already registered. Try signing in.';
+        errorMessage = t('onboarding.auth.errors.userAlreadyExists') || 'This email is already registered. Try signing in.';
       } else if (error.message?.includes('Invalid login credentials')) {
-        errorMessage = 'Email or password is incorrect. Please check your credentials.';
+        errorMessage = t('onboarding.auth.errors.invalidCredentials') || 'Email or password is incorrect. Please check your credentials.';
       } else if (error.message?.includes('Email not confirmed')) {
-        errorMessage = 'Please confirm your email address via the link in the email.';
+        errorMessage = t('onboarding.auth.errors.emailNotConfirmed') || 'Please confirm your email address via the link in the email.';
       } else if (error.message?.includes('Too many requests')) {
-        errorMessage = 'Too many attempts. Please wait a moment and try again.';
+        errorMessage = t('onboarding.auth.errors.tooManyRequests') || 'Too many attempts. Please wait a moment and try again.';
       } else if (error.message?.includes('Password should be at least')) {
-        errorMessage = 'Password must be at least 6 characters.';
+        errorMessage = t('onboarding.auth.errors.passwordRequirement') || 'Password must be at least 6 characters.';
       } else if (error.message?.includes('Invalid email')) {
-        errorMessage = 'Please enter a valid email address.';
+        errorMessage = t('onboarding.auth.errors.emailInvalid') || 'Please enter a valid email address.';
       } else if (error.message) {
         errorMessage = error.message;
       }
       
-      showError('Sign In Failed', errorMessage);
+      showError(
+        t('onboarding.auth.errors.signInFailed') || 'Sign In Failed',
+        errorMessage
+      );
     } finally {
       setLoading(false);
       hideLoading();
@@ -163,19 +180,19 @@ export default function SignIn() {
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
             {/* Title */}
             <View style={styles.header}>
-              <Text style={styles.title}>Sign In</Text>
+              <Text style={styles.title}>{t('onboarding.auth.buttons.login') || 'Sign In'}</Text>
             </View>
             
             {/* Subtitle */}
             <View>
-              <Text style={styles.subtitle}>Sign in to my account</Text>
+              <Text style={styles.subtitle}>{t('onboarding.auth.subtitle.login') || 'Sign in to your account'}</Text>
             </View>
 
             {/* Form */}
             <View style={styles.form}>
             {/* Email Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Email</Text>
+              <Text style={styles.inputLabel}>{t('onboarding.auth.form.email') || 'Email'}</Text>
               <View style={[styles.inputContainer, emailFocused && styles.inputContainerFocused]}>
                 <View >
                   <RNImage 
@@ -186,7 +203,7 @@ export default function SignIn() {
                 </View>
                 <TextInput
                   style={styles.input}
-                  placeholder="My Email"
+                  placeholder={t('onboarding.auth.form.emailPlaceholder') || 'My Email'}
                   placeholderTextColor="#888888"
                   value={email}
                   onChangeText={setEmail}
@@ -201,7 +218,7 @@ export default function SignIn() {
 
             {/* Password Input */}
             <View style={[styles.inputGroup, ]}>
-              <Text style={styles.inputLabel}>Password</Text>
+              <Text style={styles.inputLabel}>{t('onboarding.auth.form.password') || 'Password'}</Text>
               <View style={[styles.inputContainer, passwordFocused && styles.inputContainerFocused]}>
                 <View >
                   <RNImage 
@@ -212,7 +229,7 @@ export default function SignIn() {
                 </View>
                 <TextInput
                   style={[styles.input, styles.passwordInput]}
-                  placeholder="My Password"
+                  placeholder={t('onboarding.auth.form.passwordPlaceholder') || 'My Password'}
                   placeholderTextColor="#888888"
                   value={password}
                   onChangeText={setPassword}
@@ -247,11 +264,11 @@ export default function SignIn() {
                     <Text style={[styles.checkmark, ]}>✓</Text>
                   )}
                 </View>
-                <Text style={styles.checkboxLabel}>Remember Me</Text>
+                <Text style={styles.checkboxLabel}>{t('onboarding.auth.options.rememberMe') || 'Remember Me'}</Text>
               </Pressable>
               
               <Pressable onPress={() => router.push('/(onboarding)/resetPwd')}>
-                <Text style={styles.forgotPassword}>Forgot Password</Text>
+                <Text style={styles.forgotPassword}>{t('onboarding.auth.options.forgotPassword') || 'Forgot Password'}</Text>
               </Pressable>
             </View>
 
@@ -270,7 +287,7 @@ export default function SignIn() {
                 styles.signInButtonText,
                 loading && styles.signInButtonTextLoading
               ]}>
-                {loading ? 'Signing In...' : 'Sign In'}
+                {loading ? (t('onboarding.auth.buttons.loggingIn') || 'Signing In...') : (t('onboarding.auth.buttons.login') || 'Sign In')}
               </Text>
               </Pressable>
             </View>
@@ -278,7 +295,7 @@ export default function SignIn() {
             {/* Separator */}
             <View style={[styles.separator, ]}>
               <View style={styles.separatorLine} />
-              <Text style={styles.separatorText}>OR</Text>
+              <Text style={styles.separatorText}>{t('onboarding.auth.separator') || 'OR'}</Text>
               <View style={styles.separatorLine} />
             </View>
 
@@ -294,7 +311,7 @@ export default function SignIn() {
                     resizeMode="contain"
                   />
                 </View>
-                <Text style={styles.socialButtonText}>Sign in With Apple ID</Text>
+                <Text style={styles.socialButtonText}>{t('onboarding.auth.social.signInWithApple') || 'Sign in With Apple ID'}</Text>
               </Pressable>
 
               <Pressable
@@ -307,15 +324,15 @@ export default function SignIn() {
                     resizeMode="contain"
                   />
                 </View>
-                <Text style={styles.socialButtonText}>Sign in With Google</Text>
+                <Text style={styles.socialButtonText}>{t('onboarding.auth.social.signInWithGoogle') || 'Sign in With Google'}</Text>
               </Pressable>
             </View>
 
             {/* Sign Up Link */}
             <View style={[styles.signUpContainer, ]}>
-              <Text style={styles.signUpText}>Don't have an account? </Text>
+              <Text style={styles.signUpText}>{t('onboarding.auth.toggle.toSignup') || "Don't have an account? "}</Text>
               <Pressable onPress={() => router.push('/(onboarding)/signup')}>
-                <Text style={styles.signUpLink}>Sign Up Here</Text>
+                <Text style={styles.signUpLink}>{t('onboarding.auth.toggle.signupLink') || 'Sign Up Here'}</Text>
               </Pressable>
             </View>
             </View>

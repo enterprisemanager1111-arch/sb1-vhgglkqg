@@ -28,9 +28,9 @@ export default function PreferencesSetup() {
   // Button animations
 
   const goalOptions = [
-    { id: 'routine', label: 'Establish routines', description: 'Create regular processes' },
-    { id: 'communication', label: 'Improve communication', description: 'Share all important information' },
-    { id: 'organization', label: 'Better organized family', description: 'Appointments and tasks at a glance' },
+    { id: 'routine', label: t('onboarding.preferences.goals.routine.label') || 'Establish routines', description: t('onboarding.preferences.goals.routine.description') || 'Create regular processes' },
+    { id: 'communication', label: t('onboarding.preferences.goals.communication.label') || 'Improve communication', description: t('onboarding.preferences.goals.communication.description') || 'Share all important information' },
+    { id: 'organization', label: t('onboarding.preferences.goals.organization.label') || 'Better organized family', description: t('onboarding.preferences.goals.organization.description') || 'Appointments and tasks at a glance' },
   ];
 
   // Load existing data on mount

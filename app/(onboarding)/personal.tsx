@@ -21,6 +21,7 @@ import { validateBirthDate, formatBirthDate, calculateAge, getZodiacSignKey } fr
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLoading } from '@/contexts/LoadingContext';
+import { useCustomAlert } from '@/contexts/CustomAlertContext';
 import { useLocalizedDate } from '@/utils/dateLocalization';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -343,6 +344,7 @@ export default function PersonalInfoScreen() {
   }, [onboardingData.personalInfo]);
   const { t, currentLanguage } = useLanguage();
   const { showLoading, hideLoading } = useLoading();
+  const { showError, showSuccess } = useCustomAlert();
   // Temporarily simplified - removed useLocalizedDate to test if it's causing issues
   const getLocale = () => 'en-US';
   
@@ -391,21 +393,21 @@ export default function PersonalInfoScreen() {
 
 
   const roleOptions = [
-    { id: 'parent', label: 'Parent' },
-    { id: 'child', label: 'Child' },
-    { id: 'teenager', label: 'Teenager' },
-    { id: 'grandparent', label: 'Grandparent' },
-    { id: 'other', label: 'Other' },
+    { id: 'parent', label: t('onboarding.personal.roles.parent') || 'Parent' },
+    { id: 'child', label: t('onboarding.personal.roles.child') || 'Child' },
+    { id: 'teenager', label: t('onboarding.personal.roles.teenager') || 'Teenager' },
+    { id: 'grandparent', label: t('onboarding.personal.roles.grandparent') || 'Grandparent' },
+    { id: 'other', label: t('onboarding.personal.roles.other') || 'Other' },
   ];
 
   const interestOptions = [
-    { id: 'sports', label: 'Sports' },
-    { id: 'music', label: 'Music' },
-    { id: 'cooking', label: 'Cooking' },
-    { id: 'reading', label: 'Reading' },
-    { id: 'travel', label: 'Travel' },
-    { id: 'nature', label: 'Nature' },
-    { id: 'gaming', label: 'Gaming' },
+    { id: 'sport', label: t('onboarding.personal.interests.sport') || 'Sports' },
+    { id: 'music', label: t('onboarding.personal.interests.music') || 'Music' },
+    { id: 'cooking', label: t('onboarding.personal.interests.cooking') || 'Cooking' },
+    { id: 'reading', label: t('onboarding.personal.interests.reading') || 'Reading' },
+    { id: 'travel', label: t('onboarding.personal.interests.travel') || 'Travel' },
+    { id: 'nature', label: t('onboarding.personal.interests.nature') || 'Nature' },
+    { id: 'gaming', label: t('onboarding.personal.interests.gaming') || 'Gaming' },
   ];
 
   // Load existing data on mount - but only once to avoid overwriting user input
@@ -607,7 +609,10 @@ export default function PersonalInfoScreen() {
     
     // Basic validation for required fields
     if (!currentRole) {
-      alert(t('onboarding.personal.validation.roleRequired') || 'Please select your role to continue');
+      showError(
+        t('onboarding.personal.validation.roleRequired') || 'Please select your role to continue',
+        t('onboarding.personal.validation.roleRequiredMessage') || 'You need to select your family role before continuing.'
+      );
       return;
     }
     
@@ -742,7 +747,10 @@ export default function PersonalInfoScreen() {
       } catch (emergencyError) {
         console.error('ERROR: Emergency save also failed:', emergencyError);
         hideLoading();
-        alert(`Error saving information: ${error.message || error}. Please try again.`);
+        showError(
+          t('onboarding.personal.error.saveFailed') || 'Error saving information',
+          `${error.message || error}. ${t('onboarding.personal.error.tryAgain') || 'Please try again.'}`
+        );
       }
     }
   };

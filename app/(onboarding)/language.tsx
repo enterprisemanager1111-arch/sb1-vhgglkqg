@@ -68,12 +68,12 @@ export default function LanguageSelection() {
         <View style={styles.contentCard}>
           {/* Title */}
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>Choose your Language</Text>
+            <Text style={styles.title}>{t('onboarding.language.title') || 'Choose your Language'}</Text>
           </View>
 
           {/* Subtitle */}
           <View>
-            <Text style={styles.subtitle}>Select your preferred language for Famora, for the perfect experience.</Text>
+            <Text style={styles.subtitle}>{t('onboarding.language.subtitle') || 'Select your preferred language for Famora, for the perfect experience.'}</Text>
           </View>
 
           {/* Progress Indicator */}
@@ -93,7 +93,7 @@ export default function LanguageSelection() {
                 resizeMode="contain"
               />
             </View>
-            <Text style={styles.questionText}>What language do you speak?</Text>
+            <Text style={styles.questionText}>{t('onboarding.language.question') || 'What language do you speak?'}</Text>
           </View>
 
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -140,14 +140,14 @@ export default function LanguageSelection() {
               style={styles.nextButton}
               onPress={handleContinue}
             >
-              <Text style={styles.nextButtonText}>Next</Text>
+              <Text style={styles.nextButtonText}>{t('onboarding.language.next') || 'Next'}</Text>
             </Pressable>
             
             <Pressable
               style={styles.backButton}
               onPress={handleBack}
             >
-              <Text style={styles.backButtonText}>Back</Text>
+              <Text style={styles.backButtonText}>{t('onboarding.language.back') || 'Back'}</Text>
             </Pressable>
           </View>
         </View>

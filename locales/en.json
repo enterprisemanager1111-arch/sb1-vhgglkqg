@@ -813,6 +813,14 @@
         "nature": "Nature",
         "tech": "Technology"
       },
+      "validation": {
+        "roleRequired": "Role Required",
+        "roleRequiredMessage": "You need to select your family role before continuing."
+      },
+      "error": {
+        "saveFailed": "Error saving information",
+        "tryAgain": "Please try again."
+      },
       "datePicker": {
         "title": "Select birth date",
         "year": "Year",
@@ -821,12 +829,7 @@
         "confirm": "Confirm",
         "placeholder": "Select birth date"
       },
-      "ageDisplay": "{{age}} years • {{zodiac}}",
-      "validation": {
-        "nameRequired": "Please enter your name to continue",
-        "roleRequired": "Please select your role to continue",
-        "saveError": "Error saving information: {{error}}. Please try again."
-      }
+      "ageDisplay": "{{age}} years • {{zodiac}}"
     },
     "overview": {
       "title": "Onboarding Overview",
@@ -865,8 +868,11 @@
       }
     },
     "language": {
-      "title": "Select language",
-      "subtitle": "Choose your preferred language for the app"
+      "title": "Choose your Language",
+      "subtitle": "Select your preferred language for Famora, for the perfect experience.",
+      "question": "What language do you speak?",
+      "next": "Next",
+      "back": "Back"
     },
     "auth": {
       "title": "Authentication",
@@ -878,7 +884,9 @@
         "fullName": "Full name",
         "email": "Email address",
         "password": "Password",
-        "confirmPassword": "Confirm password"
+        "confirmPassword": "Confirm password",
+        "emailPlaceholder": "My Email",
+        "passwordPlaceholder": "My Password"
       },
       "buttons": {
         "login": "Sign in",
@@ -892,6 +900,15 @@
         "signupLink": "Sign up",
         "loginLink": "Sign in"
       },
+      "options": {
+        "rememberMe": "Remember Me",
+        "forgotPassword": "Forgot Password"
+      },
+      "separator": "OR",
+      "social": {
+        "signInWithApple": "Sign in With Apple ID",
+        "signInWithGoogle": "Sign in With Google"
+      },
       "errors": {
         "invalidEmail": "Please enter a valid email address",
         "passwordTooShort": "Password must be at least 6 characters",
@@ -903,10 +920,83 @@
         "passwordRequirement": "Password must be at least 6 characters.",
         "emailInvalid": "Please enter a valid email address.",
         "loginTimeout": "Login is taking too long. Please check your internet connection.",
-        "passwordMismatch": "Passwords do not match"
+        "passwordMismatch": "Passwords do not match",
+        "passwordMismatchMessage": "Passwords do not match",
+        "missingInformation": "Missing Information",
+        "missingInformationMessage": "Please fill in all fields",
+        "weakPassword": "Weak Password",
+        "weakPasswordMessage": "Password must be at least 6 characters",
+        "signInFailed": "Sign In Failed",
+        "generalError": "An error occurred",
+        "termsRequired": "Terms Required",
+        "termsRequiredMessage": "Please agree to the terms and conditions",
+        "signupFailed": "Signup Failed",
+        "incompleteCode": "Incomplete Code",
+        "incompleteCodeMessage": "Please enter the complete 6-digit verification code",
+        "verificationFailed": "Verification Failed",
+        "resendFailed": "Resend Failed"
       },
       "success": {
-        "accountCreated": "Account created successfully!"
+        "welcomeBack": "Welcome Back!",
+        "signInSuccess": "Successfully signed in!",
+        "accountCreated": "Account created successfully!",
+        "verificationCodeSent": "Verification Code Sent!",
+        "verificationCodeSentMessage": "A 6-digit verification code has been sent to your email. Please enter it to complete signup.",
+        "codeResent": "Code Resent!",
+        "codeResentMessage": "A new 6-digit verification code has been sent to your email.",
+        "accountCreatedSuccess": "Account Created!",
+        "accountCreatedMessage": "Your account has been successfully created and verified."
+      },
+      "signup": {
+        "title": "Famora",
+        "subtitle": "Register Using Your Credentials",
+        "form": {
+          "email": "Email",
+          "emailPlaceholder": "Enter Your Email",
+          "phoneNumber": "Phone Number (optional)",
+          "phonePlaceholder": "+62 0000 0000 0000",
+          "companyId": "Company ID (optional)",
+          "companyPlaceholder": "Enter Company ID",
+          "password": "Password",
+          "passwordPlaceholder": "My Password",
+          "confirmPassword": "Confirm Password",
+          "confirmPasswordPlaceholder": "Confirm My Password"
+        },
+        "terms": {
+          "agreeText": "I agree with",
+          "termsLink": "terms & conditions",
+          "and": "and",
+          "privacyLink": "privacy policy"
+        },
+        "buttons": {
+          "signUp": "Sign Up",
+          "creatingAccount": "Creating Account...",
+          "alreadyHaveAccount": "Already have an account?",
+          "signInHere": "Sign in here"
+        },
+        "modals": {
+          "terms": {
+            "title": "Terms & Conditions and\nPrivacy Policy",
+            "content": "Terms and Conditions:\nAcceptance: By using the Re-Dus app, you agree to comply with all applicable terms and conditions.\n\nUsage: This app is for personal use only and may not be used for commercial purposes without permission.\n\nAccount: You are responsible for the security of your account and all activities that occur within it.\n\nContent: You must not upload content that violates copyright, privacy, or applicable laws.\n\nChanges: We reserve the right to change the terms and conditions at any time and will notify you of these changes through the app or via email.\n\nPrivacy Policy:\nData Collection: We collect personal data such as name, email, and location to process transactions and improve our services.\n\nData Usage: Your data is used for internal purposes such as account management, usage analysis, and service offerings.\n\nSecurity: We protect your data with appropriate security measures to prevent unauthorized access.\n\nData Sharing: We do not share your personal data with third parties without your consent, except as required by law.\n\nYour Rights: You can access, update, or delete your personal data at any time through the app settings or by contacting us.",
+            "agree": "I Agree",
+            "decline": "Decline"
+          },
+          "verification": {
+            "title": "Email Verification Sent!",
+            "description": "A verification code will be sent to the email",
+            "forVerification": "for your account verification process.",
+            "resendText": "Haven't received the verification code?",
+            "resendLink": "Resend it.",
+            "verifyButton": "Verify Code",
+            "verifying": "Verifying..."
+          },
+          "welcome": {
+            "title": "Welcome To Work Mate!",
+            "description": "To enhance your user experience, please set up your profile first. This will help us tailor the app to your needs and ensure you get the most out of our features!",
+            "setUpProfile": "Set Up My Profile",
+            "exploreApp": "Explore The App First"
+          }
+        }
       },
       "old": {
         "title": {
@@ -920,6 +1010,12 @@
       "description": "Create family or join an existing one"
     },
     "family-setup-title": "Set up Family",
-    "family-setup-description": "Create family or join an existing one"
+    "family-setup-description": "Create family or join an existing one",
+    "final": {
+      "title": "Your Famora Account",
+      "description": "Create or log in to your account to experience all the features.",
+      "signIn": "Sign In",
+      "signUp": "Sign Up"
+    }
   }
 }

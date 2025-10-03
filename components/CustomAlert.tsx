@@ -72,7 +72,7 @@ export default function CustomAlert({
     setTimeLeft(1.5);
     
     // Timeline countdown animation (1.5 seconds) - goes from 0% to 100%
-    progressWidth.value = withTiming(1, { duration: 1500 });
+    progressWidth.value = withTiming(1, { duration: 2000 });
     
     // Update time left every 0.1 seconds for smoother countdown
     const interval = setInterval(() => {

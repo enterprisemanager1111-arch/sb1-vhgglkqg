@@ -755,6 +755,14 @@
         "nature": "Natur",
         "tech": "Technik"
       },
+      "validation": {
+        "roleRequired": "Rolle erforderlich",
+        "roleRequiredMessage": "Sie müssen Ihre Familienrolle auswählen, bevor Sie fortfahren."
+      },
+      "error": {
+        "saveFailed": "Fehler beim Speichern der Informationen",
+        "tryAgain": "Bitte versuchen Sie es erneut."
+      },
       "datePicker": {
         "title": "Geburtsdatum auswählen",
         "year": "Jahr",
@@ -763,12 +771,7 @@
         "confirm": "Bestätigen",
         "placeholder": "Geburtsdatum auswählen"
       },
-      "ageDisplay": "{{age}} Jahre • {{zodiac}}",
-      "validation": {
-        "nameRequired": "Bitte geben Sie Ihren Namen ein, um fortzufahren",
-        "roleRequired": "Bitte wählen Sie Ihre Rolle aus, um fortzufahren",
-        "saveError": "Fehler beim Speichern der Informationen: {{error}}. Bitte versuchen Sie es erneut."
-      }
+      "ageDisplay": "{{age}} Jahre • {{zodiac}}"
     },
     "overview": {
       "title": "Onboarding Übersicht",
@@ -893,8 +896,11 @@
       }
     },
     "language": {
-      "title": "Sprache auswählen",
-      "subtitle": "Wählen Sie Ihre bevorzugte Sprache für die App"
+      "title": "Wählen Sie Ihre Sprache",
+      "subtitle": "Wählen Sie Ihre bevorzugte Sprache für Famora, für das perfekte Erlebnis.",
+      "question": "Welche Sprache sprechen Sie?",
+      "next": "Weiter",
+      "back": "Zurück"
     },
     "auth": {
       "title": "Authentifizierung",
@@ -906,7 +912,9 @@
         "fullName": "Vollständiger Name",
         "email": "E-Mail-Adresse",
         "password": "Passwort",
-        "confirmPassword": "Passwort bestätigen"
+        "confirmPassword": "Passwort bestätigen",
+        "emailPlaceholder": "Meine E-Mail",
+        "passwordPlaceholder": "Mein Passwort"
       },
       "buttons": {
         "login": "Anmelden",
@@ -920,6 +928,15 @@
         "signupLink": "Registrieren",
         "loginLink": "Anmelden"
       },
+      "options": {
+        "rememberMe": "Angemeldet bleiben",
+        "forgotPassword": "Passwort vergessen"
+      },
+      "separator": "ODER",
+      "social": {
+        "signInWithApple": "Mit Apple ID anmelden",
+        "signInWithGoogle": "Mit Google anmelden"
+      },
       "errors": {
         "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
         "passwordTooShort": "Passwort muss mindestens 6 Zeichen haben",
@@ -931,10 +948,82 @@
         "passwordRequirement": "Das Passwort muss mindestens 6 Zeichen haben.",
         "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
         "loginTimeout": "Anmeldung dauert zu lange. Bitte überprüfen Sie Ihre Internetverbindung.",
-        "passwordMismatch": "Passwörter stimmen nicht überein"
+        "passwordMismatch": "Passwörter stimmen nicht überein",
+        "missingInformation": "Fehlende Informationen",
+        "missingInformationMessage": "Bitte füllen Sie alle Felder aus",
+        "weakPassword": "Schwaches Passwort",
+        "weakPasswordMessage": "Passwort muss mindestens 6 Zeichen haben",
+        "signInFailed": "Anmeldung fehlgeschlagen",
+        "generalError": "Ein Fehler ist aufgetreten",
+        "termsRequired": "Bedingungen erforderlich",
+        "termsRequiredMessage": "Bitte stimmen Sie den Geschäftsbedingungen zu",
+        "signupFailed": "Registrierung fehlgeschlagen",
+        "incompleteCode": "Unvollständiger Code",
+        "incompleteCodeMessage": "Bitte geben Sie den vollständigen 6-stelligen Bestätigungscode ein",
+        "verificationFailed": "Bestätigung fehlgeschlagen",
+        "resendFailed": "Erneutes Senden fehlgeschlagen"
       },
       "success": {
-        "accountCreated": "Konto wurde erfolgreich erstellt!"
+        "welcomeBack": "Willkommen zurück!",
+        "signInSuccess": "Erfolgreich angemeldet!",
+        "accountCreated": "Konto erfolgreich erstellt!",
+        "verificationCodeSent": "Bestätigungscode gesendet!",
+        "verificationCodeSentMessage": "Ein 6-stelliger Bestätigungscode wurde an Ihre E-Mail gesendet. Bitte geben Sie ihn ein, um die Registrierung abzuschließen.",
+        "codeResent": "Code erneut gesendet!",
+        "codeResentMessage": "Ein neuer 6-stelliger Bestätigungscode wurde an Ihre E-Mail gesendet.",
+        "accountCreatedSuccess": "Konto erstellt!",
+        "accountCreatedMessage": "Ihr Konto wurde erfolgreich erstellt und bestätigt."
+      },
+      "signup": {
+        "title": "Famora",
+        "subtitle": "Registrieren Sie sich mit Ihren Anmeldedaten",
+        "form": {
+          "email": "E-Mail",
+          "emailPlaceholder": "Geben Sie Ihre E-Mail ein",
+          "phoneNumber": "Telefonnummer (optional)",
+          "phonePlaceholder": "+62 0000 0000 0000",
+          "companyId": "Firmen-ID (optional)",
+          "companyPlaceholder": "Firmen-ID eingeben",
+          "password": "Passwort",
+          "passwordPlaceholder": "Mein Passwort",
+          "confirmPassword": "Passwort bestätigen",
+          "confirmPasswordPlaceholder": "Mein Passwort bestätigen"
+        },
+        "terms": {
+          "agreeText": "Ich stimme zu",
+          "termsLink": "Geschäftsbedingungen",
+          "and": "und",
+          "privacyLink": "Datenschutzrichtlinie"
+        },
+        "buttons": {
+          "signUp": "Registrieren",
+          "creatingAccount": "Konto wird erstellt...",
+          "alreadyHaveAccount": "Haben Sie bereits ein Konto?",
+          "signInHere": "Hier anmelden"
+        },
+        "modals": {
+          "terms": {
+            "title": "Geschäftsbedingungen und\nDatenschutzrichtlinie",
+            "content": "Geschäftsbedingungen:\nAnnahme: Durch die Nutzung der Re-Dus-App stimmen Sie zu, alle geltenden Geschäftsbedingungen einzuhalten.\n\nNutzung: Diese App ist nur für den persönlichen Gebrauch bestimmt und darf nicht ohne Erlaubnis für kommerzielle Zwecke verwendet werden.\n\nKonto: Sie sind für die Sicherheit Ihres Kontos und alle darin stattfindenden Aktivitäten verantwortlich.\n\nInhalt: Sie dürfen keine Inhalte hochladen, die Urheberrechte, Privatsphäre oder geltende Gesetze verletzen.\n\nÄnderungen: Wir behalten uns das Recht vor, die Geschäftsbedingungen jederzeit zu ändern und werden Sie über diese Änderungen über die App oder per E-Mail informieren.\n\nDatenschutzrichtlinie:\nDatensammlung: Wir sammeln persönliche Daten wie Name, E-Mail und Standort, um Transaktionen zu verarbeiten und unsere Dienstleistungen zu verbessern.\n\nDatenverwendung: Ihre Daten werden für interne Zwecke wie Kontoverwaltung, Nutzungsanalyse und Serviceangebote verwendet.\n\nSicherheit: Wir schützen Ihre Daten mit angemessenen Sicherheitsmaßnahmen, um unbefugten Zugriff zu verhindern.\n\nDatenaustausch: Wir teilen Ihre persönlichen Daten nicht ohne Ihre Zustimmung mit Dritten, außer wenn dies gesetzlich vorgeschrieben ist.\n\nIhre Rechte: Sie können jederzeit über die App-Einstellungen oder durch Kontaktaufnahme mit uns auf Ihre persönlichen Daten zugreifen, sie aktualisieren oder löschen.",
+            "agree": "Ich stimme zu",
+            "decline": "Ablehnen"
+          },
+          "verification": {
+            "title": "E-Mail-Bestätigung gesendet!",
+            "description": "Ein Bestätigungscode wird an die E-Mail gesendet",
+            "forVerification": "für Ihren Kontobestätigungsprozess.",
+            "resendText": "Haben Sie den Bestätigungscode nicht erhalten?",
+            "resendLink": "Erneut senden.",
+            "verifyButton": "Code bestätigen",
+            "verifying": "Wird bestätigt..."
+          },
+          "welcome": {
+            "title": "Willkommen bei Work Mate!",
+            "description": "Um Ihre Benutzererfahrung zu verbessern, richten Sie bitte zuerst Ihr Profil ein. Dies hilft uns, die App an Ihre Bedürfnisse anzupassen und sicherzustellen, dass Sie das Beste aus unseren Funktionen herausholen!",
+            "setUpProfile": "Mein Profil einrichten",
+            "exploreApp": "App zuerst erkunden"
+          }
+        }
       },
       "old": {
         "title": {
@@ -948,6 +1037,12 @@
       "description": "Familie erstellen oder einer bestehenden beitreten"
     },
     "family-setup-title": "Familie einrichten",
-    "family-setup-description": "Familie erstellen oder einer bestehenden beitreten"
+    "family-setup-description": "Familie erstellen oder einer bestehenden beitreten",
+    "final": {
+      "title": "Ihr Famora-Konto",
+      "description": "Erstellen Sie sich ein Konto oder melden Sie sich an, um alle Funktionen zu erleben.",
+      "signIn": "Anmelden",
+      "signUp": "Registrieren"
+    }
   }
 }

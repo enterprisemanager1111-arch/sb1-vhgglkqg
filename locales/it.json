@@ -44,6 +44,14 @@
         "nature": "Natura",
         "tech": "Tecnologia"
       },
+      "validation": {
+        "roleRequired": "Ruolo richiesto",
+        "roleRequiredMessage": "Devi selezionare il tuo ruolo familiare prima di continuare."
+      },
+      "error": {
+        "saveFailed": "Errore nel salvare le informazioni",
+        "tryAgain": "Riprova."
+      },
       "datePicker": {
         "title": "Seleziona data di nascita",
         "year": "Anno",
@@ -54,19 +62,28 @@
       }
     },
     "language": {
-      "title": "Seleziona lingua",
-      "subtitle": "Scegli la tua lingua preferita per l'app"
+      "title": "Scegli la tua lingua",
+      "subtitle": "Seleziona la tua lingua preferita per Famora, per un'esperienza perfetta.",
+      "question": "Che lingua parli?",
+      "next": "Avanti",
+      "back": "Indietro"
     },
     "auth": {
       "title": {
         "signup": "Crea account",
         "login": "Bentornato!"
       },
+      "subtitle": {
+        "login": "Accedi al tuo account",
+        "signup": "Crea il tuo account Famora"
+      },
       "form": {
         "fullName": "Nome completo",
         "email": "Indirizzo email",
         "password": "Password",
-        "confirmPassword": "Conferma password"
+        "confirmPassword": "Conferma password",
+        "emailPlaceholder": "La Mia Email",
+        "passwordPlaceholder": "La Mia Password"
       },
       "buttons": {
         "login": "Accedi",
@@ -74,13 +91,147 @@
         "loggingIn": "Accesso...",
         "signingUp": "Registrazione..."
       },
+      "toggle": {
+        "toSignup": "Non hai un account? ",
+        "toLogin": "Hai già un account? ",
+        "signupLink": "Registrati",
+        "loginLink": "Accedi"
+      },
+      "options": {
+        "rememberMe": "Ricordami",
+        "forgotPassword": "Password dimenticata"
+      },
+      "separator": "O",
+      "social": {
+        "signInWithApple": "Accedi con Apple ID",
+        "signInWithGoogle": "Accedi con Google"
+      },
       "errors": {
         "loginTimeout": "L'accesso sta impiegando troppo tempo. Controlla la tua connessione Internet.",
-        "passwordMismatch": "Le password non corrispondono"
+        "passwordMismatch": "Le password non corrispondono",
+        "missingInformation": "Informazioni mancanti",
+        "missingInformationMessage": "Compila tutti i campi",
+        "weakPassword": "Password debole",
+        "weakPasswordMessage": "La password deve contenere almeno 6 caratteri",
+        "signInFailed": "Accesso fallito",
+        "generalError": "Si è verificato un errore",
+        "termsRequired": "Termini richiesti",
+        "termsRequiredMessage": "Accetta i termini e condizioni",
+        "signupFailed": "Registrazione fallita",
+        "incompleteCode": "Codice incompleto",
+        "incompleteCodeMessage": "Inserisci il codice di verifica a 6 cifre completo",
+        "verificationFailed": "Verifica fallita",
+        "resendFailed": "Invio fallito"
+      },
+      "success": {
+        "welcomeBack": "Bentornato!",
+        "signInSuccess": "Accesso effettuato con successo!",
+        "accountCreated": "Account creato con successo!",
+        "verificationCodeSent": "Codice di verifica inviato!",
+        "verificationCodeSentMessage": "Un codice di verifica a 6 cifre è stato inviato alla tua email. Inseriscilo per completare la registrazione.",
+        "codeResent": "Codice rinviato!",
+        "codeResentMessage": "Un nuovo codice di verifica a 6 cifre è stato inviato alla tua email.",
+        "accountCreatedSuccess": "Account creato!",
+        "accountCreatedMessage": "Il tuo account è stato creato e verificato con successo."
+      },
+      "signup": {
+        "title": "Famora",
+        "subtitle": "Registrati con le tue credenziali",
+        "form": {
+          "email": "Email",
+          "emailPlaceholder": "Inserisci la tua email",
+          "phoneNumber": "Numero di telefono (opzionale)",
+          "phonePlaceholder": "+62 0000 0000 0000",
+          "companyId": "ID azienda (opzionale)",
+          "companyPlaceholder": "Inserisci l'ID azienda",
+          "password": "Password",
+          "passwordPlaceholder": "La mia password",
+          "confirmPassword": "Conferma password",
+          "confirmPasswordPlaceholder": "Conferma la mia password"
+        },
+        "terms": {
+          "agreeText": "Accetto",
+          "termsLink": "i termini e condizioni",
+          "and": "e",
+          "privacyLink": "la politica sulla privacy"
+        },
+        "buttons": {
+          "signUp": "Registrati",
+          "creatingAccount": "Creazione account...",
+          "alreadyHaveAccount": "Hai già un account?",
+          "signInHere": "Accedi qui"
+        },
+        "modals": {
+          "terms": {
+            "title": "Termini e condizioni e\nPolitica sulla privacy",
+            "content": "Termini e condizioni:\nAccettazione: Utilizzando l'app Re-Dus, accetti di rispettare tutti i termini e condizioni applicabili.\n\nUtilizzo: Questa app è solo per uso personale e non può essere utilizzata per scopi commerciali senza autorizzazione.\n\nAccount: Sei responsabile della sicurezza del tuo account e di tutte le attività che vi si verificano.\n\nContenuto: Non devi caricare contenuti che violino copyright, privacy o leggi applicabili.\n\nModifiche: Ci riserviamo il diritto di modificare i termini e condizioni in qualsiasi momento e ti informeremo di queste modifiche tramite l'app o via email.\n\nPolitica sulla privacy:\nRaccolta dati: Raccogliamo dati personali come nome, email e posizione per elaborare transazioni e migliorare i nostri servizi.\n\nUtilizzo dati: I tuoi dati sono utilizzati per scopi interni come gestione account, analisi utilizzo e offerte di servizi.\n\nSicurezza: Proteggiamo i tuoi dati con misure di sicurezza appropriate per prevenire l'accesso non autorizzato.\n\nCondivisione dati: Non condividiamo i tuoi dati personali con terze parti senza il tuo consenso, tranne quando richiesto dalla legge.\n\nI tuoi diritti: Puoi accedere, aggiornare o eliminare i tuoi dati personali in qualsiasi momento tramite le impostazioni dell'app o contattandoci.",
+            "agree": "Accetto",
+            "decline": "Rifiuta"
+          },
+          "verification": {
+            "title": "Verifica email inviata!",
+            "description": "Un codice di verifica sarà inviato all'email",
+            "forVerification": "per il tuo processo di verifica account.",
+            "resendText": "Non hai ricevuto il codice di verifica?",
+            "resendLink": "Invia di nuovo.",
+            "verifyButton": "Verifica codice",
+            "verifying": "Verifica in corso..."
+          },
+          "welcome": {
+            "title": "Benvenuto in Work Mate!",
+            "description": "Per migliorare la tua esperienza utente, configura prima il tuo profilo. Questo ci aiuterà ad adattare l'app alle tue esigenze e assicurarci che tu ottenga il massimo dalle nostre funzionalità!",
+            "setUpProfile": "Configura il mio profilo",
+            "exploreApp": "Esplora prima l'app"
+          }
+        }
       }
     },
     "family": {
       "title": "Configura famiglia"
+    },
+    "familySetup": {
+      "title": "Configura Famiglia",
+      "description": "Crea famiglia o unisciti a una esistente"
+    },
+    "family-setup-title": "Configura Famiglia",
+    "family-setup-description": "Crea famiglia o unisciti a una esistente",
+    "preferences": {
+      "title": "I tuoi obiettivi e preferenze",
+      "subtitle": "Lascia che personalizziamo Famora secondo le tue esigenze",
+      "goals": {
+        "title": "Cosa vorresti raggiungere?",
+        "subtitle": "Scegli fino a 3 obiettivi principali per la tua vita familiare",
+        "organization": {
+          "label": "Organizzare meglio la famiglia",
+          "description": "Tenere traccia di appuntamenti e compiti"
+        },
+        "communication": {
+          "label": "Migliorare la comunicazione",
+          "description": "Condividere tutte le informazioni importanti"
+        },
+        "responsibility": {
+          "label": "Condividere le responsabilità",
+          "description": "Distribuire i compiti in modo equo"
+        },
+        "memories": {
+          "label": "Catturare i ricordi",
+          "description": "Raccogliere momenti speciali"
+        },
+        "routine": {
+          "label": "Stabilire routine",
+          "description": "Creare flussi di lavoro regolari"
+        },
+        "fun": {
+          "label": "Divertirsi di più",
+          "description": "Pianificare attività insieme"
+        }
+      }
+    },
+    "final": {
+      "title": "Il Tuo Account Famora",
+      "description": "Crea o accedi al tuo account per sperimentare tutte le funzionalità.",
+      "signIn": "Accedi",
+      "signUp": "Registrati"
     }
   },
   "nav": {
@@ -561,14 +712,6 @@
     "createFamily": "Crea Famiglia",
     "joinFamily": "Unisciti a Famiglia",
     "setupLater": "Configura più tardi"
-  },
-  "onboarding": {
-    "familySetup": {
-      "title": "Configura Famiglia",
-      "description": "Crea famiglia o unisciti a una esistente"
-    },
-    "family-setup-title": "Configura Famiglia",
-    "family-setup-description": "Crea famiglia o unisciti a una esistente"
   },
   "tabs": {
     "addNew": "Aggiungi Nuovo",

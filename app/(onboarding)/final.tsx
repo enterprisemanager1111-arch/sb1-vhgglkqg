@@ -71,13 +71,13 @@ export default function OnboardingFinal() {
         <View style={styles.contentCard}>
           <View>
             <Text style={styles.welcomeTitle}>
-              Your Famora Account
+              {t('onboarding.final.title') || 'Your Famora Account'}
             </Text>
           </View>
           
           <View>
             <Text style={styles.description}>
-              Create or log in to your account to experience all the features.
+              {t('onboarding.final.description') || 'Create or log in to your account to experience all the features.'}
             </Text>
           </View>
 
@@ -91,7 +91,7 @@ export default function OnboardingFinal() {
               }}
             >
               <Text style={styles.signInButtonText}>
-                Sign In
+                {t('onboarding.final.signIn') || 'Sign In'}
               </Text>
             </Pressable>
 
@@ -104,7 +104,7 @@ export default function OnboardingFinal() {
               }}
             >
               <Text style={styles.signUpButtonText}>
-                Sign Up
+                {t('onboarding.final.signUp') || 'Sign Up'}
               </Text>
             </Pressable>
           </View>
