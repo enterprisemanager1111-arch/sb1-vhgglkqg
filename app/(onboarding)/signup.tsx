@@ -45,10 +45,12 @@ export default function SignUp() {
   const [shouldShowWelcomeModal, setShouldShowWelcomeModal] = useState(false);
   const [welcomeModalDismissed, setWelcomeModalDismissed] = useState(false);
   const [navigatingToProfile, setNavigatingToProfile] = useState(false);
+  const [disableAuthRedirect, setDisableAuthRedirect] = useState(false);
   
   // Use ref to track verification state to prevent race conditions
   const isVerifyingRef = useRef(false);
   const showWelcomeModalRef = useRef(false);
+  const disableAuthRedirectRef = useRef(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
   const [generatedVerificationCode, setGeneratedVerificationCode] = useState('');
@@ -163,6 +165,14 @@ export default function SignUp() {
   // Check if user is already authenticated (but not during signup verification)
   useEffect(() => {
     const checkAuth = async () => {
+      // COMPLETELY DISABLE auth redirect if disable flag is set
+      if (disableAuthRedirectRef.current || disableAuthRedirect) {
+        console.log('🚫 Auth redirect is DISABLED - not redirecting to home page');
+        console.log('🔍 DEBUG: disableAuthRedirectRef.current:', disableAuthRedirectRef.current);
+        console.log('🔍 DEBUG: disableAuthRedirect state:', disableAuthRedirect);
+        return; // Exit early - do not redirect
+      }
+      
       if (session && user) {
         // Check if we're in the middle of signup verification using refs for immediate access
         if (isVerifyingRef.current || showWelcomeModalRef.current || shouldShowWelcomeModal || !welcomeModalDismissed || navigatingToProfile) {
@@ -187,7 +197,7 @@ export default function SignUp() {
     const timeoutId = setTimeout(checkAuth, 100);
     
     return () => clearTimeout(timeoutId);
-  }, [session, user, isVerifyingSignup, showWelcomeModal, shouldShowWelcomeModal, welcomeModalDismissed, navigatingToProfile]);
+  }, [session, user, isVerifyingSignup, showWelcomeModal, shouldShowWelcomeModal, welcomeModalDismissed, navigatingToProfile, disableAuthRedirect]);
 
   // Note: Using React state only for verification flag management
   // No AsyncStorage flags are used anymore
@@ -220,6 +230,10 @@ export default function SignUp() {
     showWelcomeModalRef.current = false;
     setShouldShowWelcomeModal(false);
     setWelcomeModalDismissed(true);
+    // Re-enable auth redirect when user makes a choice
+    setDisableAuthRedirect(false);
+    disableAuthRedirectRef.current = false;
+    console.log('✅ Auth redirect RE-ENABLED after user choice');
   };
 
 
@@ -384,26 +398,29 @@ export default function SignUp() {
       return;
     }
     
+    // DISABLE auth redirect IMMEDIATELY before any async operations
+    setDisableAuthRedirect(true);
+    disableAuthRedirectRef.current = true;
+    console.log('🚫 Auth redirect DISABLED immediately before verification');
+    
+    // Safety timeout to re-enable auth redirect after 5 minutes
+    setTimeout(() => {
+      if (disableAuthRedirectRef.current) {
+        console.log('⏰ Safety timeout: Re-enabling auth redirect after 5 minutes');
+        setDisableAuthRedirect(false);
+        disableAuthRedirectRef.current = false;
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+    
     try {
       setVerificationLoading(true);
       setIsVerifyingSignup(true); // Set flag to prevent auth redirect
       isVerifyingRef.current = true; // Set ref for immediate access
       
-      // Set welcome modal flags BEFORE verification to prevent race condition
-      console.log('📱 Setting welcome modal flags BEFORE verification...');
-      showWelcomeModalRef.current = true;
-      setShowWelcomeModal(true);
-      setShouldShowWelcomeModal(true);
-      setWelcomeModalDismissed(false);
+      // DON'T set welcome modal flags before verification - only set them AFTER success
+      console.log('📱 Will set welcome modal flags AFTER successful verification...');
       
-      // Force a state update to ensure flags are set
-      setTimeout(() => {
-        showWelcomeModalRef.current = true;
-        setShowWelcomeModal(true);
-        setShouldShowWelcomeModal(true);
-        setWelcomeModalDismissed(false);
-        console.log('🔒 Welcome modal flags reinforced');
-      }, 50);
+      // Don't set welcome modal flags here - only set them after successful verification
       
       console.log('🔐 Verifying OTP code:', code);
       
@@ -440,8 +457,12 @@ export default function SignUp() {
       console.log('👤 User ID:', data.user?.id);
       console.log('🔐 Session created:', !!data.session);
       
-      // Welcome modal flags already set before verification
-      console.log('📱 Welcome modal flags already set, modal should be visible');
+      // NOW set welcome modal flags AFTER successful verification
+      console.log('📱 Setting welcome modal flags AFTER successful verification...');
+      showWelcomeModalRef.current = true;
+      setShowWelcomeModal(true);
+      setShouldShowWelcomeModal(true);
+      setWelcomeModalDismissed(false);
       
       // Force update modal state to ensure it's visible
       setTimeout(() => {
@@ -513,6 +534,11 @@ export default function SignUp() {
       // Clear the verification flag on error
       setIsVerifyingSignup(false);
       isVerifyingRef.current = false;
+      
+      // Re-enable auth redirect on error so user can try again
+      setDisableAuthRedirect(false);
+      disableAuthRedirectRef.current = false;
+      console.log('✅ Auth redirect RE-ENABLED after verification error');
     } finally {
       setVerificationLoading(false);
     }
