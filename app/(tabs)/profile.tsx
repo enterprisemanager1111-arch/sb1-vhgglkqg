@@ -293,10 +293,29 @@ export default function UserProfile() {
 
   const handleLogout = async () => {
     try {
+      console.log('🚪 Starting logout process...');
+      
+      // Sign out from Supabase and clear auth state
       await signOut();
+      
+      // Manually ensure the auth token is deleted from AsyncStorage
+      try {
+        await AsyncStorage.removeItem('sb-eqaxmxbqqiuiwkhjwvvz-auth-token');
+        console.log('✅ Auth token manually removed from AsyncStorage');
+      } catch (storageError) {
+        console.error('❌ Error removing auth token from storage:', storageError);
+      }
+      
+      console.log('✅ Sign out completed, navigating to onboarding start page...');
+      
+      // Navigate to the onboarding start page (index)
       router.replace('/(onboarding)');
+      
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error('❌ Sign out error:', error);
+      
+      // Even if signOut fails, try to navigate to onboarding
+      // The auth system will handle the case where user is not authenticated
       router.replace('/(onboarding)');
     }
   };

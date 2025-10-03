@@ -25,7 +25,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, fullName: string, birthDate?: string, role?: string, interests?: string[], companyID?: string, phoneNum?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
+  signOut: (forceSignOut?: boolean) => Promise<void>;
   updateProfile: (updates: Partial<Pick<Profile, 'name' | 'birth_date' | 'avatar_url' | 'role' | 'interests' | 'company_ID' | 'phone_num'>>) => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
