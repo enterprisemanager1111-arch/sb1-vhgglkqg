@@ -47,8 +47,7 @@ export default function OnboardingLayout() {
                 console.log('🔄 Auth token found, user has no family, allowing newFamily page access');
                 return;
               } else {
-                console.log('🚫 Auth token found, user already has family, redirecting from newFamily page');
-                router.replace('/(tabs)');
+                console.log('🚫 Auth token found, user already has family, but staying on newFamily page');
                 return;
               }
             } else {
@@ -90,9 +89,8 @@ export default function OnboardingLayout() {
             }
           }
           
-          // For all other onboarding pages, redirect immediately
-          console.log('🚫 Auth token found, redirecting from onboarding page:', currentPath);
-          router.replace('/(tabs)');
+          // Don't automatically redirect from onboarding pages
+          console.log('🚫 Auth token found, but staying on onboarding page:', currentPath);
           return;
         }
       } catch (error) {
@@ -166,10 +164,12 @@ export default function OnboardingLayout() {
                 // - Password reset pages (they might need to reset password even when logged in)
                 // - New family pages (authenticated users without family ONLY)
                 // - Final page (temporary access for redirect purposes)
+                // - Personal page (allow authenticated users to access personal info page)
                 // Note: Profile edit pages are handled by the main app layout, not onboarding layout
-                // DO NOT allow: signup, signin, language, personal, preferences, permissions, auth, family setup, etc.
+                // DO NOT allow: signup, signin, language, preferences, permissions, auth, family setup, etc.
                 const isOnFinalPage = currentPath.includes('final');
-                if (isOnPasswordResetPage || isOnEnterNewPwdPage || isOnFinalPage) {
+                const isOnPersonalPage = currentPath.includes('personal');
+                if (isOnPasswordResetPage || isOnEnterNewPwdPage || isOnFinalPage || isOnPersonalPage) {
                   console.log('🔄 User on allowed authenticated page, allowing access');
                   console.log('🔍 DEBUG: Current path:', currentPath);
                   return; // Don't redirect, allow special flow
@@ -183,8 +183,7 @@ export default function OnboardingLayout() {
                   console.log('🔄 User has no family, allowing newFamily page access');
                   return;
                 } else {
-                  console.log('🚫 User already has family, redirecting from newFamily page');
-                  router.replace('/(tabs)');
+                  console.log('🚫 User already has family, but staying on newFamily page');
                   return;
                 }
               } else {
@@ -193,15 +192,13 @@ export default function OnboardingLayout() {
               }
             }
             
-            // For all other authenticated users on onboarding pages, redirect to home
-            console.log('🚫 Authenticated user trying to access onboarding page, redirecting to home');
-            router.replace('/(tabs)');
+            // Don't automatically redirect authenticated users from onboarding pages
+            console.log('🚫 Authenticated user on onboarding page, but staying on page');
             return;
           } catch (error) {
             console.error('Error checking allowed pages:', error);
-            // If there's an error, proceed with normal redirect
-            console.log('🚫 User is already authenticated, redirecting from onboarding to home...');
-            router.replace('/(tabs)');
+            // If there's an error, don't redirect automatically
+            console.log('🚫 User is already authenticated, but staying on onboarding page...');
           }
         };
         

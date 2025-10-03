@@ -19,11 +19,10 @@ export default function OnboardingFinal() {
   const { t, currentLanguage } = useLanguage();
   const { session, user, loading: authLoading } = useAuth();
   
-  // Redirect authenticated users immediately
+  // Don't automatically redirect authenticated users
   useEffect(() => {
     if (!authLoading && session && user) {
-      console.log('🔄 Authenticated user on final page, redirecting to home');
-      router.replace('/(tabs)');
+      console.log('🔄 Authenticated user on final page, but staying on page');
     }
   }, [session, user, authLoading]);
 

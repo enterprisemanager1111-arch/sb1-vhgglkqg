@@ -187,9 +187,8 @@ export default function SignUp() {
           return; // Don't redirect during verification or when welcome modal is shown
         }
         
-        // Only redirect if we're not in any signup flow
-        console.log('User is already authenticated and not in signup flow, redirecting to main app');
-        router.replace('/(tabs)');
+        // Don't automatically redirect - let user stay on signup page
+        console.log('User is already authenticated but staying on signup page');
       }
     };
     
@@ -267,8 +266,8 @@ export default function SignUp() {
     isVerifyingRef.current = false;
     console.log('🔓 Verification flag cleared in handleExploreApp, allowing normal auth flow');
     
-    // Navigate to main app (account already created)
-    router.replace('/(tabs)');
+    // Don't automatically navigate - let user choose where to go
+    console.log('User chose to explore app, but no automatic navigation');
   };
 
 
