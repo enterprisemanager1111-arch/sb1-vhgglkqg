@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { useLanguage } from './LanguageContext';
-import { supabase } from '@/lib/supabase';
+import { supabase, createFreshSupabaseClient } from '@/lib/supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { sanitizeText, validateName, validateFamilyCode } from '@/utils/sanitization';
 
@@ -469,55 +469,227 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
   };
 
   const joinFamily = async (code: string): Promise<Family> => {
-    if (!user) {
-      throw new Error('User must be logged in to join a family');
-    }
-
     const codeValidation = validateFamilyCode(code);
     if (!codeValidation.isValid) {
       throw new Error(codeValidation.error);
     }
     
+    // Add overall timeout to prevent hanging
+    const overallTimeout = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Operation timed out. Please try again.'));
+      }, 30000); // 30 second timeout
+    });
+    
+    const joinFamilyOperation = async (): Promise<Family> => {
+      // Wait for user to be available with retry mechanism
+      let currentUser = user;
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (!currentUser && retryCount < maxRetries) {
+        console.log(`🔍 Waiting for user to be available, attempt ${retryCount + 1}/${maxRetries}`);
+        await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms
+        currentUser = user;
+        retryCount++;
+      }
+      
+      if (!currentUser) {
+        throw new Error('User session not available. Please sign in again.');
+      }
+    
     try {
       console.log('🔍 FamilyContext: Starting join family process...');
-      console.log('🔍 User ID:', user.id);
+      console.log('🔍 User ID:', currentUser.id);
       console.log('🔍 Code validation result:', codeValidation);
       console.log('🔍 Searching for family with code:', codeValidation.sanitized);
       
-      // Check current session
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('🔍 Current session:', !!session);
-      console.log('🔍 Session user ID:', session?.user?.id);
-      console.log('🔍 Session access token exists:', !!session?.access_token);
+      // Check current session using the user from AuthContext
+      console.log('🔍 Current user from AuthContext:', !!currentUser);
+      console.log('🔍 User ID:', currentUser?.id);
+
+      console.log('🔍 Proceeding directly with family search...');
+
+      // Find family by code with forced API call and immediate timeout
+      let family = null;
+      let familyError = null;
       
-      if (!session) {
-        throw new Error('No active session. Please sign in again.');
-      }
-      
-      if (!session.access_token) {
-        throw new Error('Invalid session. Please sign in again.');
-      }
-
-      // Find family by code
-      const { data: family, error: familyError } = await supabase
-        .from('families')
-        .select('*')
-        .eq('code', codeValidation.sanitized)
-        .maybeSingle();
-
-      console.log('📊 Family search result:', { 
-        foundFamily: !!family, 
-        familyName: family?.name,
-        error: familyError?.message 
-      });
-
-      if (familyError) {
-        console.error('❌ Database error when searching for family:', familyError);
-        if (familyError.message?.includes('fetch') || familyError.message?.includes('network')) {
-          throw new Error('Network error: Unable to connect to the server. Please check your internet connection and try again.');
+      try {
+        console.log(`🔍 Searching for family with code: "${codeValidation.sanitized}"`);
+        
+        // Force a fresh connection by creating a new query with explicit timeout
+        const queryPromise = new Promise(async (resolve, reject) => {
+          try {
+            console.log('🔍 Executing family search query...');
+            
+            // Try with the original client first
+            let client = supabase;
+            let { data, error } = await client
+              .from('families')
+              .select('*')
+              .eq('code', codeValidation.sanitized);
+            
+            // If we get a timeout or hanging, try with a fresh client
+            if (error && (error.message?.includes('timeout') || error.message?.includes('fetch'))) {
+              console.log('🔄 Original client failed, trying with fresh client...');
+              client = createFreshSupabaseClient();
+              const freshResult = await client
+                .from('families')
+                .select('*')
+                .eq('code', codeValidation.sanitized);
+              data = freshResult.data;
+              error = freshResult.error;
+            }
+            
+            if (error) {
+              reject(error);
+            } else {
+              resolve({ data, error: null });
+            }
+          } catch (err) {
+            reject(err);
+          }
+        });
+        
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Query timeout after 5 seconds')), 5000);
+        });
+        
+        const result = await Promise.race([queryPromise, timeoutPromise]) as any;
+        const { data, error } = result;
+        
+        familyError = error;
+        
+        if (error) {
+          console.error('❌ Family search error:', error);
+          throw new Error(`Database error: ${error.message}`);
         }
-        throw new Error(`Database error: ${familyError.message}`);
+        
+        if (data && data.length > 0) {
+          family = data[0];
+          console.log('✅ Found family:', family.name, 'ID:', family.id);
+        } else {
+          console.log('❌ No family found with code:', codeValidation.sanitized);
+          family = null;
+        }
+        
+      } catch (queryException: any) {
+        console.error('❌ Family search exception:', queryException);
+        familyError = queryException;
+        
+        // If it's a timeout, try with a completely different approach
+        if (queryException.message?.includes('timeout')) {
+          console.log('🔄 Timeout detected, trying direct HTTP request...');
+          
+          try {
+            // Try with direct HTTP request to Supabase REST API
+            console.log('🔄 Attempting direct HTTP request to Supabase...');
+            
+            const directHttpPromise = new Promise(async (resolve, reject) => {
+              try {
+                const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+                const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+                
+                if (!supabaseUrl || !supabaseAnonKey) {
+                  reject(new Error('Missing Supabase configuration'));
+                  return;
+                }
+                
+                console.log('🔍 Making direct HTTP request to:', `${supabaseUrl}/rest/v1/families`);
+                
+                const response = await fetch(`${supabaseUrl}/rest/v1/families?code=eq.${encodeURIComponent(codeValidation.sanitized)}`, {
+                  method: 'GET',
+                  headers: {
+                    'apikey': supabaseAnonKey,
+                    'Authorization': `Bearer ${supabaseAnonKey}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation'
+                  },
+                  // Add timeout to the fetch request
+                  signal: AbortSignal.timeout(10000) // 10 second timeout
+                });
+                
+                if (!response.ok) {
+                  throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ Direct HTTP request successful, received data:', data);
+                
+                if (data && data.length > 0) {
+                  resolve({ data: [data[0]], error: null });
+                } else {
+                  resolve({ data: [], error: null });
+                }
+                
+              } catch (err: any) {
+                console.error('❌ Direct HTTP request failed:', err);
+                reject(err);
+              }
+            });
+            
+            const httpTimeoutPromise = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error('Direct HTTP request timeout after 10 seconds')), 10000);
+            });
+            
+            const httpResult = await Promise.race([directHttpPromise, httpTimeoutPromise]) as any;
+            const { data: httpData, error: httpError } = httpResult;
+            
+            if (httpError) {
+              console.error('❌ Direct HTTP request also failed:', httpError);
+              throw new Error(`Network error: ${httpError.message}`);
+            }
+            
+            if (httpData && httpData.length > 0) {
+              family = httpData[0];
+              console.log('✅ Direct HTTP request successful, found family:', family.name);
+            } else {
+              console.log('❌ Direct HTTP request found no family');
+              family = null;
+            }
+            
+          } catch (httpException: any) {
+            console.error('❌ Direct HTTP request exception:', httpException);
+            
+            // If direct HTTP also fails, try with fresh client as last resort
+            try {
+              console.log('🔄 Direct HTTP failed, trying fresh client as last resort...');
+              
+              const freshClient = createFreshSupabaseClient();
+              const { data: freshData, error: freshError } = await freshClient
+                .from('families')
+                .select('*')
+                .eq('code', codeValidation.sanitized)
+                .limit(1);
+              
+              if (freshError) {
+                throw new Error(`Database error: ${freshError.message}`);
+              }
+              
+              if (freshData && freshData.length > 0) {
+                family = freshData[0];
+                console.log('✅ Fresh client fallback successful, found family:', family.name);
+              } else {
+                console.log('❌ Fresh client fallback found no family');
+                family = null;
+              }
+              
+            } catch (freshException: any) {
+              console.error('❌ Fresh client fallback also failed:', freshException);
+              throw new Error('Unable to connect to the server. This might be a temporary issue. Please check your internet connection and try again in a few moments.');
+            }
+          }
+        } else {
+          // For other errors, provide a helpful error message
+          if (queryException.message?.includes('fetch') || queryException.message?.includes('network')) {
+            console.log('🔄 Network issue detected, providing fallback message...');
+            throw new Error('Network error: Unable to connect to the server. Please check your internet connection and try again.');
+          } else {
+            throw new Error(`Database error: ${queryException.message}`);
+          }
+        }
       }
+
       
       if (!family) {
         console.error('❌ Family not found with code:', codeValidation.sanitized);
@@ -526,13 +698,41 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
 
       console.log('✅ Found family:', family.name);
 
-      // Check if user is already in this family
-      const { data: existingMember } = await supabase
-        .from('family_members')
-        .select('*')
-        .eq('family_id', family.id)
-        .eq('user_id', user.id)
-        .maybeSingle();
+      // Check if user is already in this family with retry
+      let existingMember = null;
+      let membershipRetryCount = 0;
+      const maxMembershipRetries = 2;
+      
+      while (membershipRetryCount < maxMembershipRetries) {
+        try {
+          console.log(`🔍 Checking existing membership, attempt ${membershipRetryCount + 1}/${maxMembershipRetries}`);
+          
+          const { data, error } = await supabase
+            .from('family_members')
+            .select('*')
+            .eq('family_id', family.id)
+            .eq('user_id', currentUser.id)
+            .maybeSingle();
+          
+          existingMember = data;
+          
+          if (error && (error.message?.includes('fetch') || error.message?.includes('network'))) {
+            console.log(`⚠️ Network error checking membership, retrying...`);
+            membershipRetryCount++;
+            if (membershipRetryCount < maxMembershipRetries) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          } else {
+            break; // Success or non-network error
+          }
+        } catch (exception: any) {
+          console.error(`❌ Exception checking membership:`, exception);
+          membershipRetryCount++;
+          if (membershipRetryCount < maxMembershipRetries) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
+      }
 
       console.log('🔍 Existing membership check:', !!existingMember);
 
@@ -541,12 +741,40 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
         throw new Error(t('family.join.errors.alreadyMember'));
       }
 
-      // Check if user is already in another family
-      const { data: currentMembership } = await supabase
-        .from('family_members')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      // Check if user is already in another family with retry
+      let currentMembership = null;
+      let otherMembershipRetryCount = 0;
+      const maxOtherMembershipRetries = 2;
+      
+      while (otherMembershipRetryCount < maxOtherMembershipRetries) {
+        try {
+          console.log(`🔍 Checking other memberships, attempt ${otherMembershipRetryCount + 1}/${maxOtherMembershipRetries}`);
+          
+          const { data, error } = await supabase
+            .from('family_members')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .maybeSingle();
+          
+          currentMembership = data;
+          
+          if (error && (error.message?.includes('fetch') || error.message?.includes('network'))) {
+            console.log(`⚠️ Network error checking other memberships, retrying...`);
+            otherMembershipRetryCount++;
+            if (otherMembershipRetryCount < maxOtherMembershipRetries) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          } else {
+            break; // Success or non-network error
+          }
+        } catch (exception: any) {
+          console.error(`❌ Exception checking other memberships:`, exception);
+          otherMembershipRetryCount++;
+          if (otherMembershipRetryCount < maxOtherMembershipRetries) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
+      }
 
       console.log('🔍 Current membership check:', !!currentMembership);
 
@@ -557,21 +785,53 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
 
       console.log('✅ All checks passed, adding user to family...');
 
-      // Add user to family
-      const { error: memberError } = await supabase
-        .from('family_members')
-        .insert([
-          {
-            family_id: family.id,
-            user_id: user.id,
-            role: 'member'
+      // Add user to family with retry
+      let memberError = null;
+      let insertRetryCount = 0;
+      const maxInsertRetries = 2;
+      
+      while (insertRetryCount < maxInsertRetries) {
+        try {
+          console.log(`🔍 Adding user to family, attempt ${insertRetryCount + 1}/${maxInsertRetries}`);
+          
+          const { error } = await supabase
+            .from('family_members')
+            .insert([
+              {
+                family_id: family.id,
+                user_id: currentUser.id,
+                role: 'member'
+              }
+            ]);
+          
+          memberError = error;
+          
+          console.log('📝 Member insertion result:', { success: !memberError, attempt: insertRetryCount + 1 });
+          
+          if (!memberError || (memberError && !memberError.message?.includes('fetch') && !memberError.message?.includes('network'))) {
+            break; // Success or non-network error
           }
-        ]);
-
-      console.log('📝 Member insertion result:', { success: !memberError });
+          
+          // If it's a network error, retry
+          if (memberError && (memberError.message?.includes('fetch') || memberError.message?.includes('network'))) {
+            console.log(`⚠️ Network error during insert, retrying...`);
+            insertRetryCount++;
+            if (insertRetryCount < maxInsertRetries) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          }
+        } catch (insertException: any) {
+          console.error(`❌ Insert exception:`, insertException);
+          memberError = insertException;
+          insertRetryCount++;
+          if (insertRetryCount < maxInsertRetries) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+      }
 
       if (memberError) {
-        console.error('❌ Error adding user to family:', memberError);
+        console.error('❌ Error adding user to family after all retries:', memberError);
         if (memberError.message?.includes('fetch') || memberError.message?.includes('network')) {
           throw new Error('Network error: Unable to connect to the server. Please check your internet connection and try again.');
         }
@@ -599,6 +859,10 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
       }
       throw error;
     }
+    };
+    
+    // Race the operation against the timeout
+    return Promise.race([joinFamilyOperation(), overallTimeout]) as Promise<Family>;
   };
 
   const leaveFamily = async (): Promise<void> => {

@@ -44,6 +44,7 @@ export default function SignUp() {
   const [isVerifyingSignup, setIsVerifyingSignup] = useState(false);
   const [shouldShowWelcomeModal, setShouldShowWelcomeModal] = useState(false);
   const [welcomeModalDismissed, setWelcomeModalDismissed] = useState(false);
+  const [navigatingToProfile, setNavigatingToProfile] = useState(false);
   
   // Use ref to track verification state to prevent race conditions
   const isVerifyingRef = useRef(false);
@@ -164,12 +165,13 @@ export default function SignUp() {
     const checkAuth = async () => {
       if (session && user) {
         // Check if we're in the middle of signup verification using refs for immediate access
-        if (isVerifyingRef.current || showWelcomeModalRef.current || shouldShowWelcomeModal || !welcomeModalDismissed) {
+        if (isVerifyingRef.current || showWelcomeModalRef.current || shouldShowWelcomeModal || !welcomeModalDismissed || navigatingToProfile) {
           console.log('🔄 Signup verification in progress or welcome modal showing, not redirecting yet');
           console.log('🔍 DEBUG: isVerifyingRef.current:', isVerifyingRef.current);
           console.log('🔍 DEBUG: showWelcomeModalRef.current:', showWelcomeModalRef.current);
           console.log('🔍 DEBUG: shouldShowWelcomeModal:', shouldShowWelcomeModal);
           console.log('🔍 DEBUG: welcomeModalDismissed:', welcomeModalDismissed);
+          console.log('🔍 DEBUG: navigatingToProfile:', navigatingToProfile);
           console.log('🔍 DEBUG: isVerifyingSignup state:', isVerifyingSignup);
           console.log('🔍 DEBUG: showWelcomeModal state:', showWelcomeModal);
           return; // Don't redirect during verification or when welcome modal is shown
@@ -182,7 +184,7 @@ export default function SignUp() {
     };
     
     checkAuth();
-  }, [session, user, isVerifyingSignup, showWelcomeModal, shouldShowWelcomeModal, welcomeModalDismissed]);
+  }, [session, user, isVerifyingSignup, showWelcomeModal, shouldShowWelcomeModal, welcomeModalDismissed, navigatingToProfile]);
 
   // Note: Using React state only for verification flag management
   // No AsyncStorage flags are used anymore
@@ -222,6 +224,10 @@ export default function SignUp() {
     console.log('🎯 Set Up Profile button clicked!');
     hideWelcomeModal();
     
+    // Set flag to prevent auth redirect during profile navigation
+    setNavigatingToProfile(true);
+    console.log('🔒 Setting navigatingToProfile flag to prevent auth redirect');
+    
     // Clear the verification flag now that user has made a choice
     setIsVerifyingSignup(false);
     isVerifyingRef.current = false;
@@ -230,6 +236,7 @@ export default function SignUp() {
     console.log('🔄 Navigating to /myProfile/edit...');
     
     // Navigate to profile edit page (replace to exit onboarding stack)
+    // router.replace('/myProfile/edit');
     window.location = '/myProfile/edit';
     console.log('✅ Navigation call completed');
   };

@@ -21,33 +21,43 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables. Please check the console for setup instructions.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    storage: Platform.OS === 'web' ? undefined : AsyncStorage,
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: Platform.OS === 'web',
-    flowType: 'pkce',
-    debug: __DEV__,
-  },
-  global: {
-    headers: {
-      'X-Client-Info': 'famora-mobile',
-      'apikey': supabaseAnonKey,
+const createSupabaseClient = () => {
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      storage: Platform.OS === 'web' ? undefined : AsyncStorage,
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: Platform.OS === 'web',
+      flowType: 'pkce',
+      debug: __DEV__,
     },
-  },
-  db: {
-    schema: 'public',
-  },
-  // Handle web/native differences
-  ...(Platform.OS === 'web' ? {} : {
-    realtime: {
-      params: {
-        eventsPerSecond: 2,
+    global: {
+      headers: {
+        'X-Client-Info': 'famora-mobile',
+        'apikey': supabaseAnonKey,
       },
     },
-  }),
-});
+    db: {
+      schema: 'public',
+    },
+    // Handle web/native differences
+    ...(Platform.OS === 'web' ? {} : {
+      realtime: {
+        params: {
+          eventsPerSecond: 2,
+        },
+      },
+    }),
+  });
+};
+
+export const supabase = createSupabaseClient();
+
+// Function to create a fresh client instance
+export const createFreshSupabaseClient = () => {
+  console.log('🔄 Creating fresh Supabase client instance...');
+  return createSupabaseClient();
+};
 
 // Debug logging for Supabase client
 if (__DEV__) {
