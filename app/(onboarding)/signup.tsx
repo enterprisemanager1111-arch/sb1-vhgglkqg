@@ -11,7 +11,7 @@ import {
   Image as RNImage,
   Alert,
 } from 'react-native';
-// import { router } from 'expo-router';
+import { router } from 'expo-router';
 import { Mail, Phone, Building, Lock, Eye, EyeOff, Check } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLoading } from '@/contexts/LoadingContext';
@@ -43,6 +43,7 @@ export default function SignUp() {
   const [verificationLoading, setVerificationLoading] = useState(false);
   const [isVerifyingSignup, setIsVerifyingSignup] = useState(false);
   const [shouldShowWelcomeModal, setShouldShowWelcomeModal] = useState(false);
+  const [welcomeModalDismissed, setWelcomeModalDismissed] = useState(false);
   
   // Use ref to track verification state to prevent race conditions
   const isVerifyingRef = useRef(false);
@@ -163,32 +164,25 @@ export default function SignUp() {
     const checkAuth = async () => {
       if (session && user) {
         // Check if we're in the middle of signup verification using refs for immediate access
-        if (isVerifyingRef.current || showWelcomeModalRef.current || shouldShowWelcomeModal) {
+        if (isVerifyingRef.current || showWelcomeModalRef.current || shouldShowWelcomeModal || !welcomeModalDismissed) {
           console.log('🔄 Signup verification in progress or welcome modal showing, not redirecting yet');
           console.log('🔍 DEBUG: isVerifyingRef.current:', isVerifyingRef.current);
           console.log('🔍 DEBUG: showWelcomeModalRef.current:', showWelcomeModalRef.current);
           console.log('🔍 DEBUG: shouldShowWelcomeModal:', shouldShowWelcomeModal);
+          console.log('🔍 DEBUG: welcomeModalDismissed:', welcomeModalDismissed);
           console.log('🔍 DEBUG: isVerifyingSignup state:', isVerifyingSignup);
           console.log('🔍 DEBUG: showWelcomeModal state:', showWelcomeModal);
           return; // Don't redirect during verification or when welcome modal is shown
         }
         
-        // Add a small delay to ensure any pending state updates complete
-        console.log('User is already authenticated, waiting before redirect...');
-        setTimeout(() => {
-          // Double-check flags after delay
-          if (!isVerifyingRef.current && !showWelcomeModalRef.current && !shouldShowWelcomeModal) {
-            console.log('Redirecting to main app after delay');
-            router.replace('/(tabs)');
-          } else {
-            console.log('Flags still active after delay, not redirecting');
-          }
-        }, 200);
+        // Only redirect if we're not in any signup flow
+        console.log('User is already authenticated and not in signup flow, redirecting to main app');
+        router.replace('/(tabs)');
       }
     };
     
     checkAuth();
-  }, [session, user, isVerifyingSignup, showWelcomeModal, shouldShowWelcomeModal]);
+  }, [session, user, isVerifyingSignup, showWelcomeModal, shouldShowWelcomeModal, welcomeModalDismissed]);
 
   // Note: Using React state only for verification flag management
   // No AsyncStorage flags are used anymore
@@ -220,6 +214,7 @@ export default function SignUp() {
     setShowWelcomeModal(false);
     showWelcomeModalRef.current = false;
     setShouldShowWelcomeModal(false);
+    setWelcomeModalDismissed(true);
   };
 
 
@@ -234,12 +229,9 @@ export default function SignUp() {
     
     console.log('🔄 Navigating to /myProfile/edit...');
     
-    // Add a small delay to ensure the navigation completes before any other logic runs
-    setTimeout(() => {
-      // Navigate to profile edit page (replace to exit onboarding stack)
-      window.location = '/myProfile/edit';
-      console.log('✅ Navigation call completed');
-    }, 100);
+    // Navigate to profile edit page (replace to exit onboarding stack)
+    window.location = '/myProfile/edit';
+    console.log('✅ Navigation call completed');
   };
 
   const handleExploreApp = async () => {
@@ -392,6 +384,7 @@ export default function SignUp() {
       showWelcomeModalRef.current = true;
       setShowWelcomeModal(true);
       setShouldShowWelcomeModal(true);
+      setWelcomeModalDismissed(false);
       
       console.log('🔐 Verifying OTP code:', code);
       
@@ -437,9 +430,11 @@ export default function SignUp() {
         showWelcomeModalRef.current = true;
         setShowWelcomeModal(true);
         setShouldShowWelcomeModal(true);
+        setWelcomeModalDismissed(false);
         console.log('🔍 showWelcomeModal state after force update:', showWelcomeModal);
         console.log('🔍 showWelcomeModalRef.current after force update:', showWelcomeModalRef.current);
         console.log('🔍 shouldShowWelcomeModal after force update:', shouldShowWelcomeModal);
+        console.log('🔍 welcomeModalDismissed after force update:', welcomeModalDismissed);
       }, 100);
       
       // Now update the user's password since OTP doesn't set a password (async to not block UI)
@@ -970,9 +965,10 @@ export default function SignUp() {
       )}
 
       {/* Welcome Modal */}
-      {(showWelcomeModal || shouldShowWelcomeModal) && (() => {
+      {(showWelcomeModal || shouldShowWelcomeModal) && !welcomeModalDismissed && (() => {
         console.log('🎭 DEBUG: Welcome modal is rendering! showWelcomeModal =', showWelcomeModal);
         console.log('🎭 DEBUG: shouldShowWelcomeModal =', shouldShowWelcomeModal);
+        console.log('🎭 DEBUG: welcomeModalDismissed =', welcomeModalDismissed);
         console.log('🎭 DEBUG: showWelcomeModalRef.current =', showWelcomeModalRef.current);
         return (
           <View style={styles.welcomeModalOverlay}>
