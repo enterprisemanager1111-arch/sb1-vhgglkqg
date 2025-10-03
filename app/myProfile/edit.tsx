@@ -728,7 +728,8 @@ export default function EditProfile() {
   // Success modal handlers
   const handleContinueToProfile = () => {
     hideSuccessModal();
-    router.replace('/(tabs)');
+    // router.replace('/(tabs)');
+    window.location = '/newFamily';
   };
 
   const handleExploreApp = () => {
@@ -1901,7 +1902,7 @@ export default function EditProfile() {
                 style={[styles.successPrimaryButton]}
                 onPress={handleContinueToProfile}
               >
-                <Text style={styles.successPrimaryButtonText}>Visit My Profile</Text>
+                <Text style={styles.successPrimaryButtonText}>Go to the Family</Text>
               </Pressable>
             </View>
           </View>

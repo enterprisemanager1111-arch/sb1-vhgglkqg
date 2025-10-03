@@ -183,7 +183,10 @@ export default function SignUp() {
       }
     };
     
-    checkAuth();
+    // Add a small delay to prevent race conditions
+    const timeoutId = setTimeout(checkAuth, 100);
+    
+    return () => clearTimeout(timeoutId);
   }, [session, user, isVerifyingSignup, showWelcomeModal, shouldShowWelcomeModal, welcomeModalDismissed, navigatingToProfile]);
 
   // Note: Using React state only for verification flag management
@@ -392,6 +395,15 @@ export default function SignUp() {
       setShowWelcomeModal(true);
       setShouldShowWelcomeModal(true);
       setWelcomeModalDismissed(false);
+      
+      // Force a state update to ensure flags are set
+      setTimeout(() => {
+        showWelcomeModalRef.current = true;
+        setShowWelcomeModal(true);
+        setShouldShowWelcomeModal(true);
+        setWelcomeModalDismissed(false);
+        console.log('🔒 Welcome modal flags reinforced');
+      }, 50);
       
       console.log('🔐 Verifying OTP code:', code);
       
