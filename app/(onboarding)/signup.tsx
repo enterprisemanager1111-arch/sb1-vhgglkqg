@@ -252,8 +252,8 @@ export default function SignUp() {
     console.log('🔄 Navigating to /myProfile/edit...');
     
     // Navigate to profile edit page (replace to exit onboarding stack)
-    // router.replace('/myProfile/edit');
-    window.location = '/myProfile/edit';
+    router.replace('/myProfile/edit');
+    // window.location = '/myProfile/edit';
     console.log('✅ Navigation call completed');
   };
 
