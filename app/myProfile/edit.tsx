@@ -112,9 +112,27 @@ export default function EditProfile() {
     }
 
     // Ensure user and session are available before proceeding
+    // Add retry mechanism for when user/session are not immediately available
     if (!user || !session) {
       console.log('🔄 User or session not available, waiting...');
-      return;
+      
+      // Add a retry mechanism with timeout
+      const retryTimeout = setTimeout(() => {
+        console.log('🔄 Retry timeout reached, checking auth state again...');
+        console.log('🔄 User after timeout:', !!user);
+        console.log('🔄 Session after timeout:', !!session);
+        console.log('🔄 Auth loading after timeout:', authLoading);
+        
+        // If still no user/session after timeout, but auth is not loading, proceed anyway
+        // This handles cases where the user might be navigating from a different context
+        if (!authLoading && !user && !session) {
+          console.log('⚠️ No user/session available after timeout, but auth not loading - proceeding with empty state');
+          setIsLoadingUserData(false);
+          setIsProfileDataLoaded(true);
+        }
+      }, 2000); // 2 second retry timeout
+      
+      return () => clearTimeout(retryTimeout);
     }
 
     if (profile) {
@@ -160,11 +178,64 @@ export default function EditProfile() {
       if (isLoadingUserData) {
         console.log('⚠️ Loading timeout reached, forcing loading state to false');
         setIsLoadingUserData(false);
+        setIsProfileDataLoaded(true);
       }
     }, 5000); // 5 second timeout
 
     return () => clearTimeout(timeoutId);
   }, [isLoadingUserData]);
+
+  // Additional initialization effect that runs when auth state changes
+  useEffect(() => {
+    const initializeProfileData = async () => {
+      console.log('🔄 Additional initialization effect triggered');
+      console.log('🔄 Auth loading:', authLoading);
+      console.log('🔄 User available:', !!user);
+      console.log('🔄 Session available:', !!session);
+      console.log('🔄 Profile available:', !!profile);
+      console.log('🔄 isLoadingUserData:', isLoadingUserData);
+      console.log('🔄 isProfileDataLoaded:', isProfileDataLoaded);
+
+      // If auth is not loading and we have user/session, but profile data is not loaded yet
+      if (!authLoading && user && session && !isProfileDataLoaded) {
+        console.log('🔄 Auth ready but profile data not loaded - triggering initialization');
+        
+        // Wait a bit for the main useEffect to handle it
+        const initTimeout = setTimeout(() => {
+          if (!isProfileDataLoaded) {
+            console.log('🔄 Main useEffect did not load profile data - forcing initialization');
+            setIsLoadingUserData(false);
+            setIsProfileDataLoaded(true);
+          }
+        }, 1000);
+        
+        return () => clearTimeout(initTimeout);
+      }
+      
+      // Special handling for sign-up flow: if we have user/session but no profile yet
+      if (!authLoading && user && session && profile === null && !isProfileDataLoaded) {
+        console.log('🔄 Sign-up flow detected: user/session available but no profile yet');
+        console.log('🔄 This is normal for new users - proceeding with empty profile state');
+        
+        // For new users from sign-up, it's normal to have no profile yet
+        // Set empty values and mark as loaded
+        setFirstName('');
+        setLastName('');
+        setDateOfBirth('');
+        setPosition('');
+        setAvatarUri(null);
+        setAvatarUrl(null);
+        
+        setIsLoadingUserData(false);
+        setIsProfileDataLoaded(true);
+        
+        // Load interests from localStorage
+        loadInterestsFromStorage();
+      }
+    };
+
+    initializeProfileData();
+  }, [authLoading, user, session, profile, isProfileDataLoaded]);
 
   // Debug useEffect to monitor loading states
   useEffect(() => {
@@ -174,6 +245,47 @@ export default function EditProfile() {
   useEffect(() => {
     console.log('🔍 isProfileDataLoaded changed to:', isProfileDataLoaded);
   }, [isProfileDataLoaded]);
+
+  // Special initialization effect for sign-up flow
+  useEffect(() => {
+    const handleSignUpFlow = async () => {
+      console.log('🔄 Sign-up flow initialization effect triggered');
+      console.log('🔄 Auth loading:', authLoading);
+      console.log('🔄 User available:', !!user);
+      console.log('🔄 Session available:', !!session);
+      console.log('🔄 Profile available:', !!profile);
+      
+      // If we have user and session but no profile (typical sign-up flow)
+      if (!authLoading && user && session && profile === null) {
+        console.log('🔄 Sign-up flow detected: user and session available, no profile yet');
+        
+        // Wait a bit to see if profile loads
+        const profileWaitTimeout = setTimeout(() => {
+          if (profile === null && !isProfileDataLoaded) {
+            console.log('🔄 Profile still null after wait, proceeding with empty state for sign-up flow');
+            
+            // Set empty values for new user
+            setFirstName('');
+            setLastName('');
+            setDateOfBirth('');
+            setPosition('');
+            setAvatarUri(null);
+            setAvatarUrl(null);
+            
+            setIsLoadingUserData(false);
+            setIsProfileDataLoaded(true);
+            
+            // Load interests from localStorage
+            loadInterestsFromStorage();
+          }
+        }, 2000); // Wait 2 seconds for profile to load
+        
+        return () => clearTimeout(profileWaitTimeout);
+      }
+    };
+
+    handleSignUpFlow();
+  }, [authLoading, user, session, profile, isProfileDataLoaded]);
 
   // Monitor avatar URI changes
   useEffect(() => {
@@ -728,18 +840,18 @@ export default function EditProfile() {
   // Success modal handlers
   const handleContinueToProfile = () => {
     hideSuccessModal();
-    // router.replace('/(tabs)');
-    window.location = '/newFamily';
+    // Redirect to home page where proper family navigation logic will handle the routing
+    router.replace('/(tabs)');
   };
 
   const handleExploreApp = () => {
     hideSuccessModal();
   };
 
-  // Upload avatar to Supabase Storage
+  // Upload avatar to Supabase Storage using direct HTTP method (more reliable)
   const uploadAvatarToSupabase = async (avatarUri: string): Promise<string> => {
     try {
-      console.log('📤 Starting avatar upload to Supabase Storage...');
+      console.log('📤 Starting avatar upload to Supabase Storage using direct HTTP method...');
 
       if (!user) {
         throw new Error('User not authenticated');
@@ -764,86 +876,9 @@ export default function EditProfile() {
         }
       }
 
-      // Convert blob URL to file
-      console.log('📤 Fetching avatar from URI...');
-      const response = await fetch(avatarUri);
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch avatar: ${response.status} ${response.statusText}`);
-      }
-
-      const blob = await response.blob();
-      console.log('📤 Blob created, size:', blob.size, 'bytes');
-
-      if (blob.size === 0) {
-        throw new Error('Avatar file is empty');
-      }
-
-      // Create a file from the blob
-      const file = new File([blob], 'avatar.png', { type: 'image/png' });
-
-      // Generate unique filename with user ID in path
-      const timestamp = Date.now();
-      const filename = `${user.id}/avatar-${timestamp}.png`;
-
-      // Try uploading to different buckets in order of preference
-      const buckets = ['avatar'];
-
-      // for (const "avatar" of buckets) {
-      try {
-        console.log(`📤 Attempting upload to bucket: ${"avatar"}`);
-        console.log('📤 "avatar":', "avatar");
-        console.log('📤 filename:', filename);
-        console.log('📤 file size:', file.size, 'bytes');
-        console.log('📤 user ID:', user.id);
-        console.log('📤 session available:', !!currentSession);
-        console.log('📤 access token length:', currentSession?.access_token?.length || 0);
-
-        // Add timeout to prevent hanging
-        const { data, error } = await supabase.storage
-          .from("avatar")
-          .upload(filename, file);
-
-        // const timeoutPromise = new Promise((_, reject) =>
-        //   setTimeout(() => reject(new Error('Upload timeout after 30 seconds')), 30000)
-        // );
-
-        // const { data, error } = await Promise.race([uploadPromise, timeoutPromise]) as any;
-
-        console.log('📤 Upload response received');
-        console.log('📤 data:', data);
-        console.log('📤 error:', error);
-
-        if (error) {
-          console.log(`❌ Upload to ${"avatar"} failed:`, error.message);
-          // continue; // Try next bucket
-        }
-
-        console.log(`✅ Upload successful to bucket: ${"avatar"}`);
-
-        // Get public URL
-        const { data: urlData } = supabase.storage
-          .from("avatar")
-          .getPublicUrl(filename);
-
-        if (!urlData?.publicUrl) {
-          console.log(`❌ Failed to get public URL from ${"avatar"}`);
-          // continue; // Try next bucket
-        }
-
-        console.log('✅ Avatar public URL:', urlData.publicUrl);
-        return urlData.publicUrl;
-
-      } catch (bucketError) {
-        console.log(`❌ Bucket ${"avatar"} error:`, bucketError);
-        console.log(`❌ Error type:`, typeof bucketError);
-        console.log(`❌ Error message:`, bucketError);
-        // continue; // Try next bucket
-      }
-      // }
-
-      // If all buckets fail
-      throw new Error('Failed to upload avatar to any available storage bucket');
+      // Use direct HTTP upload method (more reliable than Supabase client)
+      console.log('📤 Using direct HTTP upload method...');
+      return await uploadAvatarDirectHTTP(avatarUri, user.id, currentSession);
 
     } catch (error: any) {
       console.error('❌ Avatar upload failed:', error);
@@ -859,6 +894,189 @@ export default function EditProfile() {
       }
 
       throw new Error(`Avatar upload failed: ${error.message}`);
+    }
+  };
+
+  // Primary direct HTTP upload function (more reliable than Supabase client)
+  const uploadAvatarDirectHTTP = async (avatarUri: string, userId: string, currentSession: any): Promise<string> => {
+    try {
+      console.log('🔄 Starting direct HTTP upload...');
+      console.log('🔄 User ID:', userId);
+      console.log('🔄 Session available:', !!currentSession);
+      console.log('🔄 Access token length:', currentSession?.access_token?.length || 0);
+      
+      // Convert blob URL to file with timeout
+      console.log('🔄 Fetching avatar from URI...');
+      const fetchTimeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Fetch timeout after 10 seconds')), 10000)
+      );
+      
+      const fetchPromise = fetch(avatarUri);
+      const response = await Promise.race([fetchPromise, fetchTimeoutPromise]) as Response;
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch avatar: ${response.status} ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      console.log('🔄 Blob created, size:', blob.size, 'bytes');
+
+      if (blob.size === 0) {
+        throw new Error('Avatar file is empty');
+      }
+
+      const file = new File([blob], 'avatar.png', { type: 'image/png' });
+
+      // Generate filename
+      const timestamp = Date.now();
+      const filename = `${userId}/avatar-${timestamp}.png`;
+      console.log('🔄 Generated filename:', filename);
+      
+      // Direct HTTP upload to Supabase Storage API with timeout
+      const uploadUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/storage/v1/object/avatar/${filename}`;
+      console.log('🔄 Upload URL:', uploadUrl);
+      
+      const uploadTimeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Upload timeout after 30 seconds')), 30000)
+      );
+      
+      const uploadPromise = fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${currentSession.access_token}`,
+        },
+        body: file, // Use file directly instead of FormData
+      });
+      
+      const uploadResponse = await Promise.race([uploadPromise, uploadTimeoutPromise]) as Response;
+      
+      console.log('🔄 Upload response status:', uploadResponse.status);
+      console.log('🔄 Upload response ok:', uploadResponse.ok);
+      
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        console.error('🔄 Upload error response:', errorText);
+        throw new Error(`HTTP upload failed: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorText}`);
+      }
+      
+      // Get public URL
+      const publicUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatar/${filename}`;
+      console.log('✅ Direct HTTP upload successful:', publicUrl);
+      return publicUrl;
+      
+    } catch (error) {
+      console.error('❌ Direct HTTP upload failed:', error);
+      throw error;
+    }
+  };
+
+  // Direct HTTP update function (bypasses Supabase client issues)
+  const updateProfileDirectHTTP = async (updateData: any, userId: string, currentSession: any): Promise<any> => {
+    try {
+      console.log('🔄 Starting direct HTTP profile update...');
+      console.log('🔄 User ID:', userId);
+      console.log('🔄 Update data:', updateData);
+      console.log('🔄 Session available:', !!currentSession);
+      console.log('🔄 Access token length:', currentSession?.access_token?.length || 0);
+      
+      // First, check if profile exists using direct HTTP
+      console.log('🔄 Checking if profile exists...');
+      const checkUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=id`;
+      
+      const checkTimeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Profile check timeout after 10 seconds')), 10000)
+      );
+      
+      const checkPromise = fetch(checkUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${currentSession.access_token}`,
+          'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const checkResponse = await Promise.race([checkPromise, checkTimeoutPromise]) as Response;
+      
+      if (!checkResponse.ok) {
+        throw new Error(`Profile check failed: ${checkResponse.status} ${checkResponse.statusText}`);
+      }
+      
+      const existingProfiles = await checkResponse.json();
+      console.log('🔄 Existing profiles:', existingProfiles);
+      
+      let result;
+      if (existingProfiles && existingProfiles.length > 0) {
+        // Profile exists, update it
+        console.log('🔄 Profile exists, updating via HTTP...');
+        const updateUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`;
+        
+        const updateTimeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Profile update timeout after 15 seconds')), 15000)
+        );
+        
+        const updatePromise = fetch(updateUrl, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${currentSession.access_token}`,
+            'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation',
+          },
+          body: JSON.stringify(updateData),
+        });
+        
+        const updateResponse = await Promise.race([updatePromise, updateTimeoutPromise]) as Response;
+        
+        if (!updateResponse.ok) {
+          const errorText = await updateResponse.text();
+          throw new Error(`Profile update failed: ${updateResponse.status} ${updateResponse.statusText} - ${errorText}`);
+        }
+        
+        result = await updateResponse.json();
+        console.log('✅ Profile updated via HTTP:', result);
+      } else {
+        // Profile doesn't exist, create it
+        console.log('🔄 Profile doesn\'t exist, creating via HTTP...');
+        const createUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/profiles`;
+        
+        const createData = {
+          id: userId,
+          ...updateData,
+          created_at: new Date().toISOString(),
+        };
+        
+        const createTimeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Profile create timeout after 15 seconds')), 15000)
+        );
+        
+        const createPromise = fetch(createUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${currentSession.access_token}`,
+            'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation',
+          },
+          body: JSON.stringify([createData]),
+        });
+        
+        const createResponse = await Promise.race([createPromise, createTimeoutPromise]) as Response;
+        
+        if (!createResponse.ok) {
+          const errorText = await createResponse.text();
+          throw new Error(`Profile create failed: ${createResponse.status} ${createResponse.statusText} - ${errorText}`);
+        }
+        
+        result = await createResponse.json();
+        console.log('✅ Profile created via HTTP:', result);
+      }
+      
+      return result;
+      
+    } catch (error) {
+      console.error('❌ Direct HTTP profile update failed:', error);
+      throw error;
     }
   };
 
@@ -920,10 +1138,41 @@ export default function EditProfile() {
     try {
       // Critical validation checks for navigation from signup
       if (!user || !session) {
+        console.log('🔄 User or session not available, attempting to get fresh session...');
+        
+        // Try to get fresh session data
+        try {
+          const { data: { session: freshSession }, error: sessionError } = await supabase.auth.getSession();
+          if (sessionError) {
+            throw new Error(`Failed to get session: ${sessionError.message}`);
+          }
+          if (!freshSession?.user) {
         throw new Error('Authentication required. Please sign in again.');
+          }
+          console.log('✅ Fresh session obtained successfully');
+        } catch (sessionError) {
+          throw new Error(`Authentication required. Please sign in again. Error: ${sessionError.message}`);
+        }
+      }
+      
+      // Additional check for sign-up flow: ensure session is fully established
+      if (session && !session.access_token) {
+        console.log('🔄 Session exists but no access token, attempting to refresh...');
+        try {
+          const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+          if (refreshError) {
+            throw new Error(`Session refresh failed: ${refreshError.message}`);
+          }
+          if (!refreshedSession?.access_token) {
+            throw new Error('No valid session found even after refresh - please sign in again');
+          }
+          console.log('✅ Session refreshed successfully for sign-up flow');
+        } catch (refreshError) {
+          throw new Error(`Session refresh failed: ${refreshError.message}`);
+        }
       }
 
-      if (!session.access_token) {
+      if (!session?.access_token) {
         console.log('🔄 No valid session found, attempting to refresh...');
         try {
           const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
@@ -1004,17 +1253,24 @@ export default function EditProfile() {
             throw new Error('uploadAvatarToSupabase function is not available');
           }
 
-          // Try upload with retry mechanism
+          // Try upload with simplified retry mechanism (direct HTTP method is now primary)
           let uploadedAvatarUrl;
           let uploadAttempts = 0;
-          const maxAttempts = 3;
+          const maxAttempts = 2; // Reduced attempts since direct HTTP is more reliable
 
           while (uploadAttempts < maxAttempts) {
             try {
               uploadAttempts++;
               console.log(`📤 Upload attempt ${uploadAttempts}/${maxAttempts}`);
 
-              uploadedAvatarUrl = await uploadAvatarToSupabase(avatarUri);
+              // Add timeout for the entire upload process
+              const uploadTimeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Upload process timeout after 60 seconds')), 60000)
+              );
+
+              const uploadProcessPromise = uploadAvatarToSupabase(avatarUri);
+              
+              uploadedAvatarUrl = await Promise.race([uploadProcessPromise, uploadTimeoutPromise]) as string;
               console.log('📤 uploadAvatarToSupabase returned:', uploadedAvatarUrl);
 
               if (uploadedAvatarUrl && uploadedAvatarUrl.trim()) {
@@ -1025,13 +1281,22 @@ export default function EditProfile() {
               }
             } catch (attemptError: any) {
               console.error(`❌ Upload attempt ${uploadAttempts} failed:`, attemptError);
+              console.error(`❌ Error details:`, {
+                message: attemptError.message,
+                name: attemptError.name,
+                stack: attemptError.stack
+              });
 
               if (uploadAttempts >= maxAttempts) {
-                throw attemptError; // Re-throw the last error
+                console.error('❌ All upload attempts failed, proceeding without avatar');
+                uploadedAvatarUrl = '';
+                break;
               }
 
-              // Wait before retry
-              await new Promise(resolve => setTimeout(resolve, 1000 * uploadAttempts));
+              // Wait before retry with shorter delay
+              const retryDelay = 2000; // 2 second delay
+              console.log(`⏳ Waiting ${retryDelay}ms before retry...`);
+              await new Promise(resolve => setTimeout(resolve, retryDelay));
             }
           }
 
@@ -1144,15 +1409,23 @@ export default function EditProfile() {
         console.log('🚀 updateData being sent:', updateData);
         console.log('🚀 updateProfile function type:', typeof updateProfile);
         console.log('🚀 updateProfile function:', updateProfile);
+        console.log('🚀 User available:', !!user);
+        console.log('🚀 Session available:', !!session);
+        console.log('🚀 Session access token length:', session?.access_token?.length || 0);
 
         if (typeof updateProfile !== 'function') {
           throw new Error('updateProfile is not a function');
         }
 
         // Add a small delay to ensure session is fully established when navigating from signup
-        await new Promise(resolve => setTimeout(resolve, 500));
+        console.log('⏳ Waiting 200ms before calling updateProfile...');
+        await new Promise(resolve => setTimeout(resolve, 200));
 
-        const result = await updateProfile(updateData);
+        console.log('🚀 Using direct HTTP update as primary method...');
+        
+        // Use direct HTTP update as primary method (more reliable than AuthContext)
+        const result = await updateProfileDirectHTTP(updateData, user.id, session);
+        
         console.log('✅ Profile update successful!');
         console.log('✅ Profile update result:', result);
         console.log('✅ Data saved to profiles table:');
@@ -1172,6 +1445,33 @@ export default function EditProfile() {
         showSuccessModal();
       } catch (updateError: any) {
         console.error('❌ Profile update failed, trying fallback approach:', updateError);
+        console.error('❌ Update error details:', {
+          message: updateError.message,
+          name: updateError.name,
+          stack: updateError.stack,
+          code: updateError.code
+        });
+
+        // Try direct HTTP update as fallback (bypass Supabase client)
+        console.log('🔄 Trying direct HTTP update as fallback...');
+        try {
+          const directUpdateData = {
+            ...updateData,
+            updated_at: new Date().toISOString(),
+          };
+          
+          console.log('🔄 Direct update data:', directUpdateData);
+          
+          // Use direct HTTP to Supabase REST API
+          const result = await updateProfileDirectHTTP(directUpdateData, user.id, session);
+          
+          console.log('✅ Direct HTTP update successful!');
+          console.log('✅ Direct update result:', result);
+          showSuccessModal();
+          return;
+        } catch (directError) {
+          console.error('❌ Direct HTTP update also failed:', directError);
+        }
 
         // Try updating without avatar first (avatar might be too large)
         if (updateData.avatar_url) {
@@ -1282,7 +1582,7 @@ export default function EditProfile() {
       <View style={styles.header}>
         <Pressable
           style={styles.backButton}
-          onPress={() => router.replace('/(tabs)')}
+          onPress={() => router.replace('/profile')}
         >
           <ChevronLeft size={24} color="#17f196" />
         </Pressable>

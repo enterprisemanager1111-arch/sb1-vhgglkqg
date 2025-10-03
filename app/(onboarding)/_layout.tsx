@@ -160,6 +160,13 @@ export default function OnboardingLayout() {
               }
             }
             
+            // Check if user is on sign-in page after successful authentication
+            const isOnSigninPage = currentPath.includes('signin');
+            if (isOnSigninPage) {
+              console.log('🔐 User on sign-in page after authentication, allowing sign-in page to handle navigation');
+              return; // Allow sign-in page to handle its own navigation logic
+            }
+            
                 // Only allow authenticated users on these specific pages:
                 // - Password reset pages (they might need to reset password even when logged in)
                 // - New family pages (authenticated users without family ONLY)

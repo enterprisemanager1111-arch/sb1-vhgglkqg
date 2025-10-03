@@ -55,6 +55,37 @@ export default function SignIn() {
       setShouldCheckProfile(false);
     }
   }, [profile, shouldCheckProfile]);
+
+  // Add timeout mechanism for profile checking
+  useEffect(() => {
+    if (shouldCheckProfile) {
+      console.log('🔄 Profile check initiated, setting timeout...');
+      
+      const profileTimeout = setTimeout(() => {
+        if (shouldCheckProfile) {
+          console.log('⚠️ Profile check timeout reached, proceeding with default navigation');
+          console.log('⚠️ Profile value after timeout:', profile);
+          
+          // If profile is still undefined after timeout, assume no profile exists
+          if (profile === undefined) {
+            console.log('🔄 Profile still undefined after timeout, redirecting to profile edit page');
+            router.replace('/myProfile/edit');
+          } else if (!profile || !profile.name || profile.name.trim() === '') {
+            console.log('🔄 Profile exists but no name after timeout, redirecting to profile edit page');
+            router.replace('/myProfile/edit');
+          } else {
+            console.log('✅ Profile has name after timeout, redirecting to main app');
+            router.replace('/(tabs)');
+          }
+          
+          // Reset the flag
+          setShouldCheckProfile(false);
+        }
+      }, 5000); // 5 second timeout
+      
+      return () => clearTimeout(profileTimeout);
+    }
+  }, [shouldCheckProfile, profile]);
   
   // Individual button scales
 
@@ -125,6 +156,9 @@ export default function SignIn() {
       );
       
       // Set flag to check profile when it's loaded
+      console.log('🔐 Sign-in successful, setting shouldCheckProfile to true');
+      console.log('🔐 Current profile value:', profile);
+      console.log('🔐 Profile type:', typeof profile);
       setShouldCheckProfile(true);
       
     } catch (error: any) {

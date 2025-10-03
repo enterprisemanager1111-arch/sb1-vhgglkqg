@@ -460,6 +460,13 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
 
       // Reload family data to reflect changes
       await loadFamilyData();
+      
+      // Add a small delay to ensure context is fully updated
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      console.log('✅ Family creation completed, context should be updated');
+      console.log('✅ Current family after creation:', currentFamily);
+      console.log('✅ isInFamily after creation:', !!currentFamily);
 
       return { family, code };
     } catch (error: any) {

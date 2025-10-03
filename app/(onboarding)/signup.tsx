@@ -249,11 +249,32 @@ export default function SignUp() {
     isVerifyingRef.current = false;
     console.log('🔓 Verification flag cleared in handleSetUpProfile, allowing normal auth flow');
     
+    console.log('🔄 Preparing to navigate to /myProfile/edit...');
+    console.log('🔄 Current user:', user);
+    console.log('🔄 Current session:', session);
+    
+    // Add a small delay to ensure AuthContext has time to process the new session
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Double-check that we have a valid session before navigating
+    if (!session || !user) {
+      console.log('⚠️ No session or user available, attempting to get fresh session...');
+      try {
+        const { data: { session: freshSession }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('❌ Failed to get fresh session:', error);
+        } else if (freshSession?.user) {
+          console.log('✅ Fresh session obtained:', freshSession.user.id);
+        }
+      } catch (error) {
+        console.error('❌ Error getting fresh session:', error);
+      }
+    }
+    
     console.log('🔄 Navigating to /myProfile/edit...');
     
     // Navigate to profile edit page (replace to exit onboarding stack)
     router.replace('/myProfile/edit');
-    // window.location = '/myProfile/edit';
     console.log('✅ Navigation call completed');
   };
 

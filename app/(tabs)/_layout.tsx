@@ -12,7 +12,13 @@ import { useFamily } from '@/contexts/FamilyContext';
 function CustomTabBar({ state, descriptors, navigation }: any) {
   const insets = useSafeAreaInsets();
   const [showAddItemModal, setShowAddItemModal] = useState(false);
-  const { currentFamily, isInFamily } = useFamily();
+  const { currentFamily, isInFamily, loading: familyLoading, refreshFamily } = useFamily();
+  
+  // Refresh family data when component mounts to ensure context is up to date
+  useEffect(() => {
+    console.log('🔄 Tabs layout mounted, refreshing family data...');
+    refreshFamily();
+  }, [refreshFamily]);
   
   // Filter to only show the 4 main tabs
   const visibleRoutes = state.routes.filter((route: any) => 
@@ -65,6 +71,8 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                     console.log('🔍 isInFamily:', isInFamily);
                     console.log('🔍 currentFamily:', !!currentFamily);
                     console.log('🔍 currentFamily name:', currentFamily?.name);
+                    console.log('🔍 currentFamily id:', currentFamily?.id);
+                    console.log('🔍 familyLoading:', familyLoading);
                     
                     if (isInFamily && currentFamily) {
                       // User has a family, navigate to family page
@@ -73,6 +81,8 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                     } else {
                       // User doesn't have a family, navigate to newFamily page
                       console.log('❌ User has no family, navigating to newFamily page');
+                      console.log('❌ isInFamily value:', isInFamily);
+                      console.log('❌ currentFamily value:', currentFamily);
                       router.push('/(onboarding)/newFamily');
                     }
                   } else {
