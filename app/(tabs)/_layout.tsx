@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable, ActivityIndicator, Image } from 'rea
 import { Plus } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
-import AddItemModal from '@/components/AddItemModal';
+import FeaturesToCreateModal from '@/components/FeaturesToCreateModal';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFamily } from '@/contexts/FamilyContext';
@@ -11,7 +11,7 @@ import { useFamily } from '@/contexts/FamilyContext';
 // Custom Tab Bar Component with Dented Design
 function CustomTabBar({ state, descriptors, navigation }: any) {
   const insets = useSafeAreaInsets();
-  const [showAddItemModal, setShowAddItemModal] = useState(false);
+  const [showFeaturesModal, setShowFeaturesModal] = useState(false);
   const { currentFamily, isInFamily, loading: familyLoading, refreshFamily } = useFamily();
   
   // Refresh family data when component mounts to ensure context is up to date
@@ -19,6 +19,32 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
     console.log('🔄 Tabs layout mounted, refreshing family data...');
     refreshFamily();
   }, [refreshFamily]);
+
+  // Handle feature selection from the modal
+  const handleFeatureSelect = (feature: string) => {
+    console.log('🎯 Feature selected:', feature);
+    
+    switch (feature) {
+      case 'tasks':
+        // Navigate to tasks page or open task creation
+        router.push('/(tabs)/tasks');
+        break;
+      case 'calendar':
+        // Navigate to calendar page or open event creation
+        router.push('/(tabs)/calendar');
+        break;
+      case 'shopList':
+        // Navigate to shopping list page
+        router.push('/(tabs)/shopList');
+        break;
+      case 'coming-soon':
+        // This feature is disabled, do nothing
+        console.log('🚫 Coming soon feature is not yet available');
+        break;
+      default:
+        console.log('❓ Unknown feature selected:', feature);
+    }
+  };
   
   // Filter to only show the 4 main tabs
   const visibleRoutes = state.routes.filter((route: any) => 
@@ -39,7 +65,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
         <View style={styles.grayHalfCircleBackground} />
         <Pressable
           style={styles.addButton}
-          onPress={() => setShowAddItemModal(true)}
+          onPress={() => setShowFeaturesModal(true)}
         >
           <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
         </Pressable>
@@ -281,11 +307,12 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
       </View>
     </View>
 
-    {/* Add Item Modal - Only render when visible */}
-    {showAddItemModal && (
-      <AddItemModal
-        visible={showAddItemModal}
-        onClose={() => setShowAddItemModal(false)}
+    {/* Features to Create Modal - Only render when visible */}
+    {showFeaturesModal && (
+      <FeaturesToCreateModal
+        visible={showFeaturesModal}
+        onClose={() => setShowFeaturesModal(false)}
+        onFeatureSelect={handleFeatureSelect}
       />
     )}
     </>

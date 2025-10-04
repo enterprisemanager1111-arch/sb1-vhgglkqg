@@ -238,9 +238,11 @@ export default function OnboardingLayout() {
     const isOnFinalPage = currentPath.includes('final');
     const isOnSignupPage = currentPath.includes('signup');
     
-    // Always allow password reset and final pages
+    // Always allow password reset, final pages, and sign-in pages
     // Note: Profile edit pages are handled by the main app layout, not onboarding layout
-    const isOnAlwaysAllowedPage = isOnPasswordResetPage || isOnFinalPage;
+    // Sign-in page is allowed for authenticated users to handle profile checking and navigation
+    const isOnSigninPage = currentPath.includes('signin');
+    const isOnAlwaysAllowedPage = isOnPasswordResetPage || isOnFinalPage || isOnSigninPage;
     
     // Only allow newFamily pages if user doesn't have a family
     const isOnConditionallyAllowedPage = (isOnNewFamilyPage || isOnWorkProfileEmptyPage) && !isInFamily;
