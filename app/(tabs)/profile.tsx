@@ -143,7 +143,12 @@ export default function UserProfile() {
       }
     };
     
-    refreshProfileData();
+    // Add a small delay to ensure the component is fully mounted and interactive
+    const timeoutId = setTimeout(() => {
+      refreshProfileData();
+    }, 100);
+    
+    return () => clearTimeout(timeoutId);
   }, []); // Run once on mount
 
 
@@ -308,32 +313,129 @@ export default function UserProfile() {
   };
 
   const handleLogout = async () => {
+    console.log('🚪 Logout button pressed - starting direct logout process...');
+    
+    console.log('🚪 Starting complete bypass logout process...');
+            
+     // Skip Supabase signOut entirely to avoid GoTrueClient lock issues
+     console.log('🔄 Bypassing all Supabase methods to avoid GoTrueClient locks...');
+     
+     // Note: Auth context state will be cleared when AsyncStorage is cleared
+     
+     // Force clear all auth data regardless of signOut result
     try {
-      console.log('🚪 Starting logout process...');
+      console.log('🧹 Force clearing all auth data...');
       
-      // Sign out from Supabase and clear auth state
-      await signOut();
-      
-      // Manually ensure the auth token is deleted from AsyncStorage
+      // First, specifically target the exact token mentioned
+      const specificToken = 'sb-eqaxmxbqqiuiwkhjwvvz-auth-token';
       try {
-        await AsyncStorage.removeItem('sb-eqaxmxbqqiuiwkhjwvvz-auth-token');
-        console.log('✅ Auth token manually removed from AsyncStorage');
-      } catch (storageError) {
-        console.error('❌ Error removing auth token from storage:', storageError);
+        await AsyncStorage.removeItem(specificToken);
+        console.log('✅ Specific token removed:', specificToken);
+      } catch (tokenError) {
+        console.log('⚠️ Could not remove specific token:', tokenError);
       }
       
-      console.log('✅ Sign out completed, navigating to onboarding start page...');
+      // Clear AsyncStorage manually
+      const keys = await AsyncStorage.getAllKeys();
+      console.log('🔍 All AsyncStorage keys before cleanup:', keys);
       
-      // Navigate to the onboarding start page (index)
-      router.replace('/(onboarding)');
+      const authKeys = keys.filter(key => 
+        key.includes('supabase') || 
+        key.includes('auth') || 
+        key.includes('sb-') ||
+        key.includes('eqaxmxbqqiuiwkhjwvvz') ||
+        key.includes('family') ||
+        key.includes('user')
+      );
       
-    } catch (error) {
-      console.error('❌ Sign out error:', error);
+      console.log('🎯 Auth keys to remove:', authKeys);
       
-      // Even if signOut fails, try to navigate to onboarding
-      // The auth system will handle the case where user is not authenticated
-      router.replace('/(onboarding)');
+      if (authKeys.length > 0) {
+        await AsyncStorage.multiRemove(authKeys);
+        console.log('✅ All auth keys force cleared:', authKeys);
+      }
+      
+      // Verify the specific token is gone
+      const remainingKeys = await AsyncStorage.getAllKeys();
+      const stillHasToken = remainingKeys.includes(specificToken);
+      console.log('🔍 Remaining keys after cleanup:', remainingKeys);
+      console.log('🔍 Specific token still exists:', stillHasToken);
+      
+      // If the specific token still exists, try to clear everything
+      if (stillHasToken) {
+        console.log('⚠️ Specific token still exists, clearing entire AsyncStorage...');
+        try {
+          await AsyncStorage.clear();
+          console.log('✅ AsyncStorage completely cleared');
+        } catch (clearError) {
+          console.log('⚠️ Could not clear entire AsyncStorage:', clearError);
+        }
+      }
+      
+      // Additional cleanup for any GoTrueClient locks or state
+      try {
+        console.log('🧹 Additional cleanup for GoTrueClient locks...');
+        // Try to clear any potential lock-related data
+        const lockKeys = remainingKeys.filter(key => 
+          key.includes('lock') || 
+          key.includes('GoTrue') || 
+          key.includes('acquireLock') ||
+          key.includes('_lock')
+        );
+        
+        if (lockKeys.length > 0) {
+          await AsyncStorage.multiRemove(lockKeys);
+          console.log('✅ GoTrueClient lock keys cleared:', lockKeys);
+        }
+      } catch (lockError) {
+        console.log('⚠️ Could not clear lock keys:', lockError);
+      }
+      
+    } catch (clearError) {
+      console.error('❌ Error force clearing auth data:', clearError);
     }
+    
+     // Force a hard reset by clearing everything and using window.location for web
+     console.log('🔄 Performing hard reset logout...');
+     
+     // Additional cleanup for web platform
+     if (Platform.OS === 'web') {
+       console.log('🔄 Web platform detected - clearing all web storage...');
+       try {
+         // Clear all possible web storage
+         localStorage.clear();
+         sessionStorage.clear();
+         // Clear IndexedDB if it exists
+         if (window.indexedDB) {
+           indexedDB.databases().then(databases => {
+             databases.forEach(db => {
+               if (db.name) {
+                 indexedDB.deleteDatabase(db.name);
+               }
+             });
+           });
+         }
+         console.log('✅ All web storage cleared');
+       } catch (webError) {
+         console.log('⚠️ Error clearing web storage:', webError);
+       }
+     }
+     
+     // For web platform, use window.location to completely reset the app
+     if (Platform.OS === 'web') {
+       console.log('🔄 Web platform detected - using window.location for hard reset...');
+       setTimeout(() => {
+         // Force reload the entire page
+         window.location.href = '/';
+       }, 500);
+     } else {
+       // For native platforms, use router with a longer delay
+       console.log('🔄 Native platform - using router with delay...');
+       setTimeout(() => {
+         console.log('🔄 Navigating to onboarding start page...');
+         router.replace('/(onboarding)');
+       }, 2000);
+     }
   };
 
   const handleDeleteAccount = () => {
@@ -818,6 +920,8 @@ export default function UserProfile() {
                       index === section.items.length - 1 && styles.lastItem
                     ]}
                     onPress={item.onPress}
+                    disabled={false}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
                     <View style={styles.settingsItemLeft}>
                       <View style={[

@@ -890,7 +890,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // Try Supabase sign out first - this should clear the storage automatically
       console.log('🔄 Calling supabase.auth.signOut()...');
-      const { error } = await supabase.auth.signOut();
+      
+      // Create a timeout promise to prevent hanging on GoTrueClient lock
+      const signOutTimeout = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Supabase signOut timeout')), 3000);
+      });
+      
+      // Race between signOut and timeout
+      const { error } = await Promise.race([
+        supabase.auth.signOut(),
+        signOutTimeout
+      ]) as any;
       
       if (error) {
         console.error('❌ Supabase SignOut error:', error);
@@ -903,7 +913,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await new Promise(resolve => setTimeout(resolve, 100));
       
     } catch (supabaseError) {
-      console.error('❌ Supabase SignOut failed:', supabaseError);
+      console.error('❌ Supabase SignOut failed or timed out:', supabaseError);
       // Continue with local cleanup even if Supabase fails
     }
     
