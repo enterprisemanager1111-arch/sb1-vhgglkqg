@@ -42,6 +42,7 @@ interface FamilyContextType {
   generateNewCode: () => Promise<string>;
   searchFamilies: (searchTerm: string) => Promise<Family[]>;
   createFamilyInviteLink: (familyId: string) => Promise<string>;
+  setFamilyData: (family: Family, role: 'admin' | 'member') => void;
 }
 
 const FamilyContext = createContext<FamilyContextType | undefined>(undefined);
@@ -981,6 +982,15 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user, loadFamilyData]);
 
+  const setFamilyData = useCallback((family: Family, role: 'admin' | 'member') => {
+    console.log('🔧 Manually setting family data:', family);
+    console.log('🔧 Setting user role:', role);
+    setCurrentFamily(family);
+    setUserRole(role);
+    setLoading(false);
+    setError(null);
+  }, []);
+
   return (
     <FamilyContext.Provider
       value={{
@@ -998,6 +1008,7 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
         generateNewCode,
         searchFamilies,
         createFamilyInviteLink,
+        setFamilyData,
       }}
     >
       {children}

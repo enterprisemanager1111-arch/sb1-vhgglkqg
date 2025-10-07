@@ -39,21 +39,11 @@ export default function OnboardingLayout() {
             return;
           }
           
-          // For newFamily pages, only allow if user doesn't have a family
+          // For newFamily pages, allow access regardless of family status
+          // This allows users to see the success modal after creating a family
           if (isOnNewFamilyPage || isOnWorkProfileEmptyPage) {
-            // Wait for family loading to complete before making decision
-            if (!familyLoading) {
-              if (!isInFamily) {
-                console.log('🔄 Auth token found, user has no family, allowing newFamily page access');
-                return;
-              } else {
-                console.log('🚫 Auth token found, user already has family, but staying on newFamily page');
-                return;
-              }
-            } else {
-              console.log('🔄 Auth token found, waiting for family loading to complete...');
-              return; // Wait for family loading to complete
-            }
+            console.log('🔄 Auth token found, allowing newFamily page access');
+            return;
           }
           
           // Check if this is a new user on signup page before redirecting

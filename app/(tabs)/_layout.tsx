@@ -23,7 +23,18 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
   // Refresh family data when component mounts to ensure context is up to date
   useEffect(() => {
     console.log('🔄 Tabs layout mounted, refreshing family data...');
-    refreshFamily();
+    const refreshFamilyData = async () => {
+      try {
+        // Add a small delay to ensure any previous operations are complete
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await refreshFamily();
+        console.log('✅ Family data refreshed in tabs layout');
+      } catch (error) {
+        console.log('⚠️ Family data refresh failed in tabs layout:', error);
+      }
+    };
+    
+    refreshFamilyData();
   }, [refreshFamily]);
 
   // Handle feature selection from the modal

@@ -32,7 +32,68 @@ export default function FamilyDashboard() {
 
   const { isInFamily, currentFamily, familyMembers, loading: familyLoading, refreshFamily, retryConnection, error } = useFamily();
   
-  const { user, profile } = useAuth();
+  const { user, profile, session } = useAuth();
+  
+  // Debug: Log family data
+  useEffect(() => {
+    console.log('🔍 Family page - currentFamily:', currentFamily);
+    console.log('🔍 Family page - isInFamily:', isInFamily);
+    console.log('🔍 Family page - familyLoading:', familyLoading);
+    console.log('🔍 Family page - familyMembers:', familyMembers);
+    console.log('🔍 Family page - familyMembers length:', familyMembers?.length || 0);
+    if (familyMembers && familyMembers.length > 0) {
+      console.log('🔍 Family page - familyMembers details:');
+      familyMembers.forEach((member, index) => {
+        console.log(`  Member ${index + 1}:`, {
+          id: member.id,
+          user_id: member.user_id,
+          role: member.role,
+          name: member.profiles?.name || 'No name',
+          avatar_url: member.profiles?.avatar_url || 'No avatar'
+        });
+      });
+    }
+  }, [currentFamily, isInFamily, familyLoading, familyMembers]);
+  
+  // Refresh family data when component mounts
+  useEffect(() => {
+    const refreshFamilyData = async () => {
+      try {
+        console.log('🔄 Family page: Refreshing family data on mount...');
+        await refreshFamily();
+        console.log('✅ Family page: Family data refreshed');
+        
+        // Additional direct refresh of family members if we have a family
+        if (currentFamily && user && session?.access_token) {
+          console.log('🔄 Family page: Additional direct family members refresh...');
+          try {
+            const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/family_members?family_id=eq.${currentFamily.id}&select=*,profiles(id,name,avatar_url)`, {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${session.access_token}`,
+                'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+                'Accept': 'application/json'
+              }
+            });
+            
+            if (response.ok) {
+              const membersData = await response.json();
+              console.log('✅ Family page: Direct family members refresh successful:', membersData);
+              console.log('✅ Family page: Found', membersData.length, 'family members');
+            } else {
+              console.log('⚠️ Family page: Direct family members refresh failed:', response.status);
+            }
+          } catch (directRefreshError) {
+            console.log('⚠️ Family page: Direct family members refresh error:', directRefreshError);
+          }
+        }
+      } catch (error) {
+        console.log('⚠️ Family page: Family data refresh failed:', error);
+      }
+    };
+    
+    refreshFamilyData();
+  }, []); // Run once on mount
   
   // Real-time family data with online status
   const { isUserOnline, onlineMembers: realTimeOnlineMembers } = useRealTimeFamily(currentFamily?.id || null);
@@ -152,30 +213,30 @@ export default function FamilyDashboard() {
         <View style={styles.profileSection}>
           <View style={styles.profileInfo}>
             <View style={styles.avatarContainer}>
-              {profile?.avatar_url ? (
+              {currentFamily?.family_img ? (
                 <Image 
-                  source={{ uri: profile.avatar_url }} 
+                  source={{ uri: currentFamily.family_img }} 
                   style={styles.avatar}
                   resizeMode="cover"
                 />
               ) : (
                 <View style={styles.avatar}>
                   <Text style={styles.avatarText}>
-                    {profile?.name?.charAt(0).toUpperCase() || 'U'}
+                    {currentFamily?.name?.charAt(0).toUpperCase() || 'F'}
                   </Text>
                 </View>
               )}
             </View>
             <View style={styles.profileDetails}>
               <View style={styles.nameRow}>
-                <Text style={styles.userName}>{currentFamily?.name || "Drump's Family"}</Text>
+                <Text style={styles.userName}>{currentFamily?.name || "Family"}</Text>
                 <Image
                   source={require('@/assets/images/icon/verification.png')}
                   style={styles.verifiedIcon}
                   resizeMode="contain"
                 />
               </View>
-              <Text style={styles.userRole}>Best Family in the World!</Text>
+              <Text style={styles.userRole}>{currentFamily?.slogan || "Welcome to our family!"}</Text>
             </View>
           </View>
           
@@ -364,11 +425,21 @@ export default function FamilyDashboard() {
             <View style={styles.memberCards}>
               {familyMembers && familyMembers.length > 0 ? (
                 familyMembers.slice(0, 4).map((member, index) => {
-                  const memberName = member.profiles?.name || 'Unknown';
+                  const memberName = member.profiles?.name || 'Unknown Member';
                   const nameParts = memberName.split(' ');
-                  const firstName = nameParts[0] || '';
+                  const firstName = nameParts[0] || 'Unknown';
                   const lastName = nameParts.slice(1).join(' ') || '';
                   const initials = nameParts.map(part => part.charAt(0).toUpperCase()).join('').slice(0, 2);
+                  
+                  console.log(`🔍 Rendering member ${index + 1}:`, {
+                    user_id: member.user_id,
+                    name: memberName,
+                    firstName,
+                    lastName,
+                    initials,
+                    role: member.role,
+                    hasAvatar: !!member.profiles?.avatar_url
+                  });
                   
                   return (
                     <View key={member.user_id || index} style={styles.memberCard}>
@@ -377,6 +448,9 @@ export default function FamilyDashboard() {
                           <Image
                             source={{ uri: member.profiles.avatar_url }}
                             style={styles.memberAvatarImage}
+                            onError={(error) => {
+                              console.log('❌ Avatar load error for member:', memberName, error);
+                            }}
                           />
                         ) : (
                           <Text style={styles.memberAvatarText}>{initials}</Text>
@@ -384,6 +458,7 @@ export default function FamilyDashboard() {
                       </View>
                       <Text style={styles.memberName}>{firstName}</Text>
                       <Text style={styles.memberLastName}>{lastName}</Text>
+                      <Text style={styles.memberRole}>{member.role === 'admin' ? 'Admin' : 'Member'}</Text>
                     </View>
                   );
                 })
@@ -394,6 +469,7 @@ export default function FamilyDashboard() {
                   </View>
                   <Text style={styles.memberName}>No</Text>
                   <Text style={styles.memberLastName}>Members</Text>
+                  <Text style={styles.memberRole}>Found</Text>
                 </View>
               )}
               
@@ -1005,6 +1081,12 @@ const styles = StyleSheet.create({
   memberLastName: {
     fontSize: 12,
     color: '#666666',
+  },
+  memberRole: {
+    fontSize: 10,
+    color: '#17f196',
+    fontWeight: '500',
+    marginTop: 2,
   },
   inviteMemberCard: {
     backgroundColor: '#F5F5F5',

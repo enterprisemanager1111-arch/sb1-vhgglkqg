@@ -93,6 +93,7 @@ interface SettingsItem {
 
 export default function UserProfile() {
   const [refreshing, setRefreshing] = useState(false);
+  const [refreshedProfile, setRefreshedProfile] = useState(null);
   const { t, currentLanguage, changeLanguage } = useLanguage();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [darkModeEnabled, setDarkModeEnabled] = useState(true);
@@ -105,19 +106,58 @@ export default function UserProfile() {
   const [showImagePickerModal, setShowImagePickerModal] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  const { user, profile, signOut, updateProfile, loading: authLoading } = useAuth();
+  const { user, profile, signOut, updateProfile, loading: authLoading, session } = useAuth();
   const { currentFamily, userRole } = useFamily();
   const { showSnackbar } = useSnackbar();
 
+  // Refresh profile data when component mounts to ensure we have the latest data
+  useEffect(() => {
+    const refreshProfileData = async () => {
+      if (!user || !session?.access_token) {
+        console.log('⚠️ Profile page: No user or session for profile refresh');
+        return;
+      }
+      
+      try {
+        console.log('🔄 Profile page: Refreshing profile data via REST API...');
+        const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const profileData = await response.json();
+          console.log('✅ Profile page: Profile data refreshed via REST API:', profileData);
+          if (profileData && profileData.length > 0) {
+            setRefreshedProfile(profileData[0]);
+          }
+        } else {
+          console.log('⚠️ Profile page: Profile refresh failed:', response.status);
+        }
+      } catch (error) {
+        console.log('⚠️ Profile page: Profile refresh failed:', error);
+      }
+    };
+    
+    refreshProfileData();
+  }, []); // Run once on mount
 
-  const userName = profile?.name || user?.user_metadata?.full_name || 'Tonald Drump';
+
+  // Use refreshed profile data if available, fallback to original profile
+  const currentProfile = refreshedProfile || profile;
+
+  const userName = currentProfile?.name || user?.user_metadata?.full_name || 'Tonald Drump';
   const userEmail = user?.email || '';
   const userRoleDisplay = userRole === 'admin' ? 'Family Admin' : 'Family Teenager';
 
   // Get user initials for avatar fallback
   const getUserInitials = () => {
-    if (profile?.name) {
-      const names = profile.name.split(' ');
+    if (currentProfile?.name) {
+      const names = currentProfile.name.split(' ');
       if (names.length >= 2) {
         return (names[0][0] + names[names.length - 1][0]).toUpperCase();
       }
@@ -698,9 +738,9 @@ export default function UserProfile() {
         <View style={styles.profileSection}>
           <View style={styles.profileInfo}>
             <View style={styles.avatarContainer}>
-              {profile?.avatar_url ? (
+              {currentProfile?.avatar_url ? (
                 <Image 
-                  source={{ uri: profile.avatar_url }} 
+                  source={{ uri: currentProfile.avatar_url }} 
                   style={styles.avatar}
                   resizeMode="cover"
                 />

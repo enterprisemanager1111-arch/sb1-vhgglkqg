@@ -840,8 +840,8 @@ export default function EditProfile() {
   // Success modal handlers
   const handleContinueToProfile = () => {
     hideSuccessModal();
-    // Redirect to home page where proper family navigation logic will handle the routing
-    router.replace('/(tabs)');
+    // Navigate to newFamily page
+    router.replace('/(onboarding)/newFamily');
   };
 
   const handleExploreApp = () => {
