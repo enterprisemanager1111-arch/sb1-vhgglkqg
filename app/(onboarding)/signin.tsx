@@ -10,6 +10,7 @@ import {
   Image as RNImage,
   ScrollView,
   Alert,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Eye, EyeOff } from 'lucide-react-native';
@@ -236,7 +237,14 @@ export default function SignIn() {
                   />
                 </View>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    Platform.OS === 'web' && ({
+                      outline: 'none',
+                      border: 'none',
+                      boxShadow: 'none',
+                    } as any)
+                  ]}
                   placeholder={t('onboarding.auth.form.emailPlaceholder') || 'My Email'}
                   placeholderTextColor="#888888"
                   value={email}
@@ -262,7 +270,15 @@ export default function SignIn() {
                   />
                 </View>
                 <TextInput
-                  style={[styles.input, styles.passwordInput]}
+                  style={[
+                    styles.input, 
+                    styles.passwordInput,
+                    Platform.OS === 'web' && ({
+                      outline: 'none',
+                      border: 'none',
+                      boxShadow: 'none',
+                    } as any)
+                  ]}
                   placeholder={t('onboarding.auth.form.passwordPlaceholder') || 'My Password'}
                   placeholderTextColor="#888888"
                   value={password}
@@ -493,6 +509,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#161618',
     fontFamily: 'Helvetica',
+    outlineStyle: 'none',
+    borderWidth: 0,
   },
   passwordInput: {
     paddingRight: 40,
