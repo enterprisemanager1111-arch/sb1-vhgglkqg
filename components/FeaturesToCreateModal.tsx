@@ -146,7 +146,7 @@ const FeaturesToCreateModal: React.FC<FeaturesToCreateModalProps> = ({
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType="none"
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>

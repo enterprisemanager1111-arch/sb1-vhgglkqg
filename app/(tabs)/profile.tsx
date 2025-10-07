@@ -15,13 +15,6 @@ import {
   Share,
   StatusBar,
 } from 'react-native';
-import Animated, { 
-  useSharedValue, 
-  withSpring, 
-  withDelay, 
-  useAnimatedStyle, 
-  withTiming,
-} from 'react-native-reanimated';
 import { 
   User, 
   Settings, 
@@ -77,7 +70,6 @@ const VerificationIcon = ({ size = 16 }: { size?: number }) => (
   />
 );
 
-const AnimatedView = Animated.createAnimatedComponent(View);
 
 interface SettingsSection {
   id: string;
@@ -117,22 +109,6 @@ export default function UserProfile() {
   const { currentFamily, userRole } = useFamily();
   const { showSnackbar } = useSnackbar();
 
-  // Animation values
-  const headerOpacity = useSharedValue(0);
-  const contentOpacity = useSharedValue(0);
-
-  const headerAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: headerOpacity.value,
-  }));
-
-  const contentAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: contentOpacity.value,
-  }));
-
-  useEffect(() => {
-    headerOpacity.value = withTiming(1, { duration: 600 });
-    contentOpacity.value = withDelay(200, withTiming(1, { duration: 800 }));
-  }, []);
 
   const userName = profile?.name || user?.user_metadata?.full_name || 'Tonald Drump';
   const userEmail = user?.email || '';
@@ -718,7 +694,7 @@ export default function UserProfile() {
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
       {/* Fixed Header Section */}
-      <AnimatedView style={[styles.fixedHeader, headerAnimatedStyle]}>
+      <View style={styles.fixedHeader}>
         <View style={styles.profileSection}>
           <View style={styles.profileInfo}>
             <View style={styles.avatarContainer}>
@@ -743,7 +719,7 @@ export default function UserProfile() {
             </View>
           </View>
         </View>
-      </AnimatedView>
+      </View>
 
       <ScrollView 
         style={styles.scrollView} 
@@ -759,7 +735,7 @@ export default function UserProfile() {
       >
 
          {/* Setup & Settings Banner */}
-         <AnimatedView style={[styles.section, contentAnimatedStyle]}>
+         <View style={styles.section}>
            <View style={styles.workSummaryBanner}>
              <View style={styles.workSummaryContent}>
                <View style={styles.workSummaryText}>
@@ -778,11 +754,11 @@ export default function UserProfile() {
                </View>
              </View>
            </View>
-         </AnimatedView>
+         </View>
 
         {/* Settings Sections */}
         {settingsSections.map((section) => (
-          <AnimatedView key={section.id} style={[styles.section, contentAnimatedStyle]}>
+          <View key={section.id} style={styles.section}>
             <View style={styles.futuresElementsPanel}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>{section.title}</Text>
@@ -837,7 +813,7 @@ export default function UserProfile() {
                 ))}
               </View>
             </View>
-          </AnimatedView>
+          </View>
         ))}
 
         {/* Bottom Spacing for Tab Bar */}

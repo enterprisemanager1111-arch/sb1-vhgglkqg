@@ -10,13 +10,6 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
-import Animated, { 
-  useSharedValue, 
-  withSpring, 
-  withDelay, 
-  useAnimatedStyle, 
-  withTiming,
-} from 'react-native-reanimated';
 import { Flame, Crown, CheckCircle, Clock, Camera, Zap, Users, User, Home } from 'lucide-react-native';
 
 import { useFamily } from '@/contexts/FamilyContext';
@@ -36,7 +29,6 @@ const VerificationIcon = ({ size = 16 }: { size?: number }) => (
   />
 );
 
-const AnimatedView = Animated.createAnimatedComponent(View);
 
 export default function FlamesScreen() {
   const [refreshing, setRefreshing] = useState(false);
@@ -52,22 +44,6 @@ export default function FlamesScreen() {
     refreshData,
   } = useFamilyPoints();
   
-  // Animation values
-  const headerOpacity = useSharedValue(0);
-  const contentOpacity = useSharedValue(0);
-
-  const headerAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: headerOpacity.value,
-  }));
-
-  const contentAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: contentOpacity.value,
-  }));
-
-  useEffect(() => {
-      headerOpacity.value = withTiming(1, { duration: 600 });
-    contentOpacity.value = withDelay(200, withTiming(1, { duration: 800 }));
-  }, []);
 
   // Show loading screen while checking family status
   if (familyLoading) {
@@ -152,7 +128,7 @@ export default function FlamesScreen() {
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
       {/* Fixed Header Section */}
-      <AnimatedView style={[styles.fixedHeader, headerAnimatedStyle]}>
+      <View style={styles.fixedHeader}>
         <View style={styles.profileSection}>
           <View style={styles.profileInfo}>
             <View style={styles.avatarContainer}>
@@ -186,7 +162,7 @@ export default function FlamesScreen() {
             </View>
           </View>
         </View>
-      </AnimatedView>
+      </View>
 
       <ScrollView 
         style={styles.scrollView} 
@@ -202,7 +178,7 @@ export default function FlamesScreen() {
       >
 
         {/* Current Rank Section */}
-        <AnimatedView style={[styles.section, contentAnimatedStyle]}>
+        <View style={styles.section}>
           <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Current Rank</Text>
@@ -237,10 +213,10 @@ export default function FlamesScreen() {
             </View>
                 </View>
           </View>
-        </AnimatedView>
+        </View>
 
         {/* Family Ranks Section */}
-        <AnimatedView style={[styles.section, contentAnimatedStyle]}>
+        <View style={styles.section}>
           <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Family Ranks</Text>
@@ -288,10 +264,10 @@ export default function FlamesScreen() {
                 </View>
                   </View>
           </View>
-        </AnimatedView>
+        </View>
 
         {/* Your Current Status Banner */}
-        <AnimatedView style={[styles.section, contentAnimatedStyle]}>
+        <View style={styles.section}>
           <View style={styles.workSummaryBanner}>
             <View style={styles.workSummaryContent}>
               <View style={styles.workSummaryText}>
@@ -310,10 +286,10 @@ export default function FlamesScreen() {
                 </View>
                 </View>
           </View>
-        </AnimatedView>
+        </View>
 
         {/* Achievements Section */}
-        <AnimatedView style={[styles.section, contentAnimatedStyle]}>
+        <View style={styles.section}>
           <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Achievements</Text>
@@ -393,7 +369,7 @@ export default function FlamesScreen() {
                     ))}
                   </View>
           </View>
-        </AnimatedView>
+        </View>
 
         {/* Bottom spacing for tab bar */}
         <View style={styles.bottomSpacing} />

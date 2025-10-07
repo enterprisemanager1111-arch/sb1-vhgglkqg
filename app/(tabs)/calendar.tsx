@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,11 +12,62 @@ import {
 import { router } from 'expo-router';
 
 export default function Calendar() {
-  const [selectedDate, setSelectedDate] = useState('20 Sun');
+  const scrollViewRef = useRef<ScrollView>(null);
+  
+  // Generate all dates for the current month
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth();
+  const currentYear = currentDate.getFullYear();
+  
+  // Get the first day of the month and the number of days
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+  const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+  const daysInMonth = lastDayOfMonth.getDate();
+  
+  // Generate array of all dates in the month
+  const dates = useMemo(() => {
+    const dateArray = [];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(currentYear, currentMonth, day);
+      const dayName = dayNames[date.getDay()];
+      dateArray.push(`${day} ${dayName}`);
+    }
+    
+    return dateArray;
+  }, [currentYear, currentMonth, daysInMonth]);
+  
+  // Set today as the default selected date
+  const today = currentDate.getDate();
+  const todayDayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][currentDate.getDay()];
+  const [selectedDate, setSelectedDate] = useState(`${today} ${todayDayName}`);
+  
+  // Scroll to current date on component mount
+  useEffect(() => {
+    const scrollToCurrentDate = () => {
+      if (scrollViewRef.current) {
+        // Calculate the position to center the current date
+        // Each date card is 64px wide + 8px gap = 72px per item
+        const cardWidth = 72; // 64px width + 8px gap
+        const currentDateIndex = today - 1; // Array is 0-indexed
+        const scrollPosition = (currentDateIndex * cardWidth) - (cardWidth * 2); // Center by subtracting 2 cards worth
+        
+        scrollViewRef.current.scrollTo({
+          x: Math.max(0, scrollPosition), // Ensure we don't scroll to negative position
+          animated: true,
+        });
+      }
+    };
+    
+    // Small delay to ensure the component is fully rendered
+    const timer = setTimeout(scrollToCurrentDate, 100);
+    return () => clearTimeout(timer);
+  }, [today]);
 
   // Mock data for the design
   const mockData = {
-    currentDate: 'September, 25',
+    currentDate: `${new Date().toLocaleString('default', { month: 'long' })}, ${currentDate.getDate()}`,
     progress: {
       today: '2, Events',
       nextEvent: "Bob's Birthday"
@@ -44,8 +95,6 @@ export default function Calendar() {
       }
     ]
   };
-
-  const dates = ['19 Sat', '20 Sun', '21 Mon', '22 Tue', '23 Sun'];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -97,32 +146,38 @@ export default function Calendar() {
             </View>
           </View>
 
-          {/* Date Selector */}
-          <View style={styles.dateSelector}>
+          {/* Date Selector - Horizontal Scrollable */}
+          <ScrollView 
+            ref={scrollViewRef}
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            style={styles.dateSelectorScrollView}
+            contentContainerStyle={styles.dateSelector}
+          >
             {dates.map((date, index) => (
               <Pressable
-                  key={index}
-                  style={[
+                key={index}
+                style={[
                   styles.dateCard,
                   selectedDate === date && styles.dateCardSelected
-                  ]}
+                ]}
                 onPress={() => setSelectedDate(date)}
-                >
-                  <Text style={[
+              >
+                <Text style={[
                   styles.dateNumber,
                   selectedDate === date && styles.dateNumberSelected
-                  ]}>
+                ]}>
                   {date.split(' ')[0]}
-                  </Text>
-                  <Text style={[
+                </Text>
+                <Text style={[
                   styles.dateDay,
                   selectedDate === date && styles.dateDaySelected
-                  ]}>
+                ]}>
                   {date.split(' ')[1]}
-                  </Text>
+                </Text>
               </Pressable>
-              ))}
-            </View>
+            ))}
+          </ScrollView>
           </View>
 
          {/* Event Cards */}
@@ -282,10 +337,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#2D2D2D',
   },
+  dateSelectorScrollView: {
+    marginTop: 16,
+  },
   dateSelector: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 16,
+    paddingHorizontal: 0,
+    paddingRight: 20, // Add right padding for better scrolling experience
   },
   dateCard: {
     width: 64,
@@ -323,10 +382,10 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   calendarEventCard: {
-    border: '1px solid #EAECF0',
     backgroundColor: '#F9FAFB',
     borderRadius: 12,
     borderWidth: 1,
+    borderColor: '#EAECF0',
     padding: 12,
     marginTop: 8,
   },

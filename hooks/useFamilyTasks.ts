@@ -62,25 +62,21 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
     try {
       setError(null);
       
-      const { data, error: tasksError } = await withTimeout(
-        supabase
-          .from('family_tasks')
-          .select(`
-            *,
-            assignee_profile:profiles!assignee_id (
-              name,
-              avatar_url
-            ),
-            creator_profile:profiles!created_by (
-              name,
-              avatar_url
-            )
-          `)
-          .eq('family_id', currentFamily.id)
-          .order('created_at', { ascending: false }),
-        5000,
-        'Failed to load tasks'
-      );
+      const { data, error: tasksError } = await supabase
+        .from('family_tasks')
+        .select(`
+          *,
+          assignee_profile:profiles!assignee_id (
+            name,
+            avatar_url
+          ),
+          creator_profile:profiles!created_by (
+            name,
+            avatar_url
+          )
+        `)
+        .eq('family_id', currentFamily.id)
+        .order('created_at', { ascending: false });
 
       if (tasksError) throw tasksError;
 
@@ -95,29 +91,66 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
 
   // Create new task
   const createTask = useCallback(async (taskData: Omit<FamilyTask, 'id' | 'family_id' | 'created_by' | 'created_at' | 'updated_at'>) => {
+    console.log('🔧 createTask hook called with:', taskData);
+    console.log('🔧 currentFamily:', currentFamily?.id);
+    console.log('🔧 user:', user?.id);
+    
     if (!currentFamily || !user) {
+      console.error('❌ Missing family or user');
       throw new Error('User must be in a family to create tasks');
     }
 
     try {
-      const { error } = await withRetry(
-        () => supabase
+      const insertData = {
+        ...taskData,
+        family_id: currentFamily.id,
+        created_by: user.id,
+      };
+      
+      console.log('🔧 Inserting data:', insertData);
+      console.log('🔧 About to call Supabase insert...');
+      
+      // Skip authentication synchronization - it's also hanging due to GoTrueClient lock
+      console.log('🔧 Skipping authentication synchronization - going directly to database operation...');
+      
+      try {
+        // Add timeout to prevent hanging
+        const insertPromise = supabase
           .from('family_tasks')
-          .insert([{
-            ...taskData,
-            family_id: currentFamily.id,
-            created_by: user.id,
-          }]),
-        3,
-        1000
-      );
+          .insert([insertData])
+          .select();
 
-      if (error) throw error;
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Database operation timed out after 5 seconds')), 5000);
+        });
 
+        const { data, error } = await Promise.race([insertPromise, timeoutPromise]) as any;
+          
+        console.log('🔧 Insert completed:', { data, error });
+        
+        if (error) {
+          console.error('❌ Insert error details:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          });
+          throw error;
+        }
+        
+        console.log('✅ Task created successfully:', data);
+        
+      } catch (insertError: any) {
+        console.error('❌ Insert operation failed:', insertError);
+        throw insertError;
+      }
+
+      console.log('✅ Task inserted successfully, refreshing tasks...');
       // Refresh tasks list
       await loadTasks();
+      console.log('✅ Tasks refreshed');
     } catch (error: any) {
-      console.error('Error creating task:', error);
+      console.error('❌ Error in createTask hook:', error);
       throw error;
     }
   }, [currentFamily, user, loadTasks]);
@@ -266,7 +299,7 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
   // Load tasks on mount and family change
   useEffect(() => {
     loadTasks();
-  }, [currentFamily?.id, user?.id]); // Use stable dependencies instead of loadTasks
+  }, [currentFamily?.id, user?.id, loadTasks]);
 
   // Setup real-time subscription with debouncing
   useEffect(() => {
@@ -280,7 +313,7 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
       clearTimeout(debounceTimeout);
       debounceTimeout = setTimeout(() => {
         loadTasks();
-      }, 500); // 500ms debounce
+      }, 500) as unknown as NodeJS.Timeout; // 500ms debounce
     };
 
     const channel = supabase

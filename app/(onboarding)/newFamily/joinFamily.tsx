@@ -145,19 +145,40 @@ export default function JoinFamily() {
         ? (t('family.onboarding.joinSuccessMessageWithName', { name: familyName }) || `You are now a member of "${familyName}".`)
         : (t('family.onboarding.joinSuccessMessage') || 'You are now a member of the family.');
 
-      Alert.alert(
-        successTitle,
-        successMessage,
-        [{ 
-          text: t('common.ok') || 'OK', 
-          onPress: () => router.replace('/(tabs)') 
-        }],
-        { cancelable: false }
-      );
+      // Navigate directly to tabs without waiting for family context to load
+      console.log('🔄 Family join successful, navigating to tabs...');
+      router.replace('/(tabs)');
+      
+      // Show success message after navigation
+      setTimeout(() => {
+        Alert.alert(
+          successTitle,
+          successMessage,
+          [{ text: t('common.ok') || 'OK' }],
+          { cancelable: false }
+        );
+      }, 500);
     } catch (error: any) {
+      console.error('❌ Join family error:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = error.message || t('family.onboarding.joinError') || 'Could not join family';
+      
+      if (error.message?.includes('familyNotFound')) {
+        errorMessage = 'Family not found. Please check the family code and try again.';
+      } else if (error.message?.includes('timeout')) {
+        errorMessage = 'Connection timeout. Please check your internet connection and try again.';
+      } else if (error.message?.includes('network')) {
+        errorMessage = 'Network error. Please check your internet connection and try again.';
+      } else if (error.message?.includes('alreadyMember')) {
+        errorMessage = 'You are already a member of this family.';
+      } else if (error.message?.includes('alreadyInAnotherFamily')) {
+        errorMessage = 'You are already a member of another family. Please leave your current family first.';
+      }
+      
       Alert.alert(
         t('common.error') || 'Error', 
-        error.message || t('family.onboarding.joinError') || 'Could not join family',
+        errorMessage,
         [{ text: t('common.ok') || 'OK' }],
         { cancelable: false }
       );

@@ -4,6 +4,9 @@ import { Plus } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
 import FeaturesToCreateModal from '@/components/FeaturesToCreateModal';
+import TaskCreationModal from '@/components/TaskCreationModal';
+import EventCreationModal from '@/components/EventCreationModal';
+import ShoppingItemCreationModal from '@/components/ShoppingItemCreationModal';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFamily } from '@/contexts/FamilyContext';
@@ -12,6 +15,9 @@ import { useFamily } from '@/contexts/FamilyContext';
 function CustomTabBar({ state, descriptors, navigation }: any) {
   const insets = useSafeAreaInsets();
   const [showFeaturesModal, setShowFeaturesModal] = useState(false);
+  const [showTaskCreationModal, setShowTaskCreationModal] = useState(false);
+  const [showEventCreationModal, setShowEventCreationModal] = useState(false);
+  const [showShoppingItemCreationModal, setShowShoppingItemCreationModal] = useState(false);
   const { currentFamily, isInFamily, loading: familyLoading, refreshFamily } = useFamily();
   
   // Refresh family data when component mounts to ensure context is up to date
@@ -26,16 +32,16 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
     
     switch (feature) {
       case 'tasks':
-        // Navigate to tasks page or open task creation
-        router.push('/(tabs)/tasks');
+        // Show task creation modal instead of navigating
+        setShowTaskCreationModal(true);
         break;
       case 'calendar':
-        // Navigate to calendar page or open event creation
-        router.push('/(tabs)/calendar');
+        // Show event creation modal instead of navigating
+        setShowEventCreationModal(true);
         break;
       case 'shopList':
-        // Navigate to shopping list page
-        router.push('/(tabs)/shopList');
+        // Show shopping item creation modal instead of navigating
+        setShowShoppingItemCreationModal(true);
         break;
       case 'coming-soon':
         // This feature is disabled, do nothing
@@ -79,9 +85,9 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
           <View style={styles.leftGroup}>
             {visibleRoutes.slice(0, 2).map((route: any) => {
               const originalIndex = state.routes.findIndex((r: any) => r.key === route.key);
-              // Make home icon active when on tasks page or calendar page
+              // Make home icon active when on tasks page, calendar page, or shopList page
               const isFocused = state.index === originalIndex || 
-                (route.name === 'index' && (state.routes[state.index]?.name === 'tasks' || state.routes[state.index]?.name === 'calendar'));
+                (route.name === 'index' && (state.routes[state.index]?.name === 'tasks' || state.routes[state.index]?.name === 'calendar' || state.routes[state.index]?.name === 'shopList'));
 
               const onPress = () => {
                 const event = navigation.emit({
@@ -114,8 +120,8 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                   } else {
                     navigation.navigate(route.name);
                   }
-                } else if (route.name === 'index' && (state.routes[state.index]?.name === 'tasks' || state.routes[state.index]?.name === 'calendar')) {
-                  // If on tasks page or calendar page and clicking home icon, navigate to home
+                } else if (route.name === 'index' && (state.routes[state.index]?.name === 'tasks' || state.routes[state.index]?.name === 'calendar' || state.routes[state.index]?.name === 'shopList')) {
+                  // If on tasks page, calendar page, or shopList page and clicking home icon, navigate to home
                   navigation.navigate('index');
                 }
               };
@@ -313,6 +319,30 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
         visible={showFeaturesModal}
         onClose={() => setShowFeaturesModal(false)}
         onFeatureSelect={handleFeatureSelect}
+      />
+    )}
+
+    {/* Task Creation Modal - Only render when visible */}
+    {showTaskCreationModal && (
+      <TaskCreationModal
+        visible={showTaskCreationModal}
+        onClose={() => setShowTaskCreationModal(false)}
+      />
+    )}
+
+    {/* Event Creation Modal - Only render when visible */}
+    {showEventCreationModal && (
+      <EventCreationModal
+        visible={showEventCreationModal}
+        onClose={() => setShowEventCreationModal(false)}
+      />
+    )}
+
+    {/* Shopping Item Creation Modal - Only render when visible */}
+    {showShoppingItemCreationModal && (
+      <ShoppingItemCreationModal
+        visible={showShoppingItemCreationModal}
+        onClose={() => setShowShoppingItemCreationModal(false)}
       />
     )}
     </>
