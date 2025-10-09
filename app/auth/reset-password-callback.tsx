@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, Alert, Platform } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { Lock, Eye, EyeOff } from 'lucide-react-native';
@@ -147,7 +147,14 @@ export default function ResetPasswordCallback() {
             <View style={styles.inputContainer}>
               <Lock size={20} color="#666" style={styles.inputIcon} />
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  Platform.OS === 'web' && ({
+                    outline: 'none',
+                    border: 'none',
+                    boxShadow: 'none',
+                  } as any)
+                ]}
                 value={newPassword}
                 onChangeText={setNewPassword}
                 placeholder="Enter new password"
@@ -174,7 +181,14 @@ export default function ResetPasswordCallback() {
             <View style={styles.inputContainer}>
               <Lock size={20} color="#666" style={styles.inputIcon} />
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  Platform.OS === 'web' && ({
+                    outline: 'none',
+                    border: 'none',
+                    boxShadow: 'none',
+                  } as any)
+                ]}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 placeholder="Confirm new password"

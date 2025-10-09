@@ -40,10 +40,16 @@ export default function WorkProfileEmpty() {
   const { isInFamily, currentFamily, refreshFamily, setFamilyData } = useFamily();
   const { user, session, refreshProfile } = useAuth();
   
-  // Debug: Log family context values
+  // Debug: Log family context values and refresh family data
   useEffect(() => {
     console.log('🔍 Family context values:', { isInFamily, currentFamily, setFamilyData: !!setFamilyData });
-  }, [isInFamily, currentFamily, setFamilyData]);
+    
+    // Refresh family data when component mounts to ensure context is up to date
+    console.log('🔄 WorkProfileEmpty page mounted, refreshing family data...');
+    refreshFamily().catch(error => {
+      console.warn('⚠️ Failed to refresh family data in WorkProfileEmpty:', error);
+    });
+  }, [isInFamily, currentFamily, setFamilyData, refreshFamily]);
   
   // Store the created family data to update context
   const [createdFamilyData, setCreatedFamilyData] = useState(null);
@@ -182,7 +188,7 @@ export default function WorkProfileEmpty() {
         'Already in Family', 
         `You are already a member of "${currentFamily.name}". You cannot create another family.`,
         [
-          { text: 'OK', onPress: () => router.replace('/(tabs)') }
+          { text: 'OK', onPress: () => router.replace('/(tabs)/family') }
         ]
       );
       return;
@@ -748,11 +754,22 @@ export default function WorkProfileEmpty() {
     // Navigate to home page with a small delay to ensure context refresh
     console.log('🏠 Navigating to home page...');
     
-    // Add a small delay to ensure the family context has time to refresh
-    setTimeout(() => {
-      router.replace('/(tabs)');
-      console.log('✅ Navigation command sent');
-    }, 500);
+    // Simple navigation with timeout protection
+    const navigationTimeout = setTimeout(() => {
+      console.log('⚠️ Navigation timeout reached, forcing navigation to family page');
+      router.replace('/(tabs)/family');
+    }, 3000); // 3 second timeout
+    
+    // Try to navigate immediately
+    try {
+      router.replace('/(tabs)/family');
+      clearTimeout(navigationTimeout);
+      console.log('✅ Navigation completed immediately');
+    } catch (error) {
+      console.error('❌ Navigation error:', error);
+      clearTimeout(navigationTimeout);
+      router.replace('/(tabs)/family');
+    }
   };
 
 
@@ -843,7 +860,14 @@ export default function WorkProfileEmpty() {
                   />
                 </View>
                 <TextInput
-                  style={styles.textInput}
+                  style={[
+                    styles.textInput,
+                    Platform.OS === 'web' && ({
+                      outline: 'none',
+                      border: 'none',
+                      boxShadow: 'none',
+                    } as any)
+                  ]}
                   value={familyName}
                   onChangeText={setFamilyName}
                   placeholder="Drump"
@@ -864,7 +888,14 @@ export default function WorkProfileEmpty() {
                   />
                 </View>
                 <TextInput
-                  style={styles.textInput}
+                  style={[
+                    styles.textInput,
+                    Platform.OS === 'web' && ({
+                      outline: 'none',
+                      border: 'none',
+                      boxShadow: 'none',
+                    } as any)
+                  ]}
                   value={slogan}
                   onChangeText={setSlogan}
                   placeholder="Best Family in the World!"

@@ -1662,7 +1662,14 @@ export default function EditProfile() {
                   resizeMode="contain"
                 />
                 <TextInput
-                  style={styles.textInput}
+                  style={[
+                    styles.textInput,
+                    Platform.OS === 'web' && ({
+                      outline: 'none',
+                      border: 'none',
+                      boxShadow: 'none',
+                    } as any)
+                  ]}
                   value={firstName}
                   onChangeText={setFirstName}
                   placeholder="First Name"
@@ -1681,7 +1688,14 @@ export default function EditProfile() {
                   resizeMode="contain"
                 />
                 <TextInput
-                  style={styles.textInput}
+                  style={[
+                    styles.textInput,
+                    Platform.OS === 'web' && ({
+                      outline: 'none',
+                      border: 'none',
+                      boxShadow: 'none',
+                    } as any)
+                  ]}
                   value={lastName}
                   onChangeText={setLastName}
                   placeholder="Last Name"

@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   StatusBar,
   Image as RNImage,
+  Platform,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react-native';
@@ -216,7 +217,14 @@ export default function EnterNewPassword() {
                     resizeMode="contain"
                   />
                   <TextInput
-                    style={styles.input}
+                    style={[
+                      styles.input,
+                      Platform.OS === 'web' && ({
+                        outline: 'none',
+                        border: 'none',
+                        boxShadow: 'none',
+                      } as any)
+                    ]}
                     placeholder="Input Password"
                     placeholderTextColor="#888888"
                     value={newPassword}
@@ -247,7 +255,14 @@ export default function EnterNewPassword() {
                     resizeMode="contain"
                   />
                   <TextInput
-                    style={styles.input}
+                    style={[
+                      styles.input,
+                      Platform.OS === 'web' && ({
+                        outline: 'none',
+                        border: 'none',
+                        boxShadow: 'none',
+                      } as any)
+                    ]}
                     placeholder="Re Enter Your Password"
                     placeholderTextColor="#888888"
                     value={confirmPassword}

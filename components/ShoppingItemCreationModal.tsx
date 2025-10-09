@@ -284,7 +284,14 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
                       resizeMode="contain"
                     />
                     <TextInput
-                      style={styles.textInput}
+                      style={[
+                        styles.textInput,
+                        Platform.OS === 'web' && ({
+                          outline: 'none',
+                          border: 'none',
+                          boxShadow: 'none',
+                        } as any)
+                      ]}
                       placeholder="Bobs Birthday"
                       placeholderTextColor="#9CA3AF"
                       value={form.title}
@@ -303,7 +310,14 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
                       resizeMode="contain"
                     />
                     <TextInput
-                      style={styles.textInput}
+                      style={[
+                        styles.textInput,
+                        Platform.OS === 'web' && ({
+                          outline: 'none',
+                          border: 'none',
+                          boxShadow: 'none',
+                        } as any)
+                      ]}
                       placeholder="1.0 stk"
                       placeholderTextColor="#9CA3AF"
                       value={form.quantity}
@@ -324,7 +338,14 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
                   resizeMode="contain"
                 />
                 <TextInput
-                  style={styles.textInput}
+                  style={[
+                    styles.textInput,
+                    Platform.OS === 'web' && ({
+                      outline: 'none',
+                      border: 'none',
+                      boxShadow: 'none',
+                    } as any)
+                  ]}
                   placeholder="Bring a Gift"
                   placeholderTextColor="#9CA3AF"
                   value={form.description}

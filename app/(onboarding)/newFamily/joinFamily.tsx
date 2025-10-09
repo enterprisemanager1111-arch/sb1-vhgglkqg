@@ -16,6 +16,7 @@ import { useFamily } from '@/contexts/FamilyContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLoading } from '@/contexts/LoadingContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useFamilyPoints } from '@/hooks/useFamilyPoints';
 import { useNotifications } from '@/components/NotificationSystem';
 import { validateFamilyCode } from '@/utils/sanitization';
@@ -24,13 +25,91 @@ import { supabase } from '@/lib/supabase';
 export default function JoinFamily() {
   const { t } = useLanguage();
   const { showLoading, hideLoading } = useLoading();
-  const { joinFamily } = useFamily();
+  const { joinFamily, refreshFamily, currentFamily } = useFamily();
   const { completeStep } = useOnboarding();
   const { awardPoints } = useFamilyPoints();
   const { showPointsEarned, showMemberActivity } = useNotifications();
+  const { user } = useAuth();
   
   const [familyCode, setFamilyCode] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
+
+  // Refresh family data and auth context when component mounts to ensure context is up to date
+  React.useEffect(() => {
+    console.log('🔄 JoinFamily page mounted, refreshing family data and auth context...');
+    console.log('🔍 Current family state:', { 
+      currentFamily: currentFamily?.id, 
+      isInFamily: !!currentFamily 
+    });
+    
+    // Refresh both family data and auth context
+    const refreshContexts = async () => {
+      try {
+        await refreshFamily();
+        console.log('✅ Family data refreshed');
+      } catch (error) {
+        console.warn('⚠️ Failed to refresh family data in JoinFamily:', error);
+      }
+    };
+    
+    refreshContexts();
+  }, [refreshFamily, currentFamily]);
+  
+  // Cleanup effect to ensure loading is cleared when component unmounts
+  React.useEffect(() => {
+    return () => {
+      console.log('🔄 JoinFamily component unmounting, clearing loading state...');
+      setLoading(false);
+      hideLoading();
+    };
+  }, [hideLoading]);
+  
+  // Manual loading clear function for emergency use
+  const clearLoadingState = () => {
+    console.log('🔄 Manually clearing loading state...');
+    setLoading(false);
+    hideLoading();
+  };
+  
+  // Emergency navigation function
+  const forceNavigation = () => {
+    console.log('🚨 Emergency navigation triggered');
+    setLoading(false);
+    hideLoading();
+    router.replace('/(tabs)/family');
+  };
+  
+  // Long press gesture to force navigation (emergency escape)
+  const handleLongPress = () => {
+    if (loading) {
+      console.log('🚨 Long press emergency navigation triggered');
+      Alert.alert(
+        'Emergency Navigation',
+        'Force navigate to family page?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Force Navigate', onPress: forceNavigation }
+        ]
+      );
+    }
+  };
+  
+  // Global error handler to catch unhandled errors
+  React.useEffect(() => {
+    const handleGlobalError = (error: any) => {
+      console.error('🚨 Global error caught in JoinFamily:', error);
+      clearLoadingState();
+    };
+    
+    // Add global error listener
+    window.addEventListener('error', handleGlobalError);
+    window.addEventListener('unhandledrejection', handleGlobalError);
+    
+    return () => {
+      window.removeEventListener('error', handleGlobalError);
+      window.removeEventListener('unhandledrejection', handleGlobalError);
+    };
+  }, []);
   
   // Refs for family code inputs
   const familyCodeInputRefs = useRef<(TextInput | null)[]>([]);
@@ -90,16 +169,93 @@ export default function JoinFamily() {
       return;
     }
     
-    // Prevent double submission
+    // Prevent double submission and multiple simultaneous attempts
     if (loading) {
+      console.log('⚠️ Join family already in progress, ignoring duplicate request');
+      return;
+    }
+
+    // Check if user already has a family
+    if (currentFamily) {
+      Alert.alert(
+        'Already in Family', 
+        `You are already a member of a family. You cannot join another family.`,
+        [
+          { text: 'OK', onPress: () => router.replace('/(tabs)/family') }
+        ]
+      );
       return;
     }
     
     setLoading(true);
-    showLoading(t('family.onboarding.joining') || 'Joining...');
+    const joiningMessage = t('family.onboarding.joining') || 'Joining family...';
+    showLoading(`🔄 ${joiningMessage}`);
+    console.log('🔄 Loading state set, showing joining interface with message:', joiningMessage);
+    
+    // Small delay to ensure loading interface is visible
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Set a timeout to prevent loading from getting stuck
+    const loadingTimeout = setTimeout(() => {
+      console.warn('⚠️ Loading timeout reached, clearing loading state');
+      setLoading(false);
+      hideLoading();
+    }, 30000); // 30 second timeout
+    
+    // Set a global timeout for the entire process
+    const processTimeout = setTimeout(() => {
+      console.warn('⚠️ Process timeout reached, forcing navigation');
+      setLoading(false);
+      hideLoading();
+      router.replace('/(tabs)/family');
+    }, 15000); // 15 second timeout (reduced from 25)
     
     try {
+      console.log('🚀 Starting join family process...');
+      console.log('🔍 Family code:', codeValidation.sanitized);
+      console.log('🔍 Current family state:', { 
+        currentFamily: currentFamily?.id, 
+        isInFamily: !!currentFamily 
+      });
+      
+      // Ensure user is properly authenticated before joining family
+      if (!user || !user.id) {
+        throw new Error('User not properly authenticated. Please sign in again.');
+      }
+      
+      console.log('✅ User authentication verified:', user.id);
+      
+      console.log('🔄 Starting joinFamily API call...');
+      showLoading('🔄 Connecting to family...');
+      const joinStartTime = Date.now();
       await joinFamily(codeValidation.sanitized);
+      const joinEndTime = Date.now();
+      console.log('✅ joinFamily API call completed in', joinEndTime - joinStartTime, 'ms');
+      
+      // Ensure loading interface is visible for at least 1 second
+      const minDisplayTime = 1000;
+      const elapsedTime = joinEndTime - joinStartTime;
+      if (elapsedTime < minDisplayTime) {
+        const remainingTime = minDisplayTime - elapsedTime;
+        console.log('🔄 Ensuring loading interface is visible for at least 1 second, waiting', remainingTime, 'ms more');
+        await new Promise(resolve => setTimeout(resolve, remainingTime));
+      }
+      
+      // Refresh family context to ensure it's up to date (with timeout)
+      console.log('🔄 Refreshing family context after successful join...');
+      showLoading('🔄 Updating family data...');
+      try {
+        await Promise.race([
+          refreshFamily(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Refresh timeout')), 3000)
+          )
+        ]);
+        console.log('✅ Family context refreshed successfully');
+      } catch (refreshError) {
+        console.warn('⚠️ Family context refresh failed or timed out:', refreshError);
+        // Continue with navigation anyway
+      }
       
       // Mark family setup step as completed
       await completeStep('family-setup', {
@@ -145,9 +301,26 @@ export default function JoinFamily() {
         ? (t('family.onboarding.joinSuccessMessageWithName', { name: familyName }) || `You are now a member of "${familyName}".`)
         : (t('family.onboarding.joinSuccessMessage') || 'You are now a member of the family.');
 
-      // Navigate directly to tabs without waiting for family context to load
-      console.log('🔄 Family join successful, navigating to tabs...');
-      router.replace('/(tabs)');
+      // Navigate to family page after successful join
+      console.log('🔄 Family join successful, navigating to family page...');
+      showLoading('🔄 Redirecting to family page...');
+      
+      // Simple navigation with timeout protection
+      const navigationTimeout = setTimeout(() => {
+        console.log('⚠️ Navigation timeout reached, forcing navigation to family page');
+        router.replace('/(tabs)/family');
+      }, 3000); // 3 second timeout
+      
+      // Try to navigate immediately
+      try {
+        router.replace('/(tabs)/family');
+        clearTimeout(navigationTimeout);
+        console.log('✅ Navigation completed immediately');
+      } catch (error) {
+        console.error('❌ Navigation error:', error);
+        clearTimeout(navigationTimeout);
+        router.replace('/(tabs)/family');
+      }
       
       // Show success message after navigation
       setTimeout(() => {
@@ -157,9 +330,14 @@ export default function JoinFamily() {
           [{ text: t('common.ok') || 'OK' }],
           { cancelable: false }
         );
-      }, 500);
+      }, 600);
     } catch (error: any) {
       console.error('❌ Join family error:', error);
+      
+      // Ensure loading is hidden immediately on error
+      console.log('🔄 Hiding loading interface due to error');
+      setLoading(false);
+      hideLoading();
       
       // Provide more specific error messages
       let errorMessage = error.message || t('family.onboarding.joinError') || 'Could not join family';
@@ -174,17 +352,30 @@ export default function JoinFamily() {
         errorMessage = 'You are already a member of this family.';
       } else if (error.message?.includes('alreadyInAnotherFamily')) {
         errorMessage = 'You are already a member of another family. Please leave your current family first.';
+      } else if (error.message?.includes('Operation timed out')) {
+        errorMessage = 'The operation timed out. Please try again.';
+      } else if (error.message?.includes('User session not available')) {
+        errorMessage = 'Your session has expired. Please sign in again.';
       }
       
       Alert.alert(
         t('common.error') || 'Error', 
         errorMessage,
-        [{ text: t('common.ok') || 'OK' }],
+        [
+          { text: t('common.ok') || 'OK', style: 'default' },
+          { text: t('common.retry') || 'Retry', onPress: () => handleJoinFamily() }
+        ],
         { cancelable: false }
       );
     } finally {
+      // Clear all timeouts
+      clearTimeout(loadingTimeout);
+      clearTimeout(processTimeout);
+      
+      // Ensure loading state is always cleared
       setLoading(false);
       hideLoading();
+      console.log('🔄 Loading state cleared');
     }
   };
 
@@ -195,6 +386,13 @@ export default function JoinFamily() {
     } else {
       router.replace('/(onboarding)/newFamily');
     }
+  };
+  
+  // Emergency loading clear function (for debugging)
+  const handleEmergencyClear = () => {
+    console.log('🚨 Emergency loading clear triggered');
+    clearLoadingState();
+    Alert.alert('Loading Cleared', 'The loading state has been manually cleared.');
   };
 
   return (

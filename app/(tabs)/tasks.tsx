@@ -10,10 +10,12 @@ import {
   StatusBar,
 } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFamilyTasks } from '@/hooks/useFamilyTasks';
 import { router } from 'expo-router';
 
 export default function Tasks() {
   const { user, profile } = useAuth();
+  const { tasks, loading: tasksLoading } = useFamilyTasks();
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'inProgress' | 'finish'>('inProgress');
 
   // Extract full name for greeting
@@ -39,6 +41,92 @@ export default function Tasks() {
     return 'TD';
   };
 
+  // Test with some sample data if no tasks are loaded
+  const testTasks: any[] = [];
+
+  // Use test tasks if no real tasks are loaded
+  const tasksToUse = tasks && tasks.length > 0 ? tasks : testTasks;
+  console.log('🔍 Using tasks:', tasksToUse);
+
+  // Calculate task counts based on date criteria
+  const getTaskCounts = () => {
+    console.log('🔍 Tasks data:', tasksToUse);
+    console.log('🔍 Tasks length:', tasksToUse?.length);
+    
+    if (!tasksToUse || tasksToUse.length === 0) {
+      console.log('❌ No tasks available');
+      return { todo: 0, inProgress: 0, done: 0 };
+    }
+
+    const currentDate = new Date();
+    const todayString = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    console.log('📅 Today string:', todayString);
+    console.log('📅 Current date object:', currentDate);
+    console.log('📅 Current date (formatted):', currentDate.toLocaleDateString());
+
+    let todo = 0;
+    let inProgress = 0;
+    let done = 0;
+
+    tasksToUse.forEach((task, index) => {
+      console.log(`🔍 Task ${index + 1}:`, {
+        title: task.title,
+        start_date: task.start_date,
+        end_date: task.end_date,
+        completed: task.completed
+      });
+      
+      // If task is completed, count it as done regardless of dates
+      if (task.completed) {
+        done++;
+        console.log(`✅ Task ${index + 1} categorized as DONE (completed)`);
+        return;
+      }
+      
+      // If no dates, categorize based on completion status
+      if (!task.start_date || !task.end_date) {
+        if (task.completed) {
+          done++;
+          console.log(`✅ Task ${index + 1} categorized as DONE (completed, no dates)`);
+        } else {
+          inProgress++;
+          console.log(`✅ Task ${index + 1} categorized as IN PROGRESS (no dates)`);
+        }
+        return;
+      }
+
+      const startDate = new Date(task.start_date).toISOString().split('T')[0];
+      const endDate = new Date(task.end_date).toISOString().split('T')[0];
+      
+      console.log(`📊 Task ${index + 1} dates:`, {
+        startDate,
+        endDate,
+        todayString
+      });
+
+      // ToDo: start_date > current Date
+      if (startDate > todayString) {
+        todo++;
+        console.log(`✅ Task ${index + 1} categorized as TODO`);
+      }
+      // In Progress: start_date <= current Date <= end_date
+      else if (startDate <= todayString && todayString <= endDate) {
+        inProgress++;
+        console.log(`✅ Task ${index + 1} categorized as IN PROGRESS`);
+      }
+      // Done: end_date < current date (tasks past their end date)
+      else if (endDate < todayString) {
+        done++;
+        console.log(`✅ Task ${index + 1} categorized as DONE`);
+      }
+    });
+
+    console.log('📊 Final counts:', { todo, inProgress, done });
+    return { todo, inProgress, done };
+  };
+
+  const { todo, inProgress, done } = getTaskCounts();
+
   // Mock data for tasks
   const mockTasks = [
     {
@@ -61,11 +149,54 @@ export default function Tasks() {
     }
   ];
 
-  const filteredTasks = selectedFilter === 'all' 
-    ? mockTasks 
-    : selectedFilter === 'inProgress' 
-    ? mockTasks.filter(task => task.status === 'In Progress')
-    : mockTasks.filter(task => task.status === 'Done');
+  // Filter tasks based on selected filter and date criteria
+  const getFilteredTasks = () => {
+    if (!tasksToUse || tasksToUse.length === 0) {
+      return [];
+    }
+
+    const currentDate = new Date();
+    const todayString = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+    return tasksToUse.filter(task => {
+      // If task is completed, show it in 'finish' filter
+      if (task.completed) {
+        return selectedFilter === 'finish' || selectedFilter === 'all';
+      }
+
+      // If no dates, categorize based on completion status
+      if (!task.start_date || !task.end_date) {
+        switch (selectedFilter) {
+          case 'all':
+            return true;
+          case 'inProgress':
+            return !task.completed; // Show as in progress if not completed
+          case 'finish':
+            return task.completed; // Show as done if completed
+          default:
+            return true;
+        }
+      }
+
+      const startDate = new Date(task.start_date).toISOString().split('T')[0];
+      const endDate = new Date(task.end_date).toISOString().split('T')[0];
+
+      switch (selectedFilter) {
+        case 'all':
+          return true; // Show all tasks
+        case 'inProgress':
+          // In Progress: start_date <= today <= end_date
+          return startDate <= todayString && todayString <= endDate;
+        case 'finish':
+          // Done: end_date < today (tasks past their end date)
+          return endDate < todayString;
+        default:
+          return true;
+      }
+    });
+  };
+
+  const filteredTasks = getFilteredTasks();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -108,7 +239,7 @@ export default function Tasks() {
                 />
                 <Text style={styles.progressLabel}>To Do</Text>
               </View>
-              <Text style={styles.progressNumber}>5</Text>
+              <Text style={styles.progressNumber}>{todo}</Text>
             </View>
             
             <View style={styles.progressCard}>
@@ -119,7 +250,7 @@ export default function Tasks() {
                 />
                 <Text style={styles.progressLabel}>In Progress</Text>
               </View>
-              <Text style={styles.progressNumber}>2</Text>
+              <Text style={styles.progressNumber}>{inProgress}</Text>
             </View>
             
             <View style={styles.progressCard}>
@@ -130,7 +261,7 @@ export default function Tasks() {
                 />
                 <Text style={styles.progressLabel}>Done</Text>
               </View>
-              <Text style={styles.progressNumber}>1</Text>
+              <Text style={styles.progressNumber}>{done}</Text>
             </View>
           </View>
         </View>
@@ -170,8 +301,8 @@ export default function Tasks() {
               onPress={() => setSelectedFilter('all')}
             >
               <Text style={[styles.filterText, selectedFilter === 'all' && styles.filterTextActive]}>All</Text>
-              <View style={styles.filterBadge}>
-                <Text style={styles.filterBadgeText}>3</Text>
+              <View style={[styles.filterBadge, selectedFilter === 'all' && styles.filterBadgeActive]}>
+                <Text style={[styles.filterBadgeText, selectedFilter === 'all' && styles.filterBadgeTextActive]}>{todo + inProgress + done}</Text>
               </View>
             </Pressable>
             
@@ -181,7 +312,7 @@ export default function Tasks() {
             >
               <Text style={[styles.filterText, selectedFilter === 'inProgress' && styles.filterTextActive]}>In Progress</Text>
               <View style={[styles.filterBadge, selectedFilter === 'inProgress' && styles.filterBadgeActive]}>
-                <Text style={[styles.filterBadgeText, selectedFilter === 'inProgress' && styles.filterBadgeTextActive]}>2</Text>
+                <Text style={[styles.filterBadgeText, selectedFilter === 'inProgress' && styles.filterBadgeTextActive]}>{inProgress}</Text>
               </View>
             </Pressable>
             
@@ -190,8 +321,8 @@ export default function Tasks() {
               onPress={() => setSelectedFilter('finish')}
             >
               <Text style={[styles.filterText, selectedFilter === 'finish' && styles.filterTextActive]}>Finish</Text>
-              <View style={styles.filterBadge}>
-                <Text style={styles.filterBadgeText}>2</Text>
+              <View style={[styles.filterBadge, selectedFilter === 'finish' && styles.filterBadgeActive]}>
+                <Text style={[styles.filterBadgeText, selectedFilter === 'finish' && styles.filterBadgeTextActive]}>{done}</Text>
               </View>
             </Pressable>
           </View>
@@ -199,57 +330,136 @@ export default function Tasks() {
 
         {/* Task List */}
         <View style={styles.taskList}>
-          {filteredTasks.map((task) => (
-            <View key={task.id} style={styles.taskCard}>
-             <View style={styles.taskHeader}>
-               <View style={styles.taskIcon}>
-                 <Image
-                   source={require('@/assets/images/icon/flash.png')}
-                   style={styles.taskIconImage}
-                 />
-               </View>
-               <Text style={styles.taskTitle}>{task.title}</Text>
-             </View>
-             
-             <View style={styles.taskTags}>
-               <View style={styles.statusTag}>
-                 <Image
-                   source={require('@/assets/images/icon/in_progress.png')}
-                   style={styles.statusTagIcon}
-                 />
-                 <Text style={styles.statusTagText}>{task.status}</Text>
-               </View>
-               <View style={styles.priorityTag}>
-                 <Image
-                   source={require('@/assets/images/icon/flag.png')}
-                   style={styles.priorityIcon}
-                 />
-                 <Text style={styles.priorityText}>{task.priority}</Text>
-               </View>
-             </View>
-             
-             <View style={styles.progressBar}>
-               <View style={[styles.progressFill, { width: `${task.progress}%` }]} />
-             </View>
-              
-              <View style={styles.taskFooter}>
-                <View style={styles.assignees}>
-                  {task.assignees.map((assignee, index) => (
-                    <View key={index} style={[styles.assigneeAvatar, { marginLeft: index > 0 ? -8 : 0 }]}>
-                      <Text style={styles.assigneeText}>{assignee}</Text>
-                    </View>
-                  ))}
-                </View>
-                <View style={styles.dueDate}>
-                  <Image
-                    source={require('@/assets/images/icon/calendar2_dis.png')}
-                    style={styles.calendarIcon}
-                  />
-                  <Text style={styles.dueDateText}>{task.dueDate}</Text>
-                </View>
-              </View>
+          {filteredTasks.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Image
+                source={require('@/assets/images/icon/no_task.svg')}
+                style={styles.emptyStateImage}
+              />
+              <Text style={styles.emptyStateText}>No tasks found</Text>
+              <Text style={styles.emptyStateSubtext}>
+                {selectedFilter === 'all' 
+                  ? 'No tasks available' 
+                  : selectedFilter === 'inProgress' 
+                  ? 'No tasks in progress' 
+                  : 'No completed tasks'}
+              </Text>
             </View>
-          ))}
+          ) : (
+            filteredTasks.map((task) => {
+              // Determine task status based on dates
+              const currentDate = new Date();
+              const todayString = currentDate.toISOString().split('T')[0];
+              const startDate = new Date(task.start_date).toISOString().split('T')[0];
+              const endDate = new Date(task.end_date).toISOString().split('T')[0];
+              
+              let taskStatus = 'To Do';
+              if (startDate <= todayString && todayString <= endDate) {
+                taskStatus = 'In Progress';
+              } else if (endDate < todayString) {
+                taskStatus = 'Done';
+              }
+
+              // Calculate progress based on dates
+              const calculateProgress = () => {
+                if (task.completed) return 100;
+                if (taskStatus === 'To Do') return 0;
+                if (taskStatus === 'Done') return 100;
+                
+                // For in progress tasks, calculate based on time elapsed
+                const start = new Date(task.start_date);
+                const end = new Date(task.end_date);
+                const now = new Date();
+                const totalDuration = end.getTime() - start.getTime();
+                const elapsedDuration = now.getTime() - start.getTime();
+                return Math.min(100, Math.max(0, (elapsedDuration / totalDuration) * 100));
+              };
+
+              const progress = calculateProgress();
+
+              return (
+                <View key={task.id} style={styles.taskCard}>
+                  <View style={styles.taskHeader}>
+                    <View style={styles.taskIcon}>
+                      <Image
+                        source={require('@/assets/images/icon/flash.png')}
+                        style={styles.taskIconImage}
+                      />
+                    </View>
+                    <Text style={styles.taskTitle}>{task.title}</Text>
+                  </View>
+                  
+                  <View style={styles.taskTags}>
+                    <View style={styles.statusTag}>
+                      <Image
+                        source={require('@/assets/images/icon/in_progress.png')}
+                        style={styles.statusTagIcon}
+                      />
+                      <Text style={styles.statusTagText}>{taskStatus}</Text>
+                    </View>
+                    <View style={styles.priorityTag}>
+                      <Image
+                        source={require('@/assets/images/icon/flag.png')}
+                        style={styles.priorityIcon}
+                      />
+                      <Text style={styles.priorityText}>{task.category || 'General'}</Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.progressBar}>
+                    <View style={[styles.progressFill, { width: `${Math.round(progress)}%` }]} />
+                  </View>
+                   
+                   <View style={styles.taskFooter}>
+                     <View style={styles.assignees}>
+                       {task.task_assignments && task.task_assignments.length > 0 ? (
+                         task.task_assignments.slice(0, 3).map((assignment: any, index: number) => (
+                           <View key={assignment.id} style={[styles.assigneeAvatar, { marginLeft: index > 0 ? -8 : 0 }]}>
+                             {assignment.assignee_profile?.avatar_url ? (
+                               <Image
+                                 source={{ uri: assignment.assignee_profile.avatar_url }}
+                                 style={styles.assigneeAvatarImage}
+                               />
+                             ) : (
+                               <Text style={styles.assigneeText}>
+                                 {assignment.assignee_profile?.name?.charAt(0).toUpperCase() || '?'}
+                               </Text>
+                             )}
+                           </View>
+                         ))
+                       ) : task.assignee_profile ? (
+                         <View style={styles.assigneeAvatar}>
+                           {task.assignee_profile.avatar_url ? (
+                             <Image
+                               source={{ uri: task.assignee_profile.avatar_url }}
+                               style={styles.assigneeAvatarImage}
+                             />
+                           ) : (
+                             <Text style={styles.assigneeText}>
+                               {task.assignee_profile.name.charAt(0).toUpperCase()}
+                             </Text>
+                           )}
+                         </View>
+                       ) : (
+                         <View style={styles.assigneeAvatar}>
+                           <Text style={styles.assigneeText}>?</Text>
+                         </View>
+                       )}
+                     </View>
+                     <View style={styles.dueDate}>
+                       <Image
+                         source={require('@/assets/images/icon/calendar2_dis.png')}
+                         style={styles.calendarIcon}
+                       />
+                       <Text style={styles.dueDateText}>
+                         {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No due date'}
+                       </Text>
+                     </View>
+                   </View>
+                </View>
+              );
+            })
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -347,7 +557,7 @@ const styles = StyleSheet.create({
   },
   progressCard: {
     flex: 1,
-    alignItems: 'left',
+    alignItems: 'flex-start',
     backgroundColor: '#F9F9F9',
     borderRadius: 8,
     borderWidth: 1,
@@ -447,7 +657,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   progressBar: {
-    flex: 1,
     height: 4,
     backgroundColor: '#E5E5E5',
     borderRadius: 4,
@@ -455,7 +664,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#FD824C',
+    backgroundColor: '#17F196',
     borderRadius: 4,
   },
   filterBarContainer: {
@@ -465,7 +674,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#EAECF0',
-    padding: 0,
     padding: 4,
     alignItems: 'center',
     elevation: 2,
@@ -493,7 +701,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: '#475467',
-    numberOfLines: 1,
   },
   filterTextActive: {
     color: '#fefefe',
@@ -597,22 +804,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#FFFFFF',
   },
-  progressBar: {
-    height: 4,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 2,
-    overflow: 'hidden',
-    marginBottom: 12,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#17f196',
-    borderRadius: 2,
-  },
   taskFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 24,
   },
   assignees: {
     flexDirection: 'row',
@@ -632,6 +828,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
+  assigneeAvatarImage: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+  },
   dueDate: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -647,5 +848,29 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: '#475467',
     lineHeight: 16.8, // 140% of 12px
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  emptyStateImage: {
+    width: 80,
+    height: 80,
+    resizeMode: 'contain',
+    marginBottom: 16,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#101828',
+    marginBottom: 8,
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#475467',
+    textAlign: 'center',
   },
 });

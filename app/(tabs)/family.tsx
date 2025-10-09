@@ -542,7 +542,7 @@ export default function FamilyDashboard() {
                 </>
               ) : (
                 <>
-                  <Copy size={18} color="#161618" strokeWidth={2} />
+                  <Copy size={18} color="#FFFFFF" strokeWidth={2} />
                   <Text style={styles.copyButtonText}>{t('family.invite.copyCode')}</Text>
                 </>
               )}
@@ -1156,8 +1156,8 @@ const styles = StyleSheet.create({
   },
   inviteModalTitle: {
     fontSize: 20,
-    fontFamily: 'Montserrat-Bold',
-    color: '#161618',
+    fontWeight: '600',
+    color: '#040404',
   },
   closeButton: {
     width: 32,
@@ -1172,35 +1172,36 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   codeLabel: {
-    fontSize: 14,
-    fontFamily: 'Montserrat-Medium',
+    fontSize: 16,
+    // fontFamily: 'Montserrat-Medium',
     color: '#666666',
     marginBottom: 12,
   },
   codeDisplay: {
-    backgroundColor: '#F3F3F5',
+    // backgroundColor: '#F3F3F5',
     borderRadius: 12,
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderWidth: 2,
-    borderColor: '#17f196',
+    borderColor: 'rgb(70, 103, 89)',
     borderStyle: 'dashed',
   },
   codeText: {
     fontSize: 28,
-    fontFamily: 'Montserrat-Bold',
-    color: '#161618',
-    letterSpacing: 4,
+    // fontFamily: 'Montserrat-Bold',
+    color: 'rgb(70, 103, 89)',
+    fontWeight: '700',
+    letterSpacing: 8,
     textAlign: 'center',
   },
   copyButton: {
+    width: '100%',
+    height: 50,
+    backgroundColor: '#17f196',
+    borderRadius: 25,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#17f196',
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
     gap: 8,
     marginBottom: 16,
     shadowColor: '#17f196',
@@ -1214,21 +1215,26 @@ const styles = StyleSheet.create({
     shadowColor: '#22C55E',
   },
   copyButtonText: {
-    fontSize: 16,
-    fontFamily: 'Montserrat-SemiBold',
-    color: '#161618',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
+    color: '#FFFFFF',
+    fontFamily: 'Helvetica',
   },
   copyButtonTextSuccess: {
-    fontSize: 16,
-    fontFamily: 'Montserrat-SemiBold',
+    fontSize: 14,
+    fontStyle: 'medium',
+    fontWeight: '500',
     color: '#FFFFFF',
+    fontFamily: 'Helvetica',
   },
   inviteInstructions: {
-    fontSize: 13,
-    fontFamily: 'Montserrat-Regular',
-    color: '#666666',
+    fontSize: 14,
+    color: '#466759',
+    fontWeight: '400',
+    lineHeight: 20,
     textAlign: 'center',
-    lineHeight: 18,
+    marginBottom: 6,
   },
   memberCountContainer: {
     flexDirection: 'row',

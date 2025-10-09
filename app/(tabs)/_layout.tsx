@@ -1,5 +1,5 @@
 import { Tabs, useRouter } from 'expo-router';
-import { View, Text, StyleSheet, Pressable, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator, Image, Alert } from 'react-native';
 import { Plus } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
@@ -7,35 +7,22 @@ import FeaturesToCreateModal from '@/components/FeaturesToCreateModal';
 import TaskCreationModal from '@/components/TaskCreationModal';
 import EventCreationModal from '@/components/EventCreationModal';
 import ShoppingItemCreationModal from '@/components/ShoppingItemCreationModal';
-import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFamily } from '@/contexts/FamilyContext';
 
 // Custom Tab Bar Component with Dented Design
 function CustomTabBar({ state, descriptors, navigation }: any) {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [showFeaturesModal, setShowFeaturesModal] = useState(false);
   const [showTaskCreationModal, setShowTaskCreationModal] = useState(false);
   const [showEventCreationModal, setShowEventCreationModal] = useState(false);
   const [showShoppingItemCreationModal, setShowShoppingItemCreationModal] = useState(false);
-  const { currentFamily, isInFamily, loading: familyLoading, refreshFamily } = useFamily();
+  const { currentFamily, isInFamily, loading: familyLoading, refreshFamily, familyMembers } = useFamily();
   
-  // Refresh family data when component mounts to ensure context is up to date
-  useEffect(() => {
-    console.log('🔄 Tabs layout mounted, refreshing family data...');
-    const refreshFamilyData = async () => {
-      try {
-        // Add a small delay to ensure any previous operations are complete
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        await refreshFamily();
-        console.log('✅ Family data refreshed in tabs layout');
-      } catch (error) {
-        console.log('⚠️ Family data refresh failed in tabs layout:', error);
-      }
-    };
-    
-    refreshFamilyData();
-  }, [refreshFamily]);
+  // Removed unnecessary family refresh - FamilyContext already loads data on mount
+
+  // Removed unnecessary navigation listener - FamilyContext handles data loading
 
   // Handle feature selection from the modal
   const handleFeatureSelect = (feature: string) => {
@@ -100,13 +87,15 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
               const isFocused = state.index === originalIndex || 
                 (route.name === 'index' && (state.routes[state.index]?.name === 'tasks' || state.routes[state.index]?.name === 'calendar' || state.routes[state.index]?.name === 'shopList'));
 
-              const onPress = () => {
+              const onPress = async () => {
+                console.log('🔍 Button pressed for route:', route.name);
                 const event = navigation.emit({
                   type: 'tabPress',
                   target: route.key,
                   canPreventDefault: true,
                 });
 
+                console.log('🔍 After emit - isFocused:', isFocused, 'event.defaultPrevented:', event.defaultPrevented);
                 if (!isFocused && !event.defaultPrevented) {
                   // Special handling for family button
                   if (route.name === 'family') {
@@ -116,17 +105,73 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                     console.log('🔍 currentFamily name:', currentFamily?.name);
                     console.log('🔍 currentFamily id:', currentFamily?.id);
                     console.log('🔍 familyLoading:', familyLoading);
+                    console.log('🔍 familyMembers count:', familyMembers?.length || 0);
+                    console.log('🔍 Route name:', route.name);
+                    console.log('🔍 Route key:', route.key);
+                    console.log('🔍 isFocused:', isFocused);
+                    console.log('🔍 event.defaultPrevented:', event.defaultPrevented);
+                    
+                    // Test alert to confirm button press is detected
+                    Alert.alert('Family Button', 'Family button was clicked!');
+                    
+                    // Add a small delay to allow family data to load if it's still loading
+                    if (familyLoading) {
+                      console.log('⏳ Family data is still loading, waiting...');
+                      setTimeout(() => {
+                        console.log('⏳ After delay - isInFamily:', isInFamily);
+                        console.log('⏳ After delay - currentFamily:', !!currentFamily);
+                        if (isInFamily && currentFamily) {
+                          console.log('✅ User has family (after delay), navigating to /(tabs)/family');
+                          console.log('🔍 About to call router.push("/(tabs)/family")');
+                          router.push('/(tabs)/family');
+                          console.log('🔍 router.push("/(tabs)/family") called');
+                        } else {
+                          console.log('❌ User has no family (after delay), navigating to newFamily page');
+                          console.log('🔍 About to call router.push("/(onboarding)/newFamily")');
+                          router.push('/(onboarding)/newFamily');
+                          console.log('🔍 router.push("/(onboarding)/newFamily") called');
+                        }
+                      }, 1000);
+                      return;
+                    }
+                    
+                    // If family data seems to be missing, try to refresh it
+                    if (!isInFamily && !currentFamily && !familyLoading) {
+                      console.log('🔄 Family data appears to be missing, attempting to refresh...');
+                      try {
+                        await refreshFamily();
+                        // Wait a moment for the refresh to complete
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        console.log('🔄 After refresh - isInFamily:', isInFamily);
+                        console.log('🔄 After refresh - currentFamily:', !!currentFamily);
+                        
+                        if (isInFamily && currentFamily) {
+                          console.log('✅ User has family (after refresh), navigating to /(tabs)/family');
+                          console.log('🔍 About to call router.push("/(tabs)/family") after refresh');
+                          router.push('/(tabs)/family');
+                          console.log('🔍 router.push("/(tabs)/family") after refresh called');
+                          return;
+                        }
+                      } catch (error) {
+                        console.error('❌ Error refreshing family data:', error);
+                      }
+                    }
                     
                     if (isInFamily && currentFamily) {
                       // User has a family, navigate to family page
                       console.log('✅ User has family, navigating to /(tabs)/family');
+                      console.log('🔍 About to call router.push("/(tabs)/family") - direct path');
                       router.push('/(tabs)/family');
+                      console.log('🔍 router.push("/(tabs)/family") - direct path called');
                     } else {
                       // User doesn't have a family, navigate to newFamily page
                       console.log('❌ User has no family, navigating to newFamily page');
                       console.log('❌ isInFamily value:', isInFamily);
                       console.log('❌ currentFamily value:', currentFamily);
+                      console.log('❌ familyMembers value:', familyMembers);
+                      console.log('🔍 About to call router.push("/(onboarding)/newFamily") - direct path');
                       router.push('/(onboarding)/newFamily');
+                      console.log('🔍 router.push("/(onboarding)/newFamily") - direct path called');
                     }
                   } else {
                     navigation.navigate(route.name);

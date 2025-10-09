@@ -8,10 +8,16 @@ import {
   SafeAreaView,
   Image,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 // Removed unused lucide-react-native imports
 import { useAuth } from '@/contexts/AuthContext';
+import { useFamilyTasks } from '@/hooks/useFamilyTasks';
+import { useFamily } from '@/contexts/FamilyContext';
+import { useLoading } from '@/contexts/LoadingContext';
 import { router } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { supabase } from '@/lib/supabase';
 
 // Custom verification icon component
 const VerificationIcon = ({ size = 16 }: { size?: number }) => (
@@ -27,46 +33,228 @@ const VerificationIcon = ({ size = 16 }: { size?: number }) => (
 
 export default function HomeDashboard() {
   const { user, profile, session } = useAuth();
-  const [refreshedProfile, setRefreshedProfile] = useState(profile);
+  const { tasks, loading: tasksLoading, refreshTasks } = useFamilyTasks();
+  const { currentFamily, loading: familyLoading } = useFamily();
+  const { showLoading, hideLoading } = useLoading();
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [loadingStarted, setLoadingStarted] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
   
-  // Refresh profile data when component mounts to ensure we have the latest data
+  // Show loading interface while initial data is being loaded
   useEffect(() => {
-    const refreshProfileData = async () => {
-      if (!user || !session?.access_token) {
-        console.log('⚠️ Home page: No user or session for profile refresh');
-        return;
+    if (isInitialLoading && !loadingStarted) {
+      setLoadingStarted(true);
+      showLoading('Loading your dashboard...');
+    }
+  }, [isInitialLoading, showLoading, loadingStarted]);
+
+  // Timeout fallback to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (isInitialLoading) {
+        console.log('⚠️ Initial loading timeout, forcing completion');
+        setIsInitialLoading(false);
+        hideLoading();
       }
-      
-      try {
-        console.log('🔄 Home page: Refreshing profile data via REST API...');
-        const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
-            'Accept': 'application/json'
-          }
-        });
-        
-        if (response.ok) {
-          const profileData = await response.json();
-          console.log('✅ Home page: Profile data refreshed via REST API:', profileData);
-          if (profileData && profileData.length > 0) {
-            setRefreshedProfile(profileData[0]);
-          }
-        } else {
-          console.log('⚠️ Home page: Profile refresh failed:', response.status);
-        }
-      } catch (error) {
-        console.log('⚠️ Home page: Profile refresh failed:', error);
+    }, 10000); // 10 second timeout
+
+    return () => clearTimeout(timeout);
+  }, [isInitialLoading, hideLoading]);
+
+  // Check if initial loading is complete
+  useEffect(() => {
+    const checkInitialLoading = () => {
+      // Check if we have essential data loaded
+      const hasUser = !!user;
+      const hasProfile = !!profile;
+      const hasFamily = !!currentFamily;
+      const isTasksLoaded = !tasksLoading;
+      const isFamilyLoaded = !familyLoading;
+
+      // Only hide loading when ALL data is completely loaded
+      if (hasUser && hasProfile && hasFamily && isTasksLoaded && isFamilyLoaded) {
+        // Add a small delay to ensure loading interface is visible
+        setTimeout(() => {
+          setIsInitialLoading(false);
+          hideLoading();
+        }, 500); // 500ms minimum loading time
       }
     };
-    
-    refreshProfileData();
-  }, []); // Run once on mount
 
-  // Use refreshed profile data if available, fallback to original profile
-  const currentProfile = refreshedProfile || profile;
+    checkInitialLoading();
+  }, [user, profile, currentFamily, tasksLoading, familyLoading, hideLoading]);
+
+  // Removed unnecessary profile refresh API call
+
+  // Only refresh tasks when coming back from task creation, not on every focus
+  useFocusEffect(
+    React.useCallback(() => {
+      // Only refresh if we're not in initial loading state
+      // This prevents unnecessary API calls during initial load
+      if (!isInitialLoading && currentFamily) {
+        refreshTasks();
+      }
+      
+      // Refresh notification count when returning to home page
+      if (user?.id) {
+        const refreshNotificationCount = async () => {
+          try {
+            const { count, error } = await supabase
+              .from('notifications')
+              .select('*', { count: 'exact', head: true })
+              .eq('assignee_id', user.id)
+              .eq('status', 'unread');
+            
+            if (!error) {
+              setNotificationCount(count || 0);
+            }
+          } catch (error) {
+            console.error('❌ Error refreshing notification count:', error);
+          }
+        };
+        
+        refreshNotificationCount();
+      }
+    }, [refreshTasks, isInitialLoading, currentFamily, user?.id])
+  );
+
+  // Remove unnecessary family refresh - FamilyContext already loads data
+  // The family data is already loaded by FamilyContext, no need to refresh again
+
+  // Real-time subscription for notifications
+  useEffect(() => {
+    if (!user?.id) {
+      return;
+    }
+    
+    const channel = supabase
+      .channel('notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `assignee_id=eq.${user.id}`
+        },
+        (payload) => {
+          setNotificationCount(prev => prev + 1);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `assignee_id=eq.${user.id}`
+        },
+        (payload) => {
+          // Refresh notification count when status changes
+          fetchNotificationCount();
+        }
+      )
+      .subscribe();
+
+    // Load initial notification count
+    const fetchNotificationCount = async () => {
+      try {
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Request timeout')), 5000)
+        );
+
+        const fetchPromise = supabase
+          .from('notifications')
+          .select('*', { count: 'exact', head: true })
+          .eq('assignee_id', user.id)
+          .eq('status', 'unread');
+
+        const result = await Promise.race([fetchPromise, timeoutPromise]) as any;
+        const { count, error } = result;
+        
+        if (error) {
+          setNotificationCount(0);
+        } else {
+          setNotificationCount(count || 0);
+        }
+      } catch (error) {
+        setNotificationCount(0);
+      }
+    };
+
+    fetchNotificationCount();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
+  // Use profile from AuthContext
+  const currentProfile = profile;
+
+  // Calculate task progress based on current date between start_date and end_date
+  const calculateTaskProgress = (task: any) => {
+    if (!task.start_date || !task.end_date) {
+      return 0;
+    }
+
+    const startDate = new Date(task.start_date);
+    const endDate = new Date(task.end_date);
+    const currentDate = new Date();
+
+    // If task is completed, show 100%
+    if (task.completed) {
+      return 100;
+    }
+
+    // If current date is before start date, show 0%
+    if (currentDate < startDate) {
+      return 0;
+    }
+
+    // If current date is after end date, show 100%
+    if (currentDate > endDate) {
+      return 100;
+    }
+
+    // Calculate progress: (current - start) / (end - start) * 100
+    const totalDuration = endDate.getTime() - startDate.getTime();
+    const elapsedDuration = currentDate.getTime() - startDate.getTime();
+    const progress = (elapsedDuration / totalDuration) * 100;
+
+    return Math.round(progress);
+  };
+
+  // Filter tasks for today (current date between start_date and end_date)
+  const getTodayTasks = () => {
+    if (!tasks || tasks.length === 0) {
+      return [];
+    }
+    
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    const filteredTasks = tasks.filter(task => {
+      // Check if task has start_date and end_date
+      if (!task.start_date || !task.end_date) {
+        return false;
+      }
+      
+      // Convert dates to YYYY-MM-DD format for comparison
+      const startDate = new Date(task.start_date).toISOString().split('T')[0];
+      const endDate = new Date(task.end_date).toISOString().split('T')[0];
+      
+      // Check if today is between start_date and end_date (inclusive)
+      const isToday = todayString >= startDate && todayString <= endDate;
+      
+      return isToday;
+    });
+    
+    return filteredTasks;
+  };
+
+  const todayTasks = getTodayTasks();
 
   // Extract full name for greeting
   const userName = (() => {
@@ -156,6 +344,7 @@ export default function HomeDashboard() {
     ]
   };
 
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
@@ -189,12 +378,26 @@ export default function HomeDashboard() {
           </View>
           
           <View style={styles.headerActions}>
-            <Pressable style={styles.notificationButton}>
+            <Pressable 
+              style={styles.notificationButton}
+              onPress={() => {
+                // Clear notification count when user opens notifications
+                setNotificationCount(0);
+                router.push('/notifications');
+              }}
+            >
               <Image 
                 source={require('@/assets/images/icon/notification.png')}
                 style={styles.notificationIcon}
                 resizeMode="contain"
               />
+              {notificationCount > 0 && (
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationBadgeText}>
+                    {notificationCount > 99 ? '99+' : notificationCount}
+                  </Text>
+                </View>
+              )}
             </Pressable>
           </View>
         </View>
@@ -373,12 +576,22 @@ export default function HomeDashboard() {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Today Task</Text>
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>1</Text>
+              <Text style={styles.badgeText}>{todayTasks.length}</Text>
             </View>
           </View>
           <Text style={styles.sectionSubtitle}>The tasks assigned to you for today</Text>
           
-          <View style={styles.taskCard}>
+          {tasksLoading ? (
+            <View style={styles.tasksLoadingContainer}>
+              <ActivityIndicator size="small" color="#17f196" />
+              <Text style={styles.tasksLoadingText}>Loading tasks...</Text>
+            </View>
+          ) : todayTasks.length > 0 ? (
+            todayTasks.map((task) => {
+              console.log(`🔍 Rendering task: ${task.title}`);
+              console.log(`🔍 Task assignments:`, task.task_assignments);
+              return (
+              <View key={task.id} style={styles.taskCard}>
              <View style={styles.taskHeader}>
                <View style={styles.taskIcon}>
                  <Image
@@ -390,8 +603,12 @@ export default function HomeDashboard() {
                    }}
                  />
                </View>
-               <Text style={styles.taskTitle}>Wiring Dashboard Analytics</Text>
+                  <Text style={styles.taskTitle}>{task.title}</Text>
              </View>
+               
+                {task.description && (
+                  <Text style={styles.taskDescription}>{task.description}</Text>
+                )}
             
              <View style={styles.taskTags}>
                <View style={styles.statusTag}>
@@ -403,7 +620,9 @@ export default function HomeDashboard() {
                      resizeMode: 'contain'
                    }}
                  />
-                 <Text style={styles.statusTagText}>In Progress</Text>
+                    <Text style={styles.statusTagText}>
+                      {task.completed ? 'Completed' : 'In Progress'}
+                    </Text>
                </View>
                <View style={styles.priorityTag}>
                  <Image
@@ -414,19 +633,54 @@ export default function HomeDashboard() {
                      resizeMode: 'contain'
                    }}
                  />
-                 <Text style={styles.priorityTagText}>High</Text>
+                    <Text style={styles.priorityTagText}>
+                      {task.points >= 200 ? 'High' : task.points >= 100 ? 'Medium' : 'Low'}
+                    </Text>
                </View>
              </View>
             
             <View style={styles.progressBar}>
-              <View style={[styles.progressFill, { width: '60%' }]} />
+                  <View style={[
+                    styles.progressFill, 
+                    { width: task.completed ? '100%' : `${Math.min(100, Math.max(0, calculateTaskProgress(task)))}%` }
+                  ]} />
             </View>
             
             <View style={styles.taskFooter}>
               <View style={styles.assigneeAvatars}>
-                <View style={[styles.assigneeAvatar, styles.assigneeAvatar1]} />
-                <View style={[styles.assigneeAvatar, styles.assigneeAvatar2]} />
-                <View style={[styles.assigneeAvatar, styles.assigneeAvatar3]} />
+                    {task.task_assignments && task.task_assignments.length > 0 ? (
+                      task.task_assignments.slice(0, 3).map((assignment, index) => (
+                        <View 
+                          key={assignment.id} 
+                          style={[
+                            styles.assigneeAvatar, 
+                            index === 0 && styles.assigneeAvatar1,
+                            index === 1 && styles.assigneeAvatar2,
+                            index === 2 && styles.assigneeAvatar3
+                          ]} 
+                        >
+                          {assignment.assignee_profile?.avatar_url ? (
+                            <Image
+                              source={{ uri: assignment.assignee_profile.avatar_url }}
+                              style={styles.assigneeAvatarImage}
+                              resizeMode="cover"
+                            />
+                          ) : (
+                            <View style={styles.assigneeAvatarPlaceholder}>
+                              <Text style={styles.assigneeAvatarInitial}>
+                                {assignment.assignee_profile?.name?.charAt(0)?.toUpperCase() || '?'}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      ))
+                    ) : (
+                      <View style={[styles.assigneeAvatar, styles.assigneeAvatar1]}>
+                        <View style={styles.assigneeAvatarPlaceholder}>
+                          <Text style={styles.assigneeAvatarInitial}>?</Text>
+                        </View>
+                      </View>
+                    )}
               </View>
                <View style={styles.dueDateContainer}>
                  <Image
@@ -437,10 +691,30 @@ export default function HomeDashboard() {
                      resizeMode: 'contain'
                    }}
                  />
-                 <Text style={styles.dueDate}>27 April</Text>
+                    <Text style={styles.dueDate}>
+                      {task.end_date ? new Date(task.end_date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric'
+                      }) : 'No due date'}
+                    </Text>
                </View>
             </View>
           </View>
+            );
+            })
+          ) : (
+            <View style={styles.emptyTaskCard}>
+              <Image
+                source={require('@/assets/images/icon/no_task.svg')}
+                style={styles.emptyTaskIcon}
+                resizeMode="contain"
+              />
+              <Text style={styles.emptyTaskText}>No Tasks Assigned</Text>
+              <Text style={styles.emptyTaskSubtext}>
+                It looks like you don't have any tasks assigned to you right now. Don't worry, this space will be updated as new tasks become available.
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Today added to Shopping list Section */}
@@ -615,10 +889,30 @@ const styles = StyleSheet.create({
     backgroundColor: '#e9fff6',
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
   },
   notificationIcon: {
     width: 20,
     height: 20,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: '#ff4444',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+  },
+  notificationBadgeText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 
   // Section Styling
@@ -912,6 +1206,12 @@ const styles = StyleSheet.create({
     color: '#2B2B2B',
     flex: 1,
   },
+  taskDescription: {
+    fontSize: 12,
+    color: '#666666',
+    marginBottom: 12,
+    lineHeight: 16,
+  },
   taskTags: {
     flexDirection: 'row',
     gap: 8,
@@ -976,7 +1276,6 @@ const styles = StyleSheet.create({
   },
   assigneeAvatars: {
     flexDirection: 'row',
-    gap: -8,
   },
   assigneeAvatar: {
     width: 24,
@@ -984,15 +1283,35 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     borderColor: '#FFFFFF',
+    marginLeft: -8,
   },
   assigneeAvatar1: {
     backgroundColor: '#FFB6C1',
+    marginLeft: 0, // First avatar has no left margin
   },
   assigneeAvatar2: {
     backgroundColor: '#FFD700',
   },
   assigneeAvatar3: {
     backgroundColor: '#87CEEB',
+  },
+  assigneeAvatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+  },
+  assigneeAvatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+    backgroundColor: '#E5E7EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  assigneeAvatarInitial: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#6B7280',
   },
   dueDateContainer: {
     flexDirection: 'row',
@@ -1004,9 +1323,48 @@ const styles = StyleSheet.create({
     color: '#666666',
   },
 
+  // Empty Task Card
+  emptyTaskCard: {
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  emptyTaskIcon: {
+    width: 140,
+    height: 88,
+    marginBottom: 20,
+  },
+  emptyTaskText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#161B23',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  emptyTaskSubtext: {
+    fontSize: 10,
+    color: '#777F8C',
+    fontWeight: '400',
+    textAlign: 'center',
+  },
+
   // Bottom spacing
   bottomSpacing: {
     height: 100,
+  },
+
+
+  // Tasks Loading
+  tasksLoadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+    gap: 8,
+  },
+  tasksLoadingText: {
+    fontSize: 14,
+    color: '#666666',
+    fontWeight: '500',
   },
 
   // Calendar Event Card

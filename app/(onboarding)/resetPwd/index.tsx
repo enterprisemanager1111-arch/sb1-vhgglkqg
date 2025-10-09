@@ -10,6 +10,7 @@ import {
   Image as RNImage,
   ScrollView,
   Alert,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Mail, Lock, ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
@@ -336,7 +337,14 @@ export default function ResetPassword() {
                         <Mail size={20} color="#17f196" strokeWidth={1.5} style={styles.inputIcon} />
                       </View>
                       <TextInput
-                        style={styles.input}
+                        style={[
+                          styles.input,
+                          Platform.OS === 'web' && ({
+                            outline: 'none',
+                            border: 'none',
+                            boxShadow: 'none',
+                          } as any)
+                        ]}
                         placeholder="My email"
                         placeholderTextColor="#888888"
                         value={email}
@@ -389,7 +397,14 @@ export default function ResetPassword() {
                         <TextInput
                           key={index}
                           ref={(ref) => { verificationInputRefs.current[index] = ref; }}
-                          style={styles.verificationCodeInput}
+                          style={[
+                            styles.verificationCodeInput,
+                            Platform.OS === 'web' && ({
+                              outline: 'none',
+                              border: 'none',
+                              boxShadow: 'none',
+                            } as any)
+                          ]}
                           value={digit}
                           onChangeText={(value) => handleVerificationCodeChange(index, value)}
                           onKeyPress={({ nativeEvent }) => handleVerificationKeyPress(index, nativeEvent.key)}

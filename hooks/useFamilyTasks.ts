@@ -5,16 +5,30 @@ import { useFamily } from '@/contexts/FamilyContext';
 import { withTimeout, withRetry } from '@/utils/loadingOptimization';
 import { PointsService } from '@/services/pointsService';
 
+export interface TaskAssignment {
+  id: string;
+  assignee_id: string;
+  status: 'assigned' | 'in_progress' | 'completed' | 'cancelled';
+  assigned_at: string;
+  completed_at?: string;
+  assignee_profile?: {
+    name: string;
+    avatar_url?: string;
+  };
+}
+
 export interface FamilyTask {
   id: string;
   family_id: string;
   title: string;
   description?: string;
-  assignee_id?: string;
+  assignee_id?: string; // Keep for backward compatibility
   completed: boolean;
   points: number;
   category: string;
   due_date?: string;
+  start_date?: string;
+  end_date?: string;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -26,6 +40,7 @@ export interface FamilyTask {
     name: string;
     avatar_url?: string;
   };
+  task_assignments?: TaskAssignment[];
 }
 
 interface UseFamilyTasksReturn {
@@ -49,11 +64,17 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
   const [error, setError] = useState<string | null>(null);
   
   const { user } = useAuth();
-  const { currentFamily } = useFamily();
+  const { currentFamily, refreshFamily } = useFamily();
 
   // Load tasks from database
   const loadTasks = useCallback(async () => {
+    console.log('🔄 loadTasks called with:', { 
+      currentFamily: currentFamily?.id, 
+      user: user?.id 
+    });
+    
     if (!currentFamily || !user) {
+      console.log('⚠️ No family or user, clearing tasks');
       setTasks([]);
       setLoading(false);
       return;
@@ -62,25 +83,132 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
     try {
       setError(null);
       
-      const { data, error: tasksError } = await supabase
-        .from('family_tasks')
-        .select(`
-          *,
-          assignee_profile:profiles!assignee_id (
-            name,
-            avatar_url
-          ),
-          creator_profile:profiles!created_by (
-            name,
-            avatar_url
-          )
-        `)
-        .eq('family_id', currentFamily.id)
-        .order('created_at', { ascending: false });
+      // Try the complex query first, fallback to simple query if it fails
+      let data, tasksError;
+      
+      // Start with simple query to avoid foreign key relationship issues
+      console.log('🔧 Loading tasks with simple query to avoid foreign key issues...');
+      
+      try {
+        const simpleResult = await supabase
+          .from('family_tasks')
+          .select('*')
+          .eq('family_id', currentFamily.id)
+          .order('created_at', { ascending: false });
+        
+        data = simpleResult.data;
+        tasksError = simpleResult.error;
+        
+        console.log('📊 Tasks loaded from database:', data?.length || 0);
+        console.log('📊 Sample task data:', data?.[0]);
+        
+        if (tasksError) {
+          console.error('❌ Simple query failed:', tasksError);
+          throw tasksError;
+        }
+      } catch (queryError: any) {
+        console.error('❌ Database query failed:', queryError);
+        
+        // Check if it's a schema issue
+        if (queryError.message && queryError.message.includes('assignee_id')) {
+          console.error('❌ Database schema issue: assignee_id column missing from family_tasks table');
+          console.error('❌ Please run the fix_actual_database_schema.sql script on your database');
+        }
+        
+        throw queryError;
+      }
+      
+      // If we have data, fetch profiles separately to avoid foreign key issues
+      if (data && data.length > 0) {
+        console.log('🔧 Fetching profiles separately to avoid foreign key issues...');
+        
+        try {
+          // Fetch creator profiles
+          const creatorIds = [...new Set(data.map(task => task.created_by))];
+          const { data: creatorProfiles } = await supabase
+            .from('profiles')
+            .select('id, name, avatar_url')
+            .in('id', creatorIds);
+          
+          // Fetch assignee profiles
+          const assigneeIds = [...new Set(data.map(task => task.assignee_id).filter(Boolean))];
+          const { data: assigneeProfiles } = await supabase
+            .from('profiles')
+            .select('id, name, avatar_url')
+            .in('id', assigneeIds);
+          
+          // Try to fetch task assignments (if table exists)
+          let assignments: any[] = [];
+          try {
+            const taskIds = data.map(task => task.id);
+            const { data: assignmentData } = await supabase
+              .from('task_assignment')
+              .select(`
+                id,
+                task_id,
+                assigned_by
+              `)
+              .in('task_id', taskIds);
+            
+            assignments = assignmentData || [];
+            console.log('✅ Task assignments loaded successfully');
+            
+            // Fetch assignee profiles for task assignments
+            if (assignments.length > 0) {
+              const assigneeIds = [...new Set(assignments.map(a => a.assigned_by).filter(Boolean))];
+              const { data: assignmentProfiles } = await supabase
+                .from('profiles')
+                .select('id, name, avatar_url')
+                .in('id', assigneeIds);
+              
+              // Combine assignments with profiles
+              assignments = assignments.map(assignment => ({
+                ...assignment,
+                assignee_profile: assignmentProfiles?.find(p => p.id === assignment.assigned_by)
+              }));
+            }
+          } catch (assignmentError) {
+            console.warn('⚠️ Task assignments table may not exist yet:', assignmentError);
+            assignments = [];
+          }
+          
+          // Combine the data
+          data = data.map(task => {
+            const taskAssignments = assignments?.filter(a => a.task_id === task.id) || [];
+            console.log(`📊 Task ${task.title} assignments:`, taskAssignments);
+            return {
+              ...task,
+              creator_profile: creatorProfiles?.find(p => p.id === task.created_by),
+              assignee_profile: assigneeProfiles?.find(p => p.id === task.assignee_id),
+              task_assignments: taskAssignments
+            };
+          });
+          
+          console.log('✅ Tasks and profiles combined successfully');
+          
+        } catch (profileError) {
+          console.warn('⚠️ Profile loading failed, using tasks without profiles:', profileError);
+          // Continue with tasks but without profile information
+          data = data.map(task => ({
+            ...task,
+            creator_profile: null,
+            assignee_profile: null,
+            task_assignments: []
+          }));
+        }
+      }
 
       if (tasksError) throw tasksError;
 
+      console.log('📊 Setting tasks in state:', data?.map(t => ({ 
+        id: t.id, 
+        title: t.title, 
+        start_date: t.start_date, 
+        end_date: t.end_date 
+      })));
+      console.log('📊 Total tasks to set:', data?.length || 0);
       setTasks(data || []);
+      console.log('📊 Tasks state updated');
     } catch (error: any) {
       console.error('Error loading tasks:', error);
       setError(error.message);
@@ -105,44 +233,85 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
         ...taskData,
         family_id: currentFamily.id,
         created_by: user.id,
+        // Remove assignee_id - assignments go to task_assignment table
+        assignee_id: undefined
       };
       
       console.log('🔧 Inserting data:', insertData);
       console.log('🔧 About to call Supabase insert...');
       
-      // Skip authentication synchronization - it's also hanging due to GoTrueClient lock
-      console.log('🔧 Skipping authentication synchronization - going directly to database operation...');
+      // Try HTTP API approach first to bypass GoTrueClient lock issues
+      console.log('🔧 Attempting HTTP API approach to bypass GoTrueClient lock issues...');
       
       try {
-        // Add timeout to prevent hanging
-        const insertPromise = supabase
-          .from('family_tasks')
-          .insert([insertData])
-          .select();
-
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Database operation timed out after 5 seconds')), 5000);
+        // Get session token with timeout
+        const sessionPromise = supabase.auth.getSession();
+        const sessionTimeout = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Session timeout')), 2000);
         });
-
-        const { data, error } = await Promise.race([insertPromise, timeoutPromise]) as any;
-          
-        console.log('🔧 Insert completed:', { data, error });
         
-        if (error) {
-          console.error('❌ Insert error details:', {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
-          });
-          throw error;
+        const { data: { session } } = await Promise.race([sessionPromise, sessionTimeout]) as any;
+        
+        if (!session?.access_token) {
+          throw new Error('No valid session found');
         }
         
-        console.log('✅ Task created successfully:', data);
+        console.log('🔧 Making HTTP request to create task...');
         
-      } catch (insertError: any) {
-        console.error('❌ Insert operation failed:', insertError);
-        throw insertError;
+        // Make HTTP request to create task
+        const response = await fetch(`${(supabase as any).supabaseUrl}/rest/v1/family_tasks`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': (supabase as any).supabaseKey,
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify(insertData)
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ Task created successfully via HTTP API:', data);
+        
+      } catch (httpError: any) {
+        console.warn('⚠️ HTTP API approach failed, trying Supabase client:', httpError);
+        
+        // Fallback to Supabase client with timeout
+        try {
+          const insertPromise = supabase
+            .from('family_tasks')
+            .insert([insertData])
+            .select();
+
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Database operation timed out after 3 seconds')), 3000);
+          });
+
+          const { data, error } = await Promise.race([insertPromise, timeoutPromise]) as any;
+          
+          console.log('🔧 Insert completed:', { data, error });
+          
+          if (error) {
+            console.error('❌ Insert error details:', {
+              message: error.message,
+              details: error.details,
+              hint: error.hint,
+              code: error.code
+            });
+            throw error;
+          }
+          
+          console.log('✅ Task created successfully via Supabase client:', data);
+          
+        } catch (insertError: any) {
+          console.error('❌ Both HTTP API and Supabase client failed:', insertError);
+          throw insertError;
+        }
       }
 
       console.log('✅ Task inserted successfully, refreshing tasks...');
@@ -276,8 +445,13 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
   }, [cleanupCompletedTasks]);
   // Refresh tasks
   const refreshTasks = useCallback(async () => {
+    console.log('🔄 Manual refresh of tasks requested');
+    console.log('🔄 Current tasks before refresh:', tasks.length);
+    console.log('🔄 Current family:', currentFamily?.id);
+    console.log('🔄 Current user:', user?.id);
     await loadTasks();
-  }, [loadTasks]);
+    console.log('🔄 Tasks after refresh:', tasks.length);
+  }, [loadTasks, tasks.length, currentFamily?.id, user?.id]);
 
   // Filter functions
   const getTasksByCategory = useCallback((category: string) => {
@@ -301,46 +475,22 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
     loadTasks();
   }, [currentFamily?.id, user?.id, loadTasks]);
 
-  // Setup real-time subscription with debouncing
+ // Add user?.id to dependencies
+
+  // Periodic refresh as fallback (every 5 minutes)
   useEffect(() => {
     if (!currentFamily) return;
 
-    console.log('Setting up real-time subscription for tasks:', currentFamily.id);
-
-    let debounceTimeout: NodeJS.Timeout;
-
-    const debouncedLoadTasks = () => {
-      clearTimeout(debounceTimeout);
-      debounceTimeout = setTimeout(() => {
-        loadTasks();
-      }, 500) as unknown as NodeJS.Timeout; // 500ms debounce
-    };
-
-    const channel = supabase
-      .channel(`family_tasks_${currentFamily.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'family_tasks',
-          filter: `family_id=eq.${currentFamily.id}`,
-        },
-        (payload) => {
-          console.log('Real-time task change:', payload);
-          debouncedLoadTasks();
-        }
-      )
-      .subscribe((status) => {
-        console.log('Tasks subscription status:', status);
-      });
+    const interval = setInterval(() => {
+      loadTasks();
+    }, 5 * 60 * 1000); // 5 minutes
 
     return () => {
-      console.log('Cleaning up tasks subscription');
-      clearTimeout(debounceTimeout);
-      channel.unsubscribe();
+      clearInterval(interval);
     };
-  }, [currentFamily?.id]); // Remove loadTasks dependency
+  }, [currentFamily?.id, loadTasks]);
+
+
 
   return {
     tasks,

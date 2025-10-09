@@ -295,7 +295,14 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
                   resizeMode="contain"
                 />
                 <TextInput
-                  style={styles.textInput}
+                  style={[
+                    styles.textInput,
+                    Platform.OS === 'web' && ({
+                      outline: 'none',
+                      border: 'none',
+                      boxShadow: 'none',
+                    } as any)
+                  ]}
                   placeholder="Bobs Birthday"
                   placeholderTextColor="#9CA3AF"
                   value={form.title}
@@ -314,7 +321,14 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
                   resizeMode="contain"
                 />
                 <TextInput
-                  style={styles.textInput}
+                  style={[
+                    styles.textInput,
+                    Platform.OS === 'web' && ({
+                      outline: 'none',
+                      border: 'none',
+                      boxShadow: 'none',
+                    } as any)
+                  ]}
                   placeholder="Bring a Gift"
                   placeholderTextColor="#9CA3AF"
                   value={form.description}

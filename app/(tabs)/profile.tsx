@@ -977,7 +977,14 @@ export default function UserProfile() {
             
             <View style={styles.modalForm}>
               <TextInput
-                style={styles.modalInput}
+                style={[
+                  styles.modalInput,
+                  Platform.OS === 'web' && ({
+                    outline: 'none',
+                    border: 'none',
+                    boxShadow: 'none',
+                  } as any)
+                ]}
                 placeholder="Current Password"
                 secureTextEntry
                 value={currentPassword}
@@ -985,7 +992,14 @@ export default function UserProfile() {
                 autoComplete="current-password"
               />
               <TextInput
-                style={styles.modalInput}
+                style={[
+                  styles.modalInput,
+                  Platform.OS === 'web' && ({
+                    outline: 'none',
+                    border: 'none',
+                    boxShadow: 'none',
+                  } as any)
+                ]}
                 placeholder="New Password"
                 secureTextEntry
                 value={newPassword}
@@ -993,7 +1007,14 @@ export default function UserProfile() {
                 autoComplete="new-password"
               />
               <TextInput
-                style={styles.modalInput}
+                style={[
+                  styles.modalInput,
+                  Platform.OS === 'web' && ({
+                    outline: 'none',
+                    border: 'none',
+                    boxShadow: 'none',
+                  } as any)
+                ]}
                 placeholder="Confirm New Password"
                 secureTextEntry
                 value={confirmNewPassword}

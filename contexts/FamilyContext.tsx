@@ -606,51 +606,138 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
 
       console.log('🔍 Proceeding directly with family search...');
 
-      // Find family by code with simplified approach
+      // Get the session token with multiple fallback approaches
+      let accessToken = null;
+      
+      // Approach 1: Try AuthContext first (most reliable for navigation)
+      if (currentUser && currentUser.access_token) {
+        console.log('🔍 Using token from AuthContext currentUser (most reliable)');
+        accessToken = currentUser.access_token;
+      } else {
+        console.log('🔍 AuthContext token not available, trying Supabase session with timeout...');
+        
+        // Approach 2: Try Supabase session with timeout
+        try {
+          // Create a timeout promise for session retrieval
+          const sessionTimeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Session retrieval timeout after 3 seconds')), 3000);
+          });
+          
+          // Create the session promise
+          const sessionPromise = supabase.auth.getSession();
+          
+          // Race between session retrieval and timeout
+          const { data: { session } } = await Promise.race([sessionPromise, sessionTimeoutPromise]) as any;
+          
+          accessToken = session?.access_token;
+          
+          if (accessToken) {
+            console.log('✅ Session token obtained from Supabase auth');
+          } else {
+            throw new Error('No session token in response');
+          }
+          
+        } catch (sessionError: any) {
+          console.warn('⚠️ Supabase session retrieval failed:', sessionError.message);
+          
+          // Approach 3: Try to get token from localStorage as last resort
+          try {
+            console.log('🔍 Trying to get token from localStorage as last resort...');
+            const storedToken = localStorage.getItem('sb-eqaxmxbqqiuiwkhjwvvz-auth-token');
+            if (storedToken) {
+              const tokenData = JSON.parse(storedToken);
+              accessToken = tokenData.access_token;
+              console.log('✅ Session token obtained from localStorage');
+            } else {
+              throw new Error('No token in localStorage');
+            }
+          } catch (localStorageError: any) {
+            console.error('❌ All token retrieval methods failed:', localStorageError.message);
+            throw new Error('Unable to get valid session token. Please try refreshing the page.');
+          }
+        }
+      }
+      
+      if (!accessToken) {
+        throw new Error('No valid session token available');
+      }
+      
+      console.log('✅ Session token obtained for HTTP API calls');
+
+      // Find family by code using direct HTTP API to bypass GoTrueClient issues
       let family = null;
       let familyError = null;
       
       try {
-        console.log(`🔍 Searching for family with code: "${codeValidation.sanitized}"`);
+        console.log(`🔍 Searching for family with code: "${codeValidation.sanitized}" using direct HTTP API`);
         
-        // Use a simple, direct query with shorter timeout
-        const { data, error } = await Promise.race([
-          supabase
-            .from('families')
-            .select('*')
-            .eq('code', codeValidation.sanitized)
-            .limit(1),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Family search timeout after 3 seconds')), 3000)
-          )
-        ]) as any;
-        
-        familyError = error;
-        
-        if (error) {
-          console.error('❌ Family search error:', error);
-          throw new Error(`Database error: ${error.message}`);
+        const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/families?code=eq.${codeValidation.sanitized}&select=*&limit=1`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
+
+        const data = await response.json();
         
         if (data && data.length > 0) {
           family = data[0];
-          console.log('✅ Found family:', family.name, 'ID:', family.id);
+          console.log('✅ Found family via HTTP API:', family.name, 'ID:', family.id);
         } else {
           console.log('❌ No family found with code:', codeValidation.sanitized);
           family = null;
         }
         
-      } catch (queryException: any) {
-        console.error('❌ Family search exception:', queryException);
-        familyError = queryException;
+      } catch (httpException: any) {
+        console.error('❌ Family search HTTP exception:', httpException);
+        familyError = httpException;
         
-        // Provide a helpful error message based on the error type
-        if (queryException.message?.includes('timeout')) {
-          throw new Error('Connection timeout. Please check your internet connection and try again.');
-        } else if (queryException.message?.includes('fetch') || queryException.message?.includes('network')) {
-          throw new Error('Network error: Unable to connect to the server. Please check your internet connection and try again.');
-        } else {
-          throw new Error(`Database error: ${queryException.message}`);
+        // Fallback to Supabase client with timeout
+        try {
+          console.log('🔄 HTTP API failed, trying Supabase client as fallback...');
+          
+          const { data, error } = await Promise.race([
+            supabase
+              .from('families')
+              .select('*')
+              .eq('code', codeValidation.sanitized)
+              .limit(1),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Family search timeout after 5 seconds')), 5000)
+            )
+          ]) as any;
+          
+          if (error) {
+            console.error('❌ Family search error:', error);
+            throw new Error(`Database error: ${error.message}`);
+          }
+          
+          if (data && data.length > 0) {
+            family = data[0];
+            console.log('✅ Found family via Supabase client:', family.name, 'ID:', family.id);
+          } else {
+            console.log('❌ No family found with code:', codeValidation.sanitized);
+            family = null;
+          }
+          
+        } catch (queryException: any) {
+          console.error('❌ Family search exception:', queryException);
+          
+          // Provide a helpful error message based on the error type
+          if (queryException.message?.includes('timeout')) {
+            throw new Error('Connection timeout. Please check your internet connection and try again.');
+          } else if (queryException.message?.includes('fetch') || queryException.message?.includes('network')) {
+            throw new Error('Network error: Unable to connect to the server. Please check your internet connection and try again.');
+          } else {
+            throw new Error(`Database error: ${queryException.message}`);
+          }
         }
       }
 
@@ -662,15 +749,30 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
 
       console.log('✅ Found family:', family.name);
 
-      // Check if user is already in this family with retry
+      // Check if user is already in this family using direct HTTP API
       let existingMember = null;
-      let membershipRetryCount = 0;
-      const maxMembershipRetries = 2;
       
-      while (membershipRetryCount < maxMembershipRetries) {
-        try {
-          console.log(`🔍 Checking existing membership, attempt ${membershipRetryCount + 1}/${maxMembershipRetries}`);
+      try {
+        console.log(`🔍 Checking existing membership using direct HTTP API`);
+        
+        const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/family_members?family_id=eq.${family.id}&user_id=eq.${currentUser.id}&select=*&limit=1`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          existingMember = data && data.length > 0 ? data[0] : null;
+          console.log('✅ Membership check via HTTP API:', !!existingMember);
+        } else {
+          console.warn('⚠️ HTTP API membership check failed, trying Supabase client...');
           
+          // Fallback to Supabase client
           const { data, error } = await supabase
             .from('family_members')
             .select('*')
@@ -679,23 +781,13 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
             .maybeSingle();
           
           existingMember = data;
-          
-          if (error && (error.message?.includes('fetch') || error.message?.includes('network'))) {
-            console.log(`⚠️ Network error checking membership, retrying...`);
-            membershipRetryCount++;
-            if (membershipRetryCount < maxMembershipRetries) {
-              await new Promise(resolve => setTimeout(resolve, 500));
-            }
-          } else {
-            break; // Success or non-network error
-          }
-        } catch (exception: any) {
-          console.error(`❌ Exception checking membership:`, exception);
-          membershipRetryCount++;
-          if (membershipRetryCount < maxMembershipRetries) {
-            await new Promise(resolve => setTimeout(resolve, 500));
+          if (error) {
+            console.error('❌ Supabase client membership check error:', error);
           }
         }
+      } catch (exception: any) {
+        console.error(`❌ Exception checking membership:`, exception);
+        existingMember = null;
       }
 
       console.log('🔍 Existing membership check:', !!existingMember);
@@ -705,15 +797,30 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
         throw new Error(t('family.join.errors.alreadyMember'));
       }
 
-      // Check if user is already in another family with retry
+      // Check if user is already in another family using direct HTTP API
       let currentMembership = null;
-      let otherMembershipRetryCount = 0;
-      const maxOtherMembershipRetries = 2;
       
-      while (otherMembershipRetryCount < maxOtherMembershipRetries) {
-        try {
-          console.log(`🔍 Checking other memberships, attempt ${otherMembershipRetryCount + 1}/${maxOtherMembershipRetries}`);
+      try {
+        console.log(`🔍 Checking other memberships using direct HTTP API`);
+        
+        const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/family_members?user_id=eq.${currentUser.id}&select=*&limit=1`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          currentMembership = data && data.length > 0 ? data[0] : null;
+          console.log('✅ Other membership check via HTTP API:', !!currentMembership);
+        } else {
+          console.warn('⚠️ HTTP API other membership check failed, trying Supabase client...');
           
+          // Fallback to Supabase client
           const { data, error } = await supabase
             .from('family_members')
             .select('*')
@@ -721,23 +828,13 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
             .maybeSingle();
           
           currentMembership = data;
-          
-          if (error && (error.message?.includes('fetch') || error.message?.includes('network'))) {
-            console.log(`⚠️ Network error checking other memberships, retrying...`);
-            otherMembershipRetryCount++;
-            if (otherMembershipRetryCount < maxOtherMembershipRetries) {
-              await new Promise(resolve => setTimeout(resolve, 500));
-            }
-          } else {
-            break; // Success or non-network error
-          }
-        } catch (exception: any) {
-          console.error(`❌ Exception checking other memberships:`, exception);
-          otherMembershipRetryCount++;
-          if (otherMembershipRetryCount < maxOtherMembershipRetries) {
-            await new Promise(resolve => setTimeout(resolve, 500));
+          if (error) {
+            console.error('❌ Supabase client other membership check error:', error);
           }
         }
+      } catch (exception: any) {
+        console.error(`❌ Exception checking other memberships:`, exception);
+        currentMembership = null;
       }
 
       console.log('🔍 Current membership check:', !!currentMembership);
@@ -749,14 +846,44 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
 
       console.log('✅ All checks passed, adding user to family...');
 
-      // Add user to family with retry
+      // Add user to family using direct HTTP API
       let memberError = null;
-      let insertRetryCount = 0;
-      const maxInsertRetries = 2;
       
-      while (insertRetryCount < maxInsertRetries) {
+      try {
+        console.log(`🔍 Adding user to family using direct HTTP API`);
+        
+        const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/family_members`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify([
+            {
+              family_id: family.id,
+              user_id: currentUser.id,
+              role: 'member'
+            }
+          ])
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+
+        console.log('✅ Member added via HTTP API successfully');
+        memberError = null;
+        
+      } catch (httpException: any) {
+        console.error('❌ HTTP API member insertion failed:', httpException);
+        
+        // Fallback to Supabase client
         try {
-          console.log(`🔍 Adding user to family, attempt ${insertRetryCount + 1}/${maxInsertRetries}`);
+          console.log('🔄 HTTP API failed, trying Supabase client as fallback...');
           
           const { error } = await supabase
             .from('family_members')
@@ -769,28 +896,11 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
             ]);
           
           memberError = error;
+          console.log('📝 Supabase client member insertion result:', { success: !memberError });
           
-          console.log('📝 Member insertion result:', { success: !memberError, attempt: insertRetryCount + 1 });
-          
-          if (!memberError || (memberError && !memberError.message?.includes('fetch') && !memberError.message?.includes('network'))) {
-            break; // Success or non-network error
-          }
-          
-          // If it's a network error, retry
-          if (memberError && (memberError.message?.includes('fetch') || memberError.message?.includes('network'))) {
-            console.log(`⚠️ Network error during insert, retrying...`);
-            insertRetryCount++;
-            if (insertRetryCount < maxInsertRetries) {
-              await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-          }
         } catch (insertException: any) {
-          console.error(`❌ Insert exception:`, insertException);
+          console.error(`❌ Supabase client insert exception:`, insertException);
           memberError = insertException;
-          insertRetryCount++;
-          if (insertRetryCount < maxInsertRetries) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
         }
       }
 
@@ -807,12 +917,15 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
 
       console.log('🎉 User successfully joined family');
 
+      // Update family context immediately after successful join
+      console.log('🔄 Updating family context after successful join...');
+      setCurrentFamily(family);
+      setUserRole('member');
+      
       // Award points for joining family (handled in component)
       // This is intentionally commented out to be handled in the UI layer
 
-      // Skip family data reload to avoid hanging - let the component handle it
-      console.log('🔄 Skipping family data reload to avoid hanging...');
-      console.log('✅ Family join completed successfully');
+      console.log('✅ Family join completed successfully and context updated');
 
       return family;
     } catch (error: any) {

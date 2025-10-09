@@ -10,6 +10,7 @@ import {
   ScrollView,
   Image as RNImage,
   Alert,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Mail, Phone, Building, Lock, Eye, EyeOff, Check } from 'lucide-react-native';
@@ -736,7 +737,14 @@ export default function SignUp() {
                 resizeMode="contain"
               />
               <TextInput
-                style={styles.textInput}
+                style={[
+                  styles.textInput,
+                  Platform.OS === 'web' && ({
+                    outline: 'none',
+                    border: 'none',
+                    boxShadow: 'none',
+                  } as any)
+                ]}
                 placeholder={t('onboarding.auth.signup.form.emailPlaceholder') || 'Enter Your Email'}
                 placeholderTextColor="#888888"
                 value={email}
@@ -760,7 +768,14 @@ export default function SignUp() {
               </View>
               <Phone size={20} color="#88faca" strokeWidth={2} style={styles.inputIcon} />
               <TextInput
-                style={styles.textInput}
+                style={[
+                  styles.textInput,
+                  Platform.OS === 'web' && ({
+                    outline: 'none',
+                    border: 'none',
+                    boxShadow: 'none',
+                  } as any)
+                ]}
                 placeholder={t('onboarding.auth.signup.form.phonePlaceholder') || '+62 0000 0000 0000'}
                 placeholderTextColor="#888888"
                 value={phoneNumber}
@@ -782,7 +797,14 @@ export default function SignUp() {
                 resizeMode="contain"
               />
               <TextInput
-                style={styles.textInput}
+                style={[
+                  styles.textInput,
+                  Platform.OS === 'web' && ({
+                    outline: 'none',
+                    border: 'none',
+                    boxShadow: 'none',
+                  } as any)
+                ]}
                 placeholder={t('onboarding.auth.signup.form.companyPlaceholder') || 'Enter Company ID'}
                 placeholderTextColor="#888888"
                 value={companyId}
@@ -805,7 +827,14 @@ export default function SignUp() {
                 resizeMode="contain"
               />
               <TextInput
-                style={styles.textInput}
+                style={[
+                  styles.textInput,
+                  Platform.OS === 'web' && ({
+                    outline: 'none',
+                    border: 'none',
+                    boxShadow: 'none',
+                  } as any)
+                ]}
                 placeholder={t('onboarding.auth.signup.form.passwordPlaceholder') || 'My Password'}
                 placeholderTextColor="#888888"
                 value={password}
@@ -839,7 +868,14 @@ export default function SignUp() {
                 resizeMode="contain"
               />
               <TextInput
-                style={styles.textInput}
+                style={[
+                  styles.textInput,
+                  Platform.OS === 'web' && ({
+                    outline: 'none',
+                    border: 'none',
+                    boxShadow: 'none',
+                  } as any)
+                ]}
                 placeholder={t('onboarding.auth.signup.form.confirmPasswordPlaceholder') || 'Confirm My Password'}
                 placeholderTextColor="#888888"
                 value={confirmPassword}

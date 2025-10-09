@@ -9,6 +9,7 @@ import {
   Dimensions,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
 import Animated, { 
   useSharedValue, 
@@ -390,7 +391,14 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                 <View style={styles.formSection}>
                   <Text style={styles.formLabel}>{t('tabs.modal.taskTitle')} *</Text>
                   <TextInput
-                    style={styles.formInput}
+                    style={[
+                      styles.formInput,
+                      Platform.OS === 'web' && ({
+                        outline: 'none',
+                        border: 'none',
+                        boxShadow: 'none',
+                      } as any)
+                    ]}
                     placeholder={t('tabs.modal.taskTitlePlaceholder')}
                     value={form.taskTitle}
                     onChangeText={(value) => updateForm('taskTitle', value)}
@@ -401,7 +409,15 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                 <View style={styles.formSection}>
                   <Text style={styles.formLabel}>{t('tabs.modal.description')} ({t('common.optional')})</Text>
                   <TextInput
-                    style={[styles.formInput, styles.textArea]}
+                    style={[
+                      styles.formInput, 
+                      styles.textArea,
+                      Platform.OS === 'web' && ({
+                        outline: 'none',
+                        border: 'none',
+                        boxShadow: 'none',
+                      } as any)
+                    ]}
                     placeholder={t('tabs.modal.taskDescriptionPlaceholder')}
                     value={form.taskDescription}
                     onChangeText={(value) => updateForm('taskDescription', value)}
@@ -595,7 +611,14 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                   <View style={[styles.formSection, { flex: 2 }]}>
                     <Text style={styles.formLabel}>{t('tabs.modal.eventDate')} *</Text>
                     <TextInput
-                      style={styles.formInput}
+                      style={[
+                        styles.formInput,
+                        Platform.OS === 'web' && ({
+                          outline: 'none',
+                          border: 'none',
+                          boxShadow: 'none',
+                        } as any)
+                      ]}
                       placeholder="DD.MM.YYYY (z.B. 19.09.2025)"
                       value={form.eventDate}
                       onChangeText={(value) => updateForm('eventDate', value)}
@@ -606,7 +629,14 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                   <View style={[styles.formSection, { flex: 1 }]}>
                     <Text style={styles.formLabel}>{t('tabs.modal.eventTime')}</Text>
                     <TextInput
-                      style={styles.formInput}
+                      style={[
+                        styles.formInput,
+                        Platform.OS === 'web' && ({
+                          outline: 'none',
+                          border: 'none',
+                          boxShadow: 'none',
+                        } as any)
+                      ]}
                       placeholder="HH:MM"
                       value={form.eventTime}
                       onChangeText={(value) => updateForm('eventTime', value)}
@@ -618,7 +648,14 @@ export default function AddItemModal({ visible, onClose }: AddItemModalProps) {
                 <View style={styles.formSection}>
                   <Text style={styles.formLabel}>Ort (optional)</Text>
                   <TextInput
-                    style={styles.formInput}
+                    style={[
+                      styles.formInput,
+                      Platform.OS === 'web' && ({
+                        outline: 'none',
+                        border: 'none',
+                        boxShadow: 'none',
+                      } as any)
+                    ]}
                     placeholder="z.B. Zuhause, Restaurant, Park"
                     value={form.eventLocation}
                     onChangeText={(value) => updateForm('eventLocation', value)}
