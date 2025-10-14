@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,8 +15,26 @@ import { router } from 'expo-router';
 
 export default function Tasks() {
   const { user, profile } = useAuth();
-  const { tasks, loading: tasksLoading } = useFamilyTasks();
+  const { tasks, loading: tasksLoading, refreshTasks } = useFamilyTasks();
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'inProgress' | 'finish'>('inProgress');
+
+  // Listen for refresh events from notifications
+  useEffect(() => {
+    const handleRefreshTasks = () => {
+      console.log('🔄 Tasks refresh triggered from notification');
+      if (refreshTasks) {
+        refreshTasks();
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('refreshTasks', handleRefreshTasks);
+      
+      return () => {
+        window.removeEventListener('refreshTasks', handleRefreshTasks);
+      };
+    }
+  }, [refreshTasks]);
 
   // Extract full name for greeting
   const userName = (() => {

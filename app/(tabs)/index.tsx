@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFamilyTasks } from '@/hooks/useFamilyTasks';
 import { useFamily } from '@/contexts/FamilyContext';
 import { useLoading } from '@/contexts/LoadingContext';
+import { useTodayEvents } from '@/hooks/useTodayEvents';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '@/lib/supabase';
@@ -36,6 +37,7 @@ export default function HomeDashboard() {
   const { tasks, loading: tasksLoading, refreshTasks } = useFamilyTasks();
   const { currentFamily, loading: familyLoading } = useFamily();
   const { showLoading, hideLoading } = useLoading();
+  const { events: todayEvents, loading: eventsLoading, error: eventsError, refreshEvents } = useTodayEvents();
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [loadingStarted, setLoadingStarted] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
@@ -150,8 +152,14 @@ export default function HomeDashboard() {
           filter: `assignee_id=eq.${user.id}`
         },
         (payload) => {
-          // Refresh notification count when status changes
-          fetchNotificationCount();
+          // Only update count if status changed to/from unread
+          if (payload.new.status !== payload.old.status) {
+            if (payload.new.status === 'read') {
+              setNotificationCount(prev => Math.max(0, prev - 1));
+            } else if (payload.new.status === 'unread') {
+              setNotificationCount(prev => prev + 1);
+            }
+          }
         }
       )
       .subscribe();
@@ -519,56 +527,155 @@ export default function HomeDashboard() {
         {/* Today on the Calendar Section */}
         <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Today on the Calander</Text>
+            <Text style={styles.sectionTitle}>Today on the Calendar</Text>
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>1</Text>
+              <Text style={styles.badgeText}>{todayEvents.length}</Text>
             </View>
           </View>
           <Text style={styles.sectionSubtitle}>Your schedule for the day</Text>
           
-          <View style={styles.calendarEventCard}>
-            <View style={styles.eventHeader}>
-              <Text style={styles.eventMainTitle}>Bob's Birthday</Text>
-              <Text style={styles.eventPrivateMessage}>Private message: Don't forget the gifts</Text>
+          {eventsLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#17f196" />
+              <Text style={styles.loadingText}>Loading events...</Text>
             </View>
-            
-             <View style={styles.eventDetailsContainer}>
-               <View style={styles.eventDetailsGroup}>
-                 <View style={styles.eventDetailItemLeft}>
-                   <Text style={styles.eventDetailLabel}>Event Title</Text>
-                   <Text style={styles.eventDetailValue} numberOfLines={1}>Birthday Party</Text>
-                 </View>
-                 <View style={styles.eventDetailItemCenter}>
-                   <Text style={styles.eventDetailLabel}>Start Time</Text>
-                   <Text style={styles.eventDetailValue} numberOfLines={1}>20:00 Uhr</Text>
-                 </View>
-                 <View style={styles.eventDetailItemRight}>
-                   <Text style={styles.eventDetailLabel}>Duration</Text>
-                   <Text style={styles.eventDetailValue} numberOfLines={1}>30min</Text>
-                 </View>
-               </View>
-             </View>
-             
-               <View style={styles.eventDateContainer}>
-                 <Image
-                   source={require('@/assets/images/icon/calendar2_dis.png')}
-                   style={{
-                     width: 16,
-                     height: 16,
-                     resizeMode: 'contain'
-                   }}
-                 />
-                 <Text style={styles.eventDate}>20, September</Text>
-               </View>
-            
-            <View style={styles.eventFooter}>
-              <View style={styles.eventAttendees}>
-                <View style={[styles.attendeeAvatar, { backgroundColor: '#FFB6C1' }]} />
-                <View style={[styles.attendeeAvatar, { backgroundColor: '#87CEEB' }]} />
-                <View style={[styles.attendeeAvatar, { backgroundColor: '#FFD700' }]} />
-              </View>
+          ) : todayEvents.length > 0 ? (
+            todayEvents.map((event) => {
+              const eventDate = new Date(event.event_date);
+              const endDate = event.end_date ? new Date(event.end_date) : null;
+              
+              // Format time
+              const formatTime = (date: Date) => {
+                return date.toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false
+                });
+              };
+              
+              // Calculate duration
+              const getDuration = () => {
+                if (endDate) {
+                  const diffMs = endDate.getTime() - eventDate.getTime();
+                  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                  const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                  
+                  if (diffHours > 0) {
+                    return `${diffHours}h ${diffMinutes}m`;
+                  } else {
+                    return `${diffMinutes}m`;
+                  }
+                }
+                return 'All day';
+              };
+              
+              return (
+                <View key={event.id} style={styles.calendarEventCard}>
+                  <View style={styles.eventHeader}>
+                    <Text style={styles.eventMainTitle}>{event.title}</Text>
+                    {event.description && (
+                      <Text style={styles.eventPrivateMessage}>{event.description}</Text>
+                    )}
+                  </View>
+                  
+                  <View style={styles.eventDetailsContainer}>
+                    <View style={styles.eventDetailsGroup}>
+                      <View style={styles.eventDetailItemLeft}>
+                        <Text style={styles.eventDetailLabel}>Event Title</Text>
+                        <Text style={styles.eventDetailValue} numberOfLines={1}>{event.title}</Text>
+                      </View>
+                      <View style={styles.eventDetailItemCenter}>
+                        <Text style={styles.eventDetailLabel}>Start Time</Text>
+                        <Text style={styles.eventDetailValue} numberOfLines={1}>{formatTime(eventDate)}</Text>
+                      </View>
+                      <View style={styles.eventDetailItemRight}>
+                        <Text style={styles.eventDetailLabel}>Duration</Text>
+                        <Text style={styles.eventDetailValue} numberOfLines={1}>{getDuration()}</Text>
+                      </View>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.eventDateContainer}>
+                    <Image
+                      source={require('@/assets/images/icon/calendar2_dis.png')}
+                      style={{
+                        width: 16,
+                        height: 16,
+                        resizeMode: 'contain'
+                      }}
+                    />
+                    <Text style={styles.eventDate}>
+                      {eventDate.toLocaleDateString('en-US', { 
+                        day: 'numeric', 
+                        month: 'long' 
+                      })}
+                    </Text>
+                  </View>
+                  
+                  {event.assigneeProfiles && event.assigneeProfiles.length > 0 && (
+                    <View style={styles.eventFooter}>
+                      <View style={styles.assigneeAvatars}>
+                        {event.assigneeProfiles.slice(0, 3).map((assignee, index) => (
+                          <View 
+                            key={assignee.id} 
+                            style={[
+                              styles.assigneeAvatar, 
+                              index === 0 && styles.assigneeAvatar1,
+                              index === 1 && styles.assigneeAvatar2,
+                              index === 2 && styles.assigneeAvatar3
+                            ]} 
+                          >
+                            {assignee.avatar_url ? (
+                              <Image
+                                source={{ uri: assignee.avatar_url }}
+                                style={styles.assigneeAvatarImage}
+                                resizeMode="cover"
+                              />
+                            ) : (
+                              <View style={styles.assigneeAvatarPlaceholder}>
+                                <Text style={styles.assigneeAvatarInitial}>
+                                  {assignee.name?.charAt(0)?.toUpperCase() || '?'}
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                        ))}
+                        {event.assigneeProfiles.length > 3 && (
+                          <View style={[styles.assigneeAvatar, styles.assigneeAvatar1]}>
+                            <View style={styles.assigneeAvatarPlaceholder}>
+                              <Text style={styles.assigneeAvatarInitial}>+{event.assigneeProfiles.length - 3}</Text>
+                            </View>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                  )}
+                </View>
+              );
+            })
+          ) : eventsError ? (
+            <View style={styles.errorStateContainer}>
+              <Text style={styles.errorStateText}>Error: {eventsError}</Text>
+              <Pressable 
+                style={styles.retryButton}
+                onPress={refreshEvents}
+              >
+                <Text style={styles.retryButtonText}>Retry</Text>
+              </Pressable>
             </View>
-          </View>
+          ) : (
+            <View style={styles.emptyTaskCard}>
+              <Image
+                source={require('@/assets/images/icon/meeting_image.png')}
+                style={styles.emptyTaskIcon}
+                resizeMode="contain"
+              />
+              <Text style={styles.emptyTaskText}>No Meetings Scheduled</Text>
+              <Text style={styles.emptyTaskSubtext}>
+                It looks like you don't have any meetings scheduled at the moment. This space will be updated as new meetings are added!
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Today Task Section */}
@@ -1549,5 +1656,61 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#2d2d2d',
     fontWeight: '500',
+  },
+  attendeeCountText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#666',
+  },
+  attendeeAvatarImage: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+  },
+  attendeeInitials: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+  },
+  loadingText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#666',
+  },
+  emptyStateContainer: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  errorStateContainer: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  errorStateText: {
+    fontSize: 14,
+    color: '#ff4444',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  retryButton: {
+    backgroundColor: '#17f196',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  retryButtonText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

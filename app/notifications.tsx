@@ -18,7 +18,8 @@ interface Notification {
   id: string;
   assignee_id: string;
   assigner_id: string;
-  task_id: string;
+  task_id?: string;
+  event_id?: string;
   type: string;
   status: string;
   created_at: string;
@@ -31,6 +32,11 @@ interface Notification {
   task?: {
     title: string;
     description?: string;
+  };
+  event?: {
+    title: string;
+    description?: string;
+    event_date: string;
   };
 }
 
@@ -62,6 +68,14 @@ const getNotificationIcon = (type: string) => {
           resizeMode="contain"
         />
       );
+    case 'event':
+      return (
+        <Image 
+          source={require('@/assets/images/icon/meeting_image.png')}
+          style={styles.notificationIconImage}
+          resizeMode="contain"
+        />
+      );
     default:
       return (
         <Image 
@@ -81,12 +95,40 @@ const NotificationItem = ({
   onMarkAsRead: (id: string) => void;
 }) => {
   const isUnread = notification.status === 'unread';
-  const assignerName = 'Someone'; // Will be updated when we have proper joins
-  const taskTitle = 'a task'; // Will be updated when we have proper joins
+  const assignerName = notification.assigner_profile?.name || 'Someone';
+  const taskTitle = notification.task?.title || 'a task';
+  const eventTitle = notification.event?.title || 'an event';
   
   const handlePress = () => {
     if (isUnread) {
       onMarkAsRead(notification.id);
+    }
+    
+    // Navigate to appropriate page based on notification type
+    if (notification.type === 'meeting' || notification.type === 'event') {
+      // Navigate to calendar page
+      router.push('/(tabs)/calendar');
+      
+      // Trigger calendar refresh after a short delay to ensure navigation completes
+      setTimeout(() => {
+        // Dispatch a custom event to trigger calendar refresh
+        const refreshEvent = new CustomEvent('refreshCalendar');
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(refreshEvent);
+        }
+      }, 500);
+    } else {
+      // Navigate to tasks page
+      router.push('/(tabs)/tasks');
+      
+      // Trigger tasks refresh after a short delay to ensure navigation completes
+      setTimeout(() => {
+        // Dispatch a custom event to trigger tasks refresh
+        const refreshEvent = new CustomEvent('refreshTasks');
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(refreshEvent);
+        }
+      }, 500);
     }
   };
 
@@ -109,14 +151,18 @@ const NotificationItem = ({
       <View style={styles.notificationContent}>
         <View style={styles.notificationHeader}>
           <Text style={styles.notificationTitle}>
-            New Task Assigned to You!
+            {notification.type === 'meeting' || notification.type === 'event' 
+              ? 'New Meeting Assigned to You!' 
+              : 'New Task Assigned to You!'}
           </Text>
           <Text style={styles.notificationDate}>
             {formatDate(notification.created_at)}
           </Text>
         </View>
         <Text style={styles.notificationDescription}>
-          You have new task for this sprint from {assignerName}, you can check your task "{taskTitle}" by tap here
+          {notification.type === 'meeting' || notification.type === 'event'
+            ? `You have a new meeting from ${assignerName}, you can check your meeting "${eventTitle}" by tap here`
+            : `You have new task for this sprint from ${assignerName}, you can check your task "${taskTitle}" by tap here`}
         </Text>
       </View>
     </Pressable>
@@ -128,83 +174,295 @@ export default function Notifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [realtimeChannel, setRealtimeChannel] = useState<any>(null);
+  const [newNotificationCount, setNewNotificationCount] = useState(0);
 
-  // Fetch notifications from database
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      if (!user?.id) {
+  // Reusable fetch function with timeout
+  const fetchNotifications = async () => {
+    if (!user?.id) {
+      setLoading(false);
+      setError(null);
+      setNotifications([]);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Add timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
         setLoading(false);
-        setError(null);
-        setNotifications([]);
+        setError('Request timeout - please try again');
+      }, 10000); // 10 second timeout
+
+      console.log('🔍 Fetching all notifications for user:', user.id);
+      
+      // First, fetch notifications without joins
+      const { data: notifications, error: notificationsError } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('assignee_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (notificationsError) {
+        console.error('❌ Error fetching notifications:', notificationsError);
+        setError(notificationsError.message);
+        setLoading(false);
         return;
       }
 
-      try {
-        setLoading(true);
-        setError(null);
+      console.log('📨 Notifications fetched:', notifications);
+      console.log('📨 Notifications count:', notifications?.length || 0);
 
-        // Add timeout to prevent hanging
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Request timeout')), 5000)
-        );
-
-        const fetchPromise = supabase
-          .from('notifications')
-          .select('*')
-          .eq('assignee_id', user.id)
-          .order('created_at', { ascending: false });
-
-        const result = await Promise.race([fetchPromise, timeoutPromise]) as any;
-        const { data, error } = result;
-
-        if (error) {
-          if (error.code === 'PGRST205') {
-            // Table doesn't exist yet, show empty state instead of error
-            setNotifications([]);
-            setError(null);
-          } else {
-            setError('Failed to load notifications');
-            setNotifications([]);
-          }
-        } else {
-          setNotifications(data || []);
-          setError(null);
-        }
-      } catch (err) {
-        setError('Failed to load notifications');
+      // If no notifications, set empty array and return
+      if (!notifications || notifications.length === 0) {
         setNotifications([]);
-      } finally {
         setLoading(false);
+        return;
+      }
+
+      // Fetch assigner profiles for all notifications
+      const assignerIds = [...new Set(notifications.map(n => n.assigner_id))];
+      const { data: assignerProfiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name, avatar_url')
+        .in('id', assignerIds);
+
+      if (profilesError) {
+        console.warn('⚠️ Error fetching assigner profiles:', profilesError);
+      }
+
+      // Fetch task details for task notifications
+      const taskIds = notifications.filter(n => n.task_id).map(n => n.task_id);
+      let taskDetails = [];
+      if (taskIds.length > 0) {
+        const { data: tasks, error: tasksError } = await supabase
+          .from('family_tasks')
+          .select('id, title, description')
+          .in('id', taskIds);
+        
+        if (tasksError) {
+          console.warn('⚠️ Error fetching task details:', tasksError);
+        } else {
+          taskDetails = tasks || [];
+        }
+      }
+
+      // Fetch event details for event notifications
+      const eventIds = notifications.filter(n => n.event_id).map(n => n.event_id);
+      let eventDetails = [];
+      if (eventIds.length > 0) {
+        const { data: events, error: eventsError } = await supabase
+          .from('calendar_events')
+          .select('id, title, description, event_date')
+          .in('id', eventIds);
+        
+        if (eventsError) {
+          console.warn('⚠️ Error fetching event details:', eventsError);
+        } else {
+          eventDetails = events || [];
+        }
+      }
+
+      // Combine all data
+      const enrichedNotifications = notifications.map(notification => ({
+        ...notification,
+        assigner_profile: assignerProfiles?.find(p => p.id === notification.assigner_id),
+        task: taskDetails.find(t => t.id === notification.task_id),
+        event: eventDetails.find(e => e.id === notification.event_id)
+      }));
+
+      console.log('📨 Enriched notifications:', enrichedNotifications);
+      setNotifications(enrichedNotifications);
+
+      clearTimeout(timeoutId);
+      setError(null);
+    } catch (err) {
+      console.error('Notification fetch error:', err);
+      setError('Failed to load notifications');
+      setNotifications([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Setup real-time subscription for notifications
+  const setupRealtimeSubscription = () => {
+    if (!user?.id) return;
+
+    console.log('🔔 Setting up real-time notification subscription for user:', user.id);
+
+    // Clean up existing subscription
+    if (realtimeChannel) {
+      console.log('🔔 Cleaning up existing subscription');
+      supabase.removeChannel(realtimeChannel);
+    }
+
+    const channel = supabase
+      .channel('notifications-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `assignee_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('📨 New notification received:', payload.new);
+          console.log('📨 Current notifications count before adding:', notifications.length);
+          
+          // Add the new notification to the beginning of the list
+          setNotifications(prevNotifications => {
+            const newNotification = payload.new as Notification;
+            const updatedNotifications = [newNotification, ...prevNotifications];
+            console.log('📨 Updated notifications count after adding:', updatedNotifications.length);
+            return updatedNotifications;
+          });
+          
+          // Increment new notification count
+          setNewNotificationCount(prev => prev + 1);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `assignee_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('📨 Notification updated:', payload.new);
+          
+          // Update the notification in the list
+          setNotifications(prevNotifications => {
+            return prevNotifications.map(notification => 
+              notification.id === payload.new.id ? payload.new as Notification : notification
+            );
+          });
+        }
+      )
+      .subscribe((status) => {
+        console.log('🔔 Real-time subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Successfully subscribed to notifications');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Error subscribing to notifications');
+        }
+      });
+
+    setRealtimeChannel(channel);
+  };
+
+  // Fetch notifications from database and setup real-time subscription
+  useEffect(() => {
+    if (user?.id) {
+      fetchNotifications();
+      setupRealtimeSubscription();
+    } else {
+      setNotifications([]);
+      setLoading(false);
+    }
+
+    // Cleanup function
+    return () => {
+      if (realtimeChannel) {
+        console.log('🔔 Cleaning up real-time subscription on unmount');
+        supabase.removeChannel(realtimeChannel);
       }
     };
-
-    fetchNotifications();
   }, [user?.id]);
 
   // Refresh notifications when page comes into focus (e.g., after creating a task)
   useFocusEffect(
     React.useCallback(() => {
-      if (user?.id) {
+      if (user?.id && !loading) {
         const refreshNotifications = async () => {
           try {
-            const { data, error } = await supabase
+            console.log('🔄 Refreshing notifications for user:', user.id);
+            
+            // Fetch notifications without joins
+            const { data: notifications, error: notificationsError } = await supabase
               .from('notifications')
               .select('*')
               .eq('assignee_id', user.id)
               .order('created_at', { ascending: false });
 
-            if (!error) {
-              setNotifications(data || []);
+            if (notificationsError) {
+              console.error('❌ Error fetching notifications:', notificationsError);
+              return;
             }
+
+            console.log('📨 Refreshed notifications:', notifications);
+            console.log('📨 Refreshed notifications count:', notifications?.length || 0);
+
+            if (!notifications || notifications.length === 0) {
+              setNotifications([]);
+              return;
+            }
+
+            // Fetch assigner profiles
+            const assignerIds = [...new Set(notifications.map(n => n.assigner_id))];
+            const { data: assignerProfiles } = await supabase
+              .from('profiles')
+              .select('id, name, avatar_url')
+              .in('id', assignerIds);
+
+            // Fetch task details
+            const taskIds = notifications.filter(n => n.task_id).map(n => n.task_id);
+            let taskDetails = [];
+            if (taskIds.length > 0) {
+              const { data: tasks } = await supabase
+                .from('family_tasks')
+                .select('id, title, description')
+                .in('id', taskIds);
+              taskDetails = tasks || [];
+            }
+
+            // Fetch event details
+            const eventIds = notifications.filter(n => n.event_id).map(n => n.event_id);
+            let eventDetails = [];
+            if (eventIds.length > 0) {
+              const { data: events } = await supabase
+                .from('calendar_events')
+                .select('id, title, description, event_date')
+                .in('id', eventIds);
+              eventDetails = events || [];
+            }
+
+            // Combine all data
+            const enrichedNotifications = notifications.map(notification => ({
+              ...notification,
+              assigner_profile: assignerProfiles?.find(p => p.id === notification.assigner_id),
+              task: taskDetails.find(t => t.id === notification.task_id),
+              event: eventDetails.find(e => e.id === notification.event_id)
+            }));
+
+            setNotifications(enrichedNotifications);
           } catch (err) {
-            // Silent error handling
+            console.error('Notification refresh error:', err);
           }
         };
 
         refreshNotifications();
+        
+        // Also refresh real-time subscription when page comes into focus
+        setupRealtimeSubscription();
       }
-    }, [user?.id])
+    }, [user?.id, loading])
   );
+
+  // Clear new notification count when component mounts (user is viewing notifications)
+  useEffect(() => {
+    clearNewNotificationCount();
+  }, []);
+
+  // Clear new notification count when user views notifications
+  const clearNewNotificationCount = () => {
+    setNewNotificationCount(0);
+  };
 
   // Mark notification as read
   const markAsRead = async (notificationId: string) => {
@@ -281,12 +539,7 @@ export default function Notifications() {
           <Text style={styles.errorText}>{error}</Text>
           <Pressable 
             style={styles.retryButton}
-            onPress={() => {
-              setError(null);
-              setLoading(true);
-              // Trigger a re-fetch by updating the dependency
-              window.location.reload();
-            }}
+            onPress={fetchNotifications}
           >
             <Text style={styles.retryButtonText}>Retry</Text>
           </Pressable>
@@ -311,12 +564,25 @@ export default function Notifications() {
             resizeMode="contain"
           />
         </Pressable>
-        <Text style={styles.headerTitle}>Notifications</Text>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>Notifications</Text>
+          {newNotificationCount > 0 && (
+            <View style={styles.newNotificationBadge}>
+              <Text style={styles.newNotificationBadgeText}>
+                {newNotificationCount > 9 ? '9+' : newNotificationCount}
+              </Text>
+            </View>
+          )}
+        </View>
         <View style={styles.headerSpacer} />
       </View>
 
       {/* Notifications List */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        onScrollBeginDrag={clearNewNotificationCount}
+      >
         <View style={styles.notificationsList}>
           {notifications.length === 0 ? (
             <View style={styles.emptyContainer}>
@@ -372,6 +638,25 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: 40,
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  newNotificationBadge: {
+    backgroundColor: '#FF4444',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+  },
+  newNotificationBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   scrollView: {
     flex: 1,
