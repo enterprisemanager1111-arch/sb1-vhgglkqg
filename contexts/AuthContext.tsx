@@ -28,6 +28,7 @@ interface AuthContextType {
   signOut: (forceSignOut?: boolean) => Promise<void>;
   updateProfile: (updates: Partial<Pick<Profile, 'name' | 'birth_date' | 'avatar_url' | 'role' | 'interests' | 'company_ID' | 'phone_num'>>) => Promise<void>;
   refreshProfile: () => Promise<void>;
+  updateProfileDirectly: (profileData: any) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -156,15 +157,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Load user profile
-  const loadProfile = async (userId: string) => {
+  // Add loading state to prevent concurrent profile loads
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  // Load user profile with concurrency protection
+  const loadProfile = async (userId: string, forceLoad: boolean = false) => {
+    // Prevent concurrent profile loads unless forced
+    if (profileLoading && !forceLoad) {
+      console.log('⏳ Profile already loading, skipping duplicate call');
+      return;
+    }
+
     try {
+      setProfileLoading(true);
       console.log('🔄 Loading profile for user:', userId);
-      const { data: profileData, error } = await supabase
+      
+      // Add timeout to prevent hanging
+      const profileApiPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
+      
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Profile API timeout after 5 seconds')), 5000);
+      });
+      
+      const { data: profileData, error } = await Promise.race([
+        profileApiPromise,
+        timeoutPromise
+      ]) as any;
 
       if (error) {
         console.error('❌ Error loading profile:', error);
@@ -172,9 +194,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       console.log('✅ Profile loaded successfully:', profileData);
-      setProfile(profileData || null);
+      
+      // If profile exists but has empty name, try to update it with user metadata
+      if (profileData && (!profileData.name || profileData.name.trim() === '')) {
+        console.log('⚠️ Profile has empty name, attempting to update with user metadata');
+        
+        // Get current user to access metadata
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (currentUser) {
+          const userName = currentUser.user_metadata?.full_name || 
+                          currentUser.user_metadata?.name || 
+                          currentUser.email?.split('@')[0] || 
+                          'User';
+          
+          if (userName && userName.trim()) {
+            console.log('🔄 Updating profile with name from metadata:', userName);
+            try {
+              const { data: updatedProfile, error: updateError } = await supabase
+                .from('profiles')
+                .update({ 
+                  name: userName.trim(),
+                  updated_at: new Date().toISOString()
+                })
+                .eq('id', userId)
+                .select();
+              
+              if (updateError) {
+                console.log('⚠️ Profile name update failed:', updateError);
+                // Set profile with original data even if update fails
+                setProfile(profileData);
+              } else {
+                console.log('✅ Profile name updated successfully:', updatedProfile);
+                setProfile(updatedProfile[0] || profileData);
+                return;
+              }
+            } catch (updateError) {
+              console.log('⚠️ Profile name update error:', updateError);
+              // Set profile with original data even if update fails
+              setProfile(profileData);
+            }
+          } else {
+            console.log('⚠️ No user name found in metadata, using original profile data');
+            setProfile(profileData);
+          }
+        } else {
+          console.log('⚠️ No current user found, using original profile data');
+          setProfile(profileData);
+        }
+      } else {
+        console.log('✅ Profile has name, using as is');
+        setProfile(profileData || null);
+      }
     } catch (error) {
       console.error('❌ Error loading profile:', error);
+    } finally {
+      setProfileLoading(false);
     }
   };
 
@@ -836,11 +910,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       console.log('✅ SignIn successful!');
       
-      // Load user profile to check if name exists
-      if (data?.user) {
-        console.log('🔄 Loading profile after successful signin...');
-        await loadProfile(data.user.id);
-      }
+      // Profile will be loaded by the main useEffect when session is set
+      // No need to call loadProfile here as it will be called automatically
       
     } catch (error: any) {
       console.error('❌ SignIn failed:', error);
@@ -1148,8 +1219,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('✅ Profile updated successfully:', data);
       console.log('✅ Updated profile data:', JSON.stringify(data, null, 2));
       
-      // Reload profile to get updated data
-      await loadProfile(user.id);
+      // Update profile state directly instead of reloading from API
+      setProfile(Array.isArray(data) ? data[0] : data);
       return data;
       
     } catch (error: any) {
@@ -1199,7 +1270,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         const data = await response.json();
         console.log('✅ Profile updated successfully via fetch:', data);
-        await loadProfile(user.id);
+        // Update profile state directly instead of reloading from API
+        setProfile(Array.isArray(data) ? data[0] : data);
         return data;
         
       } catch (fetchError: any) {
@@ -1219,8 +1291,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshProfile = async () => {
     if (user) {
-      await loadProfile(user.id);
+      console.log('🔄 refreshProfile called - making API call to get current user profile...');
+      console.log('📡 Calling profile API for user:', user.id);
+      await loadProfile(user.id, true); // Force load to bypass concurrency control
+      console.log('✅ Profile API call completed and stored in centralized state');
+    } else {
+      console.log('⚠️ No user available for profile refresh');
     }
+  };
+
+  // Direct profile update function that bypasses API calls
+  const updateProfileDirectly = (profileData: any) => {
+    console.log('🔄 updateProfileDirectly called with data:', profileData);
+    console.log('🔄 Profile name to set:', profileData?.name);
+    console.log('🔄 Profile avatar_url to set:', profileData?.avatar_url);
+    console.log('🔄 Profile role to set:', profileData?.role);
+    setProfile(profileData);
+    console.log('✅ Profile updated directly in centralized state');
   };
 
   return (
@@ -1235,6 +1322,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signOut,
         updateProfile,
         refreshProfile,
+        updateProfileDirectly,
       }}
     >
       {children}

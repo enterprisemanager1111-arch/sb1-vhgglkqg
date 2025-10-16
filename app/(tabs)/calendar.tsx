@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { useCalendarEvents } from '@/hooks/useCalendarEvents';
+import { useCalendarEventsByDate } from '@/hooks/useCalendarEventsByDate';
 
 export default function Calendar() {
   const scrollViewRef = useRef<ScrollView>(null);
@@ -34,11 +34,15 @@ export default function Calendar() {
     return new Date(today.getFullYear(), today.getMonth(), 1);
   });
 
-  // State for single date selection
-  const [selectedSingleDate, setSelectedSingleDate] = useState<Date | null>(null);
+  // State for single date selection - default to today
+  const [selectedSingleDate, setSelectedSingleDate] = useState<Date | null>(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of day
+    return today;
+  });
   
-  // Fetch events for selected dates
-  const { events: calendarEvents, loading: eventsLoading, error: eventsError, refreshEvents } = useCalendarEvents(selectedDates);
+  // Fetch events for selected single date
+  const { events: calendarEvents, loading: eventsLoading, error: eventsError, refreshEvents } = useCalendarEventsByDate(selectedSingleDate);
 
   // Listen for refresh events from notifications
   useEffect(() => {
@@ -55,6 +59,14 @@ export default function Calendar() {
       };
     }
   }, [refreshEvents]);
+
+  // Ensure today's events are loaded by default
+  useEffect(() => {
+    if (selectedSingleDate) {
+      console.log('📅 Calendar loaded with selected date:', selectedSingleDate.toISOString().split('T')[0]);
+      console.log('📅 Today\'s events will be displayed by default');
+    }
+  }, [selectedSingleDate]);
 
   // Filter events for the selected single date
   const filteredEvents = useMemo(() => {
@@ -688,17 +700,17 @@ const styles = StyleSheet.create({
     lineHeight: 16.8, // 140% of 12px
   },
   calendarButton: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: '#EAECF0',
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 12,
   },
   calendarButtonIcon: {
-    width: 10,
-    height: 10,
+    width: 15,
+    height: 15,
     resizeMode: 'contain',
   },
   progressCards: {

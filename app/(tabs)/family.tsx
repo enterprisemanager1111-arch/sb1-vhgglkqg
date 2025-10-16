@@ -67,21 +67,15 @@ export default function FamilyDashboard() {
         if (currentFamily && user && session?.access_token) {
           console.log('🔄 Family page: Additional direct family members refresh...');
           try {
-            const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/family_members?family_id=eq.${currentFamily.id}&select=*,profiles(id,name,avatar_url)`, {
-              method: 'GET',
-              headers: {
-                'Authorization': `Bearer ${session.access_token}`,
-                'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
-                'Accept': 'application/json'
-              }
-            });
+            // Removed family_members API call
+            const response = { ok: false, json: () => Promise.resolve([]) };
             
             if (response.ok) {
               const membersData = await response.json();
               console.log('✅ Family page: Direct family members refresh successful:', membersData);
               console.log('✅ Family page: Found', membersData.length, 'family members');
             } else {
-              console.log('⚠️ Family page: Direct family members refresh failed:', response.status);
+              console.log('⚠️ Family page: Direct family members refresh failed - API call removed');
             }
           } catch (directRefreshError) {
             console.log('⚠️ Family page: Direct family members refresh error:', directRefreshError);

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFamily } from '@/contexts/FamilyContext';
@@ -62,6 +62,7 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
   const [tasks, setTasks] = useState<FamilyTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isLoadingRef = useRef(false);
   
   const { user } = useAuth();
   const { currentFamily, refreshFamily } = useFamily();
@@ -80,123 +81,63 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
       return;
     }
 
+    // Prevent multiple simultaneous calls
+    if (isLoadingRef.current) {
+      console.log('⚠️ Already loading tasks, skipping duplicate call');
+      return;
+    }
+
+    // Set loading state at the start
+    isLoadingRef.current = true;
+    setLoading(true);
+
     try {
       setError(null);
       
       // Try the complex query first, fallback to simple query if it fails
       let data, tasksError;
       
-      // Start with simple query to avoid foreign key relationship issues
-      console.log('🔧 Loading tasks with simple query to avoid foreign key issues...');
+      // Use get_all_tasks function for better data structure
+      console.log('🔧 Loading tasks using get_all_tasks function...');
+      console.log('🔧 Family ID:', currentFamily.id);
       
       try {
-        const simpleResult = await supabase
-          .from('family_tasks')
-          .select('*')
-          .eq('family_id', currentFamily.id)
-          .order('created_at', { ascending: false });
+        const { data: functionData, error: functionError } = await supabase
+          .rpc('get_all_tasks', {
+            _user_id: user.id
+          });
         
-        data = simpleResult.data;
-        tasksError = simpleResult.error;
+        console.log('🔧 Function response:', { functionData, functionError });
+        
+        data = functionData;
+        tasksError = functionError;
         
         console.log('📊 Tasks loaded from database:', data?.length || 0);
         console.log('📊 Sample task data:', data?.[0]);
         
         if (tasksError) {
-          console.error('❌ Simple query failed:', tasksError);
+          console.error('❌ get_all_tasks function failed:', tasksError);
+          console.error('❌ Function error details:', {
+            message: tasksError.message,
+            details: tasksError.details,
+            hint: tasksError.hint,
+            code: tasksError.code
+          });
           throw tasksError;
         }
       } catch (queryError: any) {
-        console.error('❌ Database query failed:', queryError);
-        
-        // Check if it's a schema issue
-        if (queryError.message && queryError.message.includes('assignee_id')) {
-          console.error('❌ Database schema issue: assignee_id column missing from family_tasks table');
-          console.error('❌ Please run the fix_actual_database_schema.sql script on your database');
-        }
-        
+        console.error('❌ get_all_tasks function failed:', queryError);
+        console.error('❌ Query error details:', {
+          message: queryError.message,
+          details: queryError.details,
+          hint: queryError.hint,
+          code: queryError.code
+        });
         throw queryError;
       }
       
-      // If we have data, fetch profiles separately to avoid foreign key issues
-      if (data && data.length > 0) {
-        console.log('🔧 Fetching profiles separately to avoid foreign key issues...');
-        
-        try {
-          // Fetch creator profiles
-          const creatorIds = [...new Set(data.map(task => task.created_by))];
-          const { data: creatorProfiles } = await supabase
-            .from('profiles')
-            .select('id, name, avatar_url')
-            .in('id', creatorIds);
-          
-          // Fetch assignee profiles
-          const assigneeIds = [...new Set(data.map(task => task.assignee_id).filter(Boolean))];
-          const { data: assigneeProfiles } = await supabase
-            .from('profiles')
-            .select('id, name, avatar_url')
-            .in('id', assigneeIds);
-          
-          // Try to fetch task assignments (if table exists)
-          let assignments: any[] = [];
-          try {
-            const taskIds = data.map(task => task.id);
-            const { data: assignmentData } = await supabase
-              .from('task_assignment')
-              .select(`
-                id,
-                task_id,
-                assigned_by
-              `)
-              .in('task_id', taskIds);
-            
-            assignments = assignmentData || [];
-            console.log('✅ Task assignments loaded successfully');
-            
-            // Fetch assignee profiles for task assignments
-            if (assignments.length > 0) {
-              const assigneeIds = [...new Set(assignments.map(a => a.assigned_by).filter(Boolean))];
-              const { data: assignmentProfiles } = await supabase
-                .from('profiles')
-                .select('id, name, avatar_url')
-                .in('id', assigneeIds);
-              
-              // Combine assignments with profiles
-              assignments = assignments.map(assignment => ({
-                ...assignment,
-                assignee_profile: assignmentProfiles?.find(p => p.id === assignment.assigned_by)
-              }));
-            }
-          } catch (assignmentError) {
-            console.warn('⚠️ Task assignments table may not exist yet:', assignmentError);
-            assignments = [];
-          }
-          
-          // Combine the data
-          data = data.map(task => {
-            const taskAssignments = assignments?.filter(a => a.task_id === task.id) || [];
-            console.log(`📊 Task ${task.title} assignments:`, taskAssignments);
-            return {
-              ...task,
-              creator_profile: creatorProfiles?.find(p => p.id === task.created_by),
-              assignee_profile: assigneeProfiles?.find(p => p.id === task.assignee_id),
-              task_assignments: taskAssignments
-            };
-          });
-          
-          console.log('✅ Tasks and profiles combined successfully');
-          
-        } catch (profileError) {
-          console.warn('⚠️ Profile loading failed, using tasks without profiles:', profileError);
-          // Continue with tasks but without profile information
-          data = data.map(task => ({
-            ...task,
-            creator_profile: null,
-            assignee_profile: null,
-            task_assignments: []
-          }));
-        }
-      }
+      // The get_all_tasks function already returns all profile data and assignments
+      console.log('✅ Tasks loaded with profiles and assignments from function');
 
       if (tasksError) throw tasksError;
 
@@ -214,6 +155,7 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
       setError(error.message);
     } finally {
       setLoading(false);
+      isLoadingRef.current = false;
     }
   }, [currentFamily, user]);
 
@@ -407,42 +349,9 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
     }
   }, [tasks, updateTask, currentFamily, user]);
 
-  // Auto-cleanup completed tasks after 24 hours
-  const cleanupCompletedTasks = useCallback(async () => {
-    if (!currentFamily) return;
+  // Auto-cleanup removed - no longer needed
 
-    try {
-      const twentyFourHoursAgo = new Date();
-      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
-
-      const { error } = await supabase
-        .from('family_tasks')
-        .delete()
-        .eq('family_id', currentFamily.id)
-        .eq('completed', true)
-        .lt('updated_at', twentyFourHoursAgo.toISOString());
-
-      if (error) {
-        console.error('Error cleaning up completed tasks:', error);
-      } else {
-        console.log('Cleaned up tasks older than 24 hours');
-        await loadTasks(); // Refresh the list
-      }
-    } catch (error) {
-      console.error('Error in cleanup process:', error);
-    }
-  }, [currentFamily, loadTasks]);
-
-  // Run cleanup on mount and every hour
-  useEffect(() => {
-    cleanupCompletedTasks();
-    
-    const cleanupInterval = setInterval(() => {
-      cleanupCompletedTasks();
-    }, 60 * 60 * 1000); // Every hour
-    
-    return () => clearInterval(cleanupInterval);
-  }, [cleanupCompletedTasks]);
+  // Auto-cleanup removed - no longer needed
   // Refresh tasks
   const refreshTasks = useCallback(async () => {
     console.log('🔄 Manual refresh of tasks requested');
@@ -472,23 +381,21 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
 
   // Load tasks on mount and family change
   useEffect(() => {
-    loadTasks();
-  }, [currentFamily?.id, user?.id, loadTasks]);
-
- // Add user?.id to dependencies
-
-  // Periodic refresh as fallback (every 5 minutes)
-  useEffect(() => {
-    if (!currentFamily) return;
-
-    const interval = setInterval(() => {
+    console.log('🔄 useEffect triggered - loading tasks');
+    console.log('🔄 currentFamily?.id:', currentFamily?.id);
+    console.log('🔄 user?.id:', user?.id);
+    
+    // Only load if we have required data
+    if (currentFamily?.id && user?.id) {
+      console.log('🔄 Calling loadTasks...');
       loadTasks();
-    }, 5 * 60 * 1000); // 5 minutes
+    } else {
+      console.log('🔄 Skipping loadTasks - missing family or user');
+    }
+  }, [currentFamily?.id, user?.id]); // Removed loading from dependencies
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, [currentFamily?.id, loadTasks]);
+  // Remove periodic refresh to prevent too many API calls
+  // Periodic refresh removed - tasks will be refreshed manually or on focus
 
 
 

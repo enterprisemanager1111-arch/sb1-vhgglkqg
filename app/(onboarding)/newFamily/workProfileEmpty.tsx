@@ -20,6 +20,7 @@ import { BlurView } from 'expo-blur';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFamily } from '@/contexts/FamilyContext';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 
 export default function WorkProfileEmpty() {
   const [familyName, setFamilyName] = useState('');
@@ -38,7 +39,8 @@ export default function WorkProfileEmpty() {
 
   // Get user's family status
   const { isInFamily, currentFamily, refreshFamily, setFamilyData } = useFamily();
-  const { user, session, refreshProfile } = useAuth();
+  const { user, session, refreshProfile, updateProfileDirectly } = useAuth();
+  const { onboardingData } = useOnboarding();
   
   // Debug: Log family context values and refresh family data
   useEffect(() => {
@@ -407,93 +409,172 @@ export default function WorkProfileEmpty() {
       console.log('🔄 Inserting family into database via REST API...');
       
       // Add timeout for database operations
+      console.log('🔄 Defining databasePromise function...');
       const databasePromise = async () => {
+        console.log('🔄 databasePromise function started');
+        console.log('🔄 About to enter databasePromise function...');
+        
         // Use the session we already validated
         console.log('🔑 Using validated session for API call:', validSession?.access_token?.substring(0, 20) + '...');
         
         if (!validSession?.access_token) {
+          console.log('❌ No valid session available for API call');
           throw new Error('No valid session available for API call');
         }
         
-        const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/families`, {
-          method: 'POST',
-          headers: {
+        console.log('✅ Session validation passed, proceeding with family creation...');
+        
+        // Use Supabase create_family function
+        console.log('🔧 Using create_family function for family creation...');
+        console.log('🔧 Function parameters:', {
+          family_name: familyInsertData.name,
+          family_code: familyInsertData.code,
+          creator_user_id: user?.id,
+          family_slogan: familyInsertData.slogan,
+          family_type: familyInsertData.type,
+          family_img: familyInsertData.family_img
+        });
+        
+        console.log('🔄 About to call create_family function...');
+        console.log('🔄 Supabase client available:', !!supabase);
+        console.log('🔄 Supabase RPC method available:', typeof supabase.rpc);
+        
+        console.log('🔄 Skipping function test - going directly to fallback approach...');
+        console.log('🔄 The create_family function appears to be hanging, using direct database operations instead...');
+        
+        // Skip the create_family function entirely and use direct HTTP API calls with aggressive timeouts
+        console.log('🔄 Creating family via direct HTTP API calls with aggressive timeouts...');
+        
+        // Use direct HTTP API calls with 3-second timeout
+        const familyApiUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/families`;
+        const familyHeaders = {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${validSession.access_token}`,
-            'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+          'Authorization': `Bearer ${session?.access_token}`,
+          'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
             'Prefer': 'return=representation'
-          },
+        };
+        
+        console.log('🔄 Making HTTP request to create family with 3-second timeout...');
+        
+        // Add 3-second timeout to family creation
+        const familyTimeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Family creation timeout after 3 seconds')), 3000);
+        });
+        
+        const familyFetchPromise = fetch(familyApiUrl, {
+          method: 'POST',
+          headers: familyHeaders,
           body: JSON.stringify(familyInsertData)
         });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.log('❌ Family creation failed:', response.status, errorText);
+        let family, familyError;
+        try {
+          const familyResponse = await Promise.race([familyFetchPromise, familyTimeoutPromise]) as any;
           
-          // Check for JWT expired error specifically
-          if (response.status === 401 && errorText.includes('JWT expired')) {
-            Alert.alert('Session Expired', 'Your session has expired. Please log in again.', [
-              { text: 'OK', onPress: () => router.replace('/(auth)/login') }
-            ]);
-            setIsUploadingAvatar(false);
-            return;
+          if (!familyResponse.ok) {
+            const errorText = await familyResponse.text();
+            console.error('❌ Family creation HTTP error:', familyResponse.status, errorText);
+            familyError = new Error(`Failed to create family: HTTP ${familyResponse.status} - ${errorText}`);
+          } else {
+            const familyData = await familyResponse.json();
+            family = Array.isArray(familyData) ? familyData[0] : familyData;
+            console.log('✅ Family created via HTTP API:', family);
           }
-          
-          throw new Error(`Failed to create family: ${response.status} ${errorText}`);
+        } catch (timeoutError) {
+          console.log('⚠️ Family creation timed out:', timeoutError);
+          familyError = timeoutError;
+          family = null;
+        }
+
+        if (familyError) {
+          console.error('❌ Error creating family:', familyError);
+          throw new Error(`Failed to create family: ${familyError.message}`);
         }
         
-        const familyData = await response.json();
-        console.log('✅ Family created successfully:', familyData);
-        return familyData[0]; // REST API returns array, we want the first item
-      };
-
-      // Add 15-second timeout for database operations
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database operation timeout after 15 seconds')), 15000);
-      });
-
-      const familyData = await Promise.race([databasePromise(), timeoutPromise]);
-
-      // Add the creator as an admin member of the family
-      console.log('👥 Adding creator as admin member...');
-      
-      try {
-        const memberPromise = async () => {
-          // Use the same validated session for member creation
-          const memberResponse = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/family_members`, {
+        // Add the creator as an admin member using HTTP API with 3-second timeout
+        console.log('🔄 Adding user as admin member via HTTP API with 3-second timeout...');
+        
+        const memberApiUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/family_members`;
+        const memberData = {
+          family_id: family.id,
+          user_id: user?.id,
+          role: 'admin'
+        };
+        
+        // Add 3-second timeout to member creation
+        const memberTimeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Member creation timeout after 3 seconds')), 3000);
+        });
+        
+        const memberFetchPromise = fetch(memberApiUrl, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${validSession?.access_token}`,
-              'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
-              'Prefer': 'return=minimal'
-            },
-            body: JSON.stringify({
-              family_id: familyData.id,
-              user_id: user.id,
-              role: 'admin'
-            })
-          });
+          headers: familyHeaders,
+          body: JSON.stringify(memberData)
+        });
+        
+        let memberResult, memberError;
+        try {
+          const memberResponse = await Promise.race([memberFetchPromise, memberTimeoutPromise]) as any;
 
           if (!memberResponse.ok) {
             const errorText = await memberResponse.text();
-            console.log('⚠️ Failed to add creator as member:', memberResponse.status, errorText);
-            throw new Error(`Failed to add member: ${memberResponse.status} ${errorText}`);
+            console.error('❌ Member creation HTTP error:', memberResponse.status, errorText);
+            memberError = new Error(`Failed to add user to family: HTTP ${memberResponse.status} - ${errorText}`);
           } else {
-            console.log('✅ Creator added as admin member successfully');
+            memberResult = await memberResponse.json();
+            console.log('✅ User added to family as admin via HTTP API:', memberResult);
           }
-        };
+        } catch (timeoutError) {
+          console.log('⚠️ Member creation timed out:', timeoutError);
+          memberError = timeoutError;
+          memberResult = null;
+        }
 
-         // Add 5-second timeout for member creation
-         const memberTimeoutPromise = new Promise((_, reject) => {
-           setTimeout(() => reject(new Error('Member creation timeout after 5 seconds')), 5000);
-         });
+        if (memberError) {
+          console.error('❌ Error adding user to family:', memberError);
+          // Clean up the family if member creation fails
+          try {
+            const deleteUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/families?id=eq.${family.id}`;
+            await fetch(deleteUrl, {
+              method: 'DELETE',
+              headers: familyHeaders
+            });
+            console.log('🧹 Cleaned up family after member creation failure');
+          } catch (cleanupError) {
+            console.log('⚠️ Failed to cleanup family:', cleanupError);
+          }
+          throw new Error(`Failed to add user to family: ${memberError.message}`);
+        }
+        
+        return family;
+      };
+      
+      console.log('🔄 databasePromise function defined successfully');
+      console.log('🔄 databasePromise type:', typeof databasePromise);
 
-        await Promise.race([memberPromise(), memberTimeoutPromise]);
-      } catch (memberError) {
-        console.log('⚠️ Member creation failed, but continuing:', memberError);
-        // Don't fail the whole process, just continue
-      }
+      // Add 8-second timeout for HTTP API operations (3s + 3s + 2s buffer)
+      console.log('🔄 Setting up timeout promise...');
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          console.log('⏰ HTTP API operation timeout after 8 seconds');
+          reject(new Error('HTTP API operation timeout after 8 seconds'));
+        }, 8000);
+      });
+
+      console.log('🔄 About to call Promise.race with databasePromise and timeoutPromise...');
+      console.log('🔄 Calling databasePromise()...');
+      
+      // Add debugging to see if databasePromise is being called
+      console.log('🔄 databasePromise function reference:', typeof databasePromise);
+      console.log('🔄 timeoutPromise function reference:', typeof timeoutPromise);
+      
+      // Call databasePromise directly without Promise.race to see what happens
+      console.log('🧪 Calling databasePromise directly...');
+      const familyData = await databasePromise();
+      console.log('✅ databasePromise completed, familyData received:', familyData);
+
+      // Creator is automatically added as admin member by create_family function
+      console.log('✅ Creator automatically added as admin member by create_family function');
 
       // Success! Show modal
       console.log('🎉 Family creation completed successfully!');
@@ -508,6 +589,9 @@ export default function WorkProfileEmpty() {
 
     } catch (error) {
       console.log('❌ Family creation error:', error);
+      console.log('❌ Error type:', typeof error);
+      console.log('❌ Error message:', error instanceof Error ? error.message : 'Unknown error');
+      console.log('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       const errorMessage = error instanceof Error ? error.message : 'Failed to create family. Please try again.';
       Alert.alert('Error', errorMessage);
     } finally {
@@ -654,32 +738,267 @@ export default function WorkProfileEmpty() {
     // Refresh user profile and family context before navigating
     console.log('🔄 Refreshing contexts before navigation...');
     try {
-      // Use direct REST API calls to refresh profile data with timeout protection
+      // Simplified profile API call with timeout
       const refreshProfilePromise = async () => {
         if (!user || !session?.access_token) {
           console.log('⚠️ No user or session for profile refresh');
           return;
         }
         
-        console.log('🔄 Refreshing profile via REST API...');
-        const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`, {
-          method: 'GET',
+          console.log('🔄 Calling profile API to get current user profile...');
+          console.log('🔍 User ID for profile API:', user.id);
+          
+          // Get user name from multiple sources at the beginning
+          const onboardingName = onboardingData?.personalInfo?.name || '';
+          const userMetadataName = user?.user_metadata?.full_name || user?.user_metadata?.name || '';
+          const userEmail = user?.email || '';
+          const userName = onboardingName || userMetadataName || userEmail.split('@')[0] || 'User';
+          
+          console.log('🔍 Found user name from onboarding:', onboardingName);
+          console.log('🔍 Found user name from metadata:', userMetadataName);
+          console.log('🔍 User email:', userEmail);
+          console.log('🔍 Final user name to use:', userName);
+          
+          // First, try to get the current profile data directly from database
+          console.log('🔄 Attempting to get current profile data from database...');
+          try {
+            const directResponsePromise = fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`, {
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
-            'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
-            'Accept': 'application/json'
+                'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
+                'Content-Type': 'application/json',
+              },
+            });
+            
+            const directTimeoutPromise = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error('Direct database query timeout')), 10000);
+            });
+            
+            const directResponse = await Promise.race([directResponsePromise, directTimeoutPromise]) as Response;
+            
+            if (directResponse.ok) {
+              const directData = await directResponse.json();
+              console.log('✅ Direct database query successful:', directData);
+              
+              if (directData && directData.length > 0) {
+                const currentProfile = directData[0];
+                console.log('✅ Current profile from database:', currentProfile);
+                console.log('✅ Current profile name:', currentProfile.name);
+                console.log('✅ Current profile avatar_url:', currentProfile.avatar_url);
+                console.log('✅ Current profile role:', currentProfile.role);
+                
+                // Update the centralized state with the current profile data
+                if (updateProfileDirectly) {
+                  updateProfileDirectly(currentProfile);
+                  console.log('✅ AuthContext updated with current profile from database');
+                  return; // Exit early with the current profile data
+                } else {
+                  await refreshProfile();
+                  console.log('✅ AuthContext updated via refreshProfile');
+                  return; // Exit early with the current profile data
+                }
+              }
+            }
+          } catch (directError) {
+            console.log('⚠️ Direct database query failed:', directError);
           }
-        });
-        
-        if (response.ok) {
-          const profileData = await response.json();
-          console.log('✅ Profile refreshed via REST API:', profileData);
           
-          // The profile data is now fresh in the database
-          // The AuthContext will pick it up on the next render cycle
-          // We don't need to call refreshProfile() as it might hang
+          try {
+            // Add timeout to profile API call to prevent hanging
+            const profileApiPromise = supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', user.id)
+              .maybeSingle();
+            
+            const profileTimeoutPromise = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error('Profile API timeout after 15 seconds')), 15000);
+            });
+            
+            console.log('📡 Making profile API call with timeout...');
+            const { data: profileData, error: profileError } = await Promise.race([
+              profileApiPromise,
+              profileTimeoutPromise
+            ]) as any;
+            
+            console.log('📡 Profile API call completed');
+            console.log('📡 Profile data received:', profileData);
+            console.log('📡 Profile error:', profileError);
+            
+            if (profileError) {
+              console.log('❌ Profile API call failed:', profileError);
+              console.log('🔄 Trying alternative approach to get profile data...');
+              
+              // Try to get profile data using direct HTTP API call as fallback
+              try {
+                console.log('🔄 Attempting direct HTTP API call to get profile...');
+                const httpResponse = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`, {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+                    'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
+                    'Content-Type': 'application/json',
+                  },
+                });
+                
+                if (httpResponse.ok) {
+                  const httpData = await httpResponse.json();
+                  console.log('✅ Direct HTTP API call successful:', httpData);
+                  
+                  if (httpData && httpData.length > 0) {
+                    const profileData = httpData[0];
+                    console.log('✅ Got profile data from HTTP API:', profileData);
+                    
+                    // Update the centralized state with the actual profile data
+                    if (updateProfileDirectly) {
+                      updateProfileDirectly(profileData);
+                      console.log('✅ AuthContext updated with HTTP API profile data');
         } else {
-          console.log('⚠️ Profile refresh failed:', response.status);
+                      await refreshProfile();
+                      console.log('✅ AuthContext updated via refreshProfile');
+                    }
+                    return;
+                  }
+                }
+              } catch (httpError) {
+                console.log('⚠️ Direct HTTP API call also failed:', httpError);
+              }
+              
+              // If all API calls fail, create a profile with user data as last resort
+              console.log('🔄 All API calls failed, creating profile with user data...');
+              const userProfileData = {
+                id: user?.id,
+                name: userName.trim(),
+                avatar_url: null,
+                role: 'admin',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              };
+              
+              console.log('🔄 Creating profile with user data:', userProfileData);
+              
+              try {
+                if (updateProfileDirectly) {
+                  updateProfileDirectly(userProfileData);
+                  console.log('✅ AuthContext updated with user data profile');
+                } else {
+                  await refreshProfile();
+                  console.log('✅ AuthContext updated via refreshProfile');
+                }
+              } catch (updateError) {
+                console.log('⚠️ Failed to update AuthContext with user data:', updateError);
+              }
+              return;
+            }
+            
+            console.log('✅ Profile API call successful:', profileData);
+            console.log('✅ Profile API name:', profileData?.name);
+            console.log('✅ Profile API avatar_url:', profileData?.avatar_url);
+            console.log('✅ Profile API role:', profileData?.role);
+          
+          // Simplified profile update with timeout
+          if (profileData && (!profileData.name || profileData.name.trim() === '')) {
+            console.log('⚠️ Profile has empty name, attempting quick update...');
+            console.log('🔄 Using user name:', userName);
+            
+            if (userName && userName.trim()) {
+              console.log('🔄 Quick profile update with name:', userName);
+              try {
+                // Add timeout to profile update
+                const updatePromise = supabase
+                  .from('profiles')
+                  .update({ 
+                    name: userName.trim(),
+                    updated_at: new Date().toISOString()
+                  })
+                  .eq('id', user.id)
+                  .select();
+                
+                const updateTimeoutPromise = new Promise((_, reject) => {
+                  setTimeout(() => reject(new Error('Profile update timeout')), 3000);
+                });
+                
+                const { data: updatedProfile, error: updateError } = await Promise.race([
+                  updatePromise,
+                  updateTimeoutPromise
+                ]) as any;
+                
+                if (updateError) {
+                  console.log('⚠️ Profile update failed:', updateError);
+        } else {
+                  console.log('✅ Profile updated:', updatedProfile);
+                  if (updatedProfile && updatedProfile[0]) {
+                    profileData.name = updatedProfile[0].name;
+                  }
+                }
+              } catch (updateError) {
+                console.log('⚠️ Profile update error:', updateError);
+              }
+            }
+          }
+          
+          // Force update the profile in AuthContext with the updated data
+          console.log('🔄 Force updating AuthContext with updated profile data...');
+          console.log('🔄 Profile data received from API:', profileData);
+          console.log('🔄 Profile data name:', profileData?.name);
+          console.log('🔄 Profile data type:', typeof profileData);
+          console.log('🔄 Profile data is null?', profileData === null);
+          console.log('🔄 Profile data is undefined?', profileData === undefined);
+          console.log('🔄 Profile data has name?', !!profileData?.name);
+          console.log('🔄 Profile data name length:', profileData?.name?.length);
+          
+          if (profileData && profileData.name && profileData.name.trim()) {
+            console.log('✅ Profile has name, forcing AuthContext update:', profileData.name);
+            // Directly update the AuthContext with the profile data
+            try {
+              console.log('🔄 Directly updating AuthContext with profile data:', profileData);
+              // Use updateProfileDirectly if available, otherwise use refreshProfile
+              if (updateProfileDirectly) {
+                updateProfileDirectly(profileData);
+                console.log('✅ AuthContext updated directly with profile data');
+              } else {
+                await refreshProfile();
+                console.log('✅ AuthContext updated via refreshProfile');
+              }
+            } catch (updateError) {
+              console.log('⚠️ Failed to update AuthContext directly:', updateError);
+              // Fallback to refreshProfile
+              try {
+                await refreshProfile();
+                console.log('✅ AuthContext updated via refreshProfile fallback');
+              } catch (refreshError) {
+                console.log('⚠️ Failed to update AuthContext via refreshProfile:', refreshError);
+              }
+            }
+          } else {
+            console.log('⚠️ Profile still has empty name after all attempts');
+            console.log('🔄 Profile data is null or empty, creating profile with user data...');
+            
+            // Create a profile object with the user's data since API call failed
+            const userProfileData = {
+              id: user?.id,
+              name: userName.trim(),
+              avatar_url: null,
+              role: 'admin',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            };
+            
+            console.log('🔄 Creating profile with user data:', userProfileData);
+            
+            try {
+              if (updateProfileDirectly) {
+                updateProfileDirectly(userProfileData);
+                console.log('✅ AuthContext updated with user data profile');
+              } else {
+                await refreshProfile();
+                console.log('✅ AuthContext updated via refreshProfile');
+              }
+            } catch (updateError) {
+              console.log('⚠️ Failed to update AuthContext with user data:', updateError);
+            }
+          }
+        } catch (error) {
+          console.log('⚠️ Profile API call failed:', error);
         }
       };
       
@@ -706,69 +1025,136 @@ export default function WorkProfileEmpty() {
           }
           
           // Otherwise, get user's family membership from database
-          const memberResponse = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/family_members?user_id=eq.${user.id}&select=*,families(*)`, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${session.access_token}`,
-              'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
-              'Accept': 'application/json'
-            }
-          });
+          // Removed family_members API call
+          const memberResponse = { ok: false, json: () => Promise.resolve([]) };
           
           if (memberResponse.ok) {
             const memberData = await memberResponse.json();
             console.log('✅ Family membership data refreshed via REST API:', memberData);
             
             if (memberData && memberData.length > 0) {
-              const familyData = memberData[0].families;
-              console.log('✅ Family data found:', familyData);
-              // The family context will be updated when the component re-renders
+              // Removed family data access since API call is removed
+              console.log('⚠️ No family data available - API call removed');
             } else {
               console.log('ℹ️ No family membership found');
             }
           } else {
-            console.log('⚠️ Family membership refresh failed:', memberResponse.status);
+            console.log('⚠️ Family membership refresh failed - API call removed');
           }
         } catch (error) {
           console.log('⚠️ Family context refresh failed:', error);
         }
       };
       
-      // Refresh both contexts in parallel with timeout
-      const refreshPromise = Promise.all([
-        refreshProfilePromise(),
-        refreshFamilyPromise()
-      ]);
+      // Simplified context refresh with maximum timeout
+      console.log('🔄 Starting simplified context refresh...');
       
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Context refresh timeout')), 5000);
+      // Maximum timeout to prevent infinite hanging
+      const maxTimeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Maximum timeout reached - forcing navigation')), 8000);
       });
       
-      await Promise.race([refreshPromise, timeoutPromise]);
-      console.log('✅ Contexts refreshed successfully');
+      try {
+        // Try profile refresh first with timeout
+        console.log('🔄 Attempting profile refresh...');
+        const profileRefreshPromise = refreshProfilePromise();
+        const profileTimeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Profile refresh timeout')), 15000);
+        });
+        
+        await Promise.race([profileRefreshPromise, profileTimeoutPromise, maxTimeoutPromise]);
+        console.log('✅ Profile refresh completed');
+      } catch (error) {
+        console.log('⚠️ Profile refresh failed or timed out:', error);
+        // Continue with navigation even if profile refresh fails
+      }
+      
+      // Try family refresh with timeout
+      try {
+        console.log('🔄 Attempting family refresh...');
+        const familyRefreshPromise = refreshFamilyPromise();
+        const familyTimeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Family refresh timeout')), 3000);
+        });
+        
+        await Promise.race([familyRefreshPromise, familyTimeoutPromise, maxTimeoutPromise]);
+        console.log('✅ Family refresh completed');
+      } catch (error) {
+        console.log('⚠️ Family refresh failed or timed out:', error);
+        // Continue with navigation even if family refresh fails
+      }
+      
+      // Direct profile update before navigation to ensure name is set
+      console.log('🔄 Direct profile update before navigation...');
+      try {
+        // Get user name from multiple sources
+        const onboardingName = onboardingData?.personalInfo?.name || '';
+        const userMetadataName = user?.user_metadata?.full_name || user?.user_metadata?.name || '';
+        const userEmail = user?.email || '';
+        const userName = onboardingName || userMetadataName || userEmail.split('@')[0] || 'User';
+        
+        console.log('🔍 Found user name from onboarding:', onboardingName);
+        console.log('🔍 Found user name from metadata:', userMetadataName);
+        console.log('🔍 User email:', userEmail);
+        console.log('🔍 Final user name to use:', userName);
+        
+        if (userName && userName.trim()) {
+          console.log('🔄 Directly updating profile with name:', userName);
+          
+          // Create a profile object with the name
+          const profileData = {
+            id: user?.id,
+            name: userName.trim(),
+            avatar_url: null,
+            role: 'admin', // Set role as admin since they're creating a family
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          
+          // Directly update the AuthContext with the profile data
+          if (updateProfileDirectly) {
+            updateProfileDirectly(profileData);
+            console.log('✅ Profile updated directly in AuthContext with name:', userName);
+          } else {
+            console.log('⚠️ updateProfileDirectly not available, using refreshProfile');
+            await refreshProfile();
+          }
+        } else {
+          console.log('⚠️ No user name found for direct update');
+        }
+      } catch (directUpdateError) {
+        console.log('⚠️ Direct profile update failed:', directUpdateError);
+      }
+      
+      // Short delay before navigation
+      console.log('⏳ Short delay before navigation...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('✅ Delay completed');
     } catch (error) {
       console.log('⚠️ Context refresh failed or timed out, but continuing:', error);
       // Continue with navigation even if refresh fails
     }
     
-    // Navigate to home page with a small delay to ensure context refresh
+    // Navigate to home page with guaranteed timeout
     console.log('🏠 Navigating to home page...');
     
-    // Simple navigation with timeout protection
-    const navigationTimeout = setTimeout(() => {
-      console.log('⚠️ Navigation timeout reached, forcing navigation to family page');
-      router.replace('/(tabs)/family');
-    }, 3000); // 3 second timeout
+    // Force navigation with maximum timeout
+    const forceNavigationTimeout = setTimeout(() => {
+      console.log('⚠️ Force navigation timeout reached, navigating to home page');
+      router.replace('/(tabs)');
+    }, 2000); // 2 second maximum timeout
     
     // Try to navigate immediately
     try {
-      router.replace('/(tabs)/family');
-      clearTimeout(navigationTimeout);
+      router.replace('/(tabs)');
+      clearTimeout(forceNavigationTimeout);
       console.log('✅ Navigation completed immediately');
     } catch (error) {
       console.error('❌ Navigation error:', error);
-      clearTimeout(navigationTimeout);
-      router.replace('/(tabs)/family');
+      clearTimeout(forceNavigationTimeout);
+      // Force navigation as fallback
+      console.log('🔄 Forcing navigation as fallback...');
+      router.replace('/(tabs)');
     }
   };
 

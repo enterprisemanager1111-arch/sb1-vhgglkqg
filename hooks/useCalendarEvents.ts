@@ -20,7 +20,7 @@ export interface CalendarEvent {
   }[];
 }
 
-export const useCalendarEvents = (selectedDates: Date[]) => {
+export const useCalendarEvents = (selectedDate: Date | null) => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,9 +30,9 @@ export const useCalendarEvents = (selectedDates: Date[]) => {
 
   // Remove timeout mechanism - rely on proper loading state management
 
-  const fetchEventsForDates = async (dates: Date[]) => {
-    if (!user || !currentFamily || dates.length === 0) {
-      console.log('⚠️ No user, family, or dates, skipping event fetch');
+  const fetchEventsForDate = async (date: Date) => {
+    if (!user || !date) {
+      console.log('⚠️ No user or date, skipping event fetch');
       setEvents([]);
       setLoading(false);
       setIsFetching(false);

@@ -345,80 +345,14 @@ export const useFamilyPoints = (): UseFamilyPointsReturn => {
     try {
       setError(null);
       
-      // Load points activities with better error handling
+      // Points activities API call removed
       let activitiesData = [];
-      try {
-        const { data, error: activitiesError } = await withTimeout(
-          supabase
-            .from('family_points_activities')
-            .select(`
-              *,
-              user_profile:profiles!user_id (
-                name,
-                avatar_url
-              )
-            `)
-            .eq('family_id', currentFamily.id)
-            .order('created_at', { ascending: false })
-            .limit(100),
-          5000
-        );
 
-        if (activitiesError) {
-          console.warn('Warning: Could not load points activities:', activitiesError.message);
-        } else {
-          activitiesData = data || [];
-        }
-      } catch (error) {
-        console.warn('Warning: Points activities table may not exist:', error);
-      }
-
-      // Load family goals with better error handling
+      // Family goals API call removed
       let goalsData = [];
-      try {
-        const { data, error: goalsError } = await supabase
-          .from('family_goals')
-          .select(`
-            *,
-            creator_profile:profiles!created_by (
-              name
-            )
-          `)
-          .eq('family_id', currentFamily.id)
-          .order('created_at', { ascending: false });
 
-        if (goalsError) {
-          console.warn('Warning: Could not load family goals:', goalsError.message);
-        } else {
-          goalsData = data || [];
-        }
-      } catch (error) {
-        console.warn('Warning: Family goals table may not exist:', error);
-      }
-
-      // Load achievements with better error handling
+      // Family achievements API call removed
       let achievementsData = [];
-      try {
-        const { data, error: achievementsError } = await supabase
-          .from('family_achievements')
-          .select(`
-            *,
-            user_profile:profiles!user_id (
-              name,
-              avatar_url
-            )
-          `)
-          .eq('family_id', currentFamily.id)
-          .order('unlocked_at', { ascending: false });
-
-        if (achievementsError) {
-          console.warn('Warning: Could not load achievements:', achievementsError.message);
-        } else {
-          achievementsData = data || [];
-        }
-      } catch (error) {
-        console.warn('Warning: Family achievements table may not exist:', error);
-      }
 
       setActivities(activitiesData);
       setGoals(goalsData);
@@ -431,152 +365,26 @@ export const useFamilyPoints = (): UseFamilyPointsReturn => {
     }
   }, [currentFamily?.id, user?.id]);
 
-  // Check for new achievements (defined early to avoid temporal dead zone)
+  // Check achievements function removed - API call disabled
   const checkForAchievements = useCallback(async (userId: string): Promise<Achievement[]> => {
-    if (!currentFamily) return [];
+    console.log('Achievement checking disabled - API call removed');
+    return [];
+  }, []);
 
-    try {
-      // Fetch fresh data instead of using state
-      const { data: familyActivities } = await supabase
-        .from('family_points_activities')
-        .select('*')
-        .eq('family_id', currentFamily.id)
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      const { data: existingAchievements } = await supabase
-        .from('family_achievements')
-        .select('achievement_type')
-        .eq('family_id', currentFamily.id);
-
-      const existingTypes = existingAchievements?.map(a => a.achievement_type) || [];
-      const newAchievements: Achievement[] = [];
-
-      // Check each achievement type
-      for (const [type, config] of Object.entries(ACHIEVEMENTS_CONFIG)) {
-        if (existingTypes.includes(type)) continue; // Already unlocked
-        
-        if (config.condition(familyActivities || [])) {
-          // Unlock achievement
-          const { data: newAchievement, error } = await supabase
-            .from('family_achievements')
-            .insert([{
-              family_id: currentFamily.id,
-              user_id: userId, // User who unlocked the achievement
-              achievement_type: type,
-              title: config.title,
-              description: config.description,
-              points_reward: config.points_reward,
-            }])
-            .select(`
-              *,
-              user_profile:profiles!user_id (
-                name,
-                avatar_url
-              )
-            `)
-            .single();
-
-          if (!error && newAchievement) {
-            newAchievements.push(newAchievement);
-          }
-        }
-      }
-
-      return newAchievements;
-    } catch (error: any) {
-      console.error('Error checking achievements:', error);
-      return [];
-    }
-  }, [currentFamily?.id]);
-
-  // Update goal progress based on current points (defined before awardPoints)
+  // Update goal progress function removed - API call disabled
   const updateGoalProgress = useCallback(async () => {
-    if (!currentFamily) return;
+    console.log('Goal progress updating disabled - API call removed');
+  }, []);
 
-    try {
-      // Fetch fresh goals data instead of using state
-      const { data: goalsData } = await supabase
-        .from('family_goals')
-        .select('id')
-        .eq('family_id', currentFamily.id)
-        .eq('completed', false);
-
-      if (goalsData) {
-        for (const goal of goalsData) {
-          await supabase.rpc('update_goal_progress', { target_goal_id: goal.id });
-        }
-      }
-    } catch (error) {
-      console.error('Error updating goal progress:', error);
-    }
-  }, [currentFamily?.id]);
-
-  // Award points for an activity
+  // Award points function removed - API call disabled
   const awardPoints = useCallback(async (activityData: Omit<PointsActivity, 'id' | 'family_id' | 'user_id' | 'created_at'>) => {
-    if (!currentFamily || !user) {
-      throw new Error('User must be in a family to award points');
-    }
+    console.log('Points awarding disabled - API call removed');
+  }, []);
 
-    try {
-      const pointsToAward = POINTS_CONFIG[activityData.activity_type] || 0;
-
-      const { error } = await withRetry(
-        () => supabase
-          .from('family_points_activities')
-          .insert([{
-            ...activityData,
-            family_id: currentFamily.id,
-            user_id: user.id,
-            points_earned: pointsToAward,
-          }]),
-        3,
-        1000
-      );
-
-      if (error) throw error;
-
-      // Check for new achievements
-      await checkForAchievements(user.id);
-
-      // Update goal progress
-      await updateGoalProgress();
-
-      // Note: Real-time subscriptions will handle data refresh automatically
-    } catch (error: any) {
-      console.error('Error awarding points:', error);
-      throw error;
-    }
-  }, [currentFamily?.id, user?.id, checkForAchievements, updateGoalProgress]);
-
-  // Create a new family goal
+  // Create goal function removed - API call disabled
   const createGoal = useCallback(async (goalData: Omit<FamilyGoal, 'id' | 'family_id' | 'created_by' | 'current_points' | 'completed' | 'created_at' | 'updated_at'>) => {
-    if (!currentFamily || !user) {
-      throw new Error('User must be in a family to create goals');
-    }
-
-    try {
-      const { error } = await supabase
-        .from('family_goals')
-        .insert([{
-          ...goalData,
-          family_id: currentFamily.id,
-          created_by: user.id,
-          current_points: 0,
-          completed: false,
-        }]);
-
-      if (error) throw error;
-
-      // Note: Real-time subscriptions will handle data refresh automatically
-      
-      // Check for new achievements after creating goal
-      await checkForAchievements(user.id);
-    } catch (error: any) {
-      console.error('Error creating goal:', error);
-      throw error;
-    }
-  }, [currentFamily?.id, user?.id, checkForAchievements]);
+    console.log('Goal creation disabled - API call removed');
+  }, []);
 
   // Generate leaderboard
   const leaderboard: LeaderboardEntry[] = familyMembers.map(member => {
@@ -653,49 +461,11 @@ export const useFamilyPoints = (): UseFamilyPointsReturn => {
       }, 500); // 500ms debounce
     };
 
+    // Real-time subscriptions removed - API calls disabled
     const channel = supabase
       .channel(`family_points_${currentFamily.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'family_points_activities',
-          filter: `family_id=eq.${currentFamily.id}`,
-        },
-        (payload) => {
-          console.log('Real-time points activity change:', payload);
-          debouncedLoadData();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'family_goals',
-          filter: `family_id=eq.${currentFamily.id}`,
-        },
-        (payload) => {
-          console.log('Real-time goal change:', payload);
-          debouncedLoadData();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'family_achievements',
-          filter: `family_id=eq.${currentFamily.id}`,
-        },
-        (payload) => {
-          console.log('Real-time achievement change:', payload);
-          debouncedLoadData();
-        }
-      )
       .subscribe((status) => {
-        console.log('Points system subscription status:', status);
+        console.log('Points system subscription disabled - API calls removed');
       });
 
     return () => {

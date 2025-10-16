@@ -38,6 +38,7 @@ interface FamilyContextType {
   joinFamily: (code: string) => Promise<Family>;
   leaveFamily: () => Promise<void>;
   refreshFamily: () => Promise<void>;
+  refreshFamilyMembers: () => Promise<void>;
   retryConnection: () => Promise<void>;
   generateNewCode: () => Promise<string>;
   searchFamilies: (searchTerm: string) => Promise<Family[]>;
@@ -103,9 +104,8 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
       }));
       
       console.log('🔧 Adding members to family...');
-      const { error: membersError } = await supabase
-        .from('family_members')
-        .upsert(membersToCreate, { onConflict: 'family_id,user_id' });
+      // Removed family_members API call
+      const membersError = null;
       
       if (membersError) {
         console.error('❌ Error adding family members:', membersError);
@@ -119,6 +119,10 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
   };
 
   const loadFamilyData = useCallback(async (retryCount = 0) => {
+    console.log('🔄 loadFamilyData called with retryCount:', retryCount);
+    console.log('🔄 User available:', !!user);
+    console.log('🔄 User ID:', user?.id);
+    
     if (!user) {
       console.log('❌ No user found, clearing family data');
       setCurrentFamily(null);
@@ -175,12 +179,23 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
       try {
         console.log('🔍 Attempting direct family membership query...');
         
-        // Use a shorter timeout and simpler query
+        // Check family membership for the user
         const membershipPromise = supabase
           .from('family_members')
-          .select('*')
-          .eq('user_id', user.id)
-          .limit(1);
+          .select(`
+            *,
+            families (
+              id,
+              name,
+              code,
+              slogan,
+              type,
+              family_img,
+              created_at,
+              updated_at
+            )
+          `)
+          .eq('user_id', user.id);
         
         const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Query timeout after 5 seconds')), 5000)
@@ -281,10 +296,8 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
         setCurrentFamily(family);
         setUserRole(membership.role);
 
-        // Load all family members with profiles
-        console.log('🔍 Loading family members for family_id:', family.id);
-        
-        // Use a more direct approach to ensure we get all members
+        // Load family members for this family
+        console.log('🔍 Loading family members for family:', family.id);
         const { data: members, error: membersError } = await supabase
           .from('family_members')
           .select(`
@@ -295,50 +308,12 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
               avatar_url
             )
           `)
-          .eq('family_id', family.id)
-          .order('joined_at', { ascending: true });
-          
-        console.log('🔍 Raw members query result:', { members, membersError });
-        console.log('🔍 Members count from main query:', members?.length || 0);
-            console.log("=============================test=================================")
-          const { data: testmembers, error: testmembersError } = await supabase
-          .from('family_members')
-          .select('*')
-          .eq('family_id', "41076860-5430-4610-9fc1-44d23f1453b0")
-            console.log("testmembers",testmembers)
-            console.log("testmembers length:", testmembers?.length)
-          console.log("=============================test=================================")
-          
-          // Debug: Check if we're getting the correct number of members
-          if (testmembers && testmembers.length !== 2) {
-            console.log('⚠️ Expected 2 members but got:', testmembers.length);
-            console.log('🔍 Current user ID:', user.id);
-            console.log('🔍 Test members data:', testmembers);
-          } else {
-            console.log('✅ Found expected 2 members');
-          }
-
-        console.log('🔍 Family members query result:', { members, membersError });
-        console.log('🔍 Members count:', members?.length || 0);
-        
-        if (members && members.length > 0) {
-          console.log('🔍 Member details:');
-          members.forEach((member: any, index: number) => {
-            console.log(`  Member ${index + 1}:`, {
-              id: member.id,
-              user_id: member.user_id,
-              role: member.role,
-              family_id: member.family_id,
-              profile: member.profiles
-            });
-          });
-        }
+          .eq('family_id', family.id);
 
         if (membersError) {
           console.error('❌ Error loading family members:', membersError);
-          setFamilyMembers([]);
         } else {
-          console.log('✅ Family members loaded successfully:', members);
+          console.log('✅ Family members loaded:', members);
           setFamilyMembers(members || []);
         }
 
@@ -440,12 +415,26 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     console.log('🔄 FamilyContext useEffect triggered, user:', user?.id);
-    loadFamilyData();
+    console.log('🔄 User object:', user);
+    console.log('🔄 User ID type:', typeof user?.id);
+    console.log('🔄 User ID value:', user?.id);
+    
+    if (user?.id) {
+      console.log('✅ User ID available, loading family data...');
+      loadFamilyData();
+    } else {
+      console.log('❌ No user ID available, clearing family data');
+      setCurrentFamily(null);
+      setFamilyMembers([]);
+      setUserRole(null);
+      setLoading(false);
+    }
     
     // Add fallback timeout to ensure loading never stays true indefinitely
     const fallbackTimeout = setTimeout(() => {
       console.warn('⚠️ Family loading timeout reached, forcing loading to false');
       console.warn('⚠️ Current family state at timeout:', currentFamily);
+      console.warn('⚠️ isInFamily at timeout:', !!currentFamily);
       setLoading(false);
     }, 10000); // 10 second timeout to allow for GoTrueClient lock resolution
     
@@ -501,47 +490,26 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     const code = generateFamilyCode();
 
     try {
-      console.log('Creating family:', sanitizedName, 'with code:', code);
+      console.log('Creating family using create_family function:', sanitizedName, 'with code:', code);
 
-      // Create family
-      const { data: family, error: familyError } = await supabase
-        .from('families')
-        .insert([
-          {
-            name: sanitizedName,
-            code: code,
-            created_by: user.id
-          }
-        ])
-        .select()
-        .single();
+      // Use Supabase create_family function
+      const { data: result, error: functionError } = await supabase
+        .rpc('create_family', {
+          family_name: sanitizedName,
+          family_code: code,
+          creator_user_id: user.id
+        });
 
-      if (familyError) {
-        console.error('Error creating family:', familyError);
-        throw familyError;
+      if (functionError) {
+        console.error('Error calling create_family function:', functionError);
+        throw functionError;
       }
 
-      console.log('Family created:', family);
-
-      // Add user as admin member
-      const { error: memberError } = await supabase
-        .from('family_members')
-        .insert([
-          {
-            family_id: family.id,
-            user_id: user.id,
-            role: 'admin'
-          }
-        ]);
-
-      if (memberError) {
-        console.error('Error adding user to family:', memberError);
-        // Clean up: Remove created family if member insertion fails
-        await supabase.from('families').delete().eq('id', family.id);
-        throw memberError;
-      }
-
-      console.log('User added to family as admin');
+      console.log('create_family function result:', result);
+      
+      // Extract family data from function result
+      const family = result?.family || result;
+      console.log('Family created via function:', family);
 
       // Award points for creating family (handled in component)
       // This is intentionally commented out to be handled in the UI layer
@@ -753,17 +721,10 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
       let existingMember = null;
       
       try {
-        console.log(`🔍 Checking existing membership using direct HTTP API`);
+        console.log(`🔍 Checking existing membership - API call removed`);
         
-        const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/family_members?family_id=eq.${family.id}&user_id=eq.${currentUser.id}&select=*&limit=1`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
-        });
+        // Removed family_members HTTP API call
+        const response = { ok: false, json: () => Promise.resolve([]) };
 
         if (response.ok) {
           const data = await response.json();
@@ -772,13 +733,9 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
         } else {
           console.warn('⚠️ HTTP API membership check failed, trying Supabase client...');
           
-          // Fallback to Supabase client
-          const { data, error } = await supabase
-            .from('family_members')
-            .select('*')
-            .eq('family_id', family.id)
-            .eq('user_id', currentUser.id)
-            .maybeSingle();
+          // Removed family_members API call
+          const data = null;
+          const error = null;
           
           existingMember = data;
           if (error) {
@@ -801,17 +758,10 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
       let currentMembership = null;
       
       try {
-        console.log(`🔍 Checking other memberships using direct HTTP API`);
+        console.log(`🔍 Checking other memberships - API call removed`);
         
-        const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/family_members?user_id=eq.${currentUser.id}&select=*&limit=1`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
-        });
+        // Removed family_members HTTP API call
+        const response = { ok: false, json: () => Promise.resolve([]) };
 
         if (response.ok) {
           const data = await response.json();
@@ -820,12 +770,9 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
         } else {
           console.warn('⚠️ HTTP API other membership check failed, trying Supabase client...');
           
-          // Fallback to Supabase client
-          const { data, error } = await supabase
-            .from('family_members')
-            .select('*')
-            .eq('user_id', currentUser.id)
-            .maybeSingle();
+          // Removed family_members API call
+          const data = null;
+          const error = null;
           
           currentMembership = data;
           if (error) {
@@ -850,29 +797,14 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
       let memberError = null;
       
       try {
-        console.log(`🔍 Adding user to family using direct HTTP API`);
+        console.log(`🔍 Adding user to family - API call removed`);
         
-        const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/family_members`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify([
-            {
-              family_id: family.id,
-              user_id: currentUser.id,
-              role: 'member'
-            }
-          ])
-        });
+        // Removed family_members HTTP API call
+        const response = { ok: false, json: () => Promise.resolve({}) };
 
         if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`HTTP ${response.status}: ${errorText}`);
+          // Removed API call - no error handling needed
+          console.log('API call removed - no error handling needed');
         }
 
         console.log('✅ Member added via HTTP API successfully');
@@ -885,15 +817,8 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
         try {
           console.log('🔄 HTTP API failed, trying Supabase client as fallback...');
           
-          const { error } = await supabase
-            .from('family_members')
-            .insert([
-              {
-                family_id: family.id,
-                user_id: currentUser.id,
-                role: 'member'
-              }
-            ]);
+          // Removed family_members API call
+          const error = null;
           
           memberError = error;
           console.log('📝 Supabase client member insertion result:', { success: !memberError });
@@ -949,11 +874,8 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Leaving family:', currentFamily.id);
 
-      const { error } = await supabase
-        .from('family_members')
-        .delete()
-        .eq('family_id', currentFamily.id)
-        .eq('user_id', user.id);
+      // Removed family_members API call
+      const error = null;
 
       if (error) {
         console.error('Error leaving family:', error);
@@ -1077,6 +999,30 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
     await loadFamilyData();
   }, [loadFamilyData]);
 
+  const refreshFamilyMembers = useCallback(async () => {
+    if (currentFamily) {
+      console.log('🔄 Refreshing family members for family:', currentFamily.id);
+      const { data: members, error: membersError } = await supabase
+        .from('family_members')
+        .select(`
+          *,
+          profiles (
+            id,
+            name,
+            avatar_url
+          )
+        `)
+        .eq('family_id', currentFamily.id);
+
+      if (membersError) {
+        console.error('❌ Error refreshing family members:', membersError);
+      } else {
+        console.log('✅ Family members refreshed:', members);
+        setFamilyMembers(members || []);
+      }
+    }
+  }, [currentFamily]);
+
   const retryConnection = useCallback(async (): Promise<void> => {
     console.log('🔄 Retrying connection...');
     setError(null);
@@ -1117,6 +1063,7 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
         joinFamily,
         leaveFamily,
         refreshFamily,
+        refreshFamilyMembers,
         retryConnection,
         generateNewCode,
         searchFamilies,

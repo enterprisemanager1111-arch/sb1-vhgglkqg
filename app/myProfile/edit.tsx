@@ -25,7 +25,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function EditProfile() {
-  const { profile, updateProfile, user, session, loading: authLoading } = useAuth();
+  const { profile, updateProfile, user, session, loading: authLoading, refreshProfile, updateProfileDirectly } = useAuth();
   const { loading: familyLoading } = useFamily();
   const { showError } = useCustomAlert();
 
@@ -979,97 +979,72 @@ export default function EditProfile() {
       console.log('🔄 Session available:', !!currentSession);
       console.log('🔄 Access token length:', currentSession?.access_token?.length || 0);
       
-      // First, check if profile exists using direct HTTP
-      console.log('🔄 Checking if profile exists...');
-      const checkUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=id`;
+      // Skip profile existence check since we're in edit profile page (profile must exist)
+      console.log('🔄 Updating profile via HTTP...');
+      const updateUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`;
       
-      const checkTimeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Profile check timeout after 10 seconds')), 10000)
+      const updateTimeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Profile update timeout after 15 seconds')), 15000)
       );
       
-      const checkPromise = fetch(checkUrl, {
-        method: 'GET',
+      const updatePromise = fetch(updateUrl, {
+        method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${currentSession.access_token}`,
           'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
           'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
         },
+        body: JSON.stringify(updateData),
       });
       
-      const checkResponse = await Promise.race([checkPromise, checkTimeoutPromise]) as Response;
+      const updateResponse = await Promise.race([updatePromise, updateTimeoutPromise]) as Response;
       
-      if (!checkResponse.ok) {
-        throw new Error(`Profile check failed: ${checkResponse.status} ${checkResponse.statusText}`);
+      if (!updateResponse.ok) {
+        const errorText = await updateResponse.text();
+        throw new Error(`Profile update failed: ${updateResponse.status} ${updateResponse.statusText} - ${errorText}`);
       }
       
-      const existingProfiles = await checkResponse.json();
-      console.log('🔄 Existing profiles:', existingProfiles);
+      const result = await updateResponse.json();
+      console.log('✅ Profile updated via HTTP:', result);
       
-      let result;
-      if (existingProfiles && existingProfiles.length > 0) {
-        // Profile exists, update it
-        console.log('🔄 Profile exists, updating via HTTP...');
-        const updateUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`;
+      // Update the centralized state with the new profile data
+      if (result && result.length > 0) {
+        console.log('🔄 Updating centralized state with new profile data...');
+        console.log('🔄 New profile data:', result[0]);
         
-        const updateTimeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Profile update timeout after 15 seconds')), 15000)
-        );
-        
-        const updatePromise = fetch(updateUrl, {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${currentSession.access_token}`,
-            'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
-            'Content-Type': 'application/json',
-            'Prefer': 'return=representation',
-          },
-          body: JSON.stringify(updateData),
-        });
-        
-        const updateResponse = await Promise.race([updatePromise, updateTimeoutPromise]) as Response;
-        
-        if (!updateResponse.ok) {
-          const errorText = await updateResponse.text();
-          throw new Error(`Profile update failed: ${updateResponse.status} ${updateResponse.statusText} - ${errorText}`);
+        // Try to directly update the centralized state first
+        try {
+          console.log('🔄 Directly updating centralized state with API response...');
+          if (updateProfileDirectly) {
+            updateProfileDirectly(result[0]);
+            console.log('✅ Centralized state updated directly with API response');
+          } else {
+            console.log('⚠️ updateProfileDirectly not available, using refreshProfile');
+            // Fallback to refreshProfile
+            const refreshTimeoutPromise = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error('RefreshProfile timeout after 10 seconds')), 10000);
+            });
+            
+            await Promise.race([refreshProfile(), refreshTimeoutPromise]);
+            console.log('✅ Centralized state updated via refreshProfile');
+          }
+        } catch (stateUpdateError) {
+          console.log('⚠️ Failed to update centralized state directly:', stateUpdateError);
+          // Fallback to refreshProfile
+          try {
+            console.log('🔄 Trying refreshProfile as fallback...');
+            const refreshTimeoutPromise = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error('RefreshProfile timeout after 10 seconds')), 10000);
+            });
+            
+            await Promise.race([refreshProfile(), refreshTimeoutPromise]);
+            console.log('✅ Centralized state updated via refreshProfile fallback');
+          } catch (refreshError) {
+            console.log('⚠️ Failed to update centralized state via refreshProfile:', refreshError);
+            // Don't throw error here as the profile was updated successfully
+          }
         }
-        
-        result = await updateResponse.json();
-        console.log('✅ Profile updated via HTTP:', result);
-      } else {
-        // Profile doesn't exist, create it
-        console.log('🔄 Profile doesn\'t exist, creating via HTTP...');
-        const createUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/profiles`;
-        
-        const createData = {
-          id: userId,
-          ...updateData,
-          created_at: new Date().toISOString(),
-        };
-        
-        const createTimeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Profile create timeout after 15 seconds')), 15000)
-        );
-        
-        const createPromise = fetch(createUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${currentSession.access_token}`,
-            'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
-            'Content-Type': 'application/json',
-            'Prefer': 'return=representation',
-          },
-          body: JSON.stringify([createData]),
-        });
-        
-        const createResponse = await Promise.race([createPromise, createTimeoutPromise]) as Response;
-        
-        if (!createResponse.ok) {
-          const errorText = await createResponse.text();
-          throw new Error(`Profile create failed: ${createResponse.status} ${createResponse.statusText} - ${errorText}`);
-        }
-        
-        result = await createResponse.json();
-        console.log('✅ Profile created via HTTP:', result);
       }
       
       return result;
@@ -1150,7 +1125,7 @@ export default function EditProfile() {
         throw new Error('Authentication required. Please sign in again.');
           }
           console.log('✅ Fresh session obtained successfully');
-        } catch (sessionError) {
+        } catch (sessionError: any) {
           throw new Error(`Authentication required. Please sign in again. Error: ${sessionError.message}`);
         }
       }
@@ -1441,6 +1416,10 @@ export default function EditProfile() {
         console.log('🎉 - Position/Role (role):', updateData.role || 'Not set');
         console.log('🎉 - Avatar URL (avatar_url - Supabase Storage):', updateData.avatar_url || 'Not set');
         console.log('🎉 - Interests (from localStorage):', updateData.interests || 'Not set');
+        // Clear timeout and stop loading animations
+        clearTimeout(loadingTimeout);
+        setIsUpdatingProfile(false);
+        
         // Show success modal instead of alert
         showSuccessModal();
       } catch (updateError: any) {
@@ -1467,6 +1446,11 @@ export default function EditProfile() {
           
           console.log('✅ Direct HTTP update successful!');
           console.log('✅ Direct update result:', result);
+          
+          // Clear timeout and stop loading animations
+          clearTimeout(loadingTimeout);
+          setIsUpdatingProfile(false);
+          
           showSuccessModal();
           return;
         } catch (directError) {
@@ -1481,6 +1465,34 @@ export default function EditProfile() {
 
           try {
             await updateProfile(updateDataWithoutAvatar);
+            // Update the centralized state with the updated profile data
+            try {
+              console.log('🔄 Updating centralized state after profile update...');
+              if (updateProfileDirectly) {
+                // Create a profile object with the updated data
+                const updatedProfileData = {
+                  ...profile,
+                  ...updateDataWithoutAvatar,
+                  updated_at: new Date().toISOString()
+                };
+                updateProfileDirectly(updatedProfileData);
+                console.log('✅ Centralized state updated directly with profile data');
+              } else {
+                // Fallback to refreshProfile
+                const refreshTimeoutPromise = new Promise((_, reject) => {
+                  setTimeout(() => reject(new Error('RefreshProfile timeout after 10 seconds')), 10000);
+                });
+                await Promise.race([refreshProfile(), refreshTimeoutPromise]);
+                console.log('✅ Centralized state updated via refreshProfile');
+              }
+            } catch (refreshError: any) {
+              console.log('⚠️ Failed to refresh profile after update:', refreshError);
+            }
+            
+            // Clear timeout and stop loading animations
+            clearTimeout(loadingTimeout);
+            setIsUpdatingProfile(false);
+            
             showError('Partial Update', 'Profile updated successfully, but avatar could not be saved. Please try uploading a smaller image.');
             router.replace('/(tabs)');
             return;
@@ -1498,6 +1510,34 @@ export default function EditProfile() {
 
         try {
           await updateProfile(minimalUpdateData);
+          // Update the centralized state with the updated profile data
+          try {
+            console.log('🔄 Updating centralized state after minimal profile update...');
+            if (updateProfileDirectly) {
+              // Create a profile object with the updated data
+              const updatedProfileData = {
+                ...profile,
+                ...minimalUpdateData,
+                updated_at: new Date().toISOString()
+              };
+              updateProfileDirectly(updatedProfileData);
+              console.log('✅ Centralized state updated directly with minimal profile data');
+            } else {
+              // Fallback to refreshProfile
+              const refreshTimeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('RefreshProfile timeout after 10 seconds')), 10000);
+              });
+              await Promise.race([refreshProfile(), refreshTimeoutPromise]);
+              console.log('✅ Centralized state updated via refreshProfile');
+            }
+          } catch (refreshError: any) {
+            console.log('⚠️ Failed to refresh profile after update:', refreshError);
+          }
+          
+          // Clear timeout and stop loading animations
+          clearTimeout(loadingTimeout);
+          setIsUpdatingProfile(false);
+          
           showError('Partial Update', 'Only name was updated. Please try again for other fields.');
           router.replace('/(tabs)');
           return;

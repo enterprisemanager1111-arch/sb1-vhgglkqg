@@ -32,7 +32,6 @@ const VerificationIcon = ({ size = 16 }: { size?: number }) => (
 
 export default function FlamesScreen() {
   const [refreshing, setRefreshing] = useState(false);
-  const [refreshedProfile, setRefreshedProfile] = useState(null);
   
   const { isInFamily, familyMembers, loading: familyLoading, refreshFamily } = useFamily();
   const { user, profile, session } = useAuth();
@@ -45,41 +44,7 @@ export default function FlamesScreen() {
     refreshData,
   } = useFamilyPoints();
 
-  // Refresh profile data when component mounts to ensure we have the latest data
-  useEffect(() => {
-    const refreshProfileData = async () => {
-      if (!user || !session?.access_token) {
-        console.log('⚠️ Flames page: No user or session for profile refresh');
-        return;
-      }
-      
-      try {
-        console.log('🔄 Flames page: Refreshing profile data via REST API...');
-        const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
-            'Accept': 'application/json'
-          }
-        });
-        
-        if (response.ok) {
-          const profileData = await response.json();
-          console.log('✅ Flames page: Profile data refreshed via REST API:', profileData);
-          if (profileData && profileData.length > 0) {
-            setRefreshedProfile(profileData[0]);
-          }
-        } else {
-          console.log('⚠️ Flames page: Profile refresh failed:', response.status);
-        }
-      } catch (error) {
-        console.log('⚠️ Flames page: Profile refresh failed:', error);
-      }
-    };
-    
-    refreshProfileData();
-  }, []); // Run once on mount
+  // Removed redundant profile API call - using profile from AuthContext
   
 
   // Show loading screen while checking family status
@@ -108,8 +73,8 @@ export default function FlamesScreen() {
     }
   };
 
-  // Use refreshed profile data if available, fallback to original profile
-  const currentProfile = refreshedProfile || profile;
+  // Use profile from AuthContext (centralized state)
+  const currentProfile = profile;
 
   // Extract full name for greeting
   const userName = (() => {

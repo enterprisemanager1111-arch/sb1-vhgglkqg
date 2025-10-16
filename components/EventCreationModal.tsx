@@ -16,7 +16,6 @@ import { Image as RNImage } from 'react-native';
 import { useLoading } from '@/contexts/LoadingContext';
 import { useFamily } from '@/contexts/FamilyContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNotifications } from '@/components/NotificationSystem';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 
@@ -110,7 +109,7 @@ const DateTimePickerModal = ({
                     >
                       <Text style={[
                         styles.dateTimePickerOptionText,
-                        tempDateTime.getFullYear() === year && styles.dateTimePickerOptionTextSelected
+                        tempDateTime.getFullYear() === year && styles.dateTimePickerOptionSelected
                       ]}>
                         {year}
                       </Text>
@@ -135,7 +134,7 @@ const DateTimePickerModal = ({
                     >
                       <Text style={[
                         styles.dateTimePickerOptionText,
-                        tempDateTime.getMonth() === index && styles.dateTimePickerOptionTextSelected
+                        tempDateTime.getMonth() === index && styles.dateTimePickerOptionSelected
                       ]}>
                         {month}
                       </Text>
@@ -160,7 +159,7 @@ const DateTimePickerModal = ({
                     >
                       <Text style={[
                         styles.dateTimePickerOptionText,
-                        tempDateTime.getDate() === day && styles.dateTimePickerOptionTextSelected
+                        tempDateTime.getDate() === day && styles.dateTimePickerOptionSelected
                       ]}>
                         {day}
                       </Text>
@@ -185,7 +184,7 @@ const DateTimePickerModal = ({
                     >
                       <Text style={[
                         styles.dateTimePickerOptionText,
-                        tempDateTime.getHours() === hour && styles.dateTimePickerOptionTextSelected
+                        tempDateTime.getHours() === hour && styles.dateTimePickerOptionSelected
                       ]}>
                         {hour.toString().padStart(2, '0')}
                       </Text>
@@ -202,7 +201,7 @@ const DateTimePickerModal = ({
                       key={minute}
                       style={[
                         styles.dateTimePickerOption,
-                        tempDateTime.getMinutes() === minute && styles.dateTimePickerOptionTextSelected
+                        tempDateTime.getMinutes() === minute && styles.dateTimePickerOptionSelected
                       ]}
                       onPress={() => {
                         setTempDateTime(new Date(tempDateTime.getFullYear(), tempDateTime.getMonth(), tempDateTime.getDate(), tempDateTime.getHours(), minute));
@@ -210,7 +209,7 @@ const DateTimePickerModal = ({
                     >
                       <Text style={[
                         styles.dateTimePickerOptionText,
-                        tempDateTime.getMinutes() === minute && styles.dateTimePickerOptionTextSelected
+                        tempDateTime.getMinutes() === minute && styles.dateTimePickerOptionSelected
                       ]}>
                         {minute.toString().padStart(2, '0')}
                       </Text>
@@ -402,6 +401,7 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
   visible,
   onClose,
 }) => {
+  console.log('🎭 EventCreationModal rendered with visible:', visible);
   const [form, setForm] = useState<EventForm>({
     title: '',
     description: '',
@@ -415,12 +415,12 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
   const [selectedDateTime, setSelectedDateTime] = useState(new Date());
   
   const { showLoading, hideLoading } = useLoading();
-  const { familyMembers, currentFamily, refreshFamily } = useFamily();
-  const { showPointsEarned, showMemberActivity } = useNotifications();
+  const { familyMembers, currentFamily, refreshFamily, refreshFamilyMembers } = useFamily();
   const { t } = useLanguage();
   const { user } = useAuth();
 
-  // Reset form when modal opens
+
+  // Reset form when modal opens and refresh family members
   useEffect(() => {
     if (visible) {
       setForm({
@@ -433,8 +433,11 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
       setLoading(false);
       setShowStartTimePicker(false);
       setShowDurationPicker(false);
+      
+      // Refresh family members when modal opens
+      refreshFamilyMembers();
     }
-  }, [visible]);
+  }, [visible, refreshFamilyMembers]);
 
 
   const handleClose = () => {
@@ -519,6 +522,8 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
   // Helper function to create event with a specific family using Supabase function
   const createEventWithFamily = async (family: any, eventData: any) => {
     console.log('🔧 createEventWithFamily called with family:', family.id);
+    console.log('🔧 createEventWithFamily called with eventData:', eventData);
+    console.log('🔧 createEventWithFamily function started');
     
     try {
       // Calculate start and end times properly
@@ -540,40 +545,127 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
            eventData.assignee.filter((id: string) => id && id.trim() !== '') : []
        };
 
-      console.log('🔧 Calling create_calendar_event_with_details with params:', functionParams);
+      let result: any = null;
+      let eventData_result: any = null;
 
-      const { data: result, error: functionError } = await supabase.rpc(
-        'create_calendar_event_with_details',
-        functionParams
-      );
-
-      if (functionError) {
-        console.error('❌ Function call error:', functionError);
-        throw functionError;
-      }
-
-      console.log('✅ Event and assignments created successfully:', result);
+      let rpcSuccess = false;
+      let rpcError: any = null;
       
-      // Create event notifications for assignees
-      if (eventData.assignee && eventData.assignee.length > 0) {
+      // Try RPC call up to 2 times with session refresh
+      for (let attempt = 1; attempt <= 2; attempt++) {
         try {
-          const { createEventNotifications } = await import('@/utils/eventNotificationService');
-          await createEventNotifications({
-            eventId: result.event_id,
-            assigneeIds: eventData.assignee,
-            assignerId: user?.id || '',
-            eventTitle: eventData.title,
-            eventDescription: eventData.description
-          });
-          console.log('✅ Event notifications created successfully');
-        } catch (notificationError) {
-          console.warn('⚠️ Failed to create event notifications:', notificationError);
-          // Don't fail the event creation if notifications fail
+          // Refresh session before RPC call to ensure fresh authentication
+          const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+          if (sessionError) {
+            console.log('Session refresh failed, proceeding with RPC call anyway');
+          }
+
+          // Try to use the RPC function with timeout
+          const rpcPromise = supabase.rpc(
+            'create_calendar_event_with_details',
+            functionParams
+          );
+          
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('RPC call timeout')), 10000)
+          );
+          
+          const { data: rpcResult, error: functionError } = await Promise.race([
+            rpcPromise,
+            timeoutPromise
+          ]) as any;
+
+          if (functionError) {
+            throw functionError;
+          }
+
+          result = rpcResult;
+          rpcSuccess = true;
+          break;
+        } catch (error: any) {
+          rpcError = error;
+          console.log(`RPC attempt ${attempt} failed:`, error.message);
+          
+          if (attempt === 1) {
+            // Wait a bit before retry
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
         }
       }
       
-      showPointsEarned(5, `Event created: ${form.title}`);
-      showMemberActivity(t('common.familyMember'), `Created event: ${form.title}`);
+      if (!rpcSuccess) {
+        console.log('RPC call failed, falling back to direct database inserts:', rpcError?.message);
+
+        // Try to refresh Supabase client if RPC consistently fails
+        try {
+          const { createFreshSupabaseClient } = await import('@/lib/supabase');
+          const freshClient = createFreshSupabaseClient();
+          
+          // Try one more time with fresh client
+          const { data: freshRpcResult, error: freshFunctionError } = await freshClient.rpc(
+            'create_calendar_event_with_details',
+            functionParams
+          );
+          
+          if (!freshFunctionError) {
+            result = freshRpcResult;
+            console.log('Fresh client RPC call succeeded');
+          } else {
+            throw freshFunctionError;
+          }
+        } catch (freshError: any) {
+          console.log('Fresh client also failed, using direct database inserts');
+        }
+        
+        // Fallback to direct database inserts
+        // Create the calendar event first
+        const { data: directEventData, error: eventError } = await supabase
+          .from('calendar_events')
+          .insert([{
+            family_id: functionParams._family_id,
+            title: functionParams._title,
+            description: functionParams._description,
+            event_date: functionParams._event_date,
+            end_date: functionParams._end_date,
+            location: functionParams._location,
+            created_by: functionParams._created_by
+          }])
+          .select('id')
+          .single();
+
+        if (eventError) {
+          throw eventError;
+        }
+
+        eventData_result = directEventData;
+
+        // Create event assignments for each assignee
+        const assignmentIds = [];
+        if (functionParams._assignees && functionParams._assignees.length > 0) {
+          const assignments = functionParams._assignees.map((assigneeId: string) => ({
+            event_id: eventData_result.id,
+            assignee_id: assigneeId,
+            assigned_by: functionParams._created_by,
+            status: 'assigned'
+          }));
+
+          const { data: assignmentData, error: assignmentError } = await supabase
+            .from('event_assignment')
+            .insert(assignments)
+            .select('id');
+
+          if (assignmentError) {
+            throw assignmentError;
+          }
+
+          assignmentIds.push(...assignmentData.map(a => a.id));
+        }
+
+        result = {
+          event_id: eventData_result.id,
+          assignment_ids: assignmentIds
+        };
+      }
       
       // Reset form state after successful creation
       setForm({
@@ -618,11 +710,9 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
   };
 
   const handleCreateEvent = async () => {
-    console.log('🚀 handleCreateEvent called');
     
     // Prevent multiple submissions
     if (loading) {
-      console.log('⚠️ Event creation already in progress, ignoring duplicate call');
       return;
     }
     
@@ -645,23 +735,13 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
 
     // Check if family data is loaded
     if (!currentFamily) {
-      console.log('⚠️ No current family found, attempting to refresh family data...');
-      
       try {
-        console.log('🔄 Attempting to refresh family data...');
         await refreshFamily();
-        
-        // Wait a moment for the refresh to complete
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Check if family data is now available after refresh
-        const refreshedFamily = currentFamily;
-        if (!refreshedFamily) {
-          console.log('⚠️ Family data still not available after refresh, using fallback...');
-          
+        if (!currentFamily) {
           // Fallback: Use a known family ID to allow event creation
           const fallbackFamilyId = '9021859b-ae25-4045-8b74-9e84bad2bd1b';
-          console.log('🔄 Using fallback family ID for event creation:', fallbackFamilyId);
           
           // Create a temporary family object for event creation
           const tempFamily = {
@@ -673,20 +753,12 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
             updated_at: new Date().toISOString()
           };
           
-          // Override the currentFamily for this operation
-          console.log('✅ Using fallback family data for event creation');
-          
           // Proceed with event creation using the fallback family
           await createEventWithFamily(tempFamily, eventData);
           return;
         }
-        
-        console.log('✅ Family data loaded after refresh:', (refreshedFamily as any)?.id || 'unknown');
       } catch (error) {
-        console.error('❌ Error refreshing family data:', error);
-        
         // Even if refresh fails, try with fallback family
-        console.log('🔄 Refresh failed, using fallback family for event creation...');
         const fallbackFamilyId = '9021859b-ae25-4045-8b74-9e84bad2bd1b';
         const tempFamily = {
           id: fallbackFamilyId,
@@ -702,34 +774,15 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
       }
     }
 
-    console.log('✅ Family data is available:', currentFamily.id);
-
-    // Force reload the page to reinitialize Supabase client if we detect GoTrueClient lock
-    console.log('🔧 Checking if page reload is needed to fix Supabase client...');
-    const shouldReload = sessionStorage.getItem('supabase_needs_reload');
-    if (shouldReload === 'true') {
-      console.log('🔄 Reloading page to fix Supabase client...');
-      sessionStorage.removeItem('supabase_needs_reload');
-      window.location.reload();
-      return;
-    }
-
-    console.log('🔧 Setting loading state...');
     setLoading(true);
     showLoading('Creating event...');
     
     try {
-      console.log('🔧 About to call createEventWithFamily with data:', eventData);
-      console.log('🔧 Using currentFamily:', currentFamily.id);
-      
       await createEventWithFamily(currentFamily, eventData);
-      console.log('✅ createEventWithFamily completed successfully');
       
     } catch (error: any) {
-      console.error('❌ Error creating event:', error);
       Alert.alert(t('common.error'), error.message || 'Failed to create event');
     } finally {
-      console.log('🔧 Finally block - resetting loading state');
       setLoading(false);
       hideLoading();
     }
@@ -828,8 +881,15 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
                 style={styles.assigneeScrollContainer}
                 contentContainerStyle={styles.assigneeContainer}
               >
-                {familyMembers.map((member) => {
+                {familyMembers.length === 0 ? (
+                  <Text style={styles.noMembersText}>
+                    No family members found. Please refresh or check your family connection.
+                  </Text>
+                ) : (
+                  familyMembers.map((member) => {
                   const isSelected = form.assignee.includes(member.user_id);
+                  const memberName = member.profiles?.name || `User ${member.user_id.slice(0, 8)}`;
+                  
                   return (
                     <Pressable
                       key={member.user_id}
@@ -843,7 +903,7 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
                         styles.assigneeText,
                         isSelected && styles.selectedAssigneeText
                       ]}>
-                        {member.profiles?.name || 'Unknown'}
+                        {memberName}
                       </Text>
                       <View style={[
                         styles.radioButton,
@@ -859,13 +919,13 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
                       </View>
                     </Pressable>
                   );
-                })}
+                })
+                )}
               </ScrollView>
             </View>
 
             {/* Start time & Duration */}
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>Start time & Duration (optional)</Text>
               <View style={styles.timeContainer}>
                 {/* Start time */}
                 <View style={styles.timeFieldContainer}>
@@ -1389,6 +1449,14 @@ const styles = StyleSheet.create({
   durationPickerOptionTextSelected: {
     color: '#FFFFFF',
     fontWeight: '600',
+  },
+  noMembersText: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    paddingVertical: 20,
+    fontFamily: 'Helvetica',
   },
 });
 

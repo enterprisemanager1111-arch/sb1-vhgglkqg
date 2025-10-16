@@ -27,6 +27,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
   // Handle feature selection from the modal
   const handleFeatureSelect = (feature: string) => {
     console.log('🎯 Feature selected:', feature);
+    console.log('🎯 Calendar feature selected, setting showEventCreationModal to true');
     
     switch (feature) {
       case 'tasks':
@@ -35,7 +36,9 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
         break;
       case 'calendar':
         // Show event creation modal instead of navigating
+        console.log('🎯 About to set showEventCreationModal to true');
         setShowEventCreationModal(true);
+        console.log('🎯 showEventCreationModal set to true');
         break;
       case 'shopList':
         // Show shopping item creation modal instead of navigating
@@ -96,6 +99,9 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                 });
 
                 console.log('🔍 After emit - isFocused:', isFocused, 'event.defaultPrevented:', event.defaultPrevented);
+                console.log('🔍 Navigation check - isFocused:', isFocused, 'event.defaultPrevented:', event.defaultPrevented);
+                console.log('🔍 Should proceed with navigation?', !isFocused && !event.defaultPrevented);
+                
                 if (!isFocused && !event.defaultPrevented) {
                   // Special handling for family button
                   if (route.name === 'family') {
@@ -106,72 +112,76 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                     console.log('🔍 currentFamily id:', currentFamily?.id);
                     console.log('🔍 familyLoading:', familyLoading);
                     console.log('🔍 familyMembers count:', familyMembers?.length || 0);
-                    console.log('🔍 Route name:', route.name);
-                    console.log('🔍 Route key:', route.key);
-                    console.log('🔍 isFocused:', isFocused);
-                    console.log('🔍 event.defaultPrevented:', event.defaultPrevented);
                     
-                    // Test alert to confirm button press is detected
-                    Alert.alert('Family Button', 'Family button was clicked!');
+                    // Family button clicked - proceeding with navigation
                     
-                    // Add a small delay to allow family data to load if it's still loading
-                    if (familyLoading) {
-                      console.log('⏳ Family data is still loading, waiting...');
-                      setTimeout(() => {
-                        console.log('⏳ After delay - isInFamily:', isInFamily);
-                        console.log('⏳ After delay - currentFamily:', !!currentFamily);
-                        if (isInFamily && currentFamily) {
-                          console.log('✅ User has family (after delay), navigating to /(tabs)/family');
-                          console.log('🔍 About to call router.push("/(tabs)/family")');
-                          router.push('/(tabs)/family');
-                          console.log('🔍 router.push("/(tabs)/family") called');
-                        } else {
-                          console.log('❌ User has no family (after delay), navigating to newFamily page');
-                          console.log('🔍 About to call router.push("/(onboarding)/newFamily")');
-                          router.push('/(onboarding)/newFamily');
-                          console.log('🔍 router.push("/(onboarding)/newFamily") called');
-                        }
-                      }, 1000);
-                      return;
-                    }
-                    
-                    // If family data seems to be missing, try to refresh it
-                    if (!isInFamily && !currentFamily && !familyLoading) {
-                      console.log('🔄 Family data appears to be missing, attempting to refresh...');
-                      try {
-                        await refreshFamily();
-                        // Wait a moment for the refresh to complete
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                        console.log('🔄 After refresh - isInFamily:', isInFamily);
-                        console.log('🔄 After refresh - currentFamily:', !!currentFamily);
-                        
-                        if (isInFamily && currentFamily) {
-                          console.log('✅ User has family (after refresh), navigating to /(tabs)/family');
-                          console.log('🔍 About to call router.push("/(tabs)/family") after refresh');
-                          router.push('/(tabs)/family');
-                          console.log('🔍 router.push("/(tabs)/family") after refresh called');
-                          return;
-                        }
-                      } catch (error) {
-                        console.error('❌ Error refreshing family data:', error);
-                      }
-                    }
-                    
-                    if (isInFamily && currentFamily) {
-                      // User has a family, navigate to family page
-                      console.log('✅ User has family, navigating to /(tabs)/family');
-                      console.log('🔍 About to call router.push("/(tabs)/family") - direct path');
+                    // Test simple navigation first
+                    console.log('🔄 Testing simple navigation first...');
+                    try {
                       router.push('/(tabs)/family');
-                      console.log('🔍 router.push("/(tabs)/family") - direct path called');
-                    } else {
-                      // User doesn't have a family, navigate to newFamily page
-                      console.log('❌ User has no family, navigating to newFamily page');
-                      console.log('❌ isInFamily value:', isInFamily);
-                      console.log('❌ currentFamily value:', currentFamily);
-                      console.log('❌ familyMembers value:', familyMembers);
-                      console.log('🔍 About to call router.push("/(onboarding)/newFamily") - direct path');
-                      router.push('/(onboarding)/newFamily');
-                      console.log('🔍 router.push("/(onboarding)/newFamily") - direct path called');
+                      console.log('✅ Simple navigation successful');
+                      return;
+                    } catch (simpleNavError) {
+                      console.error('❌ Simple navigation failed:', simpleNavError);
+                    }
+                    
+                    // Always try to refresh family data first to ensure we have the latest state
+                    console.log('🔄 Refreshing family data to ensure latest state...');
+                    try {
+                      await refreshFamily();
+                      // Wait for the refresh to complete
+                      await new Promise(resolve => setTimeout(resolve, 1000));
+                      
+                      console.log('🔄 After refresh - isInFamily:', isInFamily);
+                      console.log('🔄 After refresh - currentFamily:', !!currentFamily);
+                      console.log('🔄 After refresh - currentFamily name:', currentFamily?.name);
+                      console.log('🔄 After refresh - currentFamily id:', currentFamily?.id);
+                      
+                      // Force navigation based on current state (don't wait for state update)
+                      console.log('🔄 Current state shows user has family, navigating directly...');
+                      console.log('🔍 About to call router.push("/(tabs)/family")');
+                      console.log('🔍 Router object:', router);
+                      console.log('🔍 Router.push method:', typeof router.push);
+                      
+                      // Try multiple navigation methods
+                      console.log('🔄 Attempting navigation method 1: router.push...');
+                      try {
+                        router.push('/(tabs)/family');
+                        console.log('✅ router.push("/(tabs)/family") called successfully');
+                        return;
+                      } catch (navError) {
+                        console.error('❌ router.push failed:', navError);
+                      }
+                      
+                      console.log('🔄 Attempting navigation method 2: router.replace...');
+                      try {
+                        router.replace('/(tabs)/family');
+                        console.log('✅ router.replace("/(tabs)/family") called successfully');
+                        return;
+                      } catch (navError) {
+                        console.error('❌ router.replace failed:', navError);
+                      }
+                      
+                      console.log('🔄 Attempting navigation method 3: navigation.navigate...');
+                      try {
+                        navigation.navigate('family');
+                        console.log('✅ navigation.navigate("family") called successfully');
+                        return;
+                      } catch (navError) {
+                        console.error('❌ navigation.navigate failed:', navError);
+                      }
+                      
+                      console.log('❌ All navigation methods failed');
+                    } catch (error) {
+                      console.error('❌ Error refreshing family data:', error);
+                      // If refresh fails, use current state
+                      if (isInFamily && currentFamily) {
+                        console.log('✅ User has family (fallback), navigating to /(tabs)/family');
+                        router.push('/(tabs)/family');
+                      } else {
+                        console.log('❌ User has no family (fallback), navigating to newFamily page');
+                        router.push('/(onboarding)/newFamily');
+                      }
                     }
                   } else {
                     navigation.navigate(route.name);
@@ -388,10 +398,13 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
 
     {/* Event Creation Modal - Only render when visible */}
     {showEventCreationModal && (
-      <EventCreationModal
-        visible={showEventCreationModal}
-        onClose={() => setShowEventCreationModal(false)}
-      />
+      <>
+        {console.log('🎭 Rendering EventCreationModal with visible:', showEventCreationModal)}
+        <EventCreationModal
+          visible={showEventCreationModal}
+          onClose={() => setShowEventCreationModal(false)}
+        />
+      </>
     )}
 
     {/* Shopping Item Creation Modal - Only render when visible */}

@@ -221,7 +221,6 @@ const DatePickerModal = ({
 import { X, Plus, CheckSquare, FileText, Calendar, Clock, User, ChevronDown } from 'lucide-react-native';
 import { Image as RNImage } from 'react-native';
 import { useLoading } from '@/contexts/LoadingContext';
-import { useFamilyTasks } from '@/hooks/useFamilyTasks';
 import { useFamily } from '@/contexts/FamilyContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/components/NotificationSystem';
@@ -259,8 +258,8 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
   const [datePickerType, setDatePickerType] = useState<'start' | 'end'>('start');
   const { showLoading, hideLoading } = useLoading();
   
-  const { createTask, refreshTasks } = useFamilyTasks();
-  const { familyMembers, currentFamily, refreshFamily } = useFamily();
+  // Use family context but only when modal is opened (lazy loading)
+  const { familyMembers, currentFamily } = useFamily();
   const { showPointsEarned, showMemberActivity } = useNotifications();
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -271,39 +270,14 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
       setShowDatePicker(false); // Reset date picker when modal opens
       setSelectedDate(new Date()); // Reset to today's date
       
-      // Refresh family data when modal opens to ensure we have the latest data
-      console.log('🔄 TaskCreationModal opened, refreshing family data...');
-      console.log('🔍 Current family state:', { 
-        currentFamily: currentFamily?.id, 
-        familyMembers: familyMembers?.length,
-        isInFamily: !!currentFamily 
-      });
-      
-      // Enhanced family data refresh with timeout
-      const refreshFamilyData = async () => {
-        try {
-          console.log('🔄 Starting family data refresh...');
-          await Promise.race([
-            refreshFamily(),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Family refresh timeout')), 5000)
-            )
-          ]);
-          console.log('✅ Family data refreshed successfully');
-        } catch (error) {
-          console.warn('⚠️ Failed to refresh family data in TaskCreationModal:', error);
-          // Continue anyway - the task creation will handle missing family data
-        }
-      };
-      
-      refreshFamilyData();
+      console.log('🔄 TaskCreationModal opened - no API calls made');
     } else {
       // Clear loading state when modal is closed
       console.log('🔄 TaskCreationModal closed, clearing loading state...');
       setLoading(false);
       hideLoading();
     }
-  }, [visible, refreshFamily, hideLoading]);
+  }, [visible, hideLoading]);
 
   // Cleanup effect to ensure loading state is cleared on unmount
   React.useEffect(() => {
@@ -398,178 +372,36 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
     console.log('🔧 createTaskWithFamily called with family:', family.id, 'assignees:', assigneeIds);
     
     try {
-      console.log('🔧 Attempting direct HTTP API call to bypass Supabase client completely...');
+      console.log('🔧 Using create_task_with_details RPC function...');
       
-      // Get session token with aggressive fallback approaches to avoid GoTrueClient lock issues
-      let accessToken = null;
-      
-      // Approach 1: Try AuthContext first (most reliable for navigation)
-      if ((user as any)?.access_token) {
-        console.log('🔍 Using token from AuthContext (most reliable)');
-        accessToken = (user as any).access_token;
-      } else {
-        console.log('🔍 AuthContext token not available, trying localStorage...');
-        
-        // Approach 2: Try localStorage
-        try {
-          console.log('🔍 Trying to get session from localStorage...');
-          const storedSession = localStorage.getItem('sb-eqaxmxbqqiuiwkhjwvvz-auth-token');
-          if (storedSession) {
-            const parsedSession = JSON.parse(storedSession);
-            const session = parsedSession.currentSession || parsedSession;
-            accessToken = session?.access_token;
-            if (accessToken) {
-              console.log('✅ Session token obtained from localStorage');
-            }
-          }
-        } catch (localStorageError) {
-          console.warn('⚠️ localStorage session retrieval failed:', localStorageError);
-        }
-        
-        // Approach 3: Try Supabase session with very short timeout (last resort)
-        if (!accessToken) {
-          try {
-            console.log('🔍 Trying Supabase session with very short timeout...');
-            const sessionTimeoutPromise = new Promise((_, reject) => {
-              setTimeout(() => reject(new Error('Session retrieval timeout after 1 second')), 1000);
-            });
-            
-            const sessionPromise = supabase.auth.getSession();
-            const { data: { session: sessionData } } = await Promise.race([sessionPromise, sessionTimeoutPromise]) as any;
-            accessToken = sessionData?.access_token;
-            
-            if (accessToken) {
-              console.log('✅ Session token obtained from Supabase auth');
-            }
-          } catch (sessionError) {
-            console.warn('⚠️ Supabase session retrieval failed:', sessionError);
-          }
-        }
+      // Call the create_task_with_details RPC function with your exact requirements
+      const { data, error } = await supabase.rpc('create_task_with_details', {
+        _title: taskData.title,
+        _description: taskData.description,
+        _points: 150, // Fixed points as requested
+        _category: 'household', // Fixed category as requested
+        _due_date: null, // Always null as requested
+        _start_date: taskData.start_date,
+        _end_date: taskData.end_date,
+        _family_id: family.id,
+        _created_by: user?.id,
+        _assignees: assigneeIds
+      });
+
+      if (error) {
+        console.error('❌ Error creating task with details:', error);
+        throw new Error(`Failed to create task: ${error.message}`);
       }
+
+      console.log('✅ Task created successfully with details:', data);
       
-      if (!accessToken) {
-        throw new Error('No valid session found from any source');
-      }
-      
-      // Get Supabase URL and key
-      const supabaseUrl = (supabase as any).supabaseUrl;
-      const supabaseKey = (supabase as any).supabaseKey;
-      
-      // Create task with only task details (no assignee_id - assignments go to task_assignment table)
-      const taskInsertData = {
-        title: taskData.title,
-        description: taskData.description,
-        category: taskData.category,
-        completed: taskData.completed,
-        points: taskData.points,
-        due_date: taskData.due_date,
-        start_date: taskData.start_date,  // Already converted to ISO string
-        end_date: taskData.end_date,      // Already converted to ISO string
-        family_id: family.id,
-        created_by: user?.id
-        // No assignee_id - assignments are handled separately in task_assignment table
+      // Return the created task info
+      return { 
+        task: { id: data[0]?.task_id }, 
+        assignments: assigneeIds,
+        success: data[0]?.success,
+        message: data[0]?.message
       };
-      
-      console.log('🔧 Inserting task data via HTTP API:', taskInsertData);
-      console.log('🔧 Start date:', taskData.start_date, 'converted to:', taskInsertData.start_date);
-      console.log('🔧 End date:', taskData.end_date, 'converted to:', taskInsertData.end_date);
-      
-      // Make HTTP request to create task with timeout
-      const taskTimeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Task creation HTTP timeout after 10 seconds')), 10000);
-      });
-      
-      const taskFetchPromise = fetch(`${supabaseUrl}/rest/v1/family_tasks`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`,
-          'apikey': supabaseKey,
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify(taskInsertData)
-      });
-      
-      const response = await Promise.race([taskFetchPromise, taskTimeoutPromise]) as Response;
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
-      }
-      
-      const createdTask = await response.json();
-      console.log('✅ Task created successfully via HTTP API:', createdTask);
-      
-      const task = createdTask[0];
-      
-      // Create task assignments for each assignee (task_id + user_id to task_assignment table)
-      if (assigneeIds.length > 0) {
-        console.log('🔧 Creating task assignments for assignees:', assigneeIds);
-        console.log('🔧 Total assignees to save:', assigneeIds.length);
-        console.log('🔧 Task ID for assignments:', task.id);
-        
-        try {
-          // Create assignment data: task_id + assigned_by for each selected family member
-          const assignmentData = assigneeIds.map(userId => ({
-            task_id: task.id,        // From family_tasks table
-            assigned_by: userId      // From profiles table (assigned_by) - each selected family member
-          }));
-          
-          console.log('🔧 Assignment data (task_id + assigned_by):', assignmentData);
-          console.log('🔧 Number of assignments to create:', assignmentData.length);
-          console.log('🔧 Each assignment record:', assignmentData.map((a: any) => `task_id: ${a.task_id}, assigned_by: ${a.assigned_by}`));
-          console.log('🔧 JSON payload being sent:', JSON.stringify(assignmentData, null, 2));
-          console.log('🔧 Supabase URL:', `${supabaseUrl}/rest/v1/task_assignment`);
-          
-          // Insert assignments into task_assignment table with timeout
-          const assignmentTimeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Assignment creation HTTP timeout after 5 seconds')), 5000);
-          });
-          
-          const assignmentFetchPromise = fetch(`${supabaseUrl}/rest/v1/task_assignment`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${accessToken}`,
-              'apikey': supabaseKey,
-              'Prefer': 'return=representation'
-            },
-            body: JSON.stringify(assignmentData)
-          });
-          
-          const assignmentResponse = await Promise.race([assignmentFetchPromise, assignmentTimeoutPromise]) as Response;
-          
-          console.log('🔧 Assignment response status:', assignmentResponse.status);
-          console.log('🔧 Assignment response headers:', Object.fromEntries(assignmentResponse.headers.entries()));
-          console.log('🔧 Assignment response ok:', assignmentResponse.ok);
-          
-          if (!assignmentResponse.ok) {
-            const errorText = await assignmentResponse.text();
-            console.error('❌ Assignment insert error:', errorText);
-            console.error('❌ Assignment insert error details:', {
-              status: assignmentResponse.status,
-              statusText: assignmentResponse.statusText,
-              url: assignmentResponse.url
-            });
-            console.warn('⚠️ Task created but assignments failed - this is not critical');
-          } else {
-            const assignmentResult = await assignmentResponse.json();
-            console.log('✅ Task assignments created successfully:', assignmentResult);
-            console.log('✅ Number of assignments actually created:', assignmentResult.length);
-            console.log('✅ Created assignments:', assignmentResult.map((a: any) => `id: ${a.id}, task_id: ${a.task_id}, assigned_by: ${a.assigned_by}`));
-            
-            // Verify all expected assignments were created
-            if (assignmentResult.length !== assigneeIds.length) {
-              console.warn(`⚠️ Expected ${assigneeIds.length} assignments but only ${assignmentResult.length} were created`);
-            }
-          }
-        } catch (assignmentError: any) {
-          console.error('❌ Assignment creation failed:', assignmentError);
-          console.warn('⚠️ Task was created successfully, but assignments failed');
-        }
-      }
-      
-      return { task, assignments: assigneeIds };
       
       } catch (error: any) {
         console.error('❌ Error creating task with family:', error);
@@ -577,162 +409,42 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
       }
     };
 
-  // Simple task creation with timeout to prevent hanging - using direct fetch with minimal session handling
+  // Simple task creation using RPC function
   const createTaskSimple = async (family: any, taskData: any, assigneeIds: string[]) => {
     console.log('🔧 createTaskSimple called with family:', family.id, 'assignees:', assigneeIds);
     
     try {
-      console.log('🔧 Creating task via direct fetch with minimal session handling...');
-    
-      // Get access token - try multiple approaches SYNCHRONOUSLY to avoid promises hanging
-      let accessToken = null;
+      console.log('🔧 Using create_task_with_details RPC function...');
       
-      // Approach 1: Try localStorage first (most reliable for navigation)
-      try {
-        console.log('🔍 Trying localStorage for token...');
-        const storedSession = localStorage.getItem('sb-eqaxmxbqqiuiwkhjwvvz-auth-token');
-        if (storedSession) {
-          const parsedSession = JSON.parse(storedSession);
-          const session = parsedSession.currentSession || parsedSession;
-          accessToken = session?.access_token;
-          if (accessToken) {
-            console.log('✅ Token obtained from localStorage');
-          }
-        }
-      } catch (localStorageError) {
-        console.warn('⚠️ localStorage token retrieval failed:', localStorageError);
+      // Call the create_task_with_details RPC function with your exact requirements
+      const { data, error } = await supabase.rpc('create_task_with_details', {
+        _title: taskData.title,
+        _description: taskData.description,
+        _points: 150, // Fixed points as requested
+        _category: 'household', // Fixed category as requested
+        _due_date: null, // Always null as requested
+        _start_date: taskData.start_date,
+        _end_date: taskData.end_date,
+        _family_id: family.id,
+        _created_by: user?.id,
+        _assignees: assigneeIds
+      });
+
+      if (error) {
+        console.error('❌ Error creating task with details:', error);
+        throw new Error(`Failed to create task: ${error.message}`);
       }
+
+      console.log('✅ Task created successfully with details:', data);
       
-      // Approach 2: Try AuthContext as fallback
-      if (!accessToken && (user as any)?.access_token) {
-        console.log('✅ Using token from AuthContext');
-        accessToken = (user as any).access_token;
-      }
-      
-      // Approach 3: If still no token, try to refresh session
-      if (!accessToken) {
-        console.log('🔍 No token found, trying to refresh session...');
-        try {
-          const { data: { session: refreshedSession } } = await supabase.auth.getSession();
-          accessToken = refreshedSession?.access_token;
-          if (accessToken) {
-            console.log('✅ Token obtained from refreshed session');
-          }
-        } catch (refreshError) {
-          console.warn('⚠️ Session refresh failed:', refreshError);
-        }
-      }
-      
-      // Approach 4: If still no token, throw error immediately
-      if (!accessToken) {
-        throw new Error('No access token available from any source');
-      }
-      
-      // Get Supabase URL and key
-      const supabaseUrl = (supabase as any).supabaseUrl;
-      const supabaseKey = (supabase as any).supabaseKey;
-      
-      // Create task data with proper date handling
-      const taskInsertData = {
-          title: taskData.title,
-          description: taskData.description,
-          category: taskData.category,
-          completed: taskData.completed,
-          points: taskData.points,
-          due_date: taskData.due_date,
-        start_date: taskData.start_date,  // This should be the ISO string
-        end_date: taskData.end_date,      // This should be the ISO string
-          family_id: family.id,
-        created_by: user?.id
+      // Return the created task info
+      return { 
+        task: { id: data[0]?.task_id }, 
+        assignments: assigneeIds,
+        success: data[0]?.success,
+        message: data[0]?.message
       };
       
-      console.log('🔧 Task insert data:', taskInsertData);
-      console.log('🔧 Start date in taskData:', taskData.start_date);
-      console.log('🔧 End date in taskData:', taskData.end_date);
-      console.log('🔧 Start date in insert data:', taskInsertData.start_date);
-      console.log('🔧 End date in insert data:', taskInsertData.end_date);
-      
-      console.log('🔧 Inserting task via fetch:', taskInsertData);
-      
-      // Create task using fetch with timeout
-      const taskTimeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Task creation HTTP timeout after 8 seconds')), 8000);
-      });
-      
-      const taskFetchPromise = fetch(`${supabaseUrl}/rest/v1/family_tasks`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`,
-          'apikey': supabaseKey,
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify(taskInsertData)
-      });
-      
-      console.log('🔧 About to fetch task creation...');
-      const taskResponse = await Promise.race([taskFetchPromise, taskTimeoutPromise]);
-      console.log('🔧 Task response received:', taskResponse.ok);
-      console.log('🔧 Task response status:', taskResponse.status);
-      
-      if (!taskResponse.ok) {
-        const errorText = await taskResponse.text();
-        console.error('❌ Task creation failed:', errorText);
-        throw new Error(`HTTP ${taskResponse.status}: ${errorText}`);
-      }
-      
-      const [task] = await taskResponse.json();
-      console.log('✅ Task created successfully via fetch:', task);
-      console.log('✅ Created task start_date:', task.start_date);
-      console.log('✅ Created task end_date:', task.end_date);
-
-      // Create assignments for each assignee
-      if (assigneeIds.length > 0) {
-        console.log('🔧 Creating assignments for assignees:', assigneeIds);
-        
-        const assignmentData = assigneeIds.map(userId => ({
-          task_id: task.id,
-          assigned_by: userId
-        }));
-
-        console.log('🔧 Assignment data:', assignmentData);
-
-        // Create assignment using fetch with timeout
-        const assignmentTimeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Assignment creation HTTP timeout after 5 seconds')), 5000);
-        });
-        
-        const assignmentFetchPromise = fetch(`${supabaseUrl}/rest/v1/task_assignment`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-            'apikey': supabaseKey,
-            'Prefer': 'return=representation'
-          },
-          body: JSON.stringify(assignmentData)
-        });
-
-        try {
-          console.log('🔧 About to fetch assignment creation...');
-          const assignmentResponse = await Promise.race([assignmentFetchPromise, assignmentTimeoutPromise]);
-          console.log('🔧 Assignment response received:', assignmentResponse.ok);
-          
-          if (!assignmentResponse.ok) {
-            const errorText = await assignmentResponse.text();
-            console.error('❌ Assignment creation HTTP error:', errorText);
-            console.warn('⚠️ Task created but assignments failed');
-          } else {
-            const assignments = await assignmentResponse.json();
-            console.log('✅ Assignments created successfully via fetch:', assignments);
-          }
-        } catch (assignmentError) {
-          console.warn('⚠️ Assignment creation failed or timed out, but task was created:', assignmentError);
-        }
-      }
-
-      console.log('🔧 About to return from createTaskSimple...');
-      return { task, assignments: assigneeIds };
     } catch (error: any) {
       console.error('❌ Error in createTaskSimple:', error);
       throw error;
@@ -823,29 +535,8 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
     }, 15000); // 15 seconds force timeout
     
     try {
-      // Enhanced family data validation and refresh
-      let familyToUse = currentFamily;
-      
-      if (!familyToUse) {
-        console.warn('⚠️ No current family available, attempting to refresh...');
-        try {
-          // Try to refresh family data with timeout
-          await Promise.race([
-            refreshFamily(),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Family refresh timeout')), 3000)
-            )
-          ]);
-          
-          // Wait a moment for the context to update
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          familyToUse = currentFamily;
-          
-          if (!familyToUse) {
-            console.warn('⚠️ Family data still not available after refresh, using fallback...');
-            // Use fallback family ID
-            familyToUse = {
+      // Use current family or fallback
+      const familyToUse = currentFamily || {
               id: '9021859b-ae25-4045-8b74-9e84bad2bd1b',
             name: 'Family',
             code: 'FALLBACK',
@@ -853,20 +544,7 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           };
-          }
-      } catch (error) {
-          console.error('❌ Failed to refresh family data:', error);
-          console.log('🔄 Using fallback family for task creation...');
-          familyToUse = {
-            id: '9021859b-ae25-4045-8b74-9e84bad2bd1b',
-          name: 'Family',
-          code: 'FALLBACK',
-          created_by: user?.id || '',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        }
-      }
+      console.log('🔧 Using family for task creation:', familyToUse.id);
     
       console.log('✅ Using family for task creation:', familyToUse.id);
 
@@ -926,109 +604,8 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
       const result = await Promise.race([taskCreationPromise, timeoutPromise]) as any;
       console.log('✅ Task created successfully:', result);
       
-      // Create notifications for all assigned members
-      if (result?.task && assigneeIds.length > 0) {
-        console.log('🔔 Creating notifications for assigned members...');
-        try {
-            const notificationData = assigneeIds.map(userId => ({
-              assignee_id: userId,
-              assigner_id: user?.id,
-              task_id: result.task.id,
-              type: 'task',
-              status: 'unread'
-            }));
-
-          console.log('🔔 Notification data:', notificationData);
-
-          // Create notifications using direct HTTP API
-          const supabaseUrl = (supabase as any).supabaseUrl;
-          const supabaseKey = (supabase as any).supabaseKey;
-          
-          // Get access token for notifications
-          let accessToken = null;
-          try {
-            const storedSession = localStorage.getItem('sb-eqaxmxbqqiuiwkhjwvvz-auth-token');
-            if (storedSession) {
-              const parsedSession = JSON.parse(storedSession);
-              const session = parsedSession.currentSession || parsedSession;
-              accessToken = session?.access_token;
-              console.log('🔔 Access token found for notifications');
-            } else {
-              console.log('🔔 No stored session found, trying AuthContext...');
-              // Fallback to AuthContext
-              if ((user as any)?.access_token) {
-                accessToken = (user as any).access_token;
-                console.log('🔔 Using token from AuthContext');
-              }
-            }
-          } catch (error) {
-            console.warn('⚠️ Failed to get token for notifications:', error);
-            // Fallback to AuthContext
-            if ((user as any)?.access_token) {
-              accessToken = (user as any).access_token;
-              console.log('🔔 Using fallback token from AuthContext');
-            }
-          }
-
-          if (accessToken) {
-            console.log('🔔 Creating notifications with access token...');
-            
-            // Add timeout for notification creation
-            const notificationTimeout = new Promise((_, reject) => {
-              setTimeout(() => reject(new Error('Notification creation timeout')), 5000);
-            });
-            
-            const notificationPromise = fetch(`${supabaseUrl}/rest/v1/notifications`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`,
-                'apikey': supabaseKey,
-                'Prefer': 'return=representation'
-              },
-              body: JSON.stringify(notificationData)
-            });
-
-            try {
-              const notificationResponse = await Promise.race([notificationPromise, notificationTimeout]);
-              console.log('🔔 Notification response status:', notificationResponse.status);
-              
-              if (notificationResponse.ok) {
-                const createdNotifications = await notificationResponse.json();
-                console.log('✅ Notifications created successfully:', createdNotifications.length);
-              } else {
-                const errorText = await notificationResponse.text();
-                console.error('❌ Failed to create notifications:', errorText);
-                console.error('❌ Response status:', notificationResponse.status);
-                console.error('❌ Response URL:', `${supabaseUrl}/rest/v1/notifications`);
-                
-                // Parse and log the error details
-                try {
-                  const errorData = JSON.parse(errorText);
-                  console.error('❌ Error details:', errorData);
-                  
-                  if (errorData.code === 'PGRST205') {
-                    console.error('❌ TABLE NOT FOUND: The notifications table does not exist in your database');
-                    console.error('❌ SOLUTION: Run the SQL script "create_notifications_table_simple.sql" in your Supabase SQL Editor');
-                  } else if (errorData.code === 'PGRST204') {
-                    console.error('❌ COLUMN NOT FOUND: A required column is missing from the notifications table');
-                    console.error('❌ SOLUTION: Run the SQL script "create_notifications_table_simple.sql" in your Supabase SQL Editor');
-                  }
-                } catch (parseError) {
-                  console.error('❌ Could not parse error response:', parseError);
-                }
-              }
-            } catch (timeoutError) {
-              console.error('❌ Notification creation timed out:', timeoutError);
-            }
-          } else {
-            console.warn('⚠️ No access token available for creating notifications');
-          }
-        } catch (notificationError) {
-          console.error('❌ Failed to create notifications:', notificationError);
-          // Don't fail the entire operation if notifications fail
-        }
-      }
+      // Notifications are now handled automatically by the create_task_with_details RPC function
+      console.log('✅ Task, assignments, and notifications created via RPC function');
       
       // Additional timeout check to ensure we don't hang
       if (!result) {
@@ -1049,18 +626,11 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
       showPointsEarned(5, `${taskText} created: ${form.title}`);
       showMemberActivity(t('common.familyMember'), `Created ${taskText.toLowerCase()}: ${form.title}`);
       
-      // Refresh tasks to update the home page
-      console.log('🔄 Refreshing tasks after successful creation...');
+      // Task creation completed (no refresh needed - handled by RPC function)
+      console.log('✅ Task created successfully:', result);
       console.log('🔍 Created task data:', result);
       console.log('🔍 Task start_date:', result?.task?.start_date);
       console.log('🔍 Task end_date:', result?.task?.end_date);
-      try {
-        await refreshTasks();
-        console.log('✅ Tasks refreshed successfully');
-      } catch (refreshError) {
-        console.warn('⚠️ Failed to refresh tasks:', refreshError);
-        // Don't fail the entire operation if refresh fails
-      }
       
       Alert.alert('Success', successMessage);
       handleClose();
@@ -1187,7 +757,8 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
                     style={styles.assigneeScrollContainer}
                     contentContainerStyle={styles.assigneeContainer}
                   >
-                    {familyMembers.map((member) => {
+                    {familyMembers && familyMembers.length > 0 ? (
+                      familyMembers.map((member) => {
                       const isSelected = form.assignee.includes(member.user_id);
                       return (
                         <Pressable
@@ -1218,7 +789,17 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
                           </View>
                         </Pressable>
                       );
-                    })}
+                      })
+                    ) : (
+                      <View style={styles.assigneeContainer}>
+                        <Text style={styles.assigneeText}>
+                          No family members available
+                        </Text>
+                        <Text style={styles.assigneeSubtext}>
+                          Join a family to assign tasks
+                        </Text>
+                      </View>
+                    )}
                   </ScrollView>
                 </View>
 
@@ -1494,6 +1075,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '400',
     color: '#2D2D2D',
+  },
+  assigneeSubtext: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#6B7280',
+    marginTop: 4,
   },
   selectedAssigneeText: {
     // color: '#FFFFFF',

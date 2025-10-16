@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { 
   View, 
   Text, 
@@ -12,13 +13,13 @@ import {
 } from 'react-native';
 // Removed unused lucide-react-native imports
 import { useAuth } from '@/contexts/AuthContext';
-import { useFamilyTasks } from '@/hooks/useFamilyTasks';
-import { useFamily } from '@/contexts/FamilyContext';
+// Removed useFamily import
 import { useLoading } from '@/contexts/LoadingContext';
-import { useTodayEvents } from '@/hooks/useTodayEvents';
 import { router } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '@/lib/supabase';
+import { useCurrentUserEvents } from '@/hooks/useCurrentUserEvents';
+import { useTodayTasks } from '@/hooks/useTodayTasks';
+// Removed unused imports
 
 // Custom verification icon component
 const VerificationIcon = ({ size = 16 }: { size?: number }) => (
@@ -33,22 +34,241 @@ const VerificationIcon = ({ size = 16 }: { size?: number }) => (
 );
 
 export default function HomeDashboard() {
-  const { user, profile, session } = useAuth();
-  const { tasks, loading: tasksLoading, refreshTasks } = useFamilyTasks();
-  const { currentFamily, loading: familyLoading } = useFamily();
+  const { user, profile, session, refreshProfile, updateProfileDirectly } = useAuth();
   const { showLoading, hideLoading } = useLoading();
-  const { events: todayEvents, loading: eventsLoading, error: eventsError, refreshEvents } = useTodayEvents();
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [loadingStarted, setLoadingStarted] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [realtimeChannel, setRealtimeChannel] = useState<any>(null);
+  // Removed directProfileData - home page should only use centralized state
+  
+  // Get current user's events for today
+  const { events: todayEvents, loading: eventsLoading, error: eventsError, refreshEvents } = useCurrentUserEvents();
+  
+  // Get today's tasks using the specialized function
+  const { tasks: todayTasks, loading: tasksLoading, error: tasksError, refreshTasks } = useTodayTasks();
+  
+  // Debug today's tasks
+  console.log('🏠 Home page - todayTasks:', todayTasks);
+  console.log('🏠 Home page - tasksLoading:', tasksLoading);
+  console.log('🏠 Home page - tasksError:', tasksError);
+  console.log('🏠 Home page - todayTasks.length:', todayTasks?.length || 0);
+
+  // Helper function to format event time
+  const formatEventTime = (eventDate: string, endDate?: string) => {
+    const start = new Date(eventDate);
+    const end = endDate ? new Date(endDate) : null;
+    
+    const startTime = start.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true 
+    });
+    
+    if (end) {
+      const endTime = end.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true 
+      });
+      return `${startTime} - ${endTime}`;
+    }
+    
+    return startTime;
+  };
+
+  // Today's tasks are now fetched directly from the specialized function
+  
+  // Function to fetch initial notification count
+  const fetchNotificationCount = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('id')
+        .eq('assignee_id', user.id)
+        .eq('status', 'unread');
+      
+      if (!error && data) {
+        setNotificationCount(data.length);
+      }
+    } catch (error) {
+      console.error('Error fetching notification count:', error);
+    }
+  };
+
+  // Setup real-time subscription for notifications
+  const setupNotificationSubscription = () => {
+    if (!user?.id) return;
+
+    // Clean up existing subscription
+    if (realtimeChannel) {
+      supabase.removeChannel(realtimeChannel);
+    }
+
+    const channel = supabase
+      .channel('home-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `assignee_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('🔔 New notification received on home page:', payload.new);
+          setNotificationCount(prev => prev + 1);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `assignee_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('🔔 Notification updated on home page:', payload.new);
+          // If notification was marked as read, decrease count
+          if (payload.new.status === 'read') {
+            setNotificationCount(prev => Math.max(0, prev - 1));
+          }
+        }
+      )
+      .on('broadcast', { event: 'new_notification' }, (payload) => {
+        console.log('🔔 Custom notification event received:', payload);
+        if (payload.user_id === user.id) {
+          setNotificationCount(prev => prev + 1);
+        }
+      })
+      .on('broadcast', { event: 'notification_read' }, (payload) => {
+        console.log('🔔 Custom notification read event received:', payload);
+        if (payload.user_id === user.id) {
+          setNotificationCount(prev => Math.max(0, prev - 1));
+        }
+      })
+      .subscribe();
+
+    setRealtimeChannel(channel);
+  };
+  
+  // Removed directProfileData monitoring - home page should only use centralized state
+  
+  // Initialize notification system when user is available
+  useEffect(() => {
+    if (user?.id) {
+      fetchNotificationCount();
+      setupNotificationSubscription();
+    }
+    
+    return () => {
+      if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+      }
+    };
+  }, [user?.id]);
+
+  // Refresh notification count when user focuses on home page
+  useFocusEffect(
+    React.useCallback(() => {
+      if (user?.id) {
+        fetchNotificationCount();
+      }
+    }, [user?.id])
+  );
+
+  // Component mount check with direct database query to get current profile data
+  useEffect(() => {
+    console.log('🔄 Component mounted - checking user and profile state...');
+    console.log('🔄 User available:', !!user);
+    console.log('🔄 User ID:', user?.id);
+    console.log('🔄 Profile available:', !!profile);
+    console.log('🔄 Profile name:', profile?.name);
+    console.log('🔄 Profile avatar_url:', profile?.avatar_url);
+    console.log('🔄 Profile role:', profile?.role);
+    
+    if (user && profile) {
+      console.log('✅ User and profile available - checking if profile data is current...');
+      console.log('🔍 Profile name from centralized state:', profile.name);
+      console.log('🔍 Profile name is empty?', !profile.name || profile.name.trim() === '');
+      console.log('🔍 Profile name is email-based?', profile.name && profile.name.includes('@'));
+      
+      // If profile has email-based name, try to get current data from database
+      const isEmailBasedName = profile.name && 
+                              (profile.name.includes('@') || 
+                               profile.name === user?.email?.split('@')[0] ||
+                               profile.name.toLowerCase() === user?.email?.split('@')[0]?.toLowerCase());
+      
+      if (isEmailBasedName) {
+        console.log('⚠️ Profile has email-based name, fetching current data from database...');
+        
+        // Direct database query to get current profile data
+        const fetchCurrentProfile = async () => {
+          try {
+            const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`, {
+              headers: {
+                'Authorization': `Bearer ${session?.access_token}`,
+                'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
+                'Content-Type': 'application/json',
+              },
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              console.log('✅ Direct database query successful:', data);
+              
+              if (data && data.length > 0) {
+                const currentProfile = data[0];
+                console.log('✅ Current profile from database:', currentProfile);
+                console.log('✅ Current profile name:', currentProfile.name);
+                console.log('✅ Current profile avatar_url:', currentProfile.avatar_url);
+                console.log('✅ Current profile role:', currentProfile.role);
+                
+                // Update the centralized state with the current profile data
+                if (updateProfileDirectly) {
+                  updateProfileDirectly(currentProfile);
+                  console.log('✅ AuthContext updated with current profile from database');
+                }
+              }
+            }
+          } catch (error) {
+            console.log('⚠️ Direct database query failed:', error);
+          }
+        };
+        
+        fetchCurrentProfile();
+      }
+    } else if (user && !profile) {
+      console.log('⚠️ User available but profile missing - will be loaded by AuthContext');
+    } else {
+      console.log('⚠️ No user available on component mount');
+    }
+  }, [user, profile, updateProfileDirectly]);
+
+  // No fallback API calls - home page should only use existing profile data
+
+  // No immediate profile checks - home page should only use existing profile data
   
   // Show loading interface while initial data is being loaded
   useEffect(() => {
     if (isInitialLoading && !loadingStarted) {
       setLoadingStarted(true);
       showLoading('Loading your dashboard...');
+      
+      // Force loading to end after maximum 10 seconds regardless of API status
+      const forceEndLoading = setTimeout(() => {
+        console.log('⚠️ Force ending loading after 10 seconds');
+        setIsInitialLoading(false);
+        hideLoading();
+      }, 10000);
+      
+      // Cleanup timeout when component unmounts or loading ends
+      return () => clearTimeout(forceEndLoading);
     }
-  }, [isInitialLoading, showLoading, loadingStarted]);
+  }, [isInitialLoading, loadingStarted, showLoading, hideLoading]);
 
   // Timeout fallback to prevent infinite loading
   useEffect(() => {
@@ -69,12 +289,9 @@ export default function HomeDashboard() {
       // Check if we have essential data loaded
       const hasUser = !!user;
       const hasProfile = !!profile;
-      const hasFamily = !!currentFamily;
-      const isTasksLoaded = !tasksLoading;
-      const isFamilyLoaded = !familyLoading;
 
-      // Only hide loading when ALL data is completely loaded
-      if (hasUser && hasProfile && hasFamily && isTasksLoaded && isFamilyLoaded) {
+      // Only hide loading when essential data is loaded
+      if (hasUser && hasProfile) {
         // Add a small delay to ensure loading interface is visible
         setTimeout(() => {
           setIsInitialLoading(false);
@@ -84,227 +301,290 @@ export default function HomeDashboard() {
     };
 
     checkInitialLoading();
-  }, [user, profile, currentFamily, tasksLoading, familyLoading, hideLoading]);
+  }, [user, profile, hideLoading]);
 
-  // Removed unnecessary profile refresh API call
+  // Listen for refresh events from notifications
+  useEffect(() => {
+    const handleRefreshHomeData = () => {
+      console.log('🔄 Home page refresh triggered from notification');
+      refreshEvents();
+      refreshTasks();
+    };
 
-  // Only refresh tasks when coming back from task creation, not on every focus
+    if (typeof window !== 'undefined') {
+      window.addEventListener('refreshHomeData', handleRefreshHomeData);
+      
+      return () => {
+        window.removeEventListener('refreshHomeData', handleRefreshHomeData);
+      };
+    }
+  }, [refreshEvents, refreshTasks]);
+
+  // Focus effect with direct database query to get current profile data
   useFocusEffect(
     React.useCallback(() => {
-      // Only refresh if we're not in initial loading state
-      // This prevents unnecessary API calls during initial load
-      if (!isInitialLoading && currentFamily) {
-        refreshTasks();
-      }
+      console.log('🏠 Home page focused, checking profile data...');
+      console.log('🏠 Current profile data:', profile);
+      console.log('🏠 Profile name:', profile?.name);
+      console.log('🏠 Profile avatar_url:', profile?.avatar_url);
+      console.log('🏠 Profile role:', profile?.role);
       
-      // Refresh notification count when returning to home page
-      if (user?.id) {
-        const refreshNotificationCount = async () => {
-          try {
-            const { count, error } = await supabase
-              .from('notifications')
-              .select('*', { count: 'exact', head: true })
-              .eq('assignee_id', user.id)
-              .eq('status', 'unread');
-            
-            if (!error) {
-              setNotificationCount(count || 0);
-            }
-          } catch (error) {
-            console.error('❌ Error refreshing notification count:', error);
-          }
-        };
+      if (user && profile) {
+        console.log('✅ User and profile available - checking if profile data is current...');
+        console.log('🔍 Profile name from centralized state:', profile.name);
+        console.log('🔍 Profile name is empty?', !profile.name || profile.name.trim() === '');
+        console.log('🔍 Profile name is email-based?', profile.name && profile.name.includes('@'));
         
-        refreshNotificationCount();
+        // If profile has email-based name, try to get current data from database
+        const isEmailBasedName = profile.name && 
+                                (profile.name.includes('@') || 
+                                 profile.name === user?.email?.split('@')[0] ||
+                                 profile.name.toLowerCase() === user?.email?.split('@')[0]?.toLowerCase());
+        
+        if (isEmailBasedName) {
+          console.log('⚠️ Profile has email-based name, fetching current data from database...');
+          
+          // Direct database query to get current profile data
+          const fetchCurrentProfile = async () => {
+            try {
+              const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`, {
+                headers: {
+                  'Authorization': `Bearer ${session?.access_token}`,
+                  'apikey': process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
+                  'Content-Type': 'application/json',
+                },
+              });
+              
+              if (response.ok) {
+                const data = await response.json();
+                console.log('✅ Direct database query successful:', data);
+                
+                if (data && data.length > 0) {
+                  const currentProfile = data[0];
+                  console.log('✅ Current profile from database:', currentProfile);
+                  console.log('✅ Current profile name:', currentProfile.name);
+                  console.log('✅ Current profile avatar_url:', currentProfile.avatar_url);
+                  console.log('✅ Current profile role:', currentProfile.role);
+                  
+                  // Update the centralized state with the current profile data
+                  if (updateProfileDirectly) {
+                    updateProfileDirectly(currentProfile);
+                    console.log('✅ AuthContext updated with current profile from database');
+                  }
+                }
+              }
+            } catch (error) {
+              console.log('⚠️ Direct database query failed:', error);
+            }
+          };
+          
+          fetchCurrentProfile();
+        }
+      } else if (user && !profile) {
+        console.log('⚠️ User available but profile missing - will be loaded by AuthContext');
+        } else {
+        console.log('⚠️ No user available for profile check');
       }
-    }, [refreshTasks, isInitialLoading, currentFamily, user?.id])
+    }, [user, profile, updateProfileDirectly, session])
   );
 
-  // Remove unnecessary family refresh - FamilyContext already loads data
-  // The family data is already loaded by FamilyContext, no need to refresh again
+  // Removed family-related API calls and dependencies
 
-  // Real-time subscription for notifications
-  useEffect(() => {
-    if (!user?.id) {
-      return;
-    }
-    
-    const channel = supabase
-      .channel('notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `assignee_id=eq.${user.id}`
-        },
-        (payload) => {
-          setNotificationCount(prev => prev + 1);
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'notifications',
-          filter: `assignee_id=eq.${user.id}`
-        },
-        (payload) => {
-          // Only update count if status changed to/from unread
-          if (payload.new.status !== payload.old.status) {
-            if (payload.new.status === 'read') {
-              setNotificationCount(prev => Math.max(0, prev - 1));
-            } else if (payload.new.status === 'unread') {
-              setNotificationCount(prev => prev + 1);
-            }
-          }
-        }
-      )
-      .subscribe();
+  // Removed real-time subscription for notifications
 
-    // Load initial notification count
-    const fetchNotificationCount = async () => {
-      try {
-        // Add timeout to prevent hanging
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Request timeout')), 5000)
-        );
-
-        const fetchPromise = supabase
-          .from('notifications')
-          .select('*', { count: 'exact', head: true })
-          .eq('assignee_id', user.id)
-          .eq('status', 'unread');
-
-        const result = await Promise.race([fetchPromise, timeoutPromise]) as any;
-        const { count, error } = result;
-        
-        if (error) {
-          setNotificationCount(0);
-        } else {
-          setNotificationCount(count || 0);
-        }
-      } catch (error) {
-        setNotificationCount(0);
-      }
-    };
-
-    fetchNotificationCount();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id]);
-
-  // Use profile from AuthContext
+  // Use profile from AuthContext (centralized state like Redux) only
   const currentProfile = profile;
+  console.log('🏠 Home page - Profile from centralized state:', profile);
+  console.log('🏠 Home page - Using profile:', currentProfile);
+  console.log('🏠 Home page - Profile name:', currentProfile?.name);
+  console.log('🏠 Home page - Profile avatar_url:', currentProfile?.avatar_url);
+  console.log('🏠 Home page - Profile role:', currentProfile?.role);
+  console.log('🏠 Home page - User metadata:', user?.user_metadata);
+  console.log('🏠 Home page - User email:', user?.email);
 
-  // Calculate task progress based on current date between start_date and end_date
-  const calculateTaskProgress = (task: any) => {
-    if (!task.start_date || !task.end_date) {
-      return 0;
-    }
+  // Removed task-related functions - using mock data instead
 
-    const startDate = new Date(task.start_date);
-    const endDate = new Date(task.end_date);
-    const currentDate = new Date();
-
-    // If task is completed, show 100%
-    if (task.completed) {
-      return 100;
-    }
-
-    // If current date is before start date, show 0%
-    if (currentDate < startDate) {
-      return 0;
-    }
-
-    // If current date is after end date, show 100%
-    if (currentDate > endDate) {
-      return 100;
-    }
-
-    // Calculate progress: (current - start) / (end - start) * 100
-    const totalDuration = endDate.getTime() - startDate.getTime();
-    const elapsedDuration = currentDate.getTime() - startDate.getTime();
-    const progress = (elapsedDuration / totalDuration) * 100;
-
-    return Math.round(progress);
-  };
-
-  // Filter tasks for today (current date between start_date and end_date)
-  const getTodayTasks = () => {
-    if (!tasks || tasks.length === 0) {
-      return [];
-    }
-    
-    const today = new Date();
-    const todayString = today.toISOString().split('T')[0]; // YYYY-MM-DD format
-    
-    const filteredTasks = tasks.filter(task => {
-      // Check if task has start_date and end_date
-      if (!task.start_date || !task.end_date) {
-        return false;
-      }
-      
-      // Convert dates to YYYY-MM-DD format for comparison
-      const startDate = new Date(task.start_date).toISOString().split('T')[0];
-      const endDate = new Date(task.end_date).toISOString().split('T')[0];
-      
-      // Check if today is between start_date and end_date (inclusive)
-      const isToday = todayString >= startDate && todayString <= endDate;
-      
-      return isToday;
-    });
-    
-    return filteredTasks;
-  };
-
-  const todayTasks = getTodayTasks();
-
-  // Extract full name for greeting
+  // Extract full name for greeting from centralized state
   const userName = (() => {
-    if (currentProfile?.name) {
-      return currentProfile.name;
+    console.log('🔍 userName function - currentProfile:', currentProfile);
+    console.log('🔍 userName function - currentProfile?.name:', currentProfile?.name);
+    console.log('🔍 userName function - currentProfile?.name?.trim():', currentProfile?.name?.trim());
+    console.log('🔍 userName function - currentProfile?.name?.trim() length:', currentProfile?.name?.trim()?.length);
+    console.log('🔍 userName function - currentProfile?.name type:', typeof currentProfile?.name);
+    console.log('🔍 userName function - currentProfile?.name is empty string?', currentProfile?.name === '');
+    console.log('🔍 userName function - currentProfile?.name is null?', currentProfile?.name === null);
+    console.log('🔍 userName function - currentProfile?.name is undefined?', currentProfile?.name === undefined);
+    
+    // Check if profile name is valid (not empty, not email-based)
+    const isEmailBasedName = currentProfile?.name && 
+                             (currentProfile.name.includes('@') || 
+                              currentProfile.name === user?.email?.split('@')[0] ||
+                              currentProfile.name.toLowerCase() === user?.email?.split('@')[0]?.toLowerCase());
+    
+    console.log('🔍 userName function - isEmailBasedName:', isEmailBasedName);
+    
+    if (currentProfile?.name && currentProfile.name.trim() && !isEmailBasedName) {
+      console.log('✅ Using profile name from centralized state:', currentProfile.name);
+      return currentProfile.name.trim();
     }
-    if (user?.user_metadata?.full_name) {
-      return user.user_metadata.full_name;
+    
+    if (isEmailBasedName) {
+      console.log('⚠️ Profile name is email-based, trying to get better name...');
+      console.log('🔍 Checking for better name sources...');
+      console.log('🔍 user.user_metadata.full_name:', user?.user_metadata?.full_name);
+      console.log('🔍 user.user_metadata.name:', user?.user_metadata?.name);
+      console.log('🔍 user.user_metadata.first_name:', user?.user_metadata?.first_name);
+      console.log('🔍 user.user_metadata.last_name:', user?.user_metadata?.last_name);
+      console.log('🔍 user.app_metadata.full_name:', user?.app_metadata?.full_name);
+      console.log('🔍 user.app_metadata.name:', user?.app_metadata?.name);
     }
+    
+    if (user?.user_metadata?.full_name && user.user_metadata.full_name.trim()) {
+      console.log('✅ Using user metadata full_name:', user.user_metadata.full_name);
+      // Update the centralized state with the better name
+      if (updateProfileDirectly) {
+        const updatedProfile = {
+          ...currentProfile,
+          name: user.user_metadata.full_name.trim(),
+          updated_at: new Date().toISOString()
+        };
+        updateProfileDirectly(updatedProfile);
+        console.log('🔄 Updated centralized state with better name from user metadata');
+      }
+      return user.user_metadata.full_name.trim();
+    }
+    if (user?.user_metadata?.name && user.user_metadata.name.trim()) {
+      console.log('✅ Using user metadata name:', user.user_metadata.name);
+      // Update the centralized state with the better name
+      if (updateProfileDirectly) {
+        const updatedProfile = {
+          ...currentProfile,
+          name: user.user_metadata.name.trim(),
+          updated_at: new Date().toISOString()
+        };
+        updateProfileDirectly(updatedProfile);
+        console.log('🔄 Updated centralized state with better name from user metadata');
+      }
+      return user.user_metadata.name.trim();
+    }
+    // Try first_name + last_name combination
+    if (user?.user_metadata?.first_name && user?.user_metadata?.last_name) {
+      const fullName = `${user.user_metadata.first_name} ${user.user_metadata.last_name}`.trim();
+      console.log('✅ Using first_name + last_name:', fullName);
+      // Update the centralized state with the better name
+      if (updateProfileDirectly) {
+        const updatedProfile = {
+          ...currentProfile,
+          name: fullName,
+          updated_at: new Date().toISOString()
+        };
+        updateProfileDirectly(updatedProfile);
+        console.log('🔄 Updated centralized state with better name from first_name + last_name');
+      }
+      return fullName;
+    }
+    if (user?.user_metadata?.first_name && user.user_metadata.first_name.trim()) {
+      console.log('✅ Using user metadata first_name:', user.user_metadata.first_name);
+      // Update the centralized state with the better name
+      if (updateProfileDirectly) {
+        const updatedProfile = {
+          ...currentProfile,
+          name: user.user_metadata.first_name.trim(),
+          updated_at: new Date().toISOString()
+        };
+        updateProfileDirectly(updatedProfile);
+        console.log('🔄 Updated centralized state with better name from first_name');
+      }
+      return user.user_metadata.first_name.trim();
+    }
+    if (user?.app_metadata?.full_name && user.app_metadata.full_name.trim()) {
+      console.log('✅ Using app metadata full_name:', user.app_metadata.full_name);
+      // Update the centralized state with the better name
+      if (updateProfileDirectly) {
+        const updatedProfile = {
+          ...currentProfile,
+          name: user.app_metadata.full_name.trim(),
+          updated_at: new Date().toISOString()
+        };
+        updateProfileDirectly(updatedProfile);
+        console.log('🔄 Updated centralized state with better name from app metadata');
+      }
+      return user.app_metadata.full_name.trim();
+    }
+    if (user?.app_metadata?.name && user.app_metadata.name.trim()) {
+      console.log('✅ Using app metadata name:', user.app_metadata.name);
+      // Update the centralized state with the better name
+      if (updateProfileDirectly) {
+        const updatedProfile = {
+          ...currentProfile,
+          name: user.app_metadata.name.trim(),
+          updated_at: new Date().toISOString()
+        };
+        updateProfileDirectly(updatedProfile);
+        console.log('🔄 Updated centralized state with better name from app metadata');
+      }
+      return user.app_metadata.name.trim();
+    }
+    if (user?.email && user.email.trim()) {
+      const emailName = user.email.split('@')[0];
+      console.log('⚠️ Using email-based name as last resort:', emailName);
+      return emailName;
+    }
+    console.log('⚠️ No name found, using fallback');
     return 'Tonald Drump';
   })();
 
   // Get user initials for avatar fallback
   const getUserInitials = () => {
-    if (currentProfile?.name) {
-      const names = currentProfile.name.split(' ');
+    // Check if profile name is valid (not empty, not email-based)
+    const isEmailBasedName = currentProfile?.name && 
+                             (currentProfile.name.includes('@') || 
+                              currentProfile.name === user?.email?.split('@')[0] ||
+                              currentProfile.name.toLowerCase() === user?.email?.split('@')[0]?.toLowerCase());
+    
+    if (currentProfile?.name && currentProfile.name.trim() && !isEmailBasedName) {
+      const names = currentProfile.name.trim().split(' ');
       if (names.length >= 2) {
         return (names[0][0] + names[names.length - 1][0]).toUpperCase();
       }
       return names[0][0].toUpperCase();
     }
-    if (user?.user_metadata?.full_name) {
-      const names = user.user_metadata.full_name.split(' ');
+    if (user?.user_metadata?.full_name && user.user_metadata.full_name.trim()) {
+      const names = user.user_metadata.full_name.trim().split(' ');
       if (names.length >= 2) {
         return (names[0][0] + names[names.length - 1][0]).toUpperCase();
       }
       return names[0][0].toUpperCase();
+    }
+    if (user?.user_metadata?.name && user.user_metadata.name.trim()) {
+      const names = user.user_metadata.name.trim().split(' ');
+      if (names.length >= 2) {
+        return (names[0][0] + names[names.length - 1][0]).toUpperCase();
+      }
+      return names[0][0].toUpperCase();
+    }
+    if (user?.email && user.email.trim()) {
+      const emailName = user.email.split('@')[0];
+      return emailName[0].toUpperCase();
     }
     return 'TD';
   };
 
-  // Get user role
+  // Get user role from profile data
   const getUserRole = () => {
-    if (currentProfile?.role) {
-      return currentProfile.role;
+    if (currentProfile?.role && currentProfile.role.trim()) {
+      console.log('✅ Using profile role from centralized state:', currentProfile.role);
+      return currentProfile.role.trim();
     }
-    if (user?.user_metadata?.role) {
-      return user.user_metadata.role;
+    if (user?.user_metadata?.role && user.user_metadata.role.trim()) {
+      console.log('✅ Using user metadata role:', user.user_metadata.role);
+      return user.user_metadata.role.trim();
     }
-    if (user?.app_metadata?.role) {
-      return user.app_metadata.role;
+    if (user?.app_metadata?.role && user.app_metadata.role.trim()) {
+      console.log('✅ Using app metadata role:', user.app_metadata.role);
+      return user.app_metadata.role.trim();
     }
+    console.log('⚠️ No role found, using fallback');
     return 'Family Member';
   };
 
@@ -536,64 +816,128 @@ export default function HomeDashboard() {
           
           {eventsLoading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color="#17f196" />
+              <ActivityIndicator size="small" color="#6366F1" />
               <Text style={styles.loadingText}>Loading events...</Text>
+            </View>
+          ) : eventsError ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>Failed to load events</Text>
             </View>
           ) : todayEvents.length > 0 ? (
             todayEvents.map((event) => {
-              const eventDate = new Date(event.event_date);
-              const endDate = event.end_date ? new Date(event.end_date) : null;
-              
-              // Format time
-              const formatTime = (date: Date) => {
-                return date.toLocaleTimeString('en-US', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: false
-                });
-              };
-              
-              // Calculate duration
-              const getDuration = () => {
-                if (endDate) {
-                  const diffMs = endDate.getTime() - eventDate.getTime();
-                  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-                  const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                  
-                  if (diffHours > 0) {
-                    return `${diffHours}h ${diffMinutes}m`;
-                  } else {
-                    return `${diffMinutes}m`;
-                  }
-                }
-                return 'All day';
-              };
-              
+              console.log('🎯 Rendering event:', event.title, {
+                assignees: event.assignees,
+                assignee_count: event.assignee_count
+              });
               return (
                 <View key={event.id} style={styles.calendarEventCard}>
                   <View style={styles.eventHeader}>
                     <Text style={styles.eventMainTitle}>{event.title}</Text>
-                    {event.description && (
-                      <Text style={styles.eventPrivateMessage}>{event.description}</Text>
-                    )}
                   </View>
                   
-                  <View style={styles.eventDetailsContainer}>
-                    <View style={styles.eventDetailsGroup}>
-                      <View style={styles.eventDetailItemLeft}>
-                        <Text style={styles.eventDetailLabel}>Event Title</Text>
-                        <Text style={styles.eventDetailValue} numberOfLines={1}>{event.title}</Text>
-                      </View>
-                      <View style={styles.eventDetailItemCenter}>
-                        <Text style={styles.eventDetailLabel}>Start Time</Text>
-                        <Text style={styles.eventDetailValue} numberOfLines={1}>{formatTime(eventDate)}</Text>
-                      </View>
-                      <View style={styles.eventDetailItemRight}>
-                        <Text style={styles.eventDetailLabel}>Duration</Text>
-                        <Text style={styles.eventDetailValue} numberOfLines={1}>{getDuration()}</Text>
-                      </View>
-                    </View>
-                  </View>
+                   {event.description && (
+                     <View style={styles.eventDescriptionContainer}>
+                       <Text style={styles.eventDescription} numberOfLines={2}>
+                         {event.description}
+                       </Text>
+                     </View>
+                   )}
+                   
+                   <View style={styles.eventDetailsContainer}>
+                     <View style={styles.eventDetailsGroup}>
+                       <View style={styles.eventDetailItemLeft}>
+                         <Text style={styles.eventDetailLabel}>Event Title</Text>
+                         <Text style={styles.eventDetailValue} numberOfLines={1}>{event.title}</Text>
+                       </View>
+                       <View style={styles.eventDetailItemCenter}>
+                         <Text style={styles.eventDetailLabel}>Start Time</Text>
+                         <Text style={styles.eventDetailValue} numberOfLines={1}>
+                           {new Date(event.event_date).toLocaleTimeString('en-US', { 
+                             hour: '2-digit', 
+                             minute: '2-digit',
+                             hour12: true 
+                           })}
+                         </Text>
+                       </View>
+                       <View style={styles.eventDetailItemRight}>
+                         <Text style={styles.eventDetailLabel}>Duration</Text>
+                         <Text style={styles.eventDetailValue} numberOfLines={1}>
+                           {event.end_date ? 
+                             `${Math.round((new Date(event.end_date).getTime() - new Date(event.event_date).getTime()) / (1000 * 60 * 60))}h` : 
+                             'All day'
+                           }
+                         </Text>
+                       </View>
+                     </View>
+                   </View>
+                   
+                   {/* Avatars positioned at bottom left - using assignees data */}
+                   <View style={styles.eventAvatarsContainer}>
+                     {(() => {
+                       console.log('🔍 Avatar check for event:', event.title, {
+                         has_assignees: !!event.assignees,
+                         assignees_length: event.assignees?.length || 0,
+                         assignees: event.assignees
+                       });
+                       return null;
+                     })()}
+                     {event.assignees && event.assignees.length > 0 ? (
+                       <View style={styles.assigneeAvatars}>
+                          {event.assignees.slice(0, 3).map((assignee, index) => {
+                            console.log('🎨 Rendering avatar for assignee:', {
+                              name: assignee.name,
+                              avatar: assignee.avatar_url,
+                              user_id: assignee.user_id,
+                              full_assignee: assignee
+                            });
+                            const avatarColors = ['#FFB6C1', '#FFD700', '#87CEEB'];
+                            return (
+                              <View key={assignee.user_id} style={[styles.assigneeAvatar, { backgroundColor: avatarColors[index] }]}>
+                                {assignee.avatar_url ? (
+                                  <Image
+                                    source={{ uri: assignee.avatar_url }}
+                                    style={styles.assigneeAvatarImage}
+                                    resizeMode="cover"
+                                  />
+                                ) : (
+                                  <View style={styles.assigneeAvatarPlaceholder}>
+                                    <Text style={styles.assigneeAvatarInitial}>
+                                      {assignee.name ? assignee.name.charAt(0).toUpperCase() : '?'}
+                                    </Text>
+                                  </View>
+                                )}
+                              </View>
+                            );
+                          })}
+                         {event.assignees.length > 3 && (
+                           <View style={[styles.assigneeAvatar, { backgroundColor: '#9CA3AF' }]}>
+                             <View style={styles.assigneeAvatarPlaceholder}>
+                               <Text style={styles.assigneeAvatarInitial}>+{event.assignees.length - 3}</Text>
+                             </View>
+                           </View>
+                         )}
+                       </View>
+                     ) : (
+                       <View style={styles.assigneeAvatars}>
+                         {/* Show current user as assignee when no assignees */}
+                         <View style={[styles.assigneeAvatar, { backgroundColor: '#FF6B6B' }]}>
+                           {profile?.avatar_url ? (
+                             <Image
+                               source={{ uri: profile.avatar_url }}
+                               style={styles.assigneeAvatarImage}
+                               resizeMode="cover"
+                             />
+                           ) : (
+                             <View style={styles.assigneeAvatarPlaceholder}>
+                               <Text style={styles.assigneeAvatarInitial}>
+                                 {profile?.name ? profile.name.charAt(0).toUpperCase() : 'U'}
+                               </Text>
+                             </View>
+                           )}
+                         </View>
+                       </View>
+                     )}
+                   </View>
                   
                   <View style={styles.eventDateContainer}>
                     <Image
@@ -605,64 +949,15 @@ export default function HomeDashboard() {
                       }}
                     />
                     <Text style={styles.eventDate}>
-                      {eventDate.toLocaleDateString('en-US', { 
+                    {new Date().toLocaleDateString('en-US', { 
                         day: 'numeric', 
                         month: 'long' 
                       })}
                     </Text>
                   </View>
-                  
-                  {event.assigneeProfiles && event.assigneeProfiles.length > 0 && (
-                    <View style={styles.eventFooter}>
-                      <View style={styles.assigneeAvatars}>
-                        {event.assigneeProfiles.slice(0, 3).map((assignee, index) => (
-                          <View 
-                            key={assignee.id} 
-                            style={[
-                              styles.assigneeAvatar, 
-                              index === 0 && styles.assigneeAvatar1,
-                              index === 1 && styles.assigneeAvatar2,
-                              index === 2 && styles.assigneeAvatar3
-                            ]} 
-                          >
-                            {assignee.avatar_url ? (
-                              <Image
-                                source={{ uri: assignee.avatar_url }}
-                                style={styles.assigneeAvatarImage}
-                                resizeMode="cover"
-                              />
-                            ) : (
-                              <View style={styles.assigneeAvatarPlaceholder}>
-                                <Text style={styles.assigneeAvatarInitial}>
-                                  {assignee.name?.charAt(0)?.toUpperCase() || '?'}
-                                </Text>
-                              </View>
-                            )}
-                          </View>
-                        ))}
-                        {event.assigneeProfiles.length > 3 && (
-                          <View style={[styles.assigneeAvatar, styles.assigneeAvatar1]}>
-                            <View style={styles.assigneeAvatarPlaceholder}>
-                              <Text style={styles.assigneeAvatarInitial}>+{event.assigneeProfiles.length - 3}</Text>
-                            </View>
-                          </View>
-                        )}
-                      </View>
-                    </View>
-                  )}
                 </View>
               );
             })
-          ) : eventsError ? (
-            <View style={styles.errorStateContainer}>
-              <Text style={styles.errorStateText}>Error: {eventsError}</Text>
-              <Pressable 
-                style={styles.retryButton}
-                onPress={refreshEvents}
-              >
-                <Text style={styles.retryButtonText}>Retry</Text>
-              </Pressable>
-            </View>
           ) : (
             <View style={styles.emptyTaskCard}>
               <Image
@@ -670,7 +965,7 @@ export default function HomeDashboard() {
                 style={styles.emptyTaskIcon}
                 resizeMode="contain"
               />
-              <Text style={styles.emptyTaskText}>No Meetings Scheduled</Text>
+              <Text style={styles.emptyTaskText}>No Meeting Available</Text>
               <Text style={styles.emptyTaskSubtext}>
                 It looks like you don't have any meetings scheduled at the moment. This space will be updated as new meetings are added!
               </Text>
@@ -682,22 +977,23 @@ export default function HomeDashboard() {
         <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Today Task</Text>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{todayTasks.length}</Text>
-            </View>
-          </View>
-          <Text style={styles.sectionSubtitle}>The tasks assigned to you for today</Text>
-          
-          {tasksLoading ? (
-            <View style={styles.tasksLoadingContainer}>
-              <ActivityIndicator size="small" color="#17f196" />
-              <Text style={styles.tasksLoadingText}>Loading tasks...</Text>
-            </View>
-          ) : todayTasks.length > 0 ? (
-            todayTasks.map((task) => {
-              console.log(`🔍 Rendering task: ${task.title}`);
-              console.log(`🔍 Task assignments:`, task.task_assignments);
-              return (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{todayTasks.length}</Text>
+                </View>
+              </View>
+              <Text style={styles.sectionSubtitle}>The tasks assigned to you for today</Text>
+              
+              {tasksLoading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color="#6366F1" />
+                  <Text style={styles.loadingText}>Loading tasks...</Text>
+                </View>
+              ) : tasksError ? (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>Failed to load tasks</Text>
+                </View>
+              ) : todayTasks.length > 0 ? (
+                todayTasks.map((task) => (
               <View key={task.id} style={styles.taskCard}>
              <View style={styles.taskHeader}>
                <View style={styles.taskIcon}>
@@ -712,10 +1008,6 @@ export default function HomeDashboard() {
                </View>
                   <Text style={styles.taskTitle}>{task.title}</Text>
              </View>
-               
-                {task.description && (
-                  <Text style={styles.taskDescription}>{task.description}</Text>
-                )}
             
              <View style={styles.taskTags}>
                <View style={styles.statusTag}>
@@ -727,9 +1019,7 @@ export default function HomeDashboard() {
                      resizeMode: 'contain'
                    }}
                  />
-                    <Text style={styles.statusTagText}>
-                      {task.completed ? 'Completed' : 'In Progress'}
-                    </Text>
+                    <Text style={styles.statusTagText}>{task.completed ? 'Completed' : 'In Progress'}</Text>
                </View>
                <View style={styles.priorityTag}>
                  <Image
@@ -740,54 +1030,56 @@ export default function HomeDashboard() {
                      resizeMode: 'contain'
                    }}
                  />
-                    <Text style={styles.priorityTagText}>
-                      {task.points >= 200 ? 'High' : task.points >= 100 ? 'Medium' : 'Low'}
-                    </Text>
+                    <Text style={styles.priorityTagText}>HighLevel</Text>
                </View>
              </View>
             
             <View style={styles.progressBar}>
                   <View style={[
                     styles.progressFill, 
-                    { width: task.completed ? '100%' : `${Math.min(100, Math.max(0, calculateTaskProgress(task)))}%` }
+                    { width: `${task.completed ? 100 : 0}%` }
                   ]} />
             </View>
             
             <View style={styles.taskFooter}>
               <View style={styles.assigneeAvatars}>
-                    {task.task_assignments && task.task_assignments.length > 0 ? (
-                      task.task_assignments.slice(0, 3).map((assignment, index) => (
-                        <View 
-                          key={assignment.id} 
-                          style={[
-                            styles.assigneeAvatar, 
-                            index === 0 && styles.assigneeAvatar1,
-                            index === 1 && styles.assigneeAvatar2,
-                            index === 2 && styles.assigneeAvatar3
-                          ]} 
-                        >
-                          {assignment.assignee_profile?.avatar_url ? (
+                {task.assignees && task.assignees.length > 0 ? (
+                  <>
+                    {task.assignees.slice(0, 3).map((assignee, index) => {
+                      const avatarColors = ['#FFB6C1', '#FFD700', '#87CEEB'];
+                      return (
+                        <View key={assignee.user_id || index} style={[styles.assigneeAvatar, { backgroundColor: avatarColors[index] }]}>
+                          {assignee.avatar ? (
                             <Image
-                              source={{ uri: assignment.assignee_profile.avatar_url }}
+                              source={{ uri: assignee.avatar }}
                               style={styles.assigneeAvatarImage}
                               resizeMode="cover"
                             />
                           ) : (
                             <View style={styles.assigneeAvatarPlaceholder}>
                               <Text style={styles.assigneeAvatarInitial}>
-                                {assignment.assignee_profile?.name?.charAt(0)?.toUpperCase() || '?'}
+                                {assignee.name ? assignee.name.charAt(0).toUpperCase() : '?'}
                               </Text>
                             </View>
                           )}
                         </View>
-                      ))
-                    ) : (
-                      <View style={[styles.assigneeAvatar, styles.assigneeAvatar1]}>
+                      );
+                    })}
+                    {task.assignees.length > 3 && (
+                      <View style={[styles.assigneeAvatar, { backgroundColor: '#9CA3AF' }]}>
                         <View style={styles.assigneeAvatarPlaceholder}>
-                          <Text style={styles.assigneeAvatarInitial}>?</Text>
+                          <Text style={styles.assigneeAvatarInitial}>+{task.assignees.length - 3}</Text>
                         </View>
                       </View>
                     )}
+                  </>
+                ) : (
+                  <View style={[styles.assigneeAvatar, { backgroundColor: '#FF6B6B' }]}>
+                    <View style={styles.assigneeAvatarPlaceholder}>
+                      <Text style={styles.assigneeAvatarInitial}>?</Text>
+                    </View>
+                  </View>
+                )}
               </View>
                <View style={styles.dueDateContainer}>
                  <Image
@@ -799,16 +1091,16 @@ export default function HomeDashboard() {
                    }}
                  />
                     <Text style={styles.dueDate}>
-                      {task.end_date ? new Date(task.end_date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric'
-                      }) : 'No due date'}
+                      {task.end_date && (
+                        <Text style={styles.endTimeText}>
+                          {new Date(task.end_date).toLocaleDateString("en-US", { month: 'long', day: 'numeric' })}
+                        </Text>
+                      )}
                     </Text>
                </View>
             </View>
           </View>
-            );
-            })
+            ))
           ) : (
             <View style={styles.emptyTaskCard}>
               <Image
@@ -1429,6 +1721,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666666',
   },
+  endTimeText: {
+    fontSize: 12,
+    color: 'rgb(102, 102, 102)',
+    fontWeight: '500',
+  },
 
   // Empty Task Card
   emptyTaskCard: {
@@ -1482,6 +1779,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 12,
     marginTop: 8,
+    position: 'relative',
   },
   eventHeader: {
     marginBottom: 16,
@@ -1499,7 +1797,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
    eventDetailsContainer: {
-     marginBottom: 16,
+     marginBottom: 32,
    },
    eventDetailsGroup: {
      flexDirection: 'row',
@@ -1537,12 +1835,20 @@ const styles = StyleSheet.create({
      color: '#475467',
      marginBottom: 2,
    },
-   eventDetailValue: {
-     fontSize: 16,
-     fontWeight: '500',
-     color: '#344054',
-   },
-   eventDateContainer: {
+    eventDetailValue: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: '#344054',
+    },
+    eventDescriptionContainer: {
+      marginBottom: 12,
+    },
+    eventDescription: {
+      fontSize: 13,
+      color: '#6B7280',
+      lineHeight: 18,
+    },
+    eventDateContainer: {
     position :'absolute',
     right : 20,
     bottom : 0,
@@ -1682,6 +1988,22 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 14,
     color: '#666',
+  },
+  errorContainer: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#e74c3c',
+    fontStyle: 'italic',
+  },
+  eventAvatarsContainer: {
+    position: 'absolute',
+    bottom: 8,
+    left: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   emptyStateContainer: {
     paddingVertical: 20,
