@@ -19,6 +19,7 @@ import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useCurrentUserEvents } from '@/hooks/useCurrentUserEvents';
 import { useTodayTasks } from '@/hooks/useTodayTasks';
+import { useTodayShoppingItems } from '@/hooks/useTodayShoppingItems';
 // Removed unused imports
 
 // Custom verification icon component
@@ -48,11 +49,20 @@ export default function HomeDashboard() {
   // Get today's tasks using the specialized function
   const { tasks: todayTasks, loading: tasksLoading, error: tasksError, refreshTasks } = useTodayTasks();
   
+  // Get today's shopping items
+  const { items: todayShoppingItems, loading: shoppingLoading, error: shoppingError, refreshItems: refreshShoppingItems } = useTodayShoppingItems();
+  
   // Debug today's tasks
   console.log('🏠 Home page - todayTasks:', todayTasks);
   console.log('🏠 Home page - tasksLoading:', tasksLoading);
   console.log('🏠 Home page - tasksError:', tasksError);
   console.log('🏠 Home page - todayTasks.length:', todayTasks?.length || 0);
+  
+  // Debug today's shopping items
+  console.log('🏠 Home page - todayShoppingItems:', todayShoppingItems);
+  console.log('🏠 Home page - shoppingLoading:', shoppingLoading);
+  console.log('🏠 Home page - shoppingError:', shoppingError);
+  console.log('🏠 Home page - todayShoppingItems.length:', todayShoppingItems?.length || 0);
 
   // Helper function to format event time
   const formatEventTime = (eventDate: string, endDate?: string) => {
@@ -309,6 +319,7 @@ export default function HomeDashboard() {
       console.log('🔄 Home page refresh triggered from notification');
       refreshEvents();
       refreshTasks();
+      refreshShoppingItems();
     };
 
     if (typeof window !== 'undefined') {
@@ -318,7 +329,7 @@ export default function HomeDashboard() {
         window.removeEventListener('refreshHomeData', handleRefreshHomeData);
       };
     }
-  }, [refreshEvents, refreshTasks]);
+  }, [refreshEvents, refreshTasks, refreshShoppingItems]);
 
   // Focus effect with direct database query to get current profile data
   useFocusEffect(
@@ -886,26 +897,26 @@ export default function HomeDashboard() {
                           {event.assignees.slice(0, 3).map((assignee, index) => {
                             console.log('🎨 Rendering avatar for assignee:', {
                               name: assignee.name,
-                              avatar: assignee.avatar_url,
+                              avatar: assignee.avatar,
                               user_id: assignee.user_id,
                               full_assignee: assignee
                             });
                             const avatarColors = ['#FFB6C1', '#FFD700', '#87CEEB'];
                             return (
                               <View key={assignee.user_id} style={[styles.assigneeAvatar, { backgroundColor: avatarColors[index] }]}>
-                                {assignee.avatar_url ? (
-                                  <Image
-                                    source={{ uri: assignee.avatar_url }}
-                                    style={styles.assigneeAvatarImage}
-                                    resizeMode="cover"
-                                  />
-                                ) : (
-                                  <View style={styles.assigneeAvatarPlaceholder}>
-                                    <Text style={styles.assigneeAvatarInitial}>
-                                      {assignee.name ? assignee.name.charAt(0).toUpperCase() : '?'}
-                                    </Text>
-                                  </View>
-                                )}
+                          {assignee.avatar ? (
+                            <Image
+                              source={{ uri: assignee.avatar }}
+                              style={styles.assigneeAvatarImage}
+                              resizeMode="cover"
+                            />
+                          ) : (
+                            <View style={styles.assigneeAvatarPlaceholder}>
+                              <Text style={styles.assigneeAvatarInitial}>
+                                {assignee.name ? assignee.name.charAt(0).toUpperCase() : '?'}
+                              </Text>
+                            </View>
+                          )}
                               </View>
                             );
                           })}
@@ -1043,43 +1054,11 @@ export default function HomeDashboard() {
             
             <View style={styles.taskFooter}>
               <View style={styles.assigneeAvatars}>
-                {task.assignees && task.assignees.length > 0 ? (
-                  <>
-                    {task.assignees.slice(0, 3).map((assignee, index) => {
-                      const avatarColors = ['#FFB6C1', '#FFD700', '#87CEEB'];
-                      return (
-                        <View key={assignee.user_id || index} style={[styles.assigneeAvatar, { backgroundColor: avatarColors[index] }]}>
-                          {assignee.avatar ? (
-                            <Image
-                              source={{ uri: assignee.avatar }}
-                              style={styles.assigneeAvatarImage}
-                              resizeMode="cover"
-                            />
-                          ) : (
-                            <View style={styles.assigneeAvatarPlaceholder}>
-                              <Text style={styles.assigneeAvatarInitial}>
-                                {assignee.name ? assignee.name.charAt(0).toUpperCase() : '?'}
-                              </Text>
-                            </View>
-                          )}
-                        </View>
-                      );
-                    })}
-                    {task.assignees.length > 3 && (
-                      <View style={[styles.assigneeAvatar, { backgroundColor: '#9CA3AF' }]}>
-                        <View style={styles.assigneeAvatarPlaceholder}>
-                          <Text style={styles.assigneeAvatarInitial}>+{task.assignees.length - 3}</Text>
-                        </View>
-                      </View>
-                    )}
-                  </>
-                ) : (
-                  <View style={[styles.assigneeAvatar, { backgroundColor: '#FF6B6B' }]}>
-                    <View style={styles.assigneeAvatarPlaceholder}>
-                      <Text style={styles.assigneeAvatarInitial}>?</Text>
-                    </View>
+                <View style={[styles.assigneeAvatar, { backgroundColor: '#FF6B6B' }]}>
+                  <View style={styles.assigneeAvatarPlaceholder}>
+                    <Text style={styles.assigneeAvatarInitial}>?</Text>
                   </View>
-                )}
+                </View>
               </View>
                <View style={styles.dueDateContainer}>
                  <Image
@@ -1121,55 +1100,122 @@ export default function HomeDashboard() {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Today added to Shopping list</Text>
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>2</Text>
+              <Text style={styles.badgeText}>{todayShoppingItems.length}</Text>
             </View>
           </View>
-          <Text style={styles.sectionSubtitle}>Your schedule for the day</Text>
+          <Text style={styles.sectionSubtitle}>Items added to your shopping list today</Text>
           
-          <View style={styles.shoppingListItemCard}>
-            <View style={styles.shoppingItemHeader}>
-              <Image
-                source={require('@/assets/images/icon/shop_date.png')}
-                style={{
-                  width: 20,
-                  height: 20,
-                  resizeMode: 'contain'
-                }}
-              />
-              <Text style={styles.shoppingItemDate}>18 September 2024</Text>
+          {shoppingLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#6366F1" />
+              <Text style={styles.loadingText}>Loading shopping items...</Text>
             </View>
-            
-            <View style={styles.shoppingItemDetailsGroup}>
-              <View style={styles.shoppingItemLeft}>
-                <Text style={styles.shoppingItemLabel}>Item</Text>
-                <Text style={styles.shoppingItemName}>Pizza Tonno</Text>
-              </View>
-              <View style={styles.shoppingItemRight}>
-                <Text style={styles.shoppingItemLabel}>Quantity</Text>
-                <Text style={styles.shoppingItemQuantity}>2 stk.</Text>
-              </View>
+          ) : shoppingError ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>Failed to load shopping items</Text>
             </View>
-            
-            <View style={styles.shoppingItemFooter}>
-              <View style={styles.purchaseStatus}>
-                <Image
-                  source={require('@/assets/images/icon/check.png')}
-                  style={{
-                    width: 16,
-                    height: 16,
-                    resizeMode: 'contain'
-                  }}
-                />
-                <Text style={styles.purchaseStatusText}>Purchased at 19 Sept 2024</Text>
-              </View>
-              <View style={styles.purchaserInfo}>
-                <View style={styles.purchaserAvatar}>
-                  <Text style={styles.purchaserAvatarText}>E</Text>
+          ) : todayShoppingItems.length > 0 ? (
+            todayShoppingItems.map((item) => (
+              <View key={item.id} style={styles.shoppingListItemCard}>
+                <View style={styles.shoppingItemHeader}>
+                  <Image
+                    source={require('@/assets/images/icon/shop_date.png')}
+                    style={{
+                      width: 20,
+                      height: 20,
+                      resizeMode: 'contain'
+                    }}
+                  />
+                  <Text style={styles.shoppingItemDate}>
+                    {new Date(item.created_at).toLocaleDateString('en-US', { 
+                      day: 'numeric', 
+                      month: 'long', 
+                      year: 'numeric' 
+                    })}
+                  </Text>
                 </View>
-                <Text style={styles.purchaserName}>Elaine</Text>
+                
+                <View style={styles.shoppingItemDetailsGroup}>
+                  <View style={styles.shoppingItemLeft}>
+                    <Text style={styles.shoppingItemLabel}>Item</Text>
+                    <Text style={styles.shoppingItemName}>{item.name}</Text>
+                  </View>
+                  <View style={styles.shoppingItemRight}>
+                    <Text style={styles.shoppingItemLabel}>Quantity</Text>
+                    <Text style={styles.shoppingItemQuantity}>{item.quantity || '1 stk.'}</Text>
+                  </View>
+                </View>
+                
+                <View style={styles.shoppingItemFooter}>
+                  <View style={styles.purchaseStatus}>
+                    {item.completed ? (
+                      <>
+                        <Image
+                          source={require('@/assets/images/icon/check.png')}
+                          style={{
+                            width: 16,
+                            height: 16,
+                            resizeMode: 'contain'
+                          }}
+                        />
+                        <Text style={styles.purchaseStatusText}>
+                          Purchased at {new Date(item.updated_at).toLocaleDateString('en-US', { 
+                            day: 'numeric', 
+                            month: 'short', 
+                            year: 'numeric' 
+                          })}
+                        </Text>
+                      </>
+                    ) : (
+                      <>
+                        <Image
+                          source={require('@/assets/images/icon/in_progress.png')}
+                          style={{
+                            width: 16,
+                            height: 16,
+                            resizeMode: 'contain'
+                          }}
+                        />
+                        <Text style={[styles.purchaseStatusText, { color: '#666666' }]}>
+                          Pending purchase
+                        </Text>
+                      </>
+                    )}
+                  </View>
+                  <View style={styles.purchaserInfo}>
+                    <View style={styles.purchaserAvatar}>
+                      {item.creator_profile?.avatar_url ? (
+                        <Image
+                          source={{ uri: item.creator_profile.avatar_url }}
+                          style={styles.purchaserAvatarImage}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <Text style={styles.purchaserAvatarText}>
+                          {item.creator_profile?.name ? item.creator_profile.name.charAt(0).toUpperCase() : '?'}
+                        </Text>
+                      )}
+                    </View>
+                    <Text style={styles.purchaserName}>
+                      {item.creator_profile?.name || 'Unknown'}
+                    </Text>
+                  </View>
+                </View>
               </View>
+            ))
+          ) : (
+            <View style={styles.emptyTaskCard}>
+              <Image
+                source={require('@/assets/images/icon/shop_list.png')}
+                style={styles.emptyTaskIcon}
+                resizeMode="contain"
+              />
+              <Text style={styles.emptyTaskText}>No Items Added Today</Text>
+              <Text style={styles.emptyTaskSubtext}>
+                No items have been added to your shopping list today. This space will be updated as new items are added!
+              </Text>
             </View>
-          </View>
+          )}
         </View>
 
         {/* Bottom spacing for navigation */}
@@ -1335,7 +1381,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontStyle: 'semibold',
     fontWeight: '600',
     color: '#040404',
   },
@@ -1349,16 +1394,14 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 12,
-    fontStyle: 'regular',
     fontWeight: '400',
     color: '#17f196',
   },
   sectionSubtitle: {
     fontSize: 14,
     color: '#466759',
-    fontStyle: 'normal',
     fontWeight: '400',
-    lineHeight: '140%',
+    lineHeight: 20,
     marginBottom: 6,
   },
 
@@ -1396,7 +1439,6 @@ const styles = StyleSheet.create({
   quickActionTitle: {
     fontSize: 11,
     fontWeight: '600',
-    fontStyle: 'semibold',
     color: '#2d2d2d',
     // marginBottom: 4,
     textAlign: 'center',
@@ -1406,7 +1448,6 @@ const styles = StyleSheet.create({
   },
   quickActionSubtitle: {
     fontSize: 8,
-    fontStyle: 'regular',
     fontWeight: '400',
     color: '#666666',
     textAlign: 'center',
@@ -1434,18 +1475,16 @@ const styles = StyleSheet.create({
   workSummaryTitle: {
     color: '#FFF',
     fontSize: 16,
-    fontStyle: 'normal',
     fontWeight: '600',
-    lineHeight: 'normal',
-    letterSpacing: '-0.5px',
+    lineHeight: 20,
+    letterSpacing: -0.5,
   },
   workSummarySubtitle: {
     color: '#EDEAFF',
     fontSize: 13,
-    fontStyle: 'normal',
-    fontWeight: 500,
-    lineHeight: 'normal',
-    letterSpacing: '-0.5px',
+    fontWeight: '500',
+    lineHeight: 16,
+    letterSpacing: -0.5,
   },
   workSummaryIcon: {
     width: 60,
@@ -1582,7 +1621,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEFEFE',
     borderRadius: 12,
     padding: 16,
-    border: '1px solid #EAECF0',
+    borderWidth: 1,
+    borderColor: '#EAECF0',
     elevation: 2,
   },
   taskHeader: {
@@ -1773,10 +1813,10 @@ const styles = StyleSheet.create({
 
   // Calendar Event Card
   calendarEventCard: {
-    border: '1px solid #EAECF0',
     backgroundColor: '#F9FAFB',
     borderRadius: 12,
     borderWidth: 1,
+    borderColor: '#EAECF0',
     padding: 12,
     marginTop: 8,
     position: 'relative',
@@ -1866,10 +1906,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-start',
   },
-  eventAttendees: {
-    flexDirection: 'row',
-    gap: -8,
-  },
 
   // Shopping List Item Card
   shoppingListItemCard: {
@@ -1877,7 +1913,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginTop: 8,
-    border: '1px solid #EAECF0',
+    borderWidth: 1,
+    borderColor: '#EAECF0',
     elevation: 2,
   },
   shoppingItemHeader: {
@@ -1957,6 +1994,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  purchaserAvatarImage: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
   },
   purchaserName: {
     fontSize: 12,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,56 +8,135 @@ import {
   SafeAreaView,
   StatusBar,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useFamilyShoppingItems } from '@/hooks/useFamilyShoppingItems';
+import { useFamily } from '@/contexts/FamilyContext';
 
 export default function ShopListScreen() {
   const [activeFilter, setActiveFilter] = useState('Buy Items');
+  
+  // Get shopping items data
+  const { 
+    items, 
+    loading: itemsLoading, 
+    error: itemsError,
+    getCompletedItems,
+    getPendingItems 
+  } = useFamilyShoppingItems();
+  
+  const { isInFamily, currentFamily } = useFamily();
 
-  // Mock data for the design
-  const mockData = {
-    summary: {
-      itemsToBuy: 20,
-      purchasedItems: 2,
-    },
-    filters: [
-      { id: 'all', label: 'All Items', count: 3, active: activeFilter === 'All Items' },
-      { id: 'buy', label: 'Buy Items', count: 2, active: activeFilter === 'Buy Items' },
-      { id: 'finished', label: 'Finished', count: 2, active: activeFilter === 'Finished' },
-    ],
-    items: [
-      {
-        id: 1,
-        date: '18 September 2024',
-        items: [
-          {
-            id: 1,
-            name: 'Pizza Tonno',
-            quantity: '2 stk.',
-            status: 'purchased',
-            statusText: 'Purchased at 19 Sept 2024',
-            purchaser: 'Elaine',
-            purchaserAvatar: 'E',
-          },
-        ],
-      },
-      {
-        id: 2,
-        date: '21 September 2024',
-        items: [
-          {
-            id: 2,
-            name: 'Coca Cola Lite',
-            quantity: '10 stk.',
-            status: 'deleted',
-            statusText: 'Deleted at 22 Sept 2024',
-            purchaser: 'Elaine',
-            purchaserAvatar: 'E',
-          },
-        ],
-      },
-    ],
-  };
+  // Calculate summary data
+  const summaryData = useMemo(() => {
+    const pendingItems = getPendingItems();
+    const completedItems = getCompletedItems();
+    
+    return {
+      itemsToBuy: pendingItems.length,
+      purchasedItems: completedItems.length,
+    };
+  }, [items, getPendingItems, getCompletedItems]);
+
+  // Filter items based on active filter
+  const filteredItems = useMemo(() => {
+    if (activeFilter === 'All Items') {
+      return items;
+    } else if (activeFilter === 'Buy Items') {
+      return getPendingItems();
+    } else if (activeFilter === 'Finished') {
+      return getCompletedItems();
+    }
+    return items;
+  }, [items, activeFilter, getPendingItems, getCompletedItems]);
+
+  // Group items by date
+  const groupedItems = useMemo(() => {
+    const groups: { [key: string]: any[] } = {};
+    
+    filteredItems.forEach(item => {
+      const date = new Date(item.created_at).toLocaleDateString('en-US', { 
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric' 
+      });
+      
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      
+      groups[date].push({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity || '1 stk.',
+        status: item.completed ? 'purchased' : 'pending',
+        statusText: item.completed 
+          ? `Purchased at ${new Date(item.updated_at).toLocaleDateString('en-US', { 
+              day: 'numeric', 
+              month: 'short', 
+              year: 'numeric' 
+            })}`
+          : 'Pending purchase',
+        purchaser: item.creator_profile?.name || 'Unknown',
+        purchaserAvatar: item.creator_profile?.name ? item.creator_profile.name.charAt(0).toUpperCase() : '?',
+      });
+    });
+    
+    return Object.entries(groups).map(([date, items], index) => ({
+      id: index + 1,
+      date,
+      items,
+    }));
+  }, [filteredItems]);
+
+  // Filter data for tabs
+  const filterData = useMemo(() => {
+    const allItems = items.length;
+    const buyItems = getPendingItems().length;
+    const finishedItems = getCompletedItems().length;
+    
+    return [
+      { id: 'all', label: 'All Items', count: allItems, active: activeFilter === 'All Items' },
+      { id: 'buy', label: 'Buy Items', count: buyItems, active: activeFilter === 'Buy Items' },
+      { id: 'finished', label: 'Finished', count: finishedItems, active: activeFilter === 'Finished' },
+    ];
+  }, [items, activeFilter, getPendingItems, getCompletedItems]);
+
+  // Show loading state
+  if (itemsLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#17f196" />
+          <Text style={styles.loadingText}>Loading shopping items...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show error state
+  if (itemsError) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Failed to load shopping items</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show empty state if no items
+  if (items.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No shopping items found</Text>
+          <Text style={styles.emptySubtext}>Add some items to your shopping list</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -91,7 +170,7 @@ export default function ShopListScreen() {
                 <View style={styles.progressDotGreen} />
                 <Text style={styles.progressCardTitle}>Items to Buy</Text>
               </View>
-              <Text style={styles.progressCardValue}>{mockData.summary.itemsToBuy}</Text>
+              <Text style={styles.progressCardValue}>{summaryData.itemsToBuy}</Text>
             </View>
             
             <View style={styles.progressCard}>
@@ -99,7 +178,7 @@ export default function ShopListScreen() {
                 <View style={styles.progressDotBlue} />
                 <Text style={styles.progressCardTitle}>Purchased Items</Text>
               </View>
-              <Text style={styles.progressCardValue}>{mockData.summary.purchasedItems}</Text>
+              <Text style={styles.progressCardValue}>{summaryData.purchasedItems}</Text>
             </View>
           </View>
         </View>
@@ -107,7 +186,7 @@ export default function ShopListScreen() {
         {/* Filter Bar */}
         <View style={styles.filterBarContainer}>
           <View style={styles.filterBar}>
-            {mockData.filters.map((filter) => (
+            {filterData.map((filter) => (
               <Pressable
                 key={filter.id}
                 style={[
@@ -140,7 +219,7 @@ export default function ShopListScreen() {
 
         {/* Shopping Items List */}
         <View style={styles.contentContainer}>
-          {mockData.items.map((dateGroup) => (
+          {groupedItems.map((dateGroup) => (
             <View key={dateGroup.id} style={styles.dateGroupPanel}>
               <View style={styles.dateHeader}>
                 <Image
@@ -514,5 +593,48 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 100,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '500',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#e74c3c',
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#666',
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
   },
 });
