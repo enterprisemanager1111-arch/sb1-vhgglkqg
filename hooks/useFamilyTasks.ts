@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFamily } from '@/contexts/FamilyContext';
+import { withSupabaseRetry, withFetchRetry } from '../utils/apiRetry';
 import { withTimeout, withRetry } from '@/utils/loadingOptimization';
 import { PointsService } from '@/services/pointsService';
 
@@ -141,7 +142,7 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
 
       if (tasksError) throw tasksError;
 
-      console.log('📊 Setting tasks in state:', data?.map(t => ({ 
+      console.log('📊 Setting tasks in state:', data?.map((t: any) => ({ 
         id: t.id, 
         title: t.title, 
         start_date: t.start_date, 
@@ -186,13 +187,8 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
       console.log('🔧 Attempting HTTP API approach to bypass GoTrueClient lock issues...');
       
       try {
-        // Get session token with timeout
-        const sessionPromise = supabase.auth.getSession();
-        const sessionTimeout = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Session timeout')), 2000);
-        });
-        
-        const { data: { session } } = await Promise.race([sessionPromise, sessionTimeout]) as any;
+        // Get session token
+        const { data: { session } } = await supabase.auth.getSession();
         
         if (!session?.access_token) {
           throw new Error('No valid session found');
@@ -200,17 +196,21 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
         
         console.log('🔧 Making HTTP request to create task...');
         
-        // Make HTTP request to create task
-        const response = await fetch(`${(supabase as any).supabaseUrl}/rest/v1/family_tasks`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-            'apikey': (supabase as any).supabaseKey,
-            'Prefer': 'return=representation'
+        // Make HTTP request to create task with retry
+        const response = await withFetchRetry(
+          `${(supabase as any).supabaseUrl}/rest/v1/family_tasks`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`,
+              'apikey': (supabase as any).supabaseKey,
+              'Prefer': 'return=representation'
+            },
+            body: JSON.stringify(insertData)
           },
-          body: JSON.stringify(insertData)
-        });
+          { maxRetries: 2, timeout: 15000 }
+        );
         
         if (!response.ok) {
           const errorText = await response.text();
@@ -223,18 +223,12 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
       } catch (httpError: any) {
         console.warn('⚠️ HTTP API approach failed, trying Supabase client:', httpError);
         
-        // Fallback to Supabase client with timeout
+        // Fallback to Supabase client
         try {
-          const insertPromise = supabase
+          const { data, error } = await supabase
             .from('family_tasks')
             .insert([insertData])
             .select();
-
-          const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Database operation timed out after 3 seconds')), 3000);
-          });
-
-          const { data, error } = await Promise.race([insertPromise, timeoutPromise]) as any;
           
           console.log('🔧 Insert completed:', { data, error });
           

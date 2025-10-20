@@ -197,7 +197,7 @@ export const useRealTimeFamily = (familyId: string | null) => {
           online_at: new Date().toISOString(),
         });
       }
-    }, 30000); // Every 30 seconds
+    }, 120000); // Every 2 minutes
 
     // Load initial data
     loadInitialData();

@@ -81,18 +81,11 @@ export default function WorkProfileEmpty() {
   // Check if family code exists in database
   const checkFamilyCodeExists = async (code: string): Promise<boolean> => {
     try {
-      // Add timeout to prevent hanging (reduced to 2 seconds for faster fallback)
-      const timeoutPromise = new Promise<boolean>((_, reject) => {
-        setTimeout(() => reject(new Error('Database query timeout')), 2000);
-      });
-      
-      const queryPromise = supabase
+      const { data, error } = await supabase
         .from('families')
         .select('code')
         .eq('code', code)
         .maybeSingle();
-
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
       if (error) {
         return false; // Assume it doesn't exist if there's an error
@@ -317,12 +310,7 @@ export default function WorkProfileEmpty() {
             console.log('🔗 Public URL:', familyImageUrl);
           };
 
-          // Add 30-second timeout for avatar upload
-          const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Avatar upload timeout after 30 seconds')), 30000);
-          });
-
-          await Promise.race([uploadPromise(), timeoutPromise]);
+          await uploadPromise();
           
         } catch (uploadError) {
           console.log('❌ Avatar upload failed:', uploadError);
@@ -365,14 +353,8 @@ export default function WorkProfileEmpty() {
       // Try to refresh the session if it might be expired (optional)
       console.log('🔄 Attempting to refresh session (optional)...');
       try {
-        // Add timeout to session refresh to prevent hanging
-        const refreshPromise = supabase.auth.refreshSession();
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Session refresh timeout')), 3000); // Reduced to 3 seconds
-        });
-        
-        const result = await Promise.race([refreshPromise, timeoutPromise]) as any;
-        const { data: { session: refreshedSession }, error: refreshError } = result;
+        // Refresh session
+        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
         
         if (refreshError) {
           console.log('⚠️ Session refresh failed:', refreshError);
@@ -456,11 +438,6 @@ export default function WorkProfileEmpty() {
         
         console.log('🔄 Making HTTP request to create family with 3-second timeout...');
         
-        // Add 3-second timeout to family creation
-        const familyTimeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Family creation timeout after 3 seconds')), 3000);
-        });
-        
         const familyFetchPromise = fetch(familyApiUrl, {
           method: 'POST',
           headers: familyHeaders,
@@ -469,7 +446,7 @@ export default function WorkProfileEmpty() {
 
         let family, familyError;
         try {
-          const familyResponse = await Promise.race([familyFetchPromise, familyTimeoutPromise]) as any;
+          const familyResponse = await familyFetchPromise;
           
           if (!familyResponse.ok) {
             const errorText = await familyResponse.text();
@@ -488,7 +465,7 @@ export default function WorkProfileEmpty() {
 
         if (familyError) {
           console.error('❌ Error creating family:', familyError);
-          throw new Error(`Failed to create family: ${familyError.message}`);
+          throw new Error(`Failed to create family: ${familyError instanceof Error ? familyError.message : 'Unknown error'}`);
         }
         
         // Add the creator as an admin member using HTTP API with 3-second timeout
@@ -501,11 +478,6 @@ export default function WorkProfileEmpty() {
           role: 'admin'
         };
         
-        // Add 3-second timeout to member creation
-        const memberTimeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Member creation timeout after 3 seconds')), 3000);
-        });
-        
         const memberFetchPromise = fetch(memberApiUrl, {
             method: 'POST',
           headers: familyHeaders,
@@ -514,7 +486,7 @@ export default function WorkProfileEmpty() {
         
         let memberResult, memberError;
         try {
-          const memberResponse = await Promise.race([memberFetchPromise, memberTimeoutPromise]) as any;
+          const memberResponse = await memberFetchPromise;
 
           if (!memberResponse.ok) {
             const errorText = await memberResponse.text();
@@ -543,7 +515,7 @@ export default function WorkProfileEmpty() {
           } catch (cleanupError) {
             console.log('⚠️ Failed to cleanup family:', cleanupError);
           }
-          throw new Error(`Failed to add user to family: ${memberError.message}`);
+          throw new Error(`Failed to add user to family: ${memberError instanceof Error ? memberError.message : 'Unknown error'}`);
         }
         
         return family;
@@ -552,24 +524,7 @@ export default function WorkProfileEmpty() {
       console.log('🔄 databasePromise function defined successfully');
       console.log('🔄 databasePromise type:', typeof databasePromise);
 
-      // Add 8-second timeout for HTTP API operations (3s + 3s + 2s buffer)
-      console.log('🔄 Setting up timeout promise...');
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => {
-          console.log('⏰ HTTP API operation timeout after 8 seconds');
-          reject(new Error('HTTP API operation timeout after 8 seconds'));
-        }, 8000);
-      });
-
-      console.log('🔄 About to call Promise.race with databasePromise and timeoutPromise...');
-      console.log('🔄 Calling databasePromise()...');
-      
-      // Add debugging to see if databasePromise is being called
-      console.log('🔄 databasePromise function reference:', typeof databasePromise);
-      console.log('🔄 timeoutPromise function reference:', typeof timeoutPromise);
-      
-      // Call databasePromise directly without Promise.race to see what happens
-      console.log('🧪 Calling databasePromise directly...');
+      console.log('🔄 Calling databasePromise...');
       const familyData = await databasePromise();
       console.log('✅ databasePromise completed, familyData received:', familyData);
 
@@ -770,11 +725,7 @@ export default function WorkProfileEmpty() {
               },
             });
             
-            const directTimeoutPromise = new Promise((_, reject) => {
-              setTimeout(() => reject(new Error('Direct database query timeout')), 10000);
-            });
-            
-            const directResponse = await Promise.race([directResponsePromise, directTimeoutPromise]) as Response;
+            const directResponse = await directResponsePromise;
             
             if (directResponse.ok) {
               const directData = await directResponse.json();
@@ -811,15 +762,8 @@ export default function WorkProfileEmpty() {
               .eq('id', user.id)
               .maybeSingle();
             
-            const profileTimeoutPromise = new Promise((_, reject) => {
-              setTimeout(() => reject(new Error('Profile API timeout after 15 seconds')), 15000);
-            });
-            
-            console.log('📡 Making profile API call with timeout...');
-            const { data: profileData, error: profileError } = await Promise.race([
-              profileApiPromise,
-              profileTimeoutPromise
-            ]) as any;
+            console.log('📡 Making profile API call...');
+            const { data: profileData, error: profileError } = await profileApiPromise;
             
             console.log('📡 Profile API call completed');
             console.log('📡 Profile data received:', profileData);
@@ -913,14 +857,7 @@ export default function WorkProfileEmpty() {
                   .eq('id', user.id)
                   .select();
                 
-                const updateTimeoutPromise = new Promise((_, reject) => {
-                  setTimeout(() => reject(new Error('Profile update timeout')), 3000);
-                });
-                
-                const { data: updatedProfile, error: updateError } = await Promise.race([
-                  updatePromise,
-                  updateTimeoutPromise
-                ]) as any;
+                const { data: updatedProfile, error: updateError } = await updatePromise;
                 
                 if (updateError) {
                   console.log('⚠️ Profile update failed:', updateError);
@@ -1049,38 +986,23 @@ export default function WorkProfileEmpty() {
       // Simplified context refresh with maximum timeout
       console.log('🔄 Starting simplified context refresh...');
       
-      // Maximum timeout to prevent infinite hanging
-      const maxTimeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Maximum timeout reached - forcing navigation')), 8000);
-      });
-      
       try {
-        // Try profile refresh first with timeout
+        // Try profile refresh
         console.log('🔄 Attempting profile refresh...');
-        const profileRefreshPromise = refreshProfilePromise();
-        const profileTimeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Profile refresh timeout')), 15000);
-        });
-        
-        await Promise.race([profileRefreshPromise, profileTimeoutPromise, maxTimeoutPromise]);
+        await refreshProfilePromise();
         console.log('✅ Profile refresh completed');
       } catch (error) {
-        console.log('⚠️ Profile refresh failed or timed out:', error);
+        console.log('⚠️ Profile refresh failed:', error);
         // Continue with navigation even if profile refresh fails
       }
       
-      // Try family refresh with timeout
+      // Try family refresh
       try {
         console.log('🔄 Attempting family refresh...');
-        const familyRefreshPromise = refreshFamilyPromise();
-        const familyTimeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Family refresh timeout')), 3000);
-        });
-        
-        await Promise.race([familyRefreshPromise, familyTimeoutPromise, maxTimeoutPromise]);
+        await refreshFamilyPromise();
         console.log('✅ Family refresh completed');
       } catch (error) {
-        console.log('⚠️ Family refresh failed or timed out:', error);
+        console.log('⚠️ Family refresh failed:', error);
         // Continue with navigation even if family refresh fails
       }
       

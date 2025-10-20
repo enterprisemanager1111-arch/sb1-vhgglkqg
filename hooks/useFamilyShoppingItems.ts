@@ -225,7 +225,7 @@ export const useFamilyShoppingItems = (): UseFamilyShoppingItemsReturn => {
     
     const cleanupInterval = setInterval(() => {
       cleanupCompletedItems();
-    }, 60 * 60 * 1000); // Every hour
+    }, 2 * 60 * 60 * 1000); // Every 2 hours
     
     return () => clearInterval(cleanupInterval);
   }, [cleanupCompletedItems]);

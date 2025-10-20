@@ -56,6 +56,7 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
+
   // Show loading for a maximum of 3 seconds, then continue anyway
   const [forceRender, setForceRender] = useState(false);
   

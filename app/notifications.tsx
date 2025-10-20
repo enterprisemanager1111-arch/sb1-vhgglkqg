@@ -511,10 +511,10 @@ export default function Notifications() {
       // Update database using mark_notifications_as_read function
       // const pgArray = `{${[notificationId].map(id => `"${id}"`).join(",")}}`;
       // console.log('📝 PG array:', pgArray);
-      const pgArray = `{${[notificationId].map(s => `"${s}"`).join(",")}}`;
+      // const pgArray = `{${[notificationId].map(s => `"${s}"`).join(",")}}`;
       const { data, error } = await supabase
         .rpc('mark_notifications_as_read', {
-          _notification_ids: pgArray
+          _notification_ids: [notificationId]
         });
 
       console.log('📝 Database update result:', { data, error });

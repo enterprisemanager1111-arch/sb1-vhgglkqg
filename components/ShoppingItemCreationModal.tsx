@@ -27,6 +27,7 @@ interface ShoppingForm {
   description: string;
   quantity: string;
   assignee: string;
+  reward: number;
 }
 
 interface ShoppingItemCreationModalProps {
@@ -43,6 +44,7 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
     description: '',
     quantity: '',
     assignee: '',
+    reward: 100,
   });
   const [loading, setLoading] = useState(false);
   
@@ -65,44 +67,51 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
     setForm(prev => ({ ...prev, assignee: memberId }));
   };
 
-  // Helper function to create shopping item with a specific family
+  // Helper function to create shopping item with a specific family using Supabase function
   const createShoppingItemWithFamily = async (family: any, itemData: any) => {
     console.log('🔧 createShoppingItemWithFamily called with family:', family.id);
     
     try {
-      const insertData = {
-        ...itemData,
-        family_id: family.id,
-        created_by: user?.id,
+      // Prepare data for the Supabase function with correct parameter names
+      const functionData = {
+        _name: itemData.title,
+        _quantity: itemData.quantity || null,
+        _category: itemData.category || 'shopping',
+        _family_id: family.id,
+        _added_by: user?.id,
+        _assignees: itemData.assignee_id ? [itemData.assignee_id] : null,
+        _completed: false
       };
       
-      console.log('🔧 Inserting shopping item data:', insertData);
+      console.log('🔧 Calling create_shopping_item_with_assignees function with data:', functionData);
+      console.log('🔧 Supabase client available:', !!supabase);
+      console.log('🔧 RPC method available:', typeof supabase.rpc);
       
-      // Direct database insert with timeout
-      const insertPromise = supabase
-        .from('family_shopping_items')
-        .insert([insertData])
-        .select();
-
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database operation timed out after 5 seconds')), 5000);
-      });
-
-      const { data, error } = await Promise.race([insertPromise, timeoutPromise]) as any;
+      // Call the Supabase function
+      console.log('🔧 About to call supabase.rpc...');
+      const { data, error } = await supabase.rpc('create_shopping_item_with_assignees', functionData);
+      console.log('🔧 RPC call completed, result:', { data, error });
         
-      console.log('🔧 Insert completed:', { data, error });
+      console.log('🔧 Function call completed:', { data, error });
       
       if (error) {
-        console.error('❌ Insert error details:', {
+        console.error('❌ Function error details:', {
           message: error.message,
           details: error.details,
           hint: error.hint,
           code: error.code
         });
+        
+        // If function doesn't exist, try direct insert as fallback
+        if (error.code === 'PGRST202' || error.message?.includes('Could not find the function')) {
+          console.log('🔄 Function not found, trying direct insert as fallback...');
+          return await createShoppingItemDirectInsert(family, itemData);
+        }
+        
         throw error;
       }
       
-      console.log('✅ Shopping item created successfully:', data);
+      console.log('✅ Shopping item created successfully via function:', data);
       
       showPointsEarned(5, `Shopping item created: ${form.title}`);
       showMemberActivity(t('common.familyMember'), `Created shopping item: ${form.title}`);
@@ -112,19 +121,69 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
       
     } catch (error: any) {
       console.error('❌ Error creating shopping item with family:', error);
+      Alert.alert(t('common.error'), error.message || 'Failed to create shopping item');
+    }
+  };
+
+  // Fallback function for direct insert if RPC function doesn't exist
+  const createShoppingItemDirectInsert = async (family: any, itemData: any) => {
+    console.log('🔧 createShoppingItemDirectInsert called as fallback');
+    
+    try {
+      const insertData = {
+        name: itemData.title,
+        description: itemData.description || null,
+        quantity: itemData.quantity || null,
+        category: itemData.category || 'shopping',
+        family_id: family.id,
+        created_by: user?.id,
+        completed: false,
+        points: itemData.points || 100
+      };
       
-      // If it's a timeout error, set flag to reload on next attempt
-      if (error.message && error.message.includes('timed out')) {
-        console.log('🔄 Detected timeout error - marking for reload on next attempt');
-        sessionStorage.setItem('supabase_needs_reload', 'true');
-        Alert.alert(
-          t('common.error'), 
-          'Database connection issue. Please try again.',
-          [{ text: 'OK', onPress: () => window.location.reload() }]
-        );
-      } else {
-        Alert.alert(t('common.error'), error.message || 'Failed to create shopping item');
+      console.log('🔧 Direct insert data:', insertData);
+      
+      const { data, error } = await supabase
+        .from('family_shopping_items')
+        .insert([insertData])
+        .select();
+        
+      if (error) {
+        console.error('❌ Direct insert error:', error);
+        throw error;
       }
+      
+      console.log('✅ Shopping item created via direct insert:', data);
+      
+      // If there's an assignee, create assignment
+      if (itemData.assignee_id) {
+        console.log('🔧 Creating assignment for assignee:', itemData.assignee_id);
+        const { error: assignmentError } = await supabase
+          .from('shopping_item_assignments')
+          .insert([{
+            shopping_item_id: data[0].id,
+            user_id: itemData.assignee_id,
+            assigned_by: user?.id,
+            assigned_at: new Date().toISOString()
+          }]);
+          
+        if (assignmentError) {
+          console.error('❌ Assignment creation error:', assignmentError);
+          // Don't throw here, item was created successfully
+        } else {
+          console.log('✅ Assignment created successfully');
+        }
+      }
+      
+      showPointsEarned(5, `Shopping item created: ${form.title}`);
+      showMemberActivity(t('common.familyMember'), `Created shopping item: ${form.title}`);
+      
+      Alert.alert('Success', 'Shopping item created successfully!');
+      handleClose();
+      
+    } catch (error: any) {
+      console.error('❌ Error in direct insert fallback:', error);
+      Alert.alert(t('common.error'), error.message || 'Failed to create shopping item');
     }
   };
 
@@ -140,11 +199,11 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
     const itemData = {
       title: form.title.trim(),
       description: form.description.trim() || undefined,
-      quantity: form.quantity.trim() || '1.0 stk',
+      quantity: form.quantity.trim() || undefined,
       category: 'shopping',
       assignee_id: form.assignee || undefined,
       completed: false,
-      points: 100,
+      points: form.reward,
     };
 
     // Check if family data is loaded
@@ -208,16 +267,6 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
 
     console.log('✅ Family data is available:', currentFamily.id);
 
-    // Force reload the page to reinitialize Supabase client if we detect GoTrueClient lock
-    console.log('🔧 Checking if page reload is needed to fix Supabase client...');
-    const shouldReload = sessionStorage.getItem('supabase_needs_reload');
-    if (shouldReload === 'true') {
-      console.log('🔄 Reloading page to fix Supabase client...');
-      sessionStorage.removeItem('supabase_needs_reload');
-      window.location.reload();
-      return;
-    }
-
     console.log('🔧 Setting loading state...');
     setLoading(true);
     showLoading('Creating shopping item...');
@@ -264,9 +313,9 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
 
           {/* Modal Header */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Create New Shoping Item</Text>
+            <Text style={styles.modalTitle}>Create New Shopping Item</Text>
             <Text style={styles.modalSubtitle}>
-              Here you can create a new Item. Be sure about which shoping item you want to create.
+              Here you can create a new Item. Be sure about which shopping item you want to create.
             </Text>
           </View>
 
@@ -408,7 +457,7 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
                 </View>
                 <View style={styles.rewardValue}>
                   <Plus size={16} color="#17F196" strokeWidth={2} />
-                  <Text style={styles.rewardNumber}>100</Text>
+                  <Text style={styles.rewardNumber}>{form.reward}</Text>
                   <Text style={styles.rewardText}>Flames</Text>
                 </View>
               </View>
@@ -421,7 +470,7 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
             onPress={handleCreateShoppingItem}
             disabled={loading || !form.title.trim()}
           >
-            <Text style={styles.addButtonText}>Add Event</Text>
+            <Text style={styles.addButtonText}>Add Item</Text>
           </Pressable>
         </View>
       </View>

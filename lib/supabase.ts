@@ -80,8 +80,24 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
-  }
+    detectSessionInUrl: true,
+    storage: AsyncStorage,
+    flowType: 'pkce',
+    debug: __DEV__,
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'famora-mobile',
+    },
+  },
+  db: {
+    schema: 'public',
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 2,
+    },
+  },
 });
 
 /**

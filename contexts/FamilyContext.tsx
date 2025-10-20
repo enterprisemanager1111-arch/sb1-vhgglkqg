@@ -584,18 +584,9 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
       } else {
         console.log('🔍 AuthContext token not available, trying Supabase session with timeout...');
         
-        // Approach 2: Try Supabase session with timeout
+        // Approach 2: Try Supabase session
         try {
-          // Create a timeout promise for session retrieval
-          const sessionTimeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Session retrieval timeout after 3 seconds')), 3000);
-          });
-          
-          // Create the session promise
-          const sessionPromise = supabase.auth.getSession();
-          
-          // Race between session retrieval and timeout
-          const { data: { session } } = await Promise.race([sessionPromise, sessionTimeoutPromise]) as any;
+          const { data: { session } } = await supabase.auth.getSession();
           
           accessToken = session?.access_token;
           
@@ -678,7 +669,7 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
               .eq('code', codeValidation.sanitized)
               .limit(1),
             new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Family search timeout after 5 seconds')), 5000)
+              setTimeout(() => reject(new Error('Family search timeout after 15 seconds')), 15000)
             )
           ]) as any;
           

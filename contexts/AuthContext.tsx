@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { useLanguage } from '@/contexts/LanguageContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSegments } from 'expo-router';
+import { withSupabaseRetry } from '../utils/apiRetry';
 
 interface Profile {
   id: string;
@@ -172,21 +173,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfileLoading(true);
       console.log('🔄 Loading profile for user:', userId);
       
-      // Add timeout to prevent hanging
-      const profileApiPromise = supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
       
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Profile API timeout after 5 seconds')), 5000);
-      });
-      
-      const { data: profileData, error } = await Promise.race([
-        profileApiPromise,
-        timeoutPromise
-      ]) as any;
+      // Use retry mechanism for profile loading
+      const { data: profileData, error } = await withSupabaseRetry(
+        () => supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle(),
+        { maxRetries: 2, timeout: 15000 }
+      );
 
       if (error) {
         console.error('❌ Error loading profile:', error);
@@ -675,11 +671,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       });
 
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Signup is taking too long. Please check your internet connection and try again.')), 60000); // 60 seconds for signup
-      });
-
-      const { data, error } = await Promise.race([signupPromise, timeoutPromise]) as any;
+      const { data, error } = await signupPromise;
       
       console.log('📊 Supabase signup response:', { 
         hasData: !!data, 
@@ -860,11 +852,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
       });
 
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error(t('onboarding.auth.errors.loginTimeout') || 'Login is taking too long. Please check your internet connection.')), 15000);
-      });
-
-      const { data, error } = await Promise.race([authPromise, timeoutPromise]) as any;
+      const { data, error } = await authPromise;
 
       if (error) {
         console.error('❌ SignIn error:', error);
@@ -962,16 +950,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Try Supabase sign out first - this should clear the storage automatically
       console.log('🔄 Calling supabase.auth.signOut()...');
       
-      // Create a timeout promise to prevent hanging on GoTrueClient lock
-      const signOutTimeout = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Supabase signOut timeout')), 3000);
-      });
-      
-      // Race between signOut and timeout
-      const { error } = await Promise.race([
-        supabase.auth.signOut(),
-        signOutTimeout
-      ]) as any;
+      // Call signOut directly
+      const { error } = await supabase.auth.signOut();
       
       if (error) {
         console.error('❌ Supabase SignOut error:', error);

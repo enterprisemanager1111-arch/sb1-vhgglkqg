@@ -25,7 +25,7 @@ interface UseAuthRecoveryReturn {
 
 const MAX_RECOVERY_ATTEMPTS = 3;
 const RECOVERY_TIMEOUT = 30000; // 30 seconds
-const SESSION_CHECK_INTERVAL = 60000; // 1 minute
+const SESSION_CHECK_INTERVAL = 300000; // 5 minutes
 
 export const useAuthRecovery = (): UseAuthRecoveryReturn => {
   const { session, user } = useAuth();
@@ -72,12 +72,7 @@ export const useAuthRecovery = (): UseAuthRecoveryReturn => {
 
     try {
       // Try to refresh the session
-      const { data, error } = await Promise.race([
-        supabase.auth.refreshSession(),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Recovery timeout')), RECOVERY_TIMEOUT)
-        )
-      ]);
+      const { data, error } = await supabase.auth.refreshSession();
 
       if (error) {
         console.error('Session recovery failed:', error);
