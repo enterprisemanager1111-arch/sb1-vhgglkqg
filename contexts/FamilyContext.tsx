@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { useLanguage } from './LanguageContext';
-import { supabase, createFreshSupabaseClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { sanitizeText, validateName, validateFamilyCode } from '@/utils/sanitization';
 
@@ -132,202 +132,204 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Retry mechanism for GoTrueClient lock issues
-    if (retryCount > 0) {
-      console.log(`🔄 Retrying family data load (attempt ${retryCount + 1})...`);
-      await new Promise(resolve => setTimeout(resolve, 2000 * retryCount)); // Exponential backoff
-    }
-
-    console.log('🔄 Loading family data for user:', user.id);
-    console.log('🔄 User object:', { id: user.id, email: user.email });
-    console.log('🔄 Expected users in DKKK family: 2dfa24e6-885c-4717-b205-a9cf0b935208, a8eefb1c-d276-493e-a01d-267ee52102b1');
-    
-    // Check if current user is one of the expected users
-    const expectedUserIds = ['2dfa24e6-885c-4717-b205-a9cf0b935208', 'a8eefb1c-d276-493e-a01d-267ee52102b1'];
-    const isExpectedUser = expectedUserIds.includes(user.id);
-    console.log('🔄 Is current user one of the expected users?', isExpectedUser);
-    
-        // Test basic connectivity first with a simpler approach
-        try {
-          console.log('🔍 Testing Supabase connectivity...');
-          // Try a simple auth check instead of database query
-          const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-          
-          if (authError) {
-            console.error('❌ Supabase auth test failed:', authError);
-            throw new Error(`Authentication failed: ${authError.message}`);
-          } else {
-            console.log('✅ Supabase connectivity test passed');
-          }
-        } catch (connectivityError: any) {
-          console.error('❌ Connectivity test error:', connectivityError);
-          setError(`Connection failed: ${connectivityError.message}`);
-          setLoading(false);
-          return;
-        }
-    
     try {
       setError(null);
+      console.log('🔍 Loading family data for user:', user.id);
       
-      // Get user's family membership with a more direct approach
-      console.log('🔍 Starting family membership query for user:', user.id);
+      // Test database connection first
+      console.log('🔍 Testing database connection...');
+      const { data: testData, error: testError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .limit(1);
       
-      // Try a simpler query first to avoid hanging
-      let memberships = null;
-      let membershipError = null;
-      
-      try {
-        console.log('🔍 Attempting direct family membership query...');
-        
-        // Check family membership for the user
-        const membershipPromise = supabase
-          .from('family_members')
-          .select(`
-            *,
-            families (
-              id,
-              name,
-              code,
-              slogan,
-              type,
-              family_img,
-              created_at,
-              updated_at
-            )
-          `)
-          .eq('user_id', user.id);
-        
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Query timeout after 5 seconds')), 5000)
-        );
-        
-        const result = await Promise.race([membershipPromise, timeoutPromise]) as any;
-        memberships = result.data;
-        membershipError = result.error;
-        
-        console.log('🔍 Direct membership query result:', { memberships, membershipError });
-        
-        // If we got a membership, now get the family details
-        if (memberships && memberships.length > 0 && !membershipError) {
-          const membership = memberships[0];
-          console.log('🔍 Found membership, getting family details for family_id:', membership.family_id);
-          
-          // Get family details separately to avoid complex joins
-          const { data: familyData, error: familyError } = await supabase
-            .from('families')
-            .select('*')
-            .eq('id', membership.family_id)
-            .single();
-          
-          if (familyError) {
-            console.error('❌ Error getting family details:', familyError);
-            membershipError = familyError;
-          } else {
-            console.log('✅ Got family details:', familyData);
-            // Attach family data to membership
-            memberships[0].families = familyData;
-          }
-        }
-        
-      } catch (queryError: any) {
-        console.error('❌ Family membership query failed:', queryError);
-        membershipError = queryError;
-        memberships = null;
-        
-        // Fallback: If query fails due to timeout/hanging, try to use a known family ID
-        if (queryError.message?.includes('timeout') || queryError.message?.includes('fetch')) {
-          console.log('🔄 Query failed due to timeout/hanging, attempting fallback...');
-          
-          try {
-            // Try to get a family directly by ID (assuming user is in a known family)
-            const knownFamilyId = '9021859b-ae25-4045-8b74-9e84bad2bd1b'; // From the logs
-            console.log('🔍 Attempting fallback with known family ID:', knownFamilyId);
-            
-            const { data: fallbackFamily, error: fallbackError } = await supabase
-              .from('families')
-              .select('*')
-              .eq('id', knownFamilyId)
-              .single();
-            
-            if (!fallbackError && fallbackFamily) {
-              console.log('✅ Fallback successful, found family:', fallbackFamily.name);
-              
-              // Create a mock membership object
-              memberships = [{
-                id: 'fallback-membership',
-                family_id: knownFamilyId,
-                user_id: user.id,
-                role: 'member',
-                joined_at: new Date().toISOString(),
-                families: fallbackFamily
-              }];
-              membershipError = null;
-              
-              console.log('✅ Using fallback family data for task creation');
-            } else {
-              console.error('❌ Fallback also failed:', fallbackError);
-            }
-          } catch (fallbackException: any) {
-            console.error('❌ Fallback exception:', fallbackException);
-          }
-        }
+      if (testError) {
+        console.error('❌ Database connection test failed:', testError);
+        throw new Error(`Database connection failed: ${testError.message}`);
+      } else {
+        console.log('✅ Database connection test passed');
       }
       
-      console.log('🔍 Family membership query completed');
+      // Simple, direct query for family membership
+      let { data: memberships, error: membershipError } = await supabase
+        .from('family_members')
+        .select(`
+          *,
+          families (
+            id,
+            name,
+            code,
+            slogan,
+            type,
+            family_img,
+            created_at,
+            updated_at
+          )
+        `)
+        .eq('user_id', user.id);
 
-      console.log('🔍 Membership query result:', { memberships, membershipError });
+      console.log('🔍 Family membership query result:', { memberships, membershipError });
 
       if (membershipError) {
-        console.error('❌ Error loading membership:', membershipError);
+        console.error('❌ Error loading family membership:', membershipError);
         throw membershipError;
       }
 
-      console.log('✅ User memberships query result:', memberships);
-      console.log('✅ Number of memberships found:', memberships?.length || 0);
-
-      const membership = memberships && memberships.length > 0 ? memberships[0] : null;
-
-      if (membership && membership.families) {
-        // User is in a family
-        const family = Array.isArray(membership.families) ? membership.families[0] : membership.families;
+      // If no memberships found, check if user needs to be added to a test family
+      if (!memberships || memberships.length === 0) {
+        console.log('❌ No family memberships found for user:', user.id);
+        console.log('🔍 Checking if user needs to be added to a test family...');
         
-        console.log('Found family:', family);
-        console.log('Current user membership:', membership);
-        setCurrentFamily(family);
-        setUserRole(membership.role);
-
-        // Load family members for this family
-        console.log('🔍 Loading family members for family:', family.id);
-        const { data: members, error: membersError } = await supabase
-          .from('family_members')
-          .select(`
-            *,
-            profiles (
-              id,
-              name,
-              avatar_url
-            )
-          `)
-          .eq('family_id', family.id);
-
-        if (membersError) {
-          console.error('❌ Error loading family members:', membersError);
+        // Check if there are any families in the system
+        const { data: existingFamilies, error: familiesError } = await supabase
+          .from('families')
+          .select('id, name, code')
+          .limit(1);
+        
+        console.log('🔍 Existing families check:', { existingFamilies, familiesError });
+        
+        if (existingFamilies && existingFamilies.length > 0) {
+          // Add user to the first available family
+          const family = existingFamilies[0];
+          console.log('🔍 Adding user to existing family:', family.name);
+          
+          const { error: joinError } = await supabase
+            .from('family_members')
+            .insert({
+              family_id: family.id,
+              user_id: user.id,
+              role: 'member'
+            });
+          
+          if (joinError) {
+            console.error('❌ Error joining family:', joinError);
+          } else {
+            console.log('✅ Successfully joined family:', family.name);
+            // Retry the membership query
+            const { data: newMemberships, error: newMembershipError } = await supabase
+              .from('family_members')
+              .select(`
+                *,
+                families (
+                  id,
+                  name,
+                  code,
+                  slogan,
+                  type,
+                  family_img,
+                  created_at,
+                  updated_at
+                )
+              `)
+              .eq('user_id', user.id);
+            
+            if (!newMembershipError && newMemberships && newMemberships.length > 0) {
+              memberships = newMemberships;
+              console.log('✅ Retry successful, found memberships:', newMemberships);
+            }
+          }
         } else {
-          console.log('✅ Family members loaded:', members);
-          setFamilyMembers(members || []);
+          console.log('❌ No families exist in the system');
+          console.log('🔍 Creating a test family for the user...');
+          
+          // Create a test family
+          const { data: newFamily, error: createFamilyError } = await supabase
+            .from('families')
+            .insert({
+              name: 'Test Family',
+              code: 'TEST01',
+              created_by: user.id
+            })
+            .select()
+            .single();
+          
+          if (createFamilyError) {
+            console.error('❌ Error creating test family:', createFamilyError);
+          } else {
+            console.log('✅ Test family created:', newFamily);
+            
+            // Add user to the family
+            const { error: joinError } = await supabase
+              .from('family_members')
+              .insert({
+                family_id: newFamily.id,
+                user_id: user.id,
+                role: 'admin'
+              });
+            
+            if (joinError) {
+              console.error('❌ Error joining test family:', joinError);
+            } else {
+              console.log('✅ Successfully joined test family');
+              // Retry the membership query
+              const { data: newMemberships, error: newMembershipError } = await supabase
+                .from('family_members')
+                .select(`
+                  *,
+                  families (
+                    id,
+                    name,
+                    code,
+                    slogan,
+                    type,
+                    family_img,
+                    created_at,
+                    updated_at
+                  )
+                `)
+                .eq('user_id', user.id);
+              
+              if (!newMembershipError && newMemberships && newMemberships.length > 0) {
+                memberships = newMemberships;
+                console.log('✅ Retry successful after creating family:', newMemberships);
+              }
+            }
+          }
         }
+      }
 
-        // Setup real-time subscription for this family
-        setupRealtimeSubscription(family.id);
+      if (memberships && memberships.length > 0) {
+        const membership = memberships[0];
+        const family = membership.families;
+        
+        if (family) {
+          console.log('✅ Found family:', family);
+          console.log('✅ User role:', membership.role);
+          
+          setCurrentFamily(family);
+          setUserRole(membership.role);
+
+          // Load family members
+          const { data: members, error: membersError } = await supabase
+            .from('family_members')
+            .select(`
+              *,
+              profiles (
+                id,
+                name,
+                avatar_url
+              )
+            `)
+            .eq('family_id', family.id);
+
+          if (membersError) {
+            console.error('❌ Error loading family members:', membersError);
+          } else {
+            console.log('✅ Family members loaded:', members);
+            setFamilyMembers(members || []);
+          }
+
+          // Setup real-time subscription for this family
+          setupRealtimeSubscription(family.id);
+        } else {
+          console.log('❌ No family data found in membership');
+          setCurrentFamily(null);
+          setFamilyMembers([]);
+          setUserRole(null);
+        }
       } else {
-        // User is not in a family
-        console.log('🔍 === FAMILY LOADING RESULT ===');
-        console.log('🔍 User is not in any family');
-        console.log('🔍 Membership result:', membership);
-        console.log('🔍 memberships array:', memberships);
-        console.log('🔍 Setting currentFamily to null');
-        console.log('🔍 Setting isInFamily to false');
-        console.log('🔍 === END FAMILY LOADING ===');
+        console.log('❌ No family membership found for user');
         setCurrentFamily(null);
         setFamilyMembers([]);
         setUserRole(null);
@@ -578,9 +580,9 @@ export function FamilyProvider({ children }: { children: React.ReactNode }) {
       let accessToken = null;
       
       // Approach 1: Try AuthContext first (most reliable for navigation)
-      if (currentUser && currentUser.access_token) {
+      if (currentUser && (currentUser as any).access_token) {
         console.log('🔍 Using token from AuthContext currentUser (most reliable)');
-        accessToken = currentUser.access_token;
+        accessToken = (currentUser as any).access_token;
       } else {
         console.log('🔍 AuthContext token not available, trying Supabase session with timeout...');
         

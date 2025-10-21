@@ -9,13 +9,16 @@ import {
   StatusBar,
   Image,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useFamilyShoppingItems } from '@/hooks/useFamilyShoppingItems';
 import { useFamily } from '@/contexts/FamilyContext';
+import { supabase } from '@/lib/supabase';
 
 export default function ShopListScreen() {
   const [activeFilter, setActiveFilter] = useState('Buy Items');
+  const [familyTimeout, setFamilyTimeout] = useState(false);
   
   // Get shopping items data
   const { 
@@ -23,10 +26,82 @@ export default function ShopListScreen() {
     loading: itemsLoading, 
     error: itemsError,
     getCompletedItems,
-    getPendingItems 
+    getPendingItems,
+    refreshItems
   } = useFamilyShoppingItems();
   
-  const { isInFamily, currentFamily } = useFamily();
+  const { isInFamily, currentFamily, loading: familyLoading, refreshFamily, error, familyMembers, userRole } = useFamily();
+  const [refreshing, setRefreshing] = useState(false);
+  
+  // Debug family data
+  console.log('🏪 ShopList - Family loading:', familyLoading);
+  console.log('🏪 ShopList - Current family:', currentFamily);
+  console.log('🏪 ShopList - Is in family:', isInFamily);
+  console.log('🏪 ShopList - Family ID:', currentFamily?.id);
+  console.log('🏪 ShopList - Items loading:', itemsLoading);
+  console.log('🏪 ShopList - Items count:', items.length);
+  console.log('🏪 ShopList - Items error:', itemsError);
+  
+  // Additional debugging for family context
+  console.log('🏪 ShopList - Family context debug:');
+  console.log('🏪 ShopList - Family loading state:', familyLoading);
+  console.log('🏪 ShopList - Family error state:', error);
+  console.log('🏪 ShopList - Family members count:', familyMembers?.length || 0);
+  console.log('🏪 ShopList - User role:', userRole);
+  
+  // Test family context directly
+  React.useEffect(() => {
+    const testFamilyContext = async () => {
+      console.log('🧪 Testing family context directly...');
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        console.log('🧪 Auth user:', authUser?.id);
+        
+        if (authUser) {
+          const { data: memberships, error } = await supabase
+            .from('family_members')
+            .select('*')
+            .eq('user_id', authUser.id);
+          
+          console.log('🧪 Direct family memberships query:', { memberships, error });
+        }
+      } catch (testError) {
+        console.error('🧪 Direct test error:', testError);
+      }
+    };
+    
+    testFamilyContext();
+  }, []);
+
+  // Handle refresh
+  const onRefresh = async () => {
+    setRefreshing(true);
+    setFamilyTimeout(false);
+    try {
+      await Promise.all([
+        refreshFamily(),
+        refreshItems(),
+      ]);
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // Timeout mechanism for family loading
+  React.useEffect(() => {
+    if (familyLoading) {
+      const timeout = setTimeout(() => {
+        console.log('⚠️ Family loading timeout reached');
+        setFamilyTimeout(true);
+      }, 15000); // 15 second timeout
+
+      return () => clearTimeout(timeout);
+    } else {
+      setFamilyTimeout(false);
+    }
+  }, [familyLoading]);
 
   // Calculate summary data
   const summaryData = useMemo(() => {
@@ -103,13 +178,35 @@ export default function ShopListScreen() {
     ];
   }, [items, activeFilter, getPendingItems, getCompletedItems]);
 
-  // Show loading state
-  if (itemsLoading) {
+  // Show loading state for family or items
+  if (familyLoading || itemsLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#17f196" />
-          <Text style={styles.loadingText}>Loading shopping items...</Text>
+          <Text style={styles.loadingText}>
+            {familyLoading ? 'Loading family data...' : 'Loading shopping items...'}
+          </Text>
+          {familyTimeout && (
+            <Text style={styles.timeoutText}>
+              Taking longer than expected. Pull to refresh.
+            </Text>
+          )}
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show loading state if family data is not available yet
+  if (!currentFamily && !familyLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#17f196" />
+          <Text style={styles.loadingText}>Initializing family data...</Text>
+          <Text style={styles.timeoutText}>
+            If this takes too long, pull to refresh.
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -121,6 +218,18 @@ export default function ShopListScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Failed to load shopping items</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show message if user is not in a family
+  if (!isInFamily || !currentFamily) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No Family Found</Text>
+          <Text style={styles.emptySubtext}>You need to be part of a family to view shopping items</Text>
         </View>
       </SafeAreaView>
     );
@@ -158,7 +267,17 @@ export default function ShopListScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            tintColor="#17f196"
+          />
+        }
+      >
         {/* Summary Card */}
         <View style={styles.summaryCard}>
           <Text style={styles.summaryTitle}>Perfekt Shopping List</Text>
@@ -636,5 +755,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
     textAlign: 'center',
+  },
+  timeoutText: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
 });

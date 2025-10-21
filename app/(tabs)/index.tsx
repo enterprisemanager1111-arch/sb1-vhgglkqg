@@ -1206,7 +1206,7 @@ export default function HomeDashboard() {
           ) : (
             <View style={styles.emptyTaskCard}>
               <Image
-                source={require('@/assets/images/icon/shop_list.png')}
+                source={require('@/assets/images/icon/no_shopping_item.png')}
                 style={styles.emptyTaskIcon}
                 resizeMode="contain"
               />

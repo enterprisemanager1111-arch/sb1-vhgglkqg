@@ -45,7 +45,13 @@ export const useFamilyShoppingItems = (): UseFamilyShoppingItemsReturn => {
 
   // Load shopping items from database
   const loadItems = useCallback(async () => {
+    console.log('🛒 useFamilyShoppingItems - loadItems called');
+    console.log('🛒 useFamilyShoppingItems - currentFamily:', currentFamily);
+    console.log('🛒 useFamilyShoppingItems - user:', user);
+    console.log('🛒 useFamilyShoppingItems - family ID:', currentFamily?.id);
+    
     if (!currentFamily || !user) {
+      console.log('🛒 useFamilyShoppingItems - No family or user, clearing items');
       setItems([]);
       setLoading(false);
       return;
@@ -53,6 +59,7 @@ export const useFamilyShoppingItems = (): UseFamilyShoppingItemsReturn => {
 
     try {
       setError(null);
+      console.log('🛒 useFamilyShoppingItems - Making database query for family ID:', currentFamily.id);
       
       const { data, error: itemsError } = await withTimeout(
         supabase
@@ -69,6 +76,8 @@ export const useFamilyShoppingItems = (): UseFamilyShoppingItemsReturn => {
         10000,
         'Failed to load shopping items'
       );
+      
+      console.log('🛒 useFamilyShoppingItems - Database query result:', { data, error: itemsError });
 
       if (itemsError) throw itemsError;
 
