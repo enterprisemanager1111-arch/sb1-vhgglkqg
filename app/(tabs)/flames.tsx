@@ -16,6 +16,9 @@ import { useFamily } from '@/contexts/FamilyContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFamilyPoints } from '@/hooks/useFamilyPoints';
+import { useFamilyTasks } from '@/hooks/useFamilyTasks';
+import { useFamilyCalendarEvents } from '@/hooks/useFamilyCalendarEvents';
+import { useFamilyShoppingItems } from '@/hooks/useFamilyShoppingItems';
 
 // Custom verification icon component
 const VerificationIcon = ({ size = 16 }: { size?: number }) => (
@@ -43,6 +46,11 @@ export default function FlamesScreen() {
     error: pointsError,
     refreshData,
   } = useFamilyPoints();
+
+  // Get family data counts
+  const { tasks, loading: tasksLoading } = useFamilyTasks();
+  const { events, loading: eventsLoading } = useFamilyCalendarEvents();
+  const { items, loading: itemsLoading } = useFamilyShoppingItems();
 
   // Removed redundant profile API call - using profile from AuthContext
   
@@ -119,6 +127,13 @@ export default function FlamesScreen() {
     }
     return 'Family Teenager';
   };
+
+  // Calculate real data counts
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(task => task.completed).length;
+  const totalEvents = events.length;
+  const totalShoppingItems = items.length;
+  const completedShoppingItems = items.filter(item => item.completed).length;
 
   // Mock data for the design
   const userFlames = 10001;
@@ -299,79 +314,136 @@ export default function FlamesScreen() {
           <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Achievements</Text>
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>3</Text>
+                <Text style={styles.badgeText}>{totalTasks + totalEvents + totalShoppingItems}</Text>
           </View>
             </View>
             <Text style={styles.sectionSubtitle}>Here are your current achievements</Text>
           
           <View style={styles.achievementsGrid}>
-                    {/* Finished Achievements */}
+                    {/* Tasks Achievement */}
                     <View style={styles.achievementCard}>
                       <View style={styles.achievementRewardContainer}>
-                        <Text style={styles.achievementStatus}>Finished</Text>
+                        <Text style={styles.achievementStatus}>{completedTasks >= 15 ? 'Finished' : 'Progress'}</Text>
                         <Text style={styles.achievementFlames}>+150 Flames</Text>
                   </View>
-                      <View style={styles.achievementIconFinished}>
-                        <Image
-                          source={require('@/assets/images/icon/finished.png')}
-                          style={styles.finishedIcon}
-                          resizeMode="contain"
-                        />
-                    </View>
-                      <Text style={styles.achievementName}>Tasks</Text>
-                      <Text style={styles.achievementDescription}>Complete a total of 15 tasks.</Text>
-                </View>
-                    
-                    <View style={styles.achievementCard}>
-                      <View style={styles.achievementRewardContainer}>
-                        <Text style={styles.achievementStatus}>Finished</Text>
-                        <Text style={styles.achievementFlames}>+100 Flames</Text>
-            </View>
-                      <View style={styles.achievementIconFinished}>
-                        <Image
-                          source={require('@/assets/images/icon/finished.png')}
-                          style={styles.finishedIcon}
-                          resizeMode="contain"
-                        />
-                      </View>
-                      <Text style={styles.achievementName}>Member</Text>
-                      <Text style={styles.achievementDescription}>Invite a Member in you Family.</Text>
-              </View>
-
-                    <View style={styles.achievementCard}>
-                      <View style={styles.achievementRewardContainer}>
-                        <Text style={styles.achievementStatus}>Finished</Text>
-                        <Text style={styles.achievementFlames}>+250 Flames</Text>
-                      </View>
-                      <View style={styles.achievementIconFinished}>
-                        <Image
-                          source={require('@/assets/images/icon/finished.png')}
-                          style={styles.finishedIcon}
-                          resizeMode="contain"
-                />
-              </View>
-                      <Text style={styles.achievementName}>Calander</Text>
-                      <Text style={styles.achievementDescription}>Create total of 25 events.</Text>
-            </View>
-
-                    {/* Progress Achievements */}
-                    {Array.from({ length: 5 }, (_, index) => (
-                      <View key={index} style={styles.achievementCard}>
-                        <View style={styles.achievementRewardContainer}>
-                          <Text style={styles.achievementStatus}>Progress</Text>
-                          <Text style={styles.achievementFlames}>+250 Flames</Text>
-            </View>
-                        <View style={styles.achievementIconProgress}>
+                      <View style={completedTasks >= 15 ? styles.achievementIconFinished : styles.achievementIconProgress}>
+                        {completedTasks >= 15 ? (
+                          <CheckCircle size={20} color="#17f196" strokeWidth={2} />
+                        ) : (
                           <Image
                             source={require('@/assets/images/icon/clock.png')}
                             style={styles.clockIcon}
                             resizeMode="contain"
                           />
-          </View>
-                        <Text style={styles.achievementName}>Calander</Text>
-                        <Text style={styles.achievementDescription}>Create total of 25 events.</Text>
-        </View>
-                    ))}
+                        )}
+                    </View>
+                      <Text style={styles.achievementName}>Tasks</Text>
+                      <Text style={styles.achievementDescription}>{completedTasks}/15 completed</Text>
+                </View>
+                    
+                    {/* Calendar Events Achievement */}
+                    <View style={styles.achievementCard}>
+                      <View style={styles.achievementRewardContainer}>
+                        <Text style={styles.achievementStatus}>{totalEvents >= 25 ? 'Finished' : 'Progress'}</Text>
+                        <Text style={styles.achievementFlames}>+250 Flames</Text>
+            </View>
+                      <View style={totalEvents >= 25 ? styles.achievementIconFinished : styles.achievementIconProgress}>
+                        {totalEvents >= 25 ? (
+                          <CheckCircle size={20} color="#17f196" strokeWidth={2} />
+                        ) : (
+                          <Image
+                            source={require('@/assets/images/icon/clock.png')}
+                            style={styles.clockIcon}
+                            resizeMode="contain"
+                          />
+                        )}
+                      </View>
+                      <Text style={styles.achievementName}>Calendar</Text>
+                      <Text style={styles.achievementDescription}>{totalEvents}/25 events</Text>
+              </View>
+
+                    <View style={styles.achievementCard}>
+                      <View style={styles.achievementRewardContainer}>
+                        <Text style={styles.achievementStatus}>{completedShoppingItems >= 20 ? 'Finished' : 'Progress'}</Text>
+                        <Text style={styles.achievementFlames}>+200 Flames</Text>
+                      </View>
+                      <View style={completedShoppingItems >= 20 ? styles.achievementIconFinished : styles.achievementIconProgress}>
+                        {completedShoppingItems >= 20 ? (
+                          <CheckCircle size={20} color="#17f196" strokeWidth={2} />
+                        ) : (
+                          <Image
+                            source={require('@/assets/images/icon/clock.png')}
+                            style={styles.clockIcon}
+                            resizeMode="contain"
+                          />
+                        )}
+              </View>
+                      <Text style={styles.achievementName}>Shop List</Text>
+                      <Text style={styles.achievementDescription}>{completedShoppingItems}/20 items</Text>
+            </View>
+
+                    {/* Total Tasks Achievement */}
+                    <View style={styles.achievementCard}>
+                      <View style={styles.achievementRewardContainer}>
+                        <Text style={styles.achievementStatus}>{totalTasks >= 50 ? 'Finished' : 'Progress'}</Text>
+                        <Text style={styles.achievementFlames}>+300 Flames</Text>
+                      </View>
+                      <View style={totalTasks >= 50 ? styles.achievementIconFinished : styles.achievementIconProgress}>
+                        {totalTasks >= 50 ? (
+                          <CheckCircle size={20} color="#17f196" strokeWidth={2} />
+                        ) : (
+                          <Image
+                            source={require('@/assets/images/icon/clock.png')}
+                            style={styles.clockIcon}
+                            resizeMode="contain"
+                          />
+                        )}
+                      </View>
+                      <Text style={styles.achievementName}>All Tasks</Text>
+                      <Text style={styles.achievementDescription}>{totalTasks}/50 total</Text>
+            </View>
+
+                    {/* Total Events Achievement */}
+                    <View style={styles.achievementCard}>
+                      <View style={styles.achievementRewardContainer}>
+                        <Text style={styles.achievementStatus}>{totalEvents >= 50 ? 'Finished' : 'Progress'}</Text>
+                        <Text style={styles.achievementFlames}>+400 Flames</Text>
+                      </View>
+                      <View style={totalEvents >= 50 ? styles.achievementIconFinished : styles.achievementIconProgress}>
+                        {totalEvents >= 50 ? (
+                          <CheckCircle size={20} color="#17f196" strokeWidth={2} />
+                        ) : (
+                          <Image
+                            source={require('@/assets/images/icon/clock.png')}
+                            style={styles.clockIcon}
+                            resizeMode="contain"
+                          />
+                        )}
+                      </View>
+                      <Text style={styles.achievementName}>All Events</Text>
+                      <Text style={styles.achievementDescription}>{totalEvents}/50 total</Text>
+            </View>
+
+                    {/* Total Shopping Items Achievement */}
+                    <View style={styles.achievementCard}>
+                      <View style={styles.achievementRewardContainer}>
+                        <Text style={styles.achievementStatus}>{totalShoppingItems >= 30 ? 'Finished' : 'Progress'}</Text>
+                        <Text style={styles.achievementFlames}>+350 Flames</Text>
+                      </View>
+                      <View style={totalShoppingItems >= 30 ? styles.achievementIconFinished : styles.achievementIconProgress}>
+                        {totalShoppingItems >= 30 ? (
+                          <CheckCircle size={20} color="#17f196" strokeWidth={2} />
+                        ) : (
+                          <Image
+                            source={require('@/assets/images/icon/clock.png')}
+                            style={styles.clockIcon}
+                            resizeMode="contain"
+                          />
+                        )}
+                      </View>
+                      <Text style={styles.achievementName}>All Items</Text>
+                      <Text style={styles.achievementDescription}>{totalShoppingItems}/30 total</Text>
+            </View>
                   </View>
           </View>
         </View>

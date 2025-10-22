@@ -22,6 +22,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFamilyPoints } from '@/hooks/useFamilyPoints';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRealTimeFamily } from '@/hooks/useRealTimeFamily';
+import { useFamilyTasks } from '@/hooks/useFamilyTasks';
+import { useFamilyCalendarEvents } from '@/hooks/useFamilyCalendarEvents';
+import { useFamilyShoppingItems } from '@/hooks/useFamilyShoppingItems';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -113,6 +116,11 @@ export default function FamilyDashboard() {
   const { recentActivities } = useFamilyPoints();
   const { t } = useLanguage();
 
+  // Get family data counts
+  const { tasks, loading: tasksLoading } = useFamilyTasks();
+  const { events, loading: eventsLoading } = useFamilyCalendarEvents();
+  const { items, loading: itemsLoading } = useFamilyShoppingItems();
+
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -156,20 +164,36 @@ export default function FamilyDashboard() {
   const stats = useMemo(() => {
     console.log('📊 Calculating stats with familyMembers:', familyMembers.length, familyMembers);
     console.log('📊 Online members from real-time:', realTimeOnlineMembers.size);
+    console.log('📊 Tasks count:', tasks.length);
+    console.log('📊 Events count:', events.length);
+    console.log('📊 Shopping items count:', items.length);
     
     // Calculate online count using simple logic
     const onlineCount = familyMembers.filter(member => getMemberOnlineStatus(member.user_id)).length;
     console.log('📊 Online members count:', onlineCount);
     
+    // Calculate task counts
+    const completedTasks = tasks.filter(task => task.completed).length;
+    const totalTasks = tasks.length;
+    
+    // Calculate event counts (all events, not just upcoming)
+    const totalEvents = events.length;
+    
+    // Calculate shopping item counts
+    const completedShoppingItems = items.filter(item => item.completed).length;
+    const totalShoppingItems = items.length;
+    
     return {
       totalMembers: familyMembers.length,
       onlineMembers: onlineCount, // Use simple online status logic
       weeklyProgress: familyMembers.length > 0 ? Math.min(95, 60 + (familyMembers.length * 10)) : 0,
-      completedTasks: familyMembers.length * 2, // 2 tasks per member on average
-      totalTasks: familyMembers.length * 3, // 3 tasks per member target
-      upcomingEvents: Math.max(1, familyMembers.length), // At least 1 event per member
+      completedTasks,
+      totalTasks,
+      totalEvents,
+      completedShoppingItems,
+      totalShoppingItems,
     };
-  }, [familyMembers.length, realTimeOnlineMembers.size, user?.id]);
+  }, [familyMembers.length, realTimeOnlineMembers.size, user?.id, tasks, events, items]);
   // Show error state if there's an error
   if (error) {
     return (
@@ -196,7 +220,7 @@ export default function FamilyDashboard() {
     );
   }
 
-  const { totalMembers, onlineMembers, weeklyProgress, completedTasks, totalTasks, upcomingEvents } = stats;
+  const { totalMembers, onlineMembers, weeklyProgress, completedTasks, totalTasks, totalEvents, completedShoppingItems, totalShoppingItems } = stats;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -207,9 +231,9 @@ export default function FamilyDashboard() {
         <View style={styles.profileSection}>
           <View style={styles.profileInfo}>
             <View style={styles.avatarContainer}>
-              {currentFamily?.family_img ? (
+              {false ? (
                 <Image 
-                  source={{ uri: currentFamily.family_img }} 
+                  source={{ uri: '' }} 
                   style={styles.avatar}
                   resizeMode="cover"
                 />
@@ -230,7 +254,7 @@ export default function FamilyDashboard() {
                   resizeMode="contain"
                 />
               </View>
-              <Text style={styles.userRole}>{currentFamily?.slogan || "Welcome to our family!"}</Text>
+              <Text style={styles.userRole}>Welcome to our family!</Text>
             </View>
           </View>
           
@@ -300,28 +324,28 @@ export default function FamilyDashboard() {
             {/* Tasks */}
             <Pressable style={styles.quickActionButton}>
               <View style={styles.quickActionIcon}>
-                <Text style={styles.quickActionNumber}>7</Text>
+                <Text style={styles.quickActionNumber}>{totalTasks}</Text>
               </View>
               <Text style={styles.quickActionTitle}>Tasks</Text>
-              <Text style={styles.quickActionSubtitle}>Completed</Text>
+              <Text style={styles.quickActionSubtitle}>Total</Text>
             </Pressable>
 
             {/* Calendar */}
             <Pressable style={styles.quickActionButton}>
               <View style={styles.quickActionIcon}>
-                <Text style={styles.quickActionNumber}>13</Text>
+                <Text style={styles.quickActionNumber}>{totalEvents}</Text>
               </View>
-              <Text style={styles.quickActionTitle}>Calander</Text>
-              <Text style={styles.quickActionSubtitle}>Completed</Text>
+              <Text style={styles.quickActionTitle}>Calendar</Text>
+              <Text style={styles.quickActionSubtitle}>Events</Text>
             </Pressable>
 
             {/* Shop List */}
             <Pressable style={styles.quickActionButton}>
               <View style={styles.quickActionIcon}>
-                <Text style={styles.quickActionNumber}>26</Text>
+                <Text style={styles.quickActionNumber}>{totalShoppingItems}</Text>
               </View>
               <Text style={styles.quickActionTitle}>Shop List</Text>
-              <Text style={styles.quickActionSubtitle}>Completed</Text>
+              <Text style={styles.quickActionSubtitle}>Items</Text>
             </Pressable>
 
             {/* Soon */}
