@@ -89,6 +89,34 @@ export default function HomeDashboard() {
 
   // Today's tasks are now fetched directly from the specialized function
   
+  // Function to process uncompleted family items
+  const processUncompletedFamilyItems = async () => {
+    if (!user?.id) return;
+    
+    try {
+      console.log('🔄 Processing uncompleted family items...');
+      const { data, error } = await supabase.rpc('process_uncompleted_family_items');
+      
+      if (error) {
+        console.error('❌ Error processing uncompleted family items:', error);
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        const result = data[0];
+        console.log('✅ Processed uncompleted family items:', {
+          tasks: result.processed_tasks,
+          events: result.processed_events,
+          shoppingItems: result.processed_shopping_items,
+          success: result.success,
+          message: result.message
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error calling process_uncompleted_family_items:', error);
+    }
+  };
+
   // Function to fetch initial notification count
   const fetchNotificationCount = async () => {
     if (!user?.id) return;
@@ -172,6 +200,7 @@ export default function HomeDashboard() {
     if (user?.id) {
       fetchNotificationCount();
       setupNotificationSubscription();
+      processUncompletedFamilyItems(); // Process uncompleted family items on home page load
     }
     
     return () => {

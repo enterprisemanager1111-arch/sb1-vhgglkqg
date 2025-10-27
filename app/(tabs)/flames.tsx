@@ -19,6 +19,7 @@ import { useFamilyPoints } from '@/hooks/useFamilyPoints';
 import { useFamilyTasks } from '@/hooks/useFamilyTasks';
 import { useFamilyCalendarEvents } from '@/hooks/useFamilyCalendarEvents';
 import { useFamilyShoppingItems } from '@/hooks/useFamilyShoppingItems';
+import { supabase } from '@/lib/supabase';
 
 // Custom verification icon component
 const VerificationIcon = ({ size = 16 }: { size?: number }) => (
@@ -32,11 +33,27 @@ const VerificationIcon = ({ size = 16 }: { size?: number }) => (
   />
 );
 
+// Interface for family member ranking data
+interface FamilyMemberRanking {
+  user_id: string;
+  name: string;
+  avatar_url?: string;
+  total_points: number;
+  completed_tasks: number;
+  completed_events: number;
+  completed_shopping_items: number;
+  rank_position: number;
+  role: string;
+  joined_at: string;
+}
+
 
 export default function FlamesScreen() {
   const [refreshing, setRefreshing] = useState(false);
+  const [familyRanking, setFamilyRanking] = useState<FamilyMemberRanking[]>([]);
+  const [rankingLoading, setRankingLoading] = useState(false);
   
-  const { isInFamily, familyMembers, loading: familyLoading, refreshFamily } = useFamily();
+  const { isInFamily, familyMembers, loading: familyLoading, refreshFamily, currentFamily } = useFamily();
   const { user, profile, session } = useAuth();
   const { t } = useLanguage();
   const {
@@ -52,8 +69,43 @@ export default function FlamesScreen() {
   const { events, loading: eventsLoading } = useFamilyCalendarEvents();
   const { items, loading: itemsLoading } = useFamilyShoppingItems();
 
+  // Function to fetch family member ranking
+  const fetchFamilyRanking = async () => {
+    if (!currentFamily?.id) return;
+    
+    setRankingLoading(true);
+    try {
+      console.log('🔄 Fetching family member ranking for family:', currentFamily.id);
+      const { data, error } = await supabase.rpc('get_family_member_ranking', {
+        _family_id: currentFamily.id
+      });
+      
+      if (error) {
+        console.error('❌ Error fetching family ranking:', error);
+        return;
+      }
+      
+      if (data) {
+        console.log('✅ Family ranking data:', data);
+        console.log('🔍 First member rank_position:', data[0]?.rank_position);
+        console.log('🔍 All rank_positions:', data.map(m => m.rank_position));
+        setFamilyRanking(data);
+      }
+    } catch (error) {
+      console.error('❌ Error calling get_family_member_ranking:', error);
+    } finally {
+      setRankingLoading(false);
+    }
+  };
+
   // Removed redundant profile API call - using profile from AuthContext
   
+  // Fetch family ranking when component mounts or family changes
+  useEffect(() => {
+    if (currentFamily?.id) {
+      fetchFamilyRanking();
+    }
+  }, [currentFamily?.id]);
 
   // Show loading screen while checking family status
   if (familyLoading) {
@@ -73,6 +125,7 @@ export default function FlamesScreen() {
       await Promise.all([
         refreshFamily(),
         refreshData(),
+        fetchFamilyRanking(),
       ]);
     } catch (error) {
       console.error('Error refreshing data:', error);
@@ -138,7 +191,9 @@ export default function FlamesScreen() {
   // Mock data for the design
   const userFlames = 10001;
   const currentRank = 4;
-  const familyRank = 1;
+  // Calculate current user's rank
+  const currentUserRank = familyRanking.find(member => member.user_id === user?.id)?.rank_position || 1;
+  const familyRank = currentUserRank;
   const progressToNext = 360;
   const progressTotal = 400;
 
@@ -244,45 +299,51 @@ export default function FlamesScreen() {
                 <Text style={styles.badgeText}>{familyRank}</Text>
           </View>
                   </View>
-            <Text style={styles.sectionSubtitle}>You are right now on the 1st Place in the Family</Text>
+            <Text style={styles.sectionSubtitle}>
+              You are currently in {familyRank === 1 ? '1st' : familyRank === 2 ? '2nd' : familyRank === 3 ? '3rd' : `${familyRank}th`} place in the family
+            </Text>
             
-                  <View style={styles.rankCardsContainer}>
-                    <View style={styles.rankCardItem}>
-                      <Text style={styles.rankCardTitle}>Place 2</Text>
-                      <Text style={styles.rankCardPoints}>291000 Flames</Text>
-                      <View style={styles.rankCardAvatar}>
-                        <User size={20} color="#17f196" strokeWidth={2} />
-                      </View>
-                      <View style={styles.rankCardNameContainer}>
-                        <Text style={styles.rankCardFirstName}>Tonald</Text>
-                        <Text style={styles.rankCardLastName}>Drump</Text>
-                  </View>
-                    </View>
-                    
-                    <View style={styles.rankCardItem}>
-                      <Text style={styles.rankCardTitle}>Place 1</Text>
-                      <Text style={styles.rankCardPoints}>291000 Flames</Text>
-                      <View style={styles.rankCardAvatar}>
-                        <User size={20} color="#17f196" strokeWidth={2} />
-                      </View>
-                      <View style={styles.rankCardNameContainer}>
-                        <Text style={styles.rankCardFirstName}>Tonald</Text>
-                        <Text style={styles.rankCardLastName}>Drump</Text>
-                      </View>
-                  </View>
-
-                    <View style={styles.rankCardItem}>
-                      <Text style={styles.rankCardTitle}>Place 3</Text>
-                      <Text style={styles.rankCardPoints}>191000 Flames</Text>
-                      <View style={styles.rankCardAvatar}>
-                        <User size={20} color="#17f196" strokeWidth={2} />
-                      </View>
-                      <View style={styles.rankCardNameContainer}>
-                        <Text style={styles.rankCardFirstName}>Tonald</Text>
-                        <Text style={styles.rankCardLastName}>Drump</Text>
-                  </View>
+            {rankingLoading ? (
+              <View style={styles.rankCardsContainer}>
+                <View style={styles.rankCardItem}>
+                  <Text style={styles.rankCardTitle}>Loading...</Text>
                 </View>
-                  </View>
+              </View>
+            ) : (
+              <View style={styles.rankCardsContainer}>
+                {familyRanking.slice(0, 3).map((member, index) => {
+                  const nameParts = member.name.split(' ');
+                  const firstName = nameParts[0] || '';
+                  const lastName = nameParts.slice(1).join(' ') || '';
+                  const rankPosition = member.rank_position || index + 1;
+                  
+                  return (
+                    <View key={member.user_id} style={styles.rankCardItem}>
+                      <Text style={styles.rankCardTitle}>
+                        Place {rankPosition}
+                      </Text>
+                      <Text style={styles.rankCardPoints}>
+                        {member.total_points} Flames
+                      </Text>
+                      <View style={styles.rankCardAvatar}>
+                        {member.avatar_url ? (
+                          <Image
+                            source={{ uri: member.avatar_url }}
+                            style={{ width: 40, height: 40, borderRadius: 20 }}
+                          />
+                        ) : (
+                          <User size={40} color="#17f196" strokeWidth={2} />
+                        )}
+                      </View>
+                      <View style={styles.rankCardNameContainer}>
+                        <Text style={styles.rankCardFirstName}>{firstName}</Text>
+                        <Text style={styles.rankCardLastName}>{lastName}</Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
           </View>
         </View>
 

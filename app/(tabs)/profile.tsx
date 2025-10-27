@@ -15,27 +15,27 @@ import {
   Share,
   StatusBar,
 } from 'react-native';
-import { 
-  User, 
-  Settings, 
-  Bell, 
-  LogOut, 
-  Camera, 
-  Shield, 
-  CircleHelp as HelpCircle, 
-  Info, 
-  CreditCard as Edit3, 
-  Crown, 
-  Star, 
-  Target, 
-  Activity, 
-  Calendar, 
-  SquareCheck as CheckSquare, 
-  Share2, 
-  Moon, 
-  Globe, 
-  Smartphone, 
-  Download, 
+import {
+  User,
+  Settings,
+  Bell,
+  LogOut,
+  Camera,
+  Shield,
+  CircleHelp as HelpCircle,
+  Info,
+  CreditCard as Edit3,
+  Crown,
+  Star,
+  Target,
+  Activity,
+  Calendar,
+  SquareCheck as CheckSquare,
+  Share2,
+  Moon,
+  Globe,
+  Smartphone,
+  Download,
   Trash2,
   Fingerprint,
   Clock,
@@ -104,6 +104,9 @@ export default function UserProfile() {
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
   const [showImagePickerModal, setShowImagePickerModal] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [showAppVersionModal, setShowAppVersionModal] = useState(false);
+  const [appVersion, setAppVersion] = useState('1.0.0');
+  const [buildDate, setBuildDate] = useState('2025.1');
 
   const { user, profile, signOut, updateProfile, loading: authLoading, session } = useAuth();
   const { currentFamily, userRole } = useFamily();
@@ -148,7 +151,7 @@ export default function UserProfile() {
       const notifications = await AsyncStorage.getItem('@notifications_enabled');
       const darkMode = await AsyncStorage.getItem('@dark_mode_enabled');
       const biometrics = await AsyncStorage.getItem('@biometrics_enabled');
-      
+
       if (notifications !== null) setNotificationsEnabled(JSON.parse(notifications));
       if (darkMode !== null) setDarkModeEnabled(JSON.parse(darkMode));
       if (biometrics !== null) setBiometricsEnabled(JSON.parse(biometrics));
@@ -170,24 +173,24 @@ export default function UserProfile() {
       Alert.alert('Error', 'Please fill all fields');
       return;
     }
-    
+
     if (newPassword !== confirmNewPassword) {
       Alert.alert('Error', 'Passwords do not match');
       return;
     }
-    
+
     if (newPassword.length < 6) {
       Alert.alert('Error', 'Password must be at least 6 characters');
       return;
     }
-    
+
     try {
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
-      
+
       if (error) throw error;
-      
+
       Alert.alert('Success', 'Password updated successfully');
       setShowPasswordModal(false);
       setCurrentPassword('');
@@ -225,9 +228,9 @@ export default function UserProfile() {
     const supportEmail = 'support@famora.app';
     const subject = `Help needed - Famora App`;
     const body = `Hello Famora Team,\n\nI need help with:\n\n[Please describe your problem here]\n\nMy App Version: 1.0.0\nMy Device: ${Platform.OS}\nMy Family ID: ${currentFamily?.id || 'No Family'}\n\nThank you!`;
-    
+
     const mailto = `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    
+
     try {
       Alert.alert(
         'Contact Support',
@@ -257,8 +260,8 @@ export default function UserProfile() {
           onPress: async () => {
             try {
               const keys = await AsyncStorage.getAllKeys();
-              const cacheKeys = keys.filter(key => 
-                key.startsWith('@cache_') || 
+              const cacheKeys = keys.filter(key =>
+                key.startsWith('@cache_') ||
                 key.startsWith('@temp_')
               );
               await AsyncStorage.multiRemove(cacheKeys);
@@ -274,18 +277,18 @@ export default function UserProfile() {
 
   const handleLogout = async () => {
     console.log('🚪 Logout button pressed - starting direct logout process...');
-    
+
     console.log('🚪 Starting complete bypass logout process...');
-            
-     // Skip Supabase signOut entirely to avoid GoTrueClient lock issues
-     console.log('🔄 Bypassing all Supabase methods to avoid GoTrueClient locks...');
-     
-     // Note: Auth context state will be cleared when AsyncStorage is cleared
-     
-     // Force clear all auth data regardless of signOut result
+
+    // Skip Supabase signOut entirely to avoid GoTrueClient lock issues
+    console.log('🔄 Bypassing all Supabase methods to avoid GoTrueClient locks...');
+
+    // Note: Auth context state will be cleared when AsyncStorage is cleared
+
+    // Force clear all auth data regardless of signOut result
     try {
       console.log('🧹 Force clearing all auth data...');
-      
+
       // First, specifically target the exact token mentioned
       const specificToken = 'sb-eqaxmxbqqiuiwkhjwvvz-auth-token';
       try {
@@ -294,33 +297,33 @@ export default function UserProfile() {
       } catch (tokenError) {
         console.log('⚠️ Could not remove specific token:', tokenError);
       }
-      
+
       // Clear AsyncStorage manually
       const keys = await AsyncStorage.getAllKeys();
       console.log('🔍 All AsyncStorage keys before cleanup:', keys);
-      
-      const authKeys = keys.filter(key => 
-        key.includes('supabase') || 
-        key.includes('auth') || 
+
+      const authKeys = keys.filter(key =>
+        key.includes('supabase') ||
+        key.includes('auth') ||
         key.includes('sb-') ||
         key.includes('eqaxmxbqqiuiwkhjwvvz') ||
         key.includes('family') ||
         key.includes('user')
       );
-      
+
       console.log('🎯 Auth keys to remove:', authKeys);
-      
+
       if (authKeys.length > 0) {
         await AsyncStorage.multiRemove(authKeys);
         console.log('✅ All auth keys force cleared:', authKeys);
       }
-      
+
       // Verify the specific token is gone
       const remainingKeys = await AsyncStorage.getAllKeys();
       const stillHasToken = remainingKeys.includes(specificToken);
       console.log('🔍 Remaining keys after cleanup:', remainingKeys);
       console.log('🔍 Specific token still exists:', stillHasToken);
-      
+
       // If the specific token still exists, try to clear everything
       if (stillHasToken) {
         console.log('⚠️ Specific token still exists, clearing entire AsyncStorage...');
@@ -331,18 +334,18 @@ export default function UserProfile() {
           console.log('⚠️ Could not clear entire AsyncStorage:', clearError);
         }
       }
-      
+
       // Additional cleanup for any GoTrueClient locks or state
       try {
         console.log('🧹 Additional cleanup for GoTrueClient locks...');
         // Try to clear any potential lock-related data
-        const lockKeys = remainingKeys.filter(key => 
-          key.includes('lock') || 
-          key.includes('GoTrue') || 
+        const lockKeys = remainingKeys.filter(key =>
+          key.includes('lock') ||
+          key.includes('GoTrue') ||
           key.includes('acquireLock') ||
           key.includes('_lock')
         );
-        
+
         if (lockKeys.length > 0) {
           await AsyncStorage.multiRemove(lockKeys);
           console.log('✅ GoTrueClient lock keys cleared:', lockKeys);
@@ -350,52 +353,52 @@ export default function UserProfile() {
       } catch (lockError) {
         console.log('⚠️ Could not clear lock keys:', lockError);
       }
-      
+
     } catch (clearError) {
       console.error('❌ Error force clearing auth data:', clearError);
     }
-    
-     // Force a hard reset by clearing everything and using window.location for web
-     console.log('🔄 Performing hard reset logout...');
-     
-     // Additional cleanup for web platform
-     if (Platform.OS === 'web') {
-       console.log('🔄 Web platform detected - clearing all web storage...');
-       try {
-         // Clear all possible web storage
-         localStorage.clear();
-         sessionStorage.clear();
-         // Clear IndexedDB if it exists
-         if (window.indexedDB) {
-           indexedDB.databases().then(databases => {
-             databases.forEach(db => {
-               if (db.name) {
-                 indexedDB.deleteDatabase(db.name);
-               }
-             });
-           });
-         }
-         console.log('✅ All web storage cleared');
-       } catch (webError) {
-         console.log('⚠️ Error clearing web storage:', webError);
-       }
-     }
-     
-     // For web platform, use window.location to completely reset the app
-     if (Platform.OS === 'web') {
-       console.log('🔄 Web platform detected - using window.location for hard reset...');
-       setTimeout(() => {
-         // Force reload the entire page
-         window.location.href = '/';
-       }, 500);
-     } else {
-       // For native platforms, use router with a longer delay
-       console.log('🔄 Native platform - using router with delay...');
-       setTimeout(() => {
-         console.log('🔄 Navigating to onboarding start page...');
-         router.replace('/(onboarding)');
-       }, 2000);
-     }
+
+    // Force a hard reset by clearing everything and using window.location for web
+    console.log('🔄 Performing hard reset logout...');
+
+    // Additional cleanup for web platform
+    if (Platform.OS === 'web') {
+      console.log('🔄 Web platform detected - clearing all web storage...');
+      try {
+        // Clear all possible web storage
+        localStorage.clear();
+        sessionStorage.clear();
+        // Clear IndexedDB if it exists
+        if (window.indexedDB) {
+          indexedDB.databases().then(databases => {
+            databases.forEach(db => {
+              if (db.name) {
+                indexedDB.deleteDatabase(db.name);
+              }
+            });
+          });
+        }
+        console.log('✅ All web storage cleared');
+      } catch (webError) {
+        console.log('⚠️ Error clearing web storage:', webError);
+      }
+    }
+
+    // For web platform, use window.location to completely reset the app
+    if (Platform.OS === 'web') {
+      console.log('🔄 Web platform detected - using window.location for hard reset...');
+      setTimeout(() => {
+        // Force reload the entire page
+        window.location.href = '/';
+      }, 500);
+    } else {
+      // For native platforms, use router with a longer delay
+      console.log('🔄 Native platform - using router with delay...');
+      setTimeout(() => {
+        console.log('🔄 Navigating to onboarding start page...');
+        router.replace('/(onboarding)');
+      }, 2000);
+    }
   };
 
   const handleDeleteAccount = () => {
@@ -549,7 +552,7 @@ export default function UserProfile() {
           onToggle: async (value) => {
             setNotificationsEnabled(value);
             await savePreference('@notifications_enabled', value);
-            
+
             if (value) {
               try {
                 const { status } = await Notifications.requestPermissionsAsync();
@@ -609,7 +612,7 @@ export default function UserProfile() {
             />
           ),
           type: 'navigation',
-          onPress: () => Alert.alert('App Version', 'Version 1.0.0\nBuild 2025.1'),
+          onPress: () => setShowAppVersionModal(true),
         },
         {
           id: 'manage-storage',
@@ -794,15 +797,15 @@ export default function UserProfile() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      
+
       {/* Fixed Header Section */}
       <View style={styles.fixedHeader}>
         <View style={styles.profileSection}>
           <View style={styles.profileInfo}>
             <View style={styles.avatarContainer}>
               {currentProfile?.avatar_url ? (
-                <Image 
-                  source={{ uri: currentProfile.avatar_url }} 
+                <Image
+                  source={{ uri: currentProfile.avatar_url }}
                   style={styles.avatar}
                   resizeMode="cover"
                 />
@@ -823,40 +826,40 @@ export default function UserProfile() {
         </View>
       </View>
 
-      <ScrollView 
-        style={styles.scrollView} 
+      <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
+          <RefreshControl
+            refreshing={refreshing}
             onRefresh={onRefresh}
             tintColor="#17F196"
           />
         }
       >
 
-         {/* Setup & Settings Banner */}
-         <View style={styles.section}>
-           <View style={styles.workSummaryBanner}>
-             <View style={styles.workSummaryContent}>
-               <View style={styles.workSummaryText}>
-                 <Text style={styles.workSummaryTitle}>Setup & Settings</Text>
-                 <Text style={styles.workSummarySubtitle}>Give your Profile the best settings</Text>
-               </View>
-               <View style={styles.workSummaryIcon}>
-                 <Image
-                   source={require('@/assets/images/icon/sparkling_camera.png')}
-                   style={{
-                     width: 117,
-                     height: 85,
-                     resizeMode: 'contain'
-                   }}
-                 />
-               </View>
-             </View>
-           </View>
-         </View>
+        {/* Setup & Settings Banner */}
+        <View style={styles.section}>
+          <View style={styles.workSummaryBanner}>
+            <View style={styles.workSummaryContent}>
+              <View style={styles.workSummaryText}>
+                <Text style={styles.workSummaryTitle}>Setup & Settings</Text>
+                <Text style={styles.workSummarySubtitle}>Give your Profile the best settings</Text>
+              </View>
+              <View style={styles.workSummaryIcon}>
+                <Image
+                  source={require('@/assets/images/icon/sparkling_camera.png')}
+                  style={{
+                    width: 117,
+                    height: 85,
+                    resizeMode: 'contain'
+                  }}
+                />
+              </View>
+            </View>
+          </View>
+        </View>
 
         {/* Settings Sections */}
         {settingsSections.map((section) => (
@@ -869,7 +872,7 @@ export default function UserProfile() {
                 </View>
               </View>
               <Text style={styles.sectionSubtitle}>{section.subtitle}</Text>
-              
+
               <View style={styles.settingsCard}>
                 {section.items.map((item, index) => (
                   <Pressable
@@ -902,12 +905,12 @@ export default function UserProfile() {
                         </Text>
                       </View>
                     </View>
-                    
+
                     <View style={styles.settingsItemRight}>
                       {item.type === 'toggle' ? (
                         <CustomToggleSwitch
                           value={item.value || false}
-                          onValueChange={item.onToggle || (() => {})}
+                          onValueChange={item.onToggle || (() => { })}
                         />
                       ) : (
                         <ProfileDetailIcon size={20} />
@@ -934,7 +937,7 @@ export default function UserProfile() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Change Password</Text>
-            
+
             <View style={styles.modalForm}>
               <TextInput
                 style={[
@@ -982,7 +985,7 @@ export default function UserProfile() {
                 autoComplete="new-password"
               />
             </View>
-            
+
             <View style={styles.modalActions}>
               <Pressable
                 style={styles.modalCancelButton}
@@ -1011,7 +1014,7 @@ export default function UserProfile() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Select Language</Text>
-            
+
             <View style={styles.languageList}>
               {supportedLanguages.map((language) => (
                 <Pressable
@@ -1035,7 +1038,7 @@ export default function UserProfile() {
                 </Pressable>
               ))}
             </View>
-            
+
             <Pressable
               style={styles.modalCancelButton}
               onPress={() => setShowLanguageModal(false)}
@@ -1057,7 +1060,7 @@ export default function UserProfile() {
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Change Profile Picture</Text>
             <Text style={styles.modalSubtitle}>Choose how you want to update your profile picture</Text>
-            
+
             <View style={styles.imagePickerOptions}>
               <Pressable
                 style={styles.imagePickerOption}
@@ -1069,7 +1072,7 @@ export default function UserProfile() {
                 <Text style={styles.imagePickerOptionText}>Take Photo</Text>
                 <Text style={styles.imagePickerOptionSubtext}>Use camera to take a new photo</Text>
               </Pressable>
-              
+
               <Pressable
                 style={styles.imagePickerOption}
                 onPress={() => handleImagePicker('library')}
@@ -1085,7 +1088,7 @@ export default function UserProfile() {
                 <Text style={styles.imagePickerOptionSubtext}>Select from your photo library</Text>
               </Pressable>
             </View>
-            
+
             <Pressable
               style={styles.modalCancelButton}
               onPress={() => setShowImagePickerModal(false)}
@@ -1104,6 +1107,27 @@ export default function UserProfile() {
           </View>
         </View>
       )}
+
+      {/* App Version Modal */}
+      <Modal
+        visible={showAppVersionModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowAppVersionModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>App Version</Text>
+            <Text style={styles.modalSubtitle}>Version 1.0.0\nBuild 2025.1</Text>
+            <Pressable
+              style={styles.modalCancelButton}
+              onPress={() => setShowAppVersionModal(false)}
+            >
+              <Text style={styles.modalCancelText}>Got it</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1119,7 +1143,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingTop: 108, // Add padding to account for fixed header (44 + 20 + 20 + 24 for safe area)
   },
-  
+
   // Fixed Header Section
   fixedHeader: {
     position: 'absolute',
@@ -1182,47 +1206,47 @@ const styles = StyleSheet.create({
     color: '#17f196',
     fontWeight: '500',
   },
-   headerActions: {
-     flexDirection: 'row',
-     alignItems: 'center',
-     gap: 6,
-   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
 
-   // Work Summary Banner (matching home page)
-   workSummaryBanner: {
-     backgroundColor: '#17F196',
-     marginHorizontal: 0,
-     marginVertical: 12,
-     borderRadius: 12,
-     padding: 20,
-   },
-   workSummaryContent: {
-     flexDirection: 'row',
-     justifyContent: 'space-between',
-     alignItems: 'center',
-   },
-   workSummaryText: {
-     flex: 1,
-   },
-   workSummaryTitle: {
-     color: '#FFF',
-     fontSize: 16,
-     fontWeight: '600',
-     letterSpacing: -0.5,
-   },
-   workSummarySubtitle: {
-     color: '#EDEAFF',
-     fontSize: 13,
-     fontWeight: '500',
-     letterSpacing: -0.5,
-   },
-   workSummaryIcon: {
-     width: 60,
-     height: 60,
-     borderRadius: 30,
-     justifyContent: 'center',
-     alignItems: 'center',
-   },
+  // Work Summary Banner (matching home page)
+  workSummaryBanner: {
+    backgroundColor: '#17F196',
+    marginHorizontal: 0,
+    marginVertical: 12,
+    borderRadius: 12,
+    padding: 20,
+  },
+  workSummaryContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  workSummaryText: {
+    flex: 1,
+  },
+  workSummaryTitle: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: -0.5,
+  },
+  workSummarySubtitle: {
+    color: '#EDEAFF',
+    fontSize: 13,
+    fontWeight: '500',
+    letterSpacing: -0.5,
+  },
+  workSummaryIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 
   // Section Styling
   section: {
@@ -1274,7 +1298,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical : 12,
+    paddingVertical: 12,
     paddingHorizontal: 20,
     borderWidth: 1,
     borderColor: '#EAECF0',

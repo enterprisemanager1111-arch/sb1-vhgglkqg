@@ -37,6 +37,55 @@ export default function FamilyDashboard() {
   
   const { user, profile, session } = useAuth();
   
+  // Get data from hooks
+  const { tasks: familyTasks } = useFamilyTasks();
+  const { events: familyEvents } = useFamilyCalendarEvents();
+  const { items: shoppingItems } = useFamilyShoppingItems();
+  
+  // Calculate completion percentage for family challenge
+  const calculateCompletionPercentage = useCallback(() => {
+    const currentTime = new Date();
+    
+    // Calculate completed tasks
+    const completedTasks = familyTasks.filter(task => task.completed).length;
+    const totalTasks = familyTasks.length;
+    
+    // Calculate completed events (endtime > current time means completed)
+    const completedEvents = familyEvents.filter(event => {
+      if (!event.end_date) {
+        // If no end_date, check if event_date has passed
+        return new Date(event.event_date) < currentTime;
+      }
+      return new Date(event.end_date) < currentTime;
+    }).length;
+    const totalEvents = familyEvents.length;
+    
+    // Calculate completed shopping items
+    const completedShoppingItems = shoppingItems.filter(item => item.completed).length;
+    const totalShoppingItems = shoppingItems.length;
+    
+    // Calculate total completed and total items
+    const totalCompleted = completedTasks + completedEvents + completedShoppingItems;
+    const totalItems = totalTasks + totalEvents + totalShoppingItems;
+    
+    // Calculate percentage
+    const percentage = totalItems > 0 ? Math.round((totalCompleted / totalItems) * 100) : 0;
+    
+    return {
+      percentage,
+      completedTasks,
+      totalTasks,
+      completedEvents,
+      totalEvents,
+      completedShoppingItems,
+      totalShoppingItems,
+      totalCompleted,
+      totalItems
+    };
+  }, [familyTasks, familyEvents, shoppingItems]);
+  
+  const completionStats = calculateCompletionPercentage();
+  
   // Debug: Log family data
   useEffect(() => {
     console.log('🔍 Family page - currentFamily:', currentFamily);
@@ -372,10 +421,10 @@ export default function FamilyDashboard() {
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Family Challenge</Text>
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>1</Text>
+                <Text style={styles.badgeText}>{completionStats.percentage}%</Text>
               </View>
             </View>
-            <Text style={styles.sectionSubtitle}>This are your current Family Challange</Text>
+            <Text style={styles.sectionSubtitle}>Complete all family activities to reach 100%</Text>
             <View style={styles.taskCard}>
               <View style={styles.taskHeader}>
                 <View style={styles.taskIcon}>
@@ -388,33 +437,49 @@ export default function FamilyDashboard() {
                     }}
                   />
                 </View>
-                <Text style={styles.taskTitle}>The Weekend Challenge</Text>
+                <Text style={styles.taskTitle}>Family Activity Challenge</Text>
               </View>
               
               <View style={styles.taskTags}>
                 <View style={styles.statusTag}>
                   <View style={styles.taskDot} />
-                  <Text style={styles.taskText}>Complete 2 tasks within 12 hours</Text>
+                  <Text style={styles.taskText}>
+                    {completionStats.totalCompleted} of {completionStats.totalItems} activities completed
+                  </Text>
                 </View>
               </View>
               
               <View style={styles.challengeProgress}>
                 <View style={styles.progressBar}>
-                  <View style={[styles.progressFill, { width: '60%' }]} />
+                  <View style={[styles.progressFill, { width: `${completionStats.percentage}%` }]} />
+                </View>
+                <Text style={styles.progressText}>{completionStats.percentage}% Complete</Text>
+              </View>
+              
+              <View style={styles.challengeStats}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>Tasks</Text>
+                  <Text style={styles.statValue}>{completionStats.completedTasks}/{completionStats.totalTasks}</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>Events</Text>
+                  <Text style={styles.statValue}>{completionStats.completedEvents}/{completionStats.totalEvents}</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>Shopping</Text>
+                  <Text style={styles.statValue}>{completionStats.completedShoppingItems}/{completionStats.totalShoppingItems}</Text>
                 </View>
               </View>
               
               <View style={styles.challengeFooter}>
                 <View style={styles.participants}>
-                  <View style={styles.participantAvatar}>
-                    <Text style={styles.participantAvatarText}>E</Text>
-                  </View>
-                  <View style={styles.participantAvatar}>
-                    <Text style={styles.participantAvatarText}>T</Text>
-                  </View>
-                  <View style={styles.participantAvatar}>
-                    <Text style={styles.participantAvatarText}>B</Text>
-                  </View>
+                  {familyMembers.slice(0, 3).map((member, index) => (
+                    <View key={member.id} style={styles.participantAvatar}>
+                      <Text style={styles.participantAvatarText}>
+                        {member.profiles?.name?.charAt(0)?.toUpperCase() || '?'}
+                      </Text>
+                    </View>
+                  ))}
                 </View>
                 <View style={styles.reward}>
                   <Image
@@ -422,7 +487,7 @@ export default function FamilyDashboard() {
                     style={styles.flameIcon}
                     resizeMode="contain"
                   />
-                  <Text style={styles.rewardText}>+ 100 Flames</Text>
+                  <Text style={styles.rewardText}>+{completionStats.totalCompleted * 10} Flames</Text>
                 </View>
               </View>
             </View>
@@ -1018,6 +1083,33 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#17f196',
     borderRadius: 3,
+  },
+  progressText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#17f196',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  challengeStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#666666',
+    marginBottom: 2,
+  },
+  statValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2d2d2d',
   },
   challengeFooter: {
     flexDirection: 'row',
