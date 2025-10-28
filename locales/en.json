@@ -80,6 +80,80 @@
       "allDone": "All done",
       "points": "points"
     },
+    "home": {
+      "loading": {
+        "dashboard": "Loading your dashboard...",
+        "events": "Loading events...",
+        "tasks": "Loading tasks...",
+        "shoppingItems": "Loading shopping items..."
+      },
+      "profile": {
+        "family": "Family"
+      },
+      "sections": {
+        "futuresElements": "Futures Elements",
+        "quickActionsDescription": "Quick action to all our functions",
+        "todayCalendar": "Today on the Calendar",
+        "calendarDescription": "Your schedule for the day",
+        "todayTasks": "Today Task",
+        "tasksDescription": "The tasks assigned to you for today",
+        "todayShopping": "Today added to Shopping list",
+        "shoppingDescription": "Items added to your shopping list today"
+      },
+      "quickActions": {
+        "tasks": {
+          "title": "Tasks",
+          "subtitle": "Start now!"
+        },
+        "calendar": {
+          "title": "Calendar",
+          "subtitle": "Your Event"
+        },
+        "shopList": {
+          "title": "Shop List",
+          "subtitle": "Buy Items"
+        },
+        "soon": {
+          "title": "Soon",
+          "subtitle": "Hyped?"
+        }
+      },
+      "workSummary": {
+        "title": "My Work Summary",
+        "subtitle": "Today task & presence activity"
+      },
+      "events": {
+        "eventTitle": "Event Title",
+        "startTime": "Start Time",
+        "duration": "Duration",
+        "allDay": "All day"
+      },
+      "tasks": {
+        "completed": "Completed",
+        "inProgress": "In Progress",
+        "highPriority": "High Level"
+      },
+      "shopping": {
+        "item": "Item",
+        "quantity": "Quantity",
+        "purchasedAt": "Purchased at",
+        "pendingPurchase": "Pending purchase",
+        "unknown": "Unknown"
+      },
+      "emptyStates": {
+        "noMeetings": "No Meeting Available",
+        "noMeetingsDescription": "It looks like you don't have any meetings scheduled at the moment. This space will be updated as new meetings are added!",
+        "noTasks": "No Tasks Assigned",
+        "noTasksDescription": "It looks like you don't have any tasks assigned to you right now. Don't worry, this space will be updated as new tasks become available.",
+        "noShoppingItems": "No Items Added Today",
+        "noShoppingItemsDescription": "No items have been added to your shopping list today. This space will be updated as new items are added!"
+      },
+      "errors": {
+        "loadEvents": "Failed to load events",
+        "loadTasks": "Failed to load tasks",
+        "loadShoppingItems": "Failed to load shopping items"
+      }
+    },
     "flames": {
       "title": "Flames & Points",
       "subtitle": "family points collected",

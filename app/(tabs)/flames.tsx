@@ -188,8 +188,10 @@ export default function FlamesScreen() {
   const totalShoppingItems = items.length;
   const completedShoppingItems = items.filter(item => item.completed).length;
 
-  // Mock data for the design
-  const userFlames = 10001;
+  // Get current user's actual flames from points system
+  // Fallback to family ranking data if currentUserPoints is not available
+  const currentUserFromRanking = familyRanking.find(member => member.user_id === user?.id);
+  const userFlames = currentUserPoints || currentUserFromRanking?.total_points || 0;
   const currentRank = 4;
   // Calculate current user's rank
   const currentUserRank = familyRanking.find(member => member.user_id === user?.id)?.rank_position || 1;

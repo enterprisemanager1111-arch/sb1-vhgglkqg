@@ -307,6 +307,80 @@
     "allDone": "Tutto fatto",
     "points": "punti"
   },
+  "home": {
+    "loading": {
+      "dashboard": "Caricamento della tua dashboard...",
+      "events": "Caricamento eventi...",
+      "tasks": "Caricamento compiti...",
+      "shoppingItems": "Caricamento articoli della spesa..."
+    },
+    "profile": {
+      "family": "Famiglia"
+    },
+    "sections": {
+      "futuresElements": "Elementi Futuri",
+      "quickActionsDescription": "Accesso rapido a tutte le nostre funzioni",
+      "todayCalendar": "Oggi nel Calendario",
+      "calendarDescription": "Il tuo programma per la giornata",
+      "todayTasks": "Compiti di Oggi",
+      "tasksDescription": "I compiti assegnati a te per oggi",
+      "todayShopping": "Aggiunto oggi alla Lista della Spesa",
+      "shoppingDescription": "Articoli aggiunti alla tua lista della spesa oggi"
+    },
+    "quickActions": {
+      "tasks": {
+        "title": "Compiti",
+        "subtitle": "Inizia ora!"
+      },
+      "calendar": {
+        "title": "Calendario",
+        "subtitle": "Il Tuo Evento"
+      },
+      "shopList": {
+        "title": "Lista della Spesa",
+        "subtitle": "Compra Articoli"
+      },
+      "soon": {
+        "title": "Presto",
+        "subtitle": "Eccitato?"
+      }
+    },
+    "workSummary": {
+      "title": "Il Mio Riassunto del Lavoro",
+      "subtitle": "Compiti di oggi e attività di presenza"
+    },
+    "events": {
+      "eventTitle": "Titolo dell'Evento",
+      "startTime": "Ora di Inizio",
+      "duration": "Durata",
+      "allDay": "Tutto il giorno"
+    },
+    "tasks": {
+      "completed": "Completato",
+      "inProgress": "In Corso",
+      "highPriority": "Alta Priorità"
+    },
+    "shopping": {
+      "item": "Articolo",
+      "quantity": "Quantità",
+      "purchasedAt": "Acquistato il",
+      "pendingPurchase": "Acquisto in sospeso",
+      "unknown": "Sconosciuto"
+    },
+    "emptyStates": {
+      "noMeetings": "Nessuna Riunione Disponibile",
+      "noMeetingsDescription": "Sembra che tu non abbia riunioni programmate al momento. Questo spazio sarà aggiornato quando verranno aggiunte nuove riunioni!",
+      "noTasks": "Nessun Compito Assegnato",
+      "noTasksDescription": "Sembra che tu non abbia compiti assegnati al momento. Non preoccuparti, questo spazio sarà aggiornato quando nuovi compiti saranno disponibili.",
+      "noShoppingItems": "Nessun Articolo Aggiunto Oggi",
+      "noShoppingItemsDescription": "Nessun articolo è stato aggiunto alla tua lista della spesa oggi. Questo spazio sarà aggiornato quando nuovi articoli verranno aggiunti!"
+    },
+    "errors": {
+      "loadEvents": "Errore nel caricamento degli eventi",
+      "loadTasks": "Errore nel caricamento dei compiti",
+      "loadShoppingItems": "Errore nel caricamento degli articoli della spesa"
+    }
+  },
   "flames": {
     "title": "Fiamme e Punti",
     "subtitle": "punti di famiglia raccolti",

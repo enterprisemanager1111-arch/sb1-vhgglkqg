@@ -74,6 +74,80 @@
     "allDone": "Alle erledigt",
     "points": "Punkte"
   },
+  "home": {
+    "loading": {
+      "dashboard": "Lade dein Dashboard...",
+      "events": "Lade Termine...",
+      "tasks": "Lade Aufgaben...",
+      "shoppingItems": "Lade Einkaufsartikel..."
+    },
+    "profile": {
+      "family": "Familie"
+    },
+    "sections": {
+      "futuresElements": "Zukunftselemente",
+      "quickActionsDescription": "Schnellzugriff auf alle unsere Funktionen",
+      "todayCalendar": "Heute im Kalender",
+      "calendarDescription": "Dein Zeitplan für den Tag",
+      "todayTasks": "Heutige Aufgaben",
+      "tasksDescription": "Die dir für heute zugewiesenen Aufgaben",
+      "todayShopping": "Heute zur Einkaufsliste hinzugefügt",
+      "shoppingDescription": "Artikel, die heute zu deiner Einkaufsliste hinzugefügt wurden"
+    },
+    "quickActions": {
+      "tasks": {
+        "title": "Aufgaben",
+        "subtitle": "Jetzt starten!"
+      },
+      "calendar": {
+        "title": "Kalender",
+        "subtitle": "Dein Event"
+      },
+      "shopList": {
+        "title": "Einkaufsliste",
+        "subtitle": "Artikel kaufen"
+      },
+      "soon": {
+        "title": "Bald",
+        "subtitle": "Aufgeregt?"
+      }
+    },
+    "workSummary": {
+      "title": "Meine Arbeitszusammenfassung",
+      "subtitle": "Heutige Aufgaben & Anwesenheitsaktivität"
+    },
+    "events": {
+      "eventTitle": "Event-Titel",
+      "startTime": "Startzeit",
+      "duration": "Dauer",
+      "allDay": "Ganztägig"
+    },
+    "tasks": {
+      "completed": "Abgeschlossen",
+      "inProgress": "In Bearbeitung",
+      "highPriority": "Hohe Priorität"
+    },
+    "shopping": {
+      "item": "Artikel",
+      "quantity": "Menge",
+      "purchasedAt": "Gekauft am",
+      "pendingPurchase": "Ausstehender Kauf",
+      "unknown": "Unbekannt"
+    },
+    "emptyStates": {
+      "noMeetings": "Keine Termine verfügbar",
+      "noMeetingsDescription": "Es sieht so aus, als hättest du momentan keine Termine geplant. Dieser Bereich wird aktualisiert, sobald neue Termine hinzugefügt werden!",
+      "noTasks": "Keine Aufgaben zugewiesen",
+      "noTasksDescription": "Es sieht so aus, als hättest du momentan keine Aufgaben zugewiesen bekommen. Keine Sorge, dieser Bereich wird aktualisiert, sobald neue Aufgaben verfügbar werden.",
+      "noShoppingItems": "Heute keine Artikel hinzugefügt",
+      "noShoppingItemsDescription": "Heute wurden keine Artikel zu deiner Einkaufsliste hinzugefügt. Dieser Bereich wird aktualisiert, sobald neue Artikel hinzugefügt werden!"
+    },
+    "errors": {
+      "loadEvents": "Termine konnten nicht geladen werden",
+      "loadTasks": "Aufgaben konnten nicht geladen werden",
+      "loadShoppingItems": "Einkaufsartikel konnten nicht geladen werden"
+    }
+  },
   "flames": {
     "title": "Flames & Punkte",
     "subtitle": "Familie-Punkte gesammelt",

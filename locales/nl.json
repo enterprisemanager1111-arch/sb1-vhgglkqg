@@ -337,6 +337,80 @@
   "dashboard": {
     "welcome": "Hallo {{userName}}!"
   },
+  "home": {
+    "loading": {
+      "dashboard": "Je dashboard laden...",
+      "events": "Evenementen laden...",
+      "tasks": "Taken laden...",
+      "shoppingItems": "Boodschappen laden..."
+    },
+    "profile": {
+      "family": "Familie"
+    },
+    "sections": {
+      "futuresElements": "Toekomst Elementen",
+      "quickActionsDescription": "Snelle toegang tot al onze functies",
+      "todayCalendar": "Vandaag in de Kalender",
+      "calendarDescription": "Je schema voor vandaag",
+      "todayTasks": "Taken van Vandaag",
+      "tasksDescription": "De taken die vandaag aan jou zijn toegewezen",
+      "todayShopping": "Vandaag toegevoegd aan Boodschappenlijst",
+      "shoppingDescription": "Items vandaag toegevoegd aan je boodschappenlijst"
+    },
+    "quickActions": {
+      "tasks": {
+        "title": "Taken",
+        "subtitle": "Start nu!"
+      },
+      "calendar": {
+        "title": "Kalender",
+        "subtitle": "Jouw Evenement"
+      },
+      "shopList": {
+        "title": "Boodschappenlijst",
+        "subtitle": "Items Kopen"
+      },
+      "soon": {
+        "title": "Binnenkort",
+        "subtitle": "Opgewonden?"
+      }
+    },
+    "workSummary": {
+      "title": "Mijn Werk Samenvatting",
+      "subtitle": "Taken van vandaag en aanwezigheidsactiviteit"
+    },
+    "events": {
+      "eventTitle": "Evenement Titel",
+      "startTime": "Starttijd",
+      "duration": "Duur",
+      "allDay": "Hele dag"
+    },
+    "tasks": {
+      "completed": "Voltooid",
+      "inProgress": "Bezig",
+      "highPriority": "Hoge Prioriteit"
+    },
+    "shopping": {
+      "item": "Item",
+      "quantity": "Hoeveelheid",
+      "purchasedAt": "Gekocht op",
+      "pendingPurchase": "Aankoop in behandeling",
+      "unknown": "Onbekend"
+    },
+    "emptyStates": {
+      "noMeetings": "Geen Vergaderingen Beschikbaar",
+      "noMeetingsDescription": "Het lijkt erop dat je momenteel geen vergaderingen gepland hebt. Deze ruimte wordt bijgewerkt wanneer nieuwe vergaderingen worden toegevoegd!",
+      "noTasks": "Geen Taken Toegewezen",
+      "noTasksDescription": "Het lijkt erop dat je momenteel geen taken toegewezen hebt. Maak je geen zorgen, deze ruimte wordt bijgewerkt wanneer nieuwe taken beschikbaar zijn.",
+      "noShoppingItems": "Vandaag Geen Items Toegevoegd",
+      "noShoppingItemsDescription": "Er zijn vandaag geen items toegevoegd aan je boodschappenlijst. Deze ruimte wordt bijgewerkt wanneer nieuwe items worden toegevoegd!"
+    },
+    "errors": {
+      "loadEvents": "Fout bij het laden van evenementen",
+      "loadTasks": "Fout bij het laden van taken",
+      "loadShoppingItems": "Fout bij het laden van boodschappen"
+    }
+  },
   "profile": {
     "title": "Mijn Profiel",
     "name": "Naam",

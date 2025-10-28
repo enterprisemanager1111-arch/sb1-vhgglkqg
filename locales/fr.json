@@ -307,6 +307,80 @@
     "allDone": "Tout fait",
     "points": "points"
   },
+  "home": {
+    "loading": {
+      "dashboard": "Chargement de votre tableau de bord...",
+      "events": "Chargement des événements...",
+      "tasks": "Chargement des tâches...",
+      "shoppingItems": "Chargement des articles de course..."
+    },
+    "profile": {
+      "family": "Famille"
+    },
+    "sections": {
+      "futuresElements": "Éléments Futurs",
+      "quickActionsDescription": "Accès rapide à toutes nos fonctions",
+      "todayCalendar": "Aujourd'hui dans le Calendrier",
+      "calendarDescription": "Votre planning pour la journée",
+      "todayTasks": "Tâches d'Aujourd'hui",
+      "tasksDescription": "Les tâches qui vous sont assignées pour aujourd'hui",
+      "todayShopping": "Ajouté aujourd'hui à la Liste de Courses",
+      "shoppingDescription": "Articles ajoutés à votre liste de courses aujourd'hui"
+    },
+    "quickActions": {
+      "tasks": {
+        "title": "Tâches",
+        "subtitle": "Commencer maintenant!"
+      },
+      "calendar": {
+        "title": "Calendrier",
+        "subtitle": "Votre Événement"
+      },
+      "shopList": {
+        "title": "Liste de Courses",
+        "subtitle": "Acheter des Articles"
+      },
+      "soon": {
+        "title": "Bientôt",
+        "subtitle": "Impatient?"
+      }
+    },
+    "workSummary": {
+      "title": "Mon Résumé de Travail",
+      "subtitle": "Tâches d'aujourd'hui et activité de présence"
+    },
+    "events": {
+      "eventTitle": "Titre de l'Événement",
+      "startTime": "Heure de Début",
+      "duration": "Durée",
+      "allDay": "Toute la journée"
+    },
+    "tasks": {
+      "completed": "Terminé",
+      "inProgress": "En Cours",
+      "highPriority": "Haute Priorité"
+    },
+    "shopping": {
+      "item": "Article",
+      "quantity": "Quantité",
+      "purchasedAt": "Acheté le",
+      "pendingPurchase": "Achat en attente",
+      "unknown": "Inconnu"
+    },
+    "emptyStates": {
+      "noMeetings": "Aucune Réunion Disponible",
+      "noMeetingsDescription": "Il semble que vous n'ayez aucune réunion programmée pour le moment. Cet espace sera mis à jour dès que de nouvelles réunions seront ajoutées!",
+      "noTasks": "Aucune Tâche Assignée",
+      "noTasksDescription": "Il semble que vous n'ayez aucune tâche assignée pour le moment. Ne vous inquiétez pas, cet espace sera mis à jour dès que de nouvelles tâches seront disponibles.",
+      "noShoppingItems": "Aucun Article Ajouté Aujourd'hui",
+      "noShoppingItemsDescription": "Aucun article n'a été ajouté à votre liste de courses aujourd'hui. Cet espace sera mis à jour dès que de nouveaux articles seront ajoutés!"
+    },
+    "errors": {
+      "loadEvents": "Échec du chargement des événements",
+      "loadTasks": "Échec du chargement des tâches",
+      "loadShoppingItems": "Échec du chargement des articles de course"
+    }
+  },
   "flames": {
     "title": "Flammes & Points",
     "subtitle": "points de famille collectés",

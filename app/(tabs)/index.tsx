@@ -15,6 +15,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 // Removed useFamily import
 import { useLoading } from '@/contexts/LoadingContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useCurrentUserEvents } from '@/hooks/useCurrentUserEvents';
@@ -37,6 +38,7 @@ const VerificationIcon = ({ size = 16 }: { size?: number }) => (
 export default function HomeDashboard() {
   const { user, profile, session, refreshProfile, updateProfileDirectly } = useAuth();
   const { showLoading, hideLoading } = useLoading();
+  const { t } = useLanguage();
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [loadingStarted, setLoadingStarted] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
@@ -295,7 +297,7 @@ export default function HomeDashboard() {
   useEffect(() => {
     if (isInitialLoading && !loadingStarted) {
       setLoadingStarted(true);
-      showLoading('Loading your dashboard...');
+      showLoading(t('home.loading.dashboard'));
       
       // Force loading to end after maximum 10 seconds regardless of API status
       const forceEndLoading = setTimeout(() => {
@@ -701,7 +703,7 @@ export default function HomeDashboard() {
                   <VerificationIcon size={20} />
                 </View>
               </View>
-              <Text style={styles.userRole}>Family {getUserRole()}</Text>
+              <Text style={styles.userRole}>{t('home.profile.family')} {getUserRole()}</Text>
             </View>
           </View>
           
@@ -740,12 +742,12 @@ export default function HomeDashboard() {
         {/* Futures Elements Section */}
         <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Futures Elements</Text>
+            <Text style={styles.sectionTitle}>{t('home.sections.futuresElements')}</Text>
             <View style={styles.badge}>
               <Text style={styles.badgeText}>3</Text>
             </View>
           </View>
-          <Text style={styles.sectionSubtitle}>Quickaction to all our Funktions</Text>
+          <Text style={styles.sectionSubtitle}>{t('home.sections.quickActionsDescription')}</Text>
           
           <View style={styles.quickActionsGrid}>
             {/* Tasks */}
@@ -763,8 +765,8 @@ export default function HomeDashboard() {
                   }}
                 />
               </View>
-              <Text style={styles.quickActionTitle}>Tasks</Text>
-              <Text style={styles.quickActionSubtitle}>Start now!</Text>
+              <Text style={styles.quickActionTitle}>{t('home.quickActions.tasks.title')}</Text>
+              <Text style={styles.quickActionSubtitle}>{t('home.quickActions.tasks.subtitle')}</Text>
             </Pressable>
 
             {/* Calendar */}
@@ -782,8 +784,8 @@ export default function HomeDashboard() {
                   }}
                 />
               </View>
-              <Text style={styles.quickActionTitle}>Calander</Text>
-              <Text style={styles.quickActionSubtitle}>Your Event</Text>
+              <Text style={styles.quickActionTitle}>{t('home.quickActions.calendar.title')}</Text>
+              <Text style={styles.quickActionSubtitle}>{t('home.quickActions.calendar.subtitle')}</Text>
             </Pressable>
 
             {/* Shop List */}
@@ -801,8 +803,8 @@ export default function HomeDashboard() {
                   }}
                 />
               </View>
-              <Text style={styles.quickActionTitle}>Shop List</Text>
-              <Text style={styles.quickActionSubtitle}>Buy Items</Text>
+              <Text style={styles.quickActionTitle}>{t('home.quickActions.shopList.title')}</Text>
+              <Text style={styles.quickActionSubtitle}>{t('home.quickActions.shopList.subtitle')}</Text>
             </Pressable>
 
             {/* Soon */}
@@ -817,8 +819,8 @@ export default function HomeDashboard() {
                   }}
                 />
               </View>
-              <Text style={[styles.quickActionTitle, styles.quickActionTitleDisabled]}>Soon</Text>
-              <Text style={[styles.quickActionSubtitle, styles.quickActionSubtitleDisabled]}>Hyped?</Text>
+              <Text style={[styles.quickActionTitle, styles.quickActionTitleDisabled]}>{t('home.quickActions.soon.title')}</Text>
+              <Text style={[styles.quickActionSubtitle, styles.quickActionSubtitleDisabled]}>{t('home.quickActions.soon.subtitle')}</Text>
             </Pressable>
           </View>
         </View>
@@ -827,8 +829,8 @@ export default function HomeDashboard() {
         <View style={styles.workSummaryBanner}>
           <View style={styles.workSummaryContent}>
             <View style={styles.workSummaryText}>
-              <Text style={styles.workSummaryTitle}>My Work Summary</Text>
-              <Text style={styles.workSummarySubtitle}>Today task & presence activity</Text>
+              <Text style={styles.workSummaryTitle}>{t('home.workSummary.title')}</Text>
+              <Text style={styles.workSummarySubtitle}>{t('home.workSummary.subtitle')}</Text>
             </View>
             <View style={styles.workSummaryIcon}>
               <Image
@@ -847,21 +849,21 @@ export default function HomeDashboard() {
         {/* Today on the Calendar Section */}
         <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Today on the Calendar</Text>
+            <Text style={styles.sectionTitle}>{t('home.sections.todayCalendar')}</Text>
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{todayEvents.length}</Text>
             </View>
           </View>
-          <Text style={styles.sectionSubtitle}>Your schedule for the day</Text>
+          <Text style={styles.sectionSubtitle}>{t('home.sections.calendarDescription')}</Text>
           
           {eventsLoading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="small" color="#6366F1" />
-              <Text style={styles.loadingText}>Loading events...</Text>
+              <Text style={styles.loadingText}>{t('home.loading.events')}</Text>
             </View>
           ) : eventsError ? (
             <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>Failed to load events</Text>
+              <Text style={styles.errorText}>{t('home.errors.loadEvents')}</Text>
             </View>
           ) : todayEvents.length > 0 ? (
             todayEvents.map((event) => {
@@ -886,11 +888,11 @@ export default function HomeDashboard() {
                    <View style={styles.eventDetailsContainer}>
                      <View style={styles.eventDetailsGroup}>
                        <View style={styles.eventDetailItemLeft}>
-                         <Text style={styles.eventDetailLabel}>Event Title</Text>
+                         <Text style={styles.eventDetailLabel}>{t('home.events.eventTitle')}</Text>
                          <Text style={styles.eventDetailValue} numberOfLines={1}>{event.title}</Text>
                        </View>
                        <View style={styles.eventDetailItemCenter}>
-                         <Text style={styles.eventDetailLabel}>Start Time</Text>
+                         <Text style={styles.eventDetailLabel}>{t('home.events.startTime')}</Text>
                          <Text style={styles.eventDetailValue} numberOfLines={1}>
                            {new Date(event.event_date).toLocaleTimeString('en-US', { 
                              hour: '2-digit', 
@@ -900,11 +902,11 @@ export default function HomeDashboard() {
                          </Text>
                        </View>
                        <View style={styles.eventDetailItemRight}>
-                         <Text style={styles.eventDetailLabel}>Duration</Text>
+                         <Text style={styles.eventDetailLabel}>{t('home.events.duration')}</Text>
                          <Text style={styles.eventDetailValue} numberOfLines={1}>
                            {event.end_date ? 
                              `${Math.round((new Date(event.end_date).getTime() - new Date(event.event_date).getTime()) / (1000 * 60 * 60))}h` : 
-                             'All day'
+                             t('home.events.allDay')
                            }
                          </Text>
                        </View>
@@ -1005,9 +1007,9 @@ export default function HomeDashboard() {
                 style={styles.emptyTaskIcon}
                 resizeMode="contain"
               />
-              <Text style={styles.emptyTaskText}>No Meeting Available</Text>
+              <Text style={styles.emptyTaskText}>{t('home.emptyStates.noMeetings')}</Text>
               <Text style={styles.emptyTaskSubtext}>
-                It looks like you don't have any meetings scheduled at the moment. This space will be updated as new meetings are added!
+                {t('home.emptyStates.noMeetingsDescription')}
               </Text>
             </View>
           )}
@@ -1016,21 +1018,21 @@ export default function HomeDashboard() {
         {/* Today Task Section */}
         <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Today Task</Text>
+            <Text style={styles.sectionTitle}>{t('home.sections.todayTasks')}</Text>
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{todayTasks.length}</Text>
                 </View>
               </View>
-              <Text style={styles.sectionSubtitle}>The tasks assigned to you for today</Text>
+              <Text style={styles.sectionSubtitle}>{t('home.sections.tasksDescription')}</Text>
               
               {tasksLoading ? (
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="small" color="#6366F1" />
-                  <Text style={styles.loadingText}>Loading tasks...</Text>
+                  <Text style={styles.loadingText}>{t('home.loading.tasks')}</Text>
                 </View>
               ) : tasksError ? (
                 <View style={styles.errorContainer}>
-                  <Text style={styles.errorText}>Failed to load tasks</Text>
+                  <Text style={styles.errorText}>{t('home.errors.loadTasks')}</Text>
                 </View>
               ) : todayTasks.length > 0 ? (
                 todayTasks.map((task) => (
@@ -1059,7 +1061,7 @@ export default function HomeDashboard() {
                      resizeMode: 'contain'
                    }}
                  />
-                    <Text style={styles.statusTagText}>{task.completed ? 'Completed' : 'In Progress'}</Text>
+                    <Text style={styles.statusTagText}>{task.completed ? t('home.tasks.completed') : t('home.tasks.inProgress')}</Text>
                </View>
                <View style={styles.priorityTag}>
                  <Image
@@ -1070,7 +1072,7 @@ export default function HomeDashboard() {
                      resizeMode: 'contain'
                    }}
                  />
-                    <Text style={styles.priorityTagText}>HighLevel</Text>
+                    <Text style={styles.priorityTagText}>{t('home.tasks.highPriority')}</Text>
                </View>
              </View>
             
@@ -1116,9 +1118,9 @@ export default function HomeDashboard() {
                 style={styles.emptyTaskIcon}
                 resizeMode="contain"
               />
-              <Text style={styles.emptyTaskText}>No Tasks Assigned</Text>
+              <Text style={styles.emptyTaskText}>{t('home.emptyStates.noTasks')}</Text>
               <Text style={styles.emptyTaskSubtext}>
-                It looks like you don't have any tasks assigned to you right now. Don't worry, this space will be updated as new tasks become available.
+                {t('home.emptyStates.noTasksDescription')}
               </Text>
             </View>
           )}
@@ -1127,21 +1129,21 @@ export default function HomeDashboard() {
         {/* Today added to Shopping list Section */}
         <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Today added to Shopping list</Text>
+            <Text style={styles.sectionTitle}>{t('home.sections.todayShopping')}</Text>
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{todayShoppingItems.length}</Text>
             </View>
           </View>
-          <Text style={styles.sectionSubtitle}>Items added to your shopping list today</Text>
+          <Text style={styles.sectionSubtitle}>{t('home.sections.shoppingDescription')}</Text>
           
           {shoppingLoading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="small" color="#6366F1" />
-              <Text style={styles.loadingText}>Loading shopping items...</Text>
+              <Text style={styles.loadingText}>{t('home.loading.shoppingItems')}</Text>
             </View>
           ) : shoppingError ? (
             <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>Failed to load shopping items</Text>
+              <Text style={styles.errorText}>{t('home.errors.loadShoppingItems')}</Text>
             </View>
           ) : todayShoppingItems.length > 0 ? (
             todayShoppingItems.map((item) => (
@@ -1166,11 +1168,11 @@ export default function HomeDashboard() {
                 
                 <View style={styles.shoppingItemDetailsGroup}>
                   <View style={styles.shoppingItemLeft}>
-                    <Text style={styles.shoppingItemLabel}>Item</Text>
+                    <Text style={styles.shoppingItemLabel}>{t('home.shopping.item')}</Text>
                     <Text style={styles.shoppingItemName}>{item.name}</Text>
                   </View>
                   <View style={styles.shoppingItemRight}>
-                    <Text style={styles.shoppingItemLabel}>Quantity</Text>
+                    <Text style={styles.shoppingItemLabel}>{t('home.shopping.quantity')}</Text>
                     <Text style={styles.shoppingItemQuantity}>{item.quantity || '1 stk.'}</Text>
                   </View>
                 </View>
@@ -1188,7 +1190,7 @@ export default function HomeDashboard() {
                           }}
                         />
                         <Text style={styles.purchaseStatusText}>
-                          Purchased at {new Date(item.updated_at).toLocaleDateString('en-US', { 
+                          {t('home.shopping.purchasedAt')} {new Date(item.updated_at).toLocaleDateString('en-US', { 
                             day: 'numeric', 
                             month: 'short', 
                             year: 'numeric' 
@@ -1206,7 +1208,7 @@ export default function HomeDashboard() {
                           }}
                         />
                         <Text style={[styles.purchaseStatusText, { color: '#666666' }]}>
-                          Pending purchase
+                          {t('home.shopping.pendingPurchase')}
                         </Text>
                       </>
                     )}
@@ -1226,7 +1228,7 @@ export default function HomeDashboard() {
                       )}
                     </View>
                     <Text style={styles.purchaserName}>
-                      {item.creator_profile?.name || 'Unknown'}
+                      {item.creator_profile?.name || t('home.shopping.unknown')}
                     </Text>
                   </View>
                 </View>
@@ -1239,9 +1241,9 @@ export default function HomeDashboard() {
                 style={styles.emptyTaskIcon}
                 resizeMode="contain"
               />
-              <Text style={styles.emptyTaskText}>No Items Added Today</Text>
+              <Text style={styles.emptyTaskText}>{t('home.emptyStates.noShoppingItems')}</Text>
               <Text style={styles.emptyTaskSubtext}>
-                No items have been added to your shopping list today. This space will be updated as new items are added!
+                {t('home.emptyStates.noShoppingItemsDescription')}
               </Text>
             </View>
           )}

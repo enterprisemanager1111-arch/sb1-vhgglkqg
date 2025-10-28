@@ -307,6 +307,80 @@
     "allDone": "Todo hecho",
     "points": "puntos"
   },
+  "home": {
+    "loading": {
+      "dashboard": "Cargando tu panel...",
+      "events": "Cargando eventos...",
+      "tasks": "Cargando tareas...",
+      "shoppingItems": "Cargando artículos de compra..."
+    },
+    "profile": {
+      "family": "Familia"
+    },
+    "sections": {
+      "futuresElements": "Elementos Futuros",
+      "quickActionsDescription": "Acceso rápido a todas nuestras funciones",
+      "todayCalendar": "Hoy en el Calendario",
+      "calendarDescription": "Tu horario para el día",
+      "todayTasks": "Tareas de Hoy",
+      "tasksDescription": "Las tareas asignadas para ti hoy",
+      "todayShopping": "Agregado hoy a la Lista de Compras",
+      "shoppingDescription": "Artículos agregados a tu lista de compras hoy"
+    },
+    "quickActions": {
+      "tasks": {
+        "title": "Tareas",
+        "subtitle": "¡Comienza ahora!"
+      },
+      "calendar": {
+        "title": "Calendario",
+        "subtitle": "Tu Evento"
+      },
+      "shopList": {
+        "title": "Lista de Compras",
+        "subtitle": "Comprar Artículos"
+      },
+      "soon": {
+        "title": "Pronto",
+        "subtitle": "¿Emocionado?"
+      }
+    },
+    "workSummary": {
+      "title": "Mi Resumen de Trabajo",
+      "subtitle": "Tareas de hoy y actividad de presencia"
+    },
+    "events": {
+      "eventTitle": "Título del Evento",
+      "startTime": "Hora de Inicio",
+      "duration": "Duración",
+      "allDay": "Todo el día"
+    },
+    "tasks": {
+      "completed": "Completado",
+      "inProgress": "En Progreso",
+      "highPriority": "Alta Prioridad"
+    },
+    "shopping": {
+      "item": "Artículo",
+      "quantity": "Cantidad",
+      "purchasedAt": "Comprado el",
+      "pendingPurchase": "Compra pendiente",
+      "unknown": "Desconocido"
+    },
+    "emptyStates": {
+      "noMeetings": "No Hay Reuniones Disponibles",
+      "noMeetingsDescription": "Parece que no tienes ninguna reunión programada en este momento. ¡Este espacio se actualizará cuando se agreguen nuevas reuniones!",
+      "noTasks": "No Hay Tareas Asignadas",
+      "noTasksDescription": "Parece que no tienes ninguna tarea asignada en este momento. No te preocupes, este espacio se actualizará cuando nuevas tareas estén disponibles.",
+      "noShoppingItems": "No Se Agregaron Artículos Hoy",
+      "noShoppingItemsDescription": "No se agregaron artículos a tu lista de compras hoy. ¡Este espacio se actualizará cuando se agreguen nuevos artículos!"
+    },
+    "errors": {
+      "loadEvents": "Error al cargar eventos",
+      "loadTasks": "Error al cargar tareas",
+      "loadShoppingItems": "Error al cargar artículos de compra"
+    }
+  },
   "flames": {
     "title": "Llamas y Puntos",
     "subtitle": "puntos de familia recopilados",
