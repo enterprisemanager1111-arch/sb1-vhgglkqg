@@ -49,6 +49,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFamily } from '@/contexts/FamilyContext';
 import { useLanguage, supportedLanguages } from '@/contexts/LanguageContext';
 import { useSnackbar } from '@/contexts/SnackbarContext';
+import { useDarkMode } from '@/contexts/DarkModeContext';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
@@ -57,6 +58,7 @@ import { Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import CustomToggleSwitch from '@/components/CustomToggleSwitch';
 import ProfileDetailIcon from '@/components/ProfileDetailIcon';
+import { colors as themeColors, brandColors, getTheme } from '@/constants/theme';
 
 // Custom verification icon component
 const VerificationIcon = ({ size = 16 }: { size?: number }) => (
@@ -69,6 +71,9 @@ const VerificationIcon = ({ size = 16 }: { size?: number }) => (
     }}
   />
 );
+
+// Use shared theme colors
+const colors = themeColors;
 
 
 interface SettingsSection {
@@ -94,8 +99,9 @@ interface SettingsItem {
 export default function UserProfile() {
   const [refreshing, setRefreshing] = useState(false);
   const { t, currentLanguage, changeLanguage } = useLanguage();
+  const { isDarkMode, toggleDarkMode, setDarkMode } = useDarkMode();
+  const styles = createStyles(isDarkMode);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [darkModeEnabled, setDarkModeEnabled] = useState(true);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -120,7 +126,7 @@ export default function UserProfile() {
 
   const userName = currentProfile?.name || user?.user_metadata?.full_name || 'Tonald Drump';
   const userEmail = user?.email || '';
-  const userRoleDisplay = userRole === 'admin' ? 'Family Admin' : 'Family Teenager';
+  const userRoleDisplay = userRole === 'admin' ? t('profilePage.role.admin') : t('profilePage.role.teenager');
 
   // Get user initials for avatar fallback
   const getUserInitials = () => {
@@ -149,11 +155,9 @@ export default function UserProfile() {
   const loadUserPreferences = async () => {
     try {
       const notifications = await AsyncStorage.getItem('@notifications_enabled');
-      const darkMode = await AsyncStorage.getItem('@dark_mode_enabled');
       const biometrics = await AsyncStorage.getItem('@biometrics_enabled');
 
       if (notifications !== null) setNotificationsEnabled(JSON.parse(notifications));
-      if (darkMode !== null) setDarkModeEnabled(JSON.parse(darkMode));
       if (biometrics !== null) setBiometricsEnabled(JSON.parse(biometrics));
     } catch (error) {
       console.error('Error loading preferences:', error);
@@ -170,17 +174,17 @@ export default function UserProfile() {
 
   const handlePasswordChange = async () => {
     if (!currentPassword || !newPassword || !confirmNewPassword) {
-      Alert.alert('Error', 'Please fill all fields');
+      Alert.alert(t('common.error'), t('profilePage.passwordChange.fillAllFields'));
       return;
     }
 
     if (newPassword !== confirmNewPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      Alert.alert(t('common.error'), t('profilePage.passwordChange.passwordMismatch'));
       return;
     }
 
     if (newPassword.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+      Alert.alert(t('common.error'), t('profilePage.passwordChange.passwordTooShort'));
       return;
     }
 
@@ -191,24 +195,24 @@ export default function UserProfile() {
 
       if (error) throw error;
 
-      Alert.alert('Success', 'Password updated successfully');
+      Alert.alert(t('common.success'), t('profilePage.passwordChange.success'));
       setShowPasswordModal(false);
       setCurrentPassword('');
       setNewPassword('');
       setConfirmNewPassword('');
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to update password');
+      Alert.alert(t('common.error'), error.message || t('profilePage.passwordChange.failed'));
     }
   };
 
   const handleLanguageChange = async (languageCode: string) => {
     try {
       await changeLanguage(languageCode);
-      Alert.alert('Success', `Language changed to ${getLanguageName(languageCode)}.`);
+      Alert.alert(t('common.success'), t('profilePage.languageChange.success', { language: getLanguageName(languageCode) }));
       setShowLanguageModal(false);
     } catch (error) {
       console.error('Error changing language:', error);
-      Alert.alert('Error', 'Failed to change language');
+      Alert.alert(t('common.error'), t('profilePage.languageChange.failed'));
     }
   };
 
@@ -226,37 +230,41 @@ export default function UserProfile() {
 
   const contactSupport = async () => {
     const supportEmail = 'support@famora.app';
-    const subject = `Help needed - Famora App`;
-    const body = `Hello Famora Team,\n\nI need help with:\n\n[Please describe your problem here]\n\nMy App Version: 1.0.0\nMy Device: ${Platform.OS}\nMy Family ID: ${currentFamily?.id || 'No Family'}\n\nThank you!`;
+    const subject = t('profilePage.support.subject');
+    const body = t('profilePage.support.body', { 
+      version: '1.0.0', 
+      device: Platform.OS, 
+      familyId: currentFamily?.id || t('profilePage.support.noFamily') 
+    });
 
     const mailto = `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
     try {
       Alert.alert(
-        'Contact Support',
-        `Email sent to ${supportEmail}`,
+        t('profilePage.support.title'),
+        t('profilePage.support.emailSent', { email: supportEmail }),
         [
-          { text: 'Copy Email', onPress: () => copyToClipboard(supportEmail) },
-          { text: 'OK' }
+          { text: t('profilePage.support.copyEmail'), onPress: () => copyToClipboard(supportEmail) },
+          { text: t('common.ok') }
         ]
       );
     } catch (error) {
-      Alert.alert('Error', 'Failed to contact support');
+      Alert.alert(t('common.error'), t('profilePage.support.failed'));
     }
   };
 
   const copyToClipboard = async (text: string) => {
-    Alert.alert('Success', 'Email copied to clipboard');
+    Alert.alert(t('common.success'), t('profilePage.support.emailCopied'));
   };
 
   const clearAppCache = async () => {
     Alert.alert(
-      'Clear Cache',
-      'This will clear all cached data and temporary files. Continue?',
+      t('profilePage.cache.title'),
+      t('profilePage.cache.message'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Clear Cache',
+          text: t('profilePage.cache.clearButton'),
           onPress: async () => {
             try {
               const keys = await AsyncStorage.getAllKeys();
@@ -265,9 +273,9 @@ export default function UserProfile() {
                 key.startsWith('@temp_')
               );
               await AsyncStorage.multiRemove(cacheKeys);
-              Alert.alert('Success', 'Cache cleared successfully');
+              Alert.alert(t('common.success'), t('profilePage.cache.success'));
             } catch (error) {
-              Alert.alert('Error', 'Failed to clear cache');
+              Alert.alert(t('common.error'), t('profilePage.cache.failed'));
             }
           }
         }
@@ -403,15 +411,15 @@ export default function UserProfile() {
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      'Delete Account',
-      'This action cannot be undone. All your data will be permanently deleted.',
+      t('profilePage.deleteAccount.title'),
+      t('profilePage.deleteAccount.message'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete Account',
+          text: t('profilePage.deleteAccount.deleteButton'),
           style: 'destructive',
           onPress: () => {
-            Alert.alert('Account Deletion', 'Account deletion feature is not yet implemented.');
+            Alert.alert(t('profilePage.deleteAccount.title'), t('profilePage.deleteAccount.notImplemented'));
           }
         }
       ]
@@ -422,14 +430,14 @@ export default function UserProfile() {
   const settingsSections: SettingsSection[] = [
     {
       id: 'security',
-      title: 'Security & Privacy',
-      subtitle: 'See in your Security & Privacy settings',
+      title: t('profilePage.sections.security.title'),
+      subtitle: t('profilePage.sections.security.subtitle'),
       badge: '3',
       items: [
         {
           id: 'two-factor',
-          title: 'Two-Factor authentication (2FA)',
-          description: 'Setup your Authentication for your Account',
+          title: t('profilePage.sections.security.twoFactor.title'),
+          description: t('profilePage.sections.security.twoFactor.description'),
           icon: (
             <Image
               source={require('@/assets/images/icon/profile/fingerprinter.png')}
@@ -437,12 +445,12 @@ export default function UserProfile() {
             />
           ),
           type: 'navigation',
-          onPress: () => Alert.alert('2FA', 'Two-factor authentication setup coming soon'),
+          onPress: () => Alert.alert(t('profilePage.sections.security.twoFactor.alertTitle'), t('profilePage.sections.security.twoFactor.comingSoon')),
         },
         {
           id: 'manage-sessions',
-          title: 'Manage sessions',
-          description: 'View active logins on devices & log out',
+          title: t('profilePage.sections.security.manageSessions.title'),
+          description: t('profilePage.sections.security.manageSessions.description'),
           icon: (
             <Image
               source={require('@/assets/images/icon/profile/session-timeout.png')}
@@ -450,12 +458,12 @@ export default function UserProfile() {
             />
           ),
           type: 'navigation',
-          onPress: () => Alert.alert('Sessions', 'Session management coming soon'),
+          onPress: () => Alert.alert(t('profilePage.sections.security.manageSessions.alertTitle'), t('profilePage.sections.security.manageSessions.comingSoon')),
         },
         {
           id: 'privacy-settings',
-          title: 'Privacy settings',
-          description: 'See statistics, visibility of activities',
+          title: t('profilePage.sections.security.privacy.title'),
+          description: t('profilePage.sections.security.privacy.description'),
           icon: (
             <Image
               source={require('@/assets/images/icon/profile/user-lock.png')}
@@ -463,20 +471,20 @@ export default function UserProfile() {
             />
           ),
           type: 'navigation',
-          onPress: () => Alert.alert('Privacy', 'Privacy settings coming soon'),
+          onPress: () => Alert.alert(t('profilePage.sections.security.privacy.alertTitle'), t('profilePage.sections.security.privacy.comingSoon')),
         },
       ],
     },
     {
       id: 'personalization',
-      title: 'Personalization',
-      subtitle: 'See in your personalization Settings',
+      title: t('profilePage.sections.personalization.title'),
+      subtitle: t('profilePage.sections.personalization.subtitle'),
       badge: '4',
       items: [
         {
           id: 'edit-account',
-          title: 'Edit Account',
-          description: 'Name, Date of Birth and Profile picture',
+          title: t('profilePage.sections.personalization.editAccount.title'),
+          description: t('profilePage.sections.personalization.editAccount.description'),
           icon: (
             <Image
               source={require('@/assets/images/icon/profile/user.png')}
@@ -488,8 +496,8 @@ export default function UserProfile() {
         },
         {
           id: 'change-password',
-          title: 'Change Password',
-          description: 'Update your password',
+          title: t('profilePage.sections.personalization.changePassword.title'),
+          description: t('profilePage.sections.personalization.changePassword.description'),
           icon: (
             <Image
               source={require('@/assets/images/icon/profile/shield.png')}
@@ -501,8 +509,8 @@ export default function UserProfile() {
         },
         {
           id: 'language',
-          title: 'Language',
-          description: 'Select your preferred Language',
+          title: t('profilePage.sections.personalization.language.title'),
+          description: t('profilePage.sections.personalization.language.description'),
           icon: (
             <Image
               source={require('@/assets/images/icon/profile/language-exchange.png')}
@@ -514,8 +522,8 @@ export default function UserProfile() {
         },
         {
           id: 'dark-mode',
-          title: 'Dark Mode',
-          description: 'Customize app appearance',
+          title: t('profilePage.sections.personalization.darkMode.title'),
+          description: t('profilePage.sections.personalization.darkMode.description'),
           icon: (
             <Image
               source={require('@/assets/images/icon/profile/moon.png')}
@@ -523,24 +531,23 @@ export default function UserProfile() {
             />
           ),
           type: 'toggle',
-          value: darkModeEnabled,
+          value: isDarkMode,
           onToggle: async (value) => {
-            setDarkModeEnabled(value);
-            await savePreference('@dark_mode_enabled', value);
+            await setDarkMode(value);
           },
         },
       ],
     },
     {
       id: 'communication',
-      title: 'Communication',
-      subtitle: 'See in your Communication Settings',
+      title: t('profilePage.sections.communication.title'),
+      subtitle: t('profilePage.sections.communication.subtitle'),
       badge: '3',
       items: [
         {
           id: 'notifications',
-          title: 'Notifications',
-          description: 'Push notifications for family activities',
+          title: t('profilePage.sections.communication.notifications.title'),
+          description: t('profilePage.sections.communication.notifications.description'),
           icon: (
             <Image
               source={require('@/assets/images/icon/profile/bell.png')}
@@ -557,7 +564,7 @@ export default function UserProfile() {
               try {
                 const { status } = await Notifications.requestPermissionsAsync();
                 if (status !== 'granted') {
-                  Alert.alert('Permission Required', 'Notification permission is required for this feature');
+                  Alert.alert(t('common.permissionRequired'), t('profilePage.sections.communication.notifications.permissionMessage'));
                   setNotificationsEnabled(false);
                   await savePreference('@notifications_enabled', false);
                 }
@@ -569,8 +576,8 @@ export default function UserProfile() {
         },
         {
           id: 'give-feedback',
-          title: 'Give feedback',
-          description: 'How much do you like the app',
+          title: t('profilePage.sections.communication.feedback.title'),
+          description: t('profilePage.sections.communication.feedback.description'),
           icon: (
             <Image
               source={require('@/assets/images/icon/profile/satisfaction-bar.png')}
@@ -578,12 +585,12 @@ export default function UserProfile() {
             />
           ),
           type: 'navigation',
-          onPress: () => Alert.alert('Feedback', 'Feedback feature coming soon'),
+          onPress: () => Alert.alert(t('profilePage.sections.communication.feedback.alertTitle'), t('profilePage.sections.communication.feedback.comingSoon')),
         },
         {
           id: 'faq-help',
-          title: 'FAQ & Help',
-          description: 'Do you need help with something',
+          title: t('profilePage.sections.communication.faq.title'),
+          description: t('profilePage.sections.communication.faq.description'),
           icon: (
             <Image
               source={require('@/assets/images/icon/profile/interrogation.png')}
@@ -597,14 +604,14 @@ export default function UserProfile() {
     },
     {
       id: 'general',
-      title: 'General Settings',
-      subtitle: 'See in your General Settings',
+      title: t('profilePage.sections.general.title'),
+      subtitle: t('profilePage.sections.general.subtitle'),
       badge: '4',
       items: [
         {
           id: 'app-version',
-          title: 'APP Version',
-          description: 'Shows your current app version',
+          title: t('profilePage.sections.general.appVersion.title'),
+          description: t('profilePage.sections.general.appVersion.description'),
           icon: (
             <Image
               source={require('@/assets/images/icon/profile/apps.png')}
@@ -616,8 +623,8 @@ export default function UserProfile() {
         },
         {
           id: 'manage-storage',
-          title: 'Manage storage',
-          description: 'Clear your Cache to clean everything up',
+          title: t('profilePage.sections.general.manageStorage.title'),
+          description: t('profilePage.sections.general.manageStorage.description'),
           icon: (
             <Image
               source={require('@/assets/images/icon/profile/folder-open.png')}
@@ -629,8 +636,8 @@ export default function UserProfile() {
         },
         {
           id: 'log-out',
-          title: 'Log out with Account',
-          description: 'Log out with your current account',
+          title: t('profilePage.sections.general.logOut.title'),
+          description: t('profilePage.sections.general.logOut.description'),
           icon: (
             <Image
               source={require('@/assets/images/icon/profile/user-logout.png')}
@@ -642,8 +649,8 @@ export default function UserProfile() {
         },
         {
           id: 'delete-account',
-          title: 'Delete Account',
-          description: 'Delete or deactivate your account',
+          title: t('profilePage.sections.general.deleteAccount.title'),
+          description: t('profilePage.sections.general.deleteAccount.description'),
           icon: (
             <Image
               source={require('@/assets/images/icon/profile/delete-user.png')}
@@ -776,7 +783,7 @@ export default function UserProfile() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={styles.loadingText}>{t('common.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -787,8 +794,8 @@ export default function UserProfile() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Error</Text>
-          <Text style={styles.errorSubtext}>No user data found. Please sign in again.</Text>
+          <Text style={styles.errorText}>{t('common.error')}</Text>
+          <Text style={styles.errorSubtext}>{t('profilePage.error.noUserData')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -796,7 +803,10 @@ export default function UserProfile() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar 
+        barStyle={isDarkMode ? "light-content" : "dark-content"} 
+        backgroundColor={isDarkMode ? colors.dark.surface : colors.light.surface} 
+      />
 
       {/* Fixed Header Section */}
       <View style={styles.fixedHeader}>
@@ -844,8 +854,8 @@ export default function UserProfile() {
           <View style={styles.workSummaryBanner}>
             <View style={styles.workSummaryContent}>
               <View style={styles.workSummaryText}>
-                <Text style={styles.workSummaryTitle}>Setup & Settings</Text>
-                <Text style={styles.workSummarySubtitle}>Give your Profile the best settings</Text>
+                <Text style={styles.workSummaryTitle}>{t('profilePage.banner.title')}</Text>
+                <Text style={styles.workSummarySubtitle}>{t('profilePage.banner.subtitle')}</Text>
               </View>
               <View style={styles.workSummaryIcon}>
                 <Image
@@ -936,7 +946,7 @@ export default function UserProfile() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Change Password</Text>
+            <Text style={styles.modalTitle}>{t('profilePage.modals.changePassword.title')}</Text>
 
             <View style={styles.modalForm}>
               <TextInput
@@ -948,7 +958,8 @@ export default function UserProfile() {
                     boxShadow: 'none',
                   } as any)
                 ]}
-                placeholder="Current Password"
+                placeholder={t('profilePage.modals.changePassword.currentPassword')}
+                placeholderTextColor={isDarkMode ? colors.dark.textSecondary : colors.light.textSecondary}
                 secureTextEntry
                 value={currentPassword}
                 onChangeText={setCurrentPassword}
@@ -963,7 +974,8 @@ export default function UserProfile() {
                     boxShadow: 'none',
                   } as any)
                 ]}
-                placeholder="New Password"
+                placeholder={t('profilePage.modals.changePassword.newPassword')}
+                placeholderTextColor={isDarkMode ? colors.dark.textSecondary : colors.light.textSecondary}
                 secureTextEntry
                 value={newPassword}
                 onChangeText={setNewPassword}
@@ -978,7 +990,8 @@ export default function UserProfile() {
                     boxShadow: 'none',
                   } as any)
                 ]}
-                placeholder="Confirm New Password"
+                placeholder={t('profilePage.modals.changePassword.confirmNewPassword')}
+                placeholderTextColor={isDarkMode ? colors.dark.textSecondary : colors.light.textSecondary}
                 secureTextEntry
                 value={confirmNewPassword}
                 onChangeText={setConfirmNewPassword}
@@ -991,13 +1004,13 @@ export default function UserProfile() {
                 style={styles.modalCancelButton}
                 onPress={() => setShowPasswordModal(false)}
               >
-                <Text style={styles.modalCancelText}>Cancel</Text>
+                <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
               </Pressable>
               <Pressable
                 style={styles.modalConfirmButton}
                 onPress={handlePasswordChange}
               >
-                <Text style={styles.modalConfirmText}>Change Password</Text>
+                <Text style={styles.modalConfirmText}>{t('profilePage.modals.changePassword.button')}</Text>
               </Pressable>
             </View>
           </View>
@@ -1013,7 +1026,7 @@ export default function UserProfile() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Select Language</Text>
+            <Text style={styles.modalTitle}>{t('profilePage.modals.selectLanguage.title')}</Text>
 
             <View style={styles.languageList}>
               {supportedLanguages.map((language) => (
@@ -1043,7 +1056,7 @@ export default function UserProfile() {
               style={styles.modalCancelButton}
               onPress={() => setShowLanguageModal(false)}
             >
-              <Text style={styles.modalCancelText}>Cancel</Text>
+              <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
             </Pressable>
           </View>
         </View>
@@ -1058,8 +1071,8 @@ export default function UserProfile() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Change Profile Picture</Text>
-            <Text style={styles.modalSubtitle}>Choose how you want to update your profile picture</Text>
+            <Text style={styles.modalTitle}>{t('profilePage.modals.changeProfilePicture.title')}</Text>
+            <Text style={styles.modalSubtitle}>{t('profilePage.modals.changeProfilePicture.subtitle')}</Text>
 
             <View style={styles.imagePickerOptions}>
               <Pressable
@@ -1069,8 +1082,8 @@ export default function UserProfile() {
                 <View style={styles.imagePickerIcon}>
                   <Camera size={24} color="#17F196" strokeWidth={2} />
                 </View>
-                <Text style={styles.imagePickerOptionText}>Take Photo</Text>
-                <Text style={styles.imagePickerOptionSubtext}>Use camera to take a new photo</Text>
+                <Text style={styles.imagePickerOptionText}>{t('profilePage.modals.changeProfilePicture.takePhoto')}</Text>
+                <Text style={styles.imagePickerOptionSubtext}>{t('profilePage.modals.changeProfilePicture.useCamera')}</Text>
               </Pressable>
 
               <Pressable
@@ -1084,8 +1097,8 @@ export default function UserProfile() {
                     resizeMode="contain"
                   />
                 </View>
-                <Text style={styles.imagePickerOptionText}>Choose from Library</Text>
-                <Text style={styles.imagePickerOptionSubtext}>Select from your photo library</Text>
+                <Text style={styles.imagePickerOptionText}>{t('profilePage.modals.changeProfilePicture.chooseLibrary')}</Text>
+                <Text style={styles.imagePickerOptionSubtext}>{t('profilePage.modals.changeProfilePicture.selectLibrary')}</Text>
               </Pressable>
             </View>
 
@@ -1093,7 +1106,7 @@ export default function UserProfile() {
               style={styles.modalCancelButton}
               onPress={() => setShowImagePickerModal(false)}
             >
-              <Text style={styles.modalCancelText}>Cancel</Text>
+              <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
             </Pressable>
           </View>
         </View>
@@ -1103,7 +1116,7 @@ export default function UserProfile() {
       {isUploadingImage && (
         <View style={styles.uploadOverlay}>
           <View style={styles.uploadContainer}>
-            <Text style={styles.uploadText}>Uploading...</Text>
+            <Text style={styles.uploadText}>{t('profilePage.uploading')}</Text>
           </View>
         </View>
       )}
@@ -1117,13 +1130,13 @@ export default function UserProfile() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>App Version</Text>
-            <Text style={styles.modalSubtitle}>Version 1.0.0\nBuild 2025.1</Text>
+            <Text style={styles.modalTitle}>{t('profilePage.modals.appVersion.title')}</Text>
+            <Text style={styles.modalSubtitle}>{t('profilePage.modals.appVersion.version', { version: '1.0.0', build: '2025.1' })}</Text>
             <Pressable
               style={styles.modalCancelButton}
               onPress={() => setShowAppVersionModal(false)}
             >
-              <Text style={styles.modalCancelText}>Got it</Text>
+              <Text style={styles.modalCancelText}>{t('profilePage.modals.appVersion.gotIt')}</Text>
             </Pressable>
           </View>
         </View>
@@ -1132,10 +1145,13 @@ export default function UserProfile() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (isDarkMode: boolean) => {
+  const theme = isDarkMode ? colors.dark : colors.light;
+  
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f1f3f8',
+    backgroundColor: theme.background,
   },
   scrollView: {
     flex: 1,
@@ -1151,11 +1167,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 1000,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     paddingTop: 44,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    shadowColor: '#2d2d2d',
+    shadowColor: theme.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -1186,7 +1202,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000000',
+    color: isDarkMode ? '#FFFFFF' : '#000000',
   },
   profileDetails: {
     gap: 4,
@@ -1199,7 +1215,7 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#2d2d2d',
+    color: theme.text,
   },
   userRole: {
     fontSize: 12,
@@ -1253,7 +1269,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   futuresElementsPanel: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     marginHorizontal: 0,
     marginVertical: 12,
     borderRadius: 12,
@@ -1267,7 +1283,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#040404',
+    color: theme.text,
   },
   badge: {
     backgroundColor: '#e9fff6',
@@ -1284,7 +1300,7 @@ const styles = StyleSheet.create({
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#466759',
+    color: theme.textTertiary,
     fontWeight: '400',
     lineHeight: 20,
     marginBottom: 6,
@@ -1301,10 +1317,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: theme.border,
     borderRadius: 12,
     marginBottom: 8,
-    backgroundColor: '#FEFEFE',
+    backgroundColor: theme.surfaceSecondary,
   },
   destructiveItem: {
     backgroundColor: 'rgba(255, 107, 107, 0.02)',
@@ -1335,14 +1351,14 @@ const styles = StyleSheet.create({
   settingsTitle: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#2b2b2b'
+    color: theme.text
   },
   destructiveText: {
     color: '#FF6B6B',
   },
   settingsDescription: {
     fontSize: 10,
-    color: '#2b2b2b',
+    color: theme.text,
     fontWeight: '300',
   },
   settingsItemRight: {
@@ -1363,7 +1379,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   modalContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderRadius: 20,
     padding: 24,
     width: '100%',
@@ -1377,13 +1393,13 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#2D2D2D',
+    color: theme.text,
     marginBottom: 16,
     textAlign: 'center',
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#666666',
+    color: theme.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -1392,13 +1408,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   modalInput: {
-    backgroundColor: '#F3F3F5',
+    backgroundColor: theme.input,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: theme.inputBorder,
+    color: theme.text,
   },
   modalActions: {
     flexDirection: 'row',
@@ -1406,7 +1423,7 @@ const styles = StyleSheet.create({
   },
   modalCancelButton: {
     flex: 1,
-    backgroundColor: '#F3F3F5',
+    backgroundColor: theme.input,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -1414,7 +1431,7 @@ const styles = StyleSheet.create({
   modalCancelText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#666666',
+    color: theme.textSecondary,
   },
   modalConfirmButton: {
     flex: 1,
@@ -1439,9 +1456,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderRadius: 12,
-    backgroundColor: '#F3F3F5',
+    backgroundColor: theme.input,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: theme.inputBorder,
   },
   selectedLanguageOption: {
     backgroundColor: 'rgba(23, 241, 150, 0.1)',
@@ -1455,7 +1472,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '500',
-    color: '#2D2D2D',
+    color: theme.text,
   },
   selectedLanguageName: {
     fontWeight: '600',
@@ -1471,10 +1488,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#F8F8F8',
+    backgroundColor: theme.input,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: theme.inputBorder,
   },
   imagePickerIcon: {
     width: 48,
@@ -1493,13 +1510,13 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
-    color: '#2D2D2D',
+    color: theme.text,
     marginBottom: 2,
   },
   imagePickerOptionSubtext: {
     flex: 1,
     fontSize: 14,
-    color: '#666666',
+    color: theme.textSecondary,
   },
 
   // Upload Overlay
@@ -1515,7 +1532,7 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   uploadContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
@@ -1528,7 +1545,7 @@ const styles = StyleSheet.create({
   uploadText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#2D2D2D',
+    color: theme.text,
     marginTop: 12,
   },
 
@@ -1542,7 +1559,7 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#666666',
+    color: theme.textSecondary,
   },
   errorContainer: {
     flex: 1,
@@ -1558,7 +1575,8 @@ const styles = StyleSheet.create({
   },
   errorSubtext: {
     fontSize: 14,
-    color: '#666666',
+    color: theme.textSecondary,
     textAlign: 'center',
   },
 });
+};

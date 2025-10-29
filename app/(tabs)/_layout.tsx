@@ -9,6 +9,8 @@ import EventCreationModal from '@/components/EventCreationModal';
 import ShoppingItemCreationModal from '@/components/ShoppingItemCreationModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFamily } from '@/contexts/FamilyContext';
+import { useDarkMode } from '@/contexts/DarkModeContext';
+import { getTheme } from '@/constants/theme';
 
 // Custom Tab Bar Component with Dented Design
 function CustomTabBar({ state, descriptors, navigation }: any) {
@@ -19,6 +21,11 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
   const [showEventCreationModal, setShowEventCreationModal] = useState(false);
   const [showShoppingItemCreationModal, setShowShoppingItemCreationModal] = useState(false);
   const { currentFamily, isInFamily, loading: familyLoading, refreshFamily, familyMembers } = useFamily();
+  const { isDarkMode } = useDarkMode();
+  const theme = getTheme(isDarkMode);
+  
+  // Create themed styles
+  const styles = createStyles(theme, isDarkMode);
   
   // Removed unnecessary family refresh - FamilyContext already loads data on mount
 
@@ -421,6 +428,11 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
 export default function TabLayout() {
   const { session, user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { isDarkMode } = useDarkMode();
+  const theme = getTheme(isDarkMode);
+  
+  // Create themed styles
+  const styles = createStyles(theme, isDarkMode);
 
   useEffect(() => {
     // Only redirect if we're not loading and user is NOT authenticated
@@ -510,11 +522,11 @@ export default function TabLayout() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) => StyleSheet.create({
   // Container for the entire tab bar area
   tabBarContainer: {
     position: 'relative',
-    backgroundColor: 'transparent',
+    backgroundColor: theme.background, // Matches page background
     height: 110,
   },
 
@@ -532,7 +544,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 64,
     height: 64, // Half the height for half circle
-    backgroundColor: '#F5F5F5', // Gray color matching page background
+    backgroundColor: theme.background, // Matches page background
     borderRadius: 30,
     top: 24, // Center of bottom side aligns with center of Add button
     left: -8,
@@ -557,17 +569,17 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
 
-  // Navigation Bar - Flat White Design
+  // Navigation Bar - Flat Design
   navigationBar: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
     height: 80,
-    backgroundColor: '#FFFFFF', // White background like the image
+    backgroundColor: theme.surface, // Adapts to theme
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    boxShadow: '0 -1px 4px 0px rgba(0, 0, 0, 0.05)',
+    boxShadow: isDarkMode ? '0 -1px 4px 0px rgba(0, 0, 0, 0.3)' : '0 -1px 4px 0px rgba(0, 0, 0, 0.05)',
     elevation: 4,
   },
 
@@ -629,7 +641,7 @@ const styles = StyleSheet.create({
 
   // Inactive tab label
   tabLabelInactive: {
-    color: '#888888', // Gray color for inactive state
+    color: theme.textSecondary, // Adapts to theme
   },
 
   // Loading styles
@@ -637,11 +649,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F3F3F5',
+    backgroundColor: theme.background,
   },
   loadingText: {
     fontSize: 16,
-    color: '#666666',
+    color: theme.textSecondary,
     marginBottom: 16,
     fontFamily: 'Montserrat-Regular',
   },

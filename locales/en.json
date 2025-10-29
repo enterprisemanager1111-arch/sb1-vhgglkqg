@@ -154,10 +154,521 @@
         "loadShoppingItems": "Failed to load shopping items"
       }
     },
+    "taskCreationModal": {
+      "title": "Create New Task",
+      "subtitle": "Here you can create a new task. Be sure about which tasks you want to create.",
+      "loading": "Creating task...",
+      "form": {
+        "taskTitle": "Task Title",
+        "taskTitlePlaceholder": "Clean kitchen",
+        "taskDescription": "Task Description",
+        "taskDescriptionPlaceholder": "Everything except the refrigerator",
+        "assignTask": "Assign task",
+        "noMembers": "No family members available",
+        "joinFamily": "Join a family to assign tasks",
+        "startDate": "Start date (optional)",
+        "startDatePlaceholder": "Start date",
+        "endDate": "End date (optional)",
+        "endDatePlaceholder": "End date"
+      },
+      "reward": {
+        "title": "Task Reward",
+        "subtitle": "If this task is executed, the user receives",
+        "flames": "Flames"
+      },
+      "button": {
+        "addTask": "Add Task",
+        "creating": "Creating..."
+      },
+      "datePicker": {
+        "selectStartDate": "Select Start Date",
+        "selectEndDate": "Select End Date",
+        "done": "Done",
+        "invalidDate": "Invalid Date",
+        "endDateError": "End date cannot be before start date",
+        "year": "Year",
+        "month": "Month",
+        "day": "Day"
+      },
+      "months": {
+        "january": "January",
+        "february": "February",
+        "march": "March",
+        "april": "April",
+        "may": "May",
+        "june": "June",
+        "july": "July",
+        "august": "August",
+        "september": "September",
+        "october": "October",
+        "november": "November",
+        "december": "December"
+      },
+      "validation": {
+        "titleRequired": "Please enter a task title",
+        "authError": "Authentication Error",
+        "authErrorMessage": "User not properly authenticated. Please sign in again.",
+        "sessionError": "Session Error",
+        "sessionErrorMessage": "Unable to get valid session. Please try refreshing the page or sign in again.",
+        "timeout": "Connection Timeout",
+        "timeoutMessage": "The request timed out. This might be due to network issues or server load. Please try again.",
+        "retry": "Retry",
+        "createFailed": "Failed to create task"
+      },
+      "success": {
+        "task": "Task",
+        "createdSingle": "Task created and assigned successfully!",
+        "createdMultiple": "Task created and assigned to {{count}} members successfully!"
+    }
+  },
+  "eventCreationModal": {
+    "title": "Create New Event",
+    "subtitle": "Here you can create a new Event. Be sure about which event you want to create.",
+    "loading": "Creating event...",
+    "form": {
+      "eventTitle": "Event Title",
+      "eventTitlePlaceholder": "Bobs Birthday",
+      "eventDescription": "Event Description",
+      "eventDescriptionPlaceholder": "Bring a Gift",
+      "assignEvent": "Assign event",
+      "noMembers": "No family members found. Please refresh or check your family connection.",
+      "startTime": "Start time",
+      "startTimePlaceholder": "Start time",
+      "duration": "Duration (optional)"
+    },
+    "reward": {
+      "title": "Event Reward",
+      "subtitle": "If this event is executed, the user receives",
+      "flames": "Flames"
+    },
+    "button": {
+      "addEvent": "Add Event",
+      "creating": "Creating..."
+    },
+    "dateTimePicker": {
+      "selectDateTime": "Select Start Date & Time",
+      "done": "Done",
+      "year": "Year",
+      "month": "Month",
+      "day": "Day",
+      "hour": "Hour",
+      "minute": "Minute"
+    },
+    "durationPicker": {
+      "selectDuration": "Select Duration",
+      "done": "Done",
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "seconds": "Seconds"
+    },
+    "months": {
+      "january": "January",
+      "february": "February",
+      "march": "March",
+      "april": "April",
+      "may": "May",
+      "june": "June",
+      "july": "July",
+      "august": "August",
+      "september": "September",
+      "october": "October",
+      "november": "November",
+      "december": "December"
+    },
+    "validation": {
+      "titleRequired": "Please enter an event title",
+      "databaseError": "Database connection issue. Please try again.",
+      "createFailed": "Failed to create event"
+    },
+    "success": {
+      "title": "Success",
+      "message": "Event created successfully!"
+    }
+  },
+  "shoppingItemCreationModal": {
+    "title": "Create New Shopping Item",
+    "subtitle": "Here you can create a new Item. Be sure about which shopping item you want to create.",
+    "loading": "Creating shopping item...",
+    "form": {
+      "itemTitle": "Item Title",
+      "itemTitlePlaceholder": "Milk",
+      "quantity": "Quantity (optional)",
+      "quantityPlaceholder": "1.0 stk",
+      "itemDescription": "Item Description",
+      "itemDescriptionPlaceholder": "Buy organic milk",
+      "assignTask": "Assign task (optional)"
+    },
+    "reward": {
+      "title": "Shop item Reward",
+      "subtitle": "If this item is executed, the user receives",
+      "flames": "Flames"
+    },
+    "button": {
+      "addItem": "Add Item",
+      "creating": "Creating..."
+    },
+    "validation": {
+      "titleRequired": "Please enter an item title",
+      "createFailed": "Failed to create shopping item"
+    },
+    "success": {
+      "title": "Success",
+      "message": "Shopping item created successfully!",
+      "item": "Shopping item created",
+      "created": "Created shopping item"
+    }
+  },
+  "tasksPage": {
+    "header": {
+      "title": "Task Awaiting",
+      "subtitle": "Let's tackle your to do list"
+    },
+    "summary": {
+      "title": "Summary of Your Work",
+      "subtitle": "Your current task progress",
+      "toDo": "To Do",
+      "inProgress": "In Progress",
+      "done": "Done"
+    },
+    "sprint": {
+      "title": "Sprint 20 - Burnout Stats",
+      "status": "Poor",
+      "description": "You've completed 8 more tasks than usual, maintain your task with your supervisor"
+    },
+    "filter": {
+      "all": "All",
+      "inProgress": "In Progress",
+      "finish": "Finish"
+    },
+    "taskStatus": {
+      "toDo": "To Do",
+      "inProgress": "In Progress",
+      "done": "Done"
+    },
+    "task": {
+      "noDueDate": "No due date"
+    },
+    "emptyState": {
+      "title": "No tasks found",
+      "noTasks": "No tasks available",
+      "noInProgress": "No tasks in progress",
+      "noCompleted": "No completed tasks"
+    }
+  },
+  "calendarPage": {
+    "header": {
+      "title": "Calendar Events",
+      "subtitle": "Don't miss your clock in schedule"
+    },
+    "summary": {
+      "subtitle": "Your current calendar progress",
+      "today": "Today",
+      "nextEvent": "Next Event"
+    },
+    "loading": "Loading events...",
+    "error": "Error",
+    "retry": "Retry",
+    "event": {
+      "eventTitle": "Event Title",
+      "startTime": "Start Time",
+      "duration": "Duration",
+      "allDay": "All day"
+    },
+    "emptyState": {
+      "noEventsFor": "No events scheduled for",
+      "noEvents": "No events scheduled for selected dates",
+      "showAll": "Show All Events"
+    },
+    "modal": {
+      "title": "Set Calendar",
+      "subtitle": "Select 5 days to show in calendar",
+      "submit": "Submit Date",
+      "close": "Close Popup"
+    }
+  },
+  "shopListPage": {
+    "header": {
+      "title": "Shopping List",
+      "subtitle": "Don't forget your shopping list"
+    },
+    "summary": {
+      "title": "Perfekt Shopping List",
+      "subtitle": "Your current shopping list",
+      "itemsToBuy": "Items to Buy",
+      "purchasedItems": "Purchased Items"
+    },
+    "filters": {
+      "allItems": "All Items",
+      "buyItems": "Buy Items",
+      "finished": "Finished"
+    },
+    "item": {
+      "item": "Item",
+      "quantity": "Quantity",
+      "by": "By",
+      "purchasedAt": "Purchased at",
+      "pendingPurchase": "Pending purchase",
+      "unknown": "Unknown"
+    },
+    "loading": {
+      "family": "Loading family data...",
+      "items": "Loading shopping items...",
+      "timeout": "Taking longer than expected. Pull to refresh.",
+      "initializing": "Initializing family data...",
+      "timeoutRefresh": "If this takes too long, pull to refresh."
+    },
+    "error": {
+      "loadFailed": "Failed to load shopping items"
+    },
+    "empty": {
+      "noFamily": "No Family Found",
+      "needFamily": "You need to be part of a family to view shopping items",
+      "noItems": "No shopping items found",
+      "addItems": "Add some items to your shopping list"
+    }
+  },
+  "profilePage": {
+    "role": {
+      "admin": "Family Admin",
+      "teenager": "Family Teenager"
+    },
+    "banner": {
+      "title": "Setup & Settings",
+      "subtitle": "Give your Profile the best settings"
+    },
+    "error": {
+      "noUserData": "No user data found. Please sign in again."
+    },
+    "uploading": "Uploading...",
+    "passwordChange": {
+      "fillAllFields": "Please fill all fields",
+      "passwordMismatch": "Passwords do not match",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "success": "Password updated successfully",
+      "failed": "Failed to update password"
+    },
+    "languageChange": {
+      "success": "Language changed to {{language}}.",
+      "failed": "Failed to change language"
+    },
+    "support": {
+      "title": "Contact Support",
+      "subject": "Help needed - Famora App",
+      "body": "Hello Famora Team,\n\nI need help with:\n\n[Please describe your problem here]\n\nMy App Version: {{version}}\nMy Device: {{device}}\nMy Family ID: {{familyId}}\n\nThank you!",
+      "noFamily": "No Family",
+      "emailSent": "Email sent to {{email}}",
+      "copyEmail": "Copy Email",
+      "emailCopied": "Email copied to clipboard",
+      "failed": "Failed to contact support"
+    },
+    "cache": {
+      "title": "Clear Cache",
+      "message": "This will clear all cached data and temporary files. Continue?",
+      "clearButton": "Clear Cache",
+      "success": "Cache cleared successfully",
+      "failed": "Failed to clear cache"
+    },
+    "deleteAccount": {
+      "title": "Delete Account",
+      "message": "This action cannot be undone. All your data will be permanently deleted.",
+      "deleteButton": "Delete Account",
+      "notImplemented": "Account deletion feature is not yet implemented."
+    },
+    "sections": {
+      "security": {
+        "title": "Security & Privacy",
+        "subtitle": "See in your Security & Privacy settings",
+        "twoFactor": {
+          "title": "Two-Factor authentication (2FA)",
+          "description": "Setup your Authentication for your Account",
+          "alertTitle": "2FA",
+          "comingSoon": "Two-factor authentication setup coming soon"
+        },
+        "manageSessions": {
+          "title": "Manage sessions",
+          "description": "View active logins on devices & log out",
+          "alertTitle": "Sessions",
+          "comingSoon": "Session management coming soon"
+        },
+        "privacy": {
+          "title": "Privacy settings",
+          "description": "See statistics, visibility of activities",
+          "alertTitle": "Privacy",
+          "comingSoon": "Privacy settings coming soon"
+        }
+      },
+      "personalization": {
+        "title": "Personalization",
+        "subtitle": "See in your personalization Settings",
+        "editAccount": {
+          "title": "Edit Account",
+          "description": "Name, Date of Birth and Profile picture"
+        },
+        "changePassword": {
+          "title": "Change Password",
+          "description": "Update your password"
+        },
+        "language": {
+          "title": "Language",
+          "description": "Select your preferred Language"
+        },
+        "darkMode": {
+          "title": "Dark Mode",
+          "description": "Customize app appearance"
+        }
+      },
+      "communication": {
+        "title": "Communication",
+        "subtitle": "See in your Communication Settings",
+        "notifications": {
+          "title": "Notifications",
+          "description": "Push notifications for family activities",
+          "permissionMessage": "Notification permission is required for this feature"
+        },
+        "feedback": {
+          "title": "Give feedback",
+          "description": "How much do you like the app",
+          "alertTitle": "Feedback",
+          "comingSoon": "Feedback feature coming soon"
+        },
+        "faq": {
+          "title": "FAQ & Help",
+          "description": "Do you need help with something"
+        }
+      },
+      "general": {
+        "title": "General Settings",
+        "subtitle": "See in your General Settings",
+        "appVersion": {
+          "title": "APP Version",
+          "description": "Shows your current app version"
+        },
+        "manageStorage": {
+          "title": "Manage storage",
+          "description": "Clear your Cache to clean everything up"
+        },
+        "logOut": {
+          "title": "Log out with Account",
+          "description": "Log out with your current account"
+        },
+        "deleteAccount": {
+          "title": "Delete Account",
+          "description": "Delete or deactivate your account"
+        }
+      }
+    },
+    "modals": {
+      "changePassword": {
+        "title": "Change Password",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmNewPassword": "Confirm New Password",
+        "button": "Change Password"
+      },
+      "selectLanguage": {
+        "title": "Select Language"
+      },
+      "changeProfilePicture": {
+        "title": "Change Profile Picture",
+        "subtitle": "Choose how you want to update your profile picture",
+        "takePhoto": "Take Photo",
+        "useCamera": "Use camera to take a new photo",
+        "chooseLibrary": "Choose from Library",
+        "selectLibrary": "Select from your photo library"
+      },
+      "appVersion": {
+        "title": "App Version",
+        "version": "Version {{version}}\nBuild {{build}}",
+        "gotIt": "Got it"
+      }
+    }
+  },
+  "notificationsPage": {
+    "title": "Notifications",
+    "loading": "Loading notifications...",
+    "retry": "Retry",
+    "empty": {
+      "title": "No notifications yet",
+      "subtitle": "You'll see task assignments here"
+    },
+    "item": {
+      "title": "New Task Assigned to You!",
+      "description": "You have new task for this sprint from {{assignerName}}, you can check your task \"{{taskTitle}}\" by tap here",
+      "someone": "Someone",
+      "aTask": "a task"
+    }
+  },
+  "featuresToCreate": {
+      "title": "Features to Create",
+      "subtitle": "On which feature would you like to add something new to? Please select your Feature",
+      "startButton": "Start with Creation",
+      "features": {
+        "tasks": {
+          "title": "Tasks",
+          "subtitle": "14 Tasks"
+        },
+        "calendar": {
+          "title": "Calendar",
+          "subtitle": "6 Events"
+        },
+        "shopList": {
+          "title": "Shopping List",
+          "subtitle": "25 Items"
+        },
+        "comingSoon": {
+          "title": "Coming Soon",
+          "subtitle": "Hyped?"
+        }
+      }
+    },
     "flames": {
       "title": "Flames & Points",
       "subtitle": "family points collected",
       "loading": "Loading flames...",
+      "header": {
+        "familyRole": "Family {{role}}"
+      },
+      "currentRank": {
+        "title": "Current Rank",
+        "subtitle": "See in your Rank Progress",
+        "goldMember": "Gold Member",
+        "currentStatus": "Current Status",
+        "progressToPlatinum": "Progress to Platinum Member",
+        "flamesProgress": "{{current}}/{{total}} Flames"
+      },
+      "familyRanks": {
+        "title": "Family Ranks",
+        "currentPosition": "You are currently in {{position}} place in the family",
+        "position1st": "1st",
+        "position2nd": "2nd",
+        "position3rd": "3rd",
+        "positionNth": "{{n}}th",
+        "place": "Place {{position}}",
+        "flames": "{{count}} Flames"
+      },
+      "statusBanner": {
+        "title": "Your Current Status",
+        "subtitle": "Learn everything about the Flames"
+      },
+      "achievements": {
+        "title": "Achievements",
+        "subtitle": "Here are your current achievements",
+        "finished": "Finished",
+        "progress": "Progress",
+        "flamesReward": "+{{count}} Flames",
+        "tasks": "Tasks",
+        "tasksCompleted": "{{completed}}/{{total}} completed",
+        "calendar": "Calendar",
+        "calendarEvents": "{{completed}}/{{total}} events",
+        "shopList": "Shop List",
+        "shopListItems": "{{completed}}/{{total}} items",
+        "allTasks": "All Tasks",
+        "allTasksTotal": "{{completed}}/{{total}} total",
+        "allEvents": "All Events",
+        "allEventsTotal": "{{completed}}/{{total}} total",
+        "allItems": "All Items",
+        "allItemsTotal": "{{completed}}/{{total}} total"
+      },
       "error": {
         "title": "Error loading",
         "retry": "Try again"
@@ -191,10 +702,6 @@
         "empty": "No activities yet",
         "emptySubtitle": "Complete tasks and earn points!",
         "unknown": "Unknown"
-      },
-      "achievements": {
-        "title": "Family Achievements",
-        "unlocked": "Unlocked"
       },
       "goal": {
         "title": "New Family Goal",
@@ -399,6 +906,21 @@
       }
     },
     "family": {
+      "header": {
+        "welcome": "Welcome to our family!"
+      },
+      "overview": {
+        "subtitle": "Here are your top activities",
+        "total": "Total"
+      },
+      "challenge": {
+        "title": "Family Challenge",
+        "subtitle": "Complete all family activities to reach 100%",
+        "taskTitle": "Family Activity Challenge",
+        "activitiesCompleted": "{{completed}} of {{total}} activities completed",
+        "progressComplete": "{{percent}}% Complete",
+        "rewardFlames": "{{points}} Flames"
+      },
       "prompt": {
         "title": "Join Family",
         "description": "You are not part of a family yet. Join a family or create a new one.",
@@ -420,6 +942,7 @@
       },
       "members": {
         "title": "Family Members",
+        "subtitle": "All family members are listed here",
         "count": "{{count}} {{memberText}}",
         "loading": "Loading members...",
         "empty": "No members found",
@@ -431,6 +954,12 @@
         "assignTask": "Assign Task",
         "invite": "Invite Member",
         "expand": "Expand Family"
+      },
+      "error": {
+        "tipsTitle": "Troubleshooting Tips:",
+        "checkInternet": "Check your internet connection",
+        "checkSupabase": "Make sure your Supabase project is active",
+        "tryRefresh": "Try refreshing the page"
       },
       "insights": {
         "title": "Family Insights",

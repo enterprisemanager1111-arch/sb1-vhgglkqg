@@ -74,6 +74,32 @@
     "allDone": "Alle erledigt",
     "points": "Punkte"
   },
+  "family": {
+    "header": {
+      "welcome": "Willkommen in unserer Familie!"
+    },
+    "overview": {
+      "subtitle": "Hier sind eure Top-Aktivitäten",
+      "total": "Gesamt"
+    },
+    "challenge": {
+      "title": "Familien-Challenge",
+      "subtitle": "Erledigt alle Familienaktivitäten, um 100% zu erreichen",
+      "taskTitle": "Familien-Aktivitäts-Challenge",
+      "activitiesCompleted": "{{completed}} von {{total}} Aktivitäten erledigt",
+      "progressComplete": "{{percent}}% abgeschlossen",
+      "rewardFlames": "{{points}} Flames"
+    },
+    "members": {
+      "subtitle": "Alle Familienmitglieder sind hier aufgelistet"
+    },
+    "error": {
+      "tipsTitle": "Tipps zur Fehlerbehebung:",
+      "checkInternet": "Prüfe deine Internetverbindung",
+      "checkSupabase": "Stelle sicher, dass dein Supabase-Projekt aktiv ist",
+      "tryRefresh": "Versuche, die Seite zu aktualisieren"
+    }
+  },
   "home": {
     "loading": {
       "dashboard": "Lade dein Dashboard...",
@@ -148,10 +174,521 @@
       "loadShoppingItems": "Einkaufsartikel konnten nicht geladen werden"
     }
   },
+  "taskCreationModal": {
+    "title": "Neue Aufgabe erstellen",
+    "subtitle": "Hier können Sie eine neue Aufgabe erstellen. Seien Sie sich sicher, welche Aufgaben Sie erstellen möchten.",
+    "loading": "Aufgabe wird erstellt...",
+    "form": {
+      "taskTitle": "Aufgabentitel",
+      "taskTitlePlaceholder": "Küche putzen",
+      "taskDescription": "Aufgabenbeschreibung",
+      "taskDescriptionPlaceholder": "Alles außer dem Kühlschrank",
+      "assignTask": "Aufgabe zuweisen",
+      "noMembers": "Keine Familienmitglieder verfügbar",
+      "joinFamily": "Treten Sie einer Familie bei, um Aufgaben zuzuweisen",
+      "startDate": "Startdatum (optional)",
+      "startDatePlaceholder": "Startdatum",
+      "endDate": "Enddatum (optional)",
+      "endDatePlaceholder": "Enddatum"
+    },
+    "reward": {
+      "title": "Aufgabenbelohnung",
+      "subtitle": "Wenn diese Aufgabe ausgeführt wird, erhält der Benutzer",
+      "flames": "Flames"
+    },
+    "button": {
+      "addTask": "Aufgabe hinzufügen",
+      "creating": "Wird erstellt..."
+    },
+    "datePicker": {
+      "selectStartDate": "Startdatum auswählen",
+      "selectEndDate": "Enddatum auswählen",
+      "done": "Fertig",
+      "invalidDate": "Ungültiges Datum",
+      "endDateError": "Enddatum kann nicht vor Startdatum liegen",
+      "year": "Jahr",
+      "month": "Monat",
+      "day": "Tag"
+    },
+    "months": {
+      "january": "Januar",
+      "february": "Februar",
+      "march": "März",
+      "april": "April",
+      "may": "Mai",
+      "june": "Juni",
+      "july": "Juli",
+      "august": "August",
+      "september": "September",
+      "october": "Oktober",
+      "november": "November",
+      "december": "Dezember"
+    },
+    "validation": {
+      "titleRequired": "Bitte geben Sie einen Aufgabentitel ein",
+      "authError": "Authentifizierungsfehler",
+      "authErrorMessage": "Benutzer nicht ordnungsgemäß authentifiziert. Bitte melden Sie sich erneut an.",
+      "sessionError": "Sitzungsfehler",
+      "sessionErrorMessage": "Gültige Sitzung kann nicht abgerufen werden. Bitte aktualisieren Sie die Seite oder melden Sie sich erneut an.",
+      "timeout": "Verbindungs-Timeout",
+      "timeoutMessage": "Die Anfrage wurde timeout. Dies könnte an Netzwerkproblemen oder Serverauslastung liegen. Bitte versuchen Sie es erneut.",
+      "retry": "Wiederholen",
+      "createFailed": "Aufgabe konnte nicht erstellt werden"
+    },
+    "success": {
+      "task": "Aufgabe",
+      "createdSingle": "Aufgabe erfolgreich erstellt und zugewiesen!",
+      "createdMultiple": "Aufgabe erstellt und {{count}} Mitgliedern erfolgreich zugewiesen!"
+    }
+  },
+  "eventCreationModal": {
+    "title": "Neues Ereignis erstellen",
+    "subtitle": "Hier können Sie ein neues Ereignis erstellen. Seien Sie sich sicher, welches Ereignis Sie erstellen möchten.",
+    "loading": "Ereignis wird erstellt...",
+    "form": {
+      "eventTitle": "Ereignistitel",
+      "eventTitlePlaceholder": "Bobs Geburtstag",
+      "eventDescription": "Ereignisbeschreibung",
+      "eventDescriptionPlaceholder": "Bring ein Geschenk mit",
+      "assignEvent": "Ereignis zuweisen",
+      "noMembers": "Keine Familienmitglieder gefunden. Bitte aktualisieren oder überprüfen Sie Ihre Familienverbindung.",
+      "startTime": "Startzeit",
+      "startTimePlaceholder": "Startzeit",
+      "duration": "Dauer (optional)"
+    },
+    "reward": {
+      "title": "Ereignisbelohnung",
+      "subtitle": "Wenn dieses Ereignis ausgeführt wird, erhält der Benutzer",
+      "flames": "Flames"
+    },
+    "button": {
+      "addEvent": "Ereignis hinzufügen",
+      "creating": "Wird erstellt..."
+    },
+    "dateTimePicker": {
+      "selectDateTime": "Startdatum & -zeit auswählen",
+      "done": "Fertig",
+      "year": "Jahr",
+      "month": "Monat",
+      "day": "Tag",
+      "hour": "Stunde",
+      "minute": "Minute"
+    },
+    "durationPicker": {
+      "selectDuration": "Dauer auswählen",
+      "done": "Fertig",
+      "hours": "Stunden",
+      "minutes": "Minuten",
+      "seconds": "Sekunden"
+    },
+    "months": {
+      "january": "Januar",
+      "february": "Februar",
+      "march": "März",
+      "april": "April",
+      "may": "Mai",
+      "june": "Juni",
+      "july": "Juli",
+      "august": "August",
+      "september": "September",
+      "october": "Oktober",
+      "november": "November",
+      "december": "Dezember"
+    },
+    "validation": {
+      "titleRequired": "Bitte geben Sie einen Ereignistitel ein",
+      "databaseError": "Datenbankverbindungsproblem. Bitte versuchen Sie es erneut.",
+      "createFailed": "Ereignis konnte nicht erstellt werden"
+    },
+    "success": {
+      "title": "Erfolg",
+      "message": "Ereignis erfolgreich erstellt!"
+    }
+  },
+  "shoppingItemCreationModal": {
+    "title": "Neuen Einkaufsartikel Erstellen",
+    "subtitle": "Hier können Sie einen neuen Artikel erstellen. Seien Sie sich sicher, welchen Einkaufsartikel Sie erstellen möchten.",
+    "loading": "Einkaufsartikel wird erstellt...",
+    "form": {
+      "itemTitle": "Artikel Titel",
+      "itemTitlePlaceholder": "Milch",
+      "quantity": "Menge (optional)",
+      "quantityPlaceholder": "1,0 Stk",
+      "itemDescription": "Artikel Beschreibung",
+      "itemDescriptionPlaceholder": "Bio-Milch kaufen",
+      "assignTask": "Aufgabe zuweisen (optional)"
+    },
+    "reward": {
+      "title": "Artikel Belohnung",
+      "subtitle": "Wenn dieser Artikel ausgeführt wird, erhält der Benutzer",
+      "flames": "Flames"
+    },
+    "button": {
+      "addItem": "Artikel Hinzufügen",
+      "creating": "Wird erstellt..."
+    },
+    "validation": {
+      "titleRequired": "Bitte geben Sie einen Artikeltitel ein",
+      "createFailed": "Einkaufsartikel konnte nicht erstellt werden"
+    },
+    "success": {
+      "title": "Erfolg",
+      "message": "Einkaufsartikel erfolgreich erstellt!",
+      "item": "Einkaufsartikel erstellt",
+      "created": "Einkaufsartikel erstellt"
+    }
+  },
+  "tasksPage": {
+    "header": {
+      "title": "Aufgaben Warten",
+      "subtitle": "Lass uns deine To-Do-Liste angehen"
+    },
+    "summary": {
+      "title": "Zusammenfassung Deiner Arbeit",
+      "subtitle": "Dein aktueller Aufgabenfortschritt",
+      "toDo": "Zu Erledigen",
+      "inProgress": "In Bearbeitung",
+      "done": "Erledigt"
+    },
+    "sprint": {
+      "title": "Sprint 20 - Burnout-Statistik",
+      "status": "Schlecht",
+      "description": "Du hast 8 Aufgaben mehr als üblich erledigt, halte deine Aufgaben mit deinem Vorgesetzten auf dem Laufenden"
+    },
+    "filter": {
+      "all": "Alle",
+      "inProgress": "In Bearbeitung",
+      "finish": "Fertig"
+    },
+    "taskStatus": {
+      "toDo": "Zu Erledigen",
+      "inProgress": "In Bearbeitung",
+      "done": "Erledigt"
+    },
+    "task": {
+      "noDueDate": "Kein Fälligkeitsdatum"
+    },
+    "emptyState": {
+      "title": "Keine Aufgaben gefunden",
+      "noTasks": "Keine Aufgaben verfügbar",
+      "noInProgress": "Keine Aufgaben in Bearbeitung",
+      "noCompleted": "Keine erledigten Aufgaben"
+    }
+  },
+  "calendarPage": {
+    "header": {
+      "title": "Kalender Ereignisse",
+      "subtitle": "Verpassen Sie nicht Ihren Zeitplan"
+    },
+    "summary": {
+      "subtitle": "Ihr aktueller Kalenderfortschritt",
+      "today": "Heute",
+      "nextEvent": "Nächstes Ereignis"
+    },
+    "loading": "Ereignisse werden geladen...",
+    "error": "Fehler",
+    "retry": "Wiederholen",
+    "event": {
+      "eventTitle": "Ereignistitel",
+      "startTime": "Startzeit",
+      "duration": "Dauer",
+      "allDay": "Ganztägig"
+    },
+    "emptyState": {
+      "noEventsFor": "Keine Ereignisse geplant für",
+      "noEvents": "Keine Ereignisse für ausgewählte Daten geplant",
+      "showAll": "Alle Ereignisse anzeigen"
+    },
+    "modal": {
+      "title": "Kalender Einstellen",
+      "subtitle": "Wählen Sie 5 Tage aus, die im Kalender angezeigt werden sollen",
+      "submit": "Datum Übermitteln",
+      "close": "Popup Schließen"
+    }
+  },
+  "shopListPage": {
+    "header": {
+      "title": "Einkaufsliste",
+      "subtitle": "Vergessen Sie nicht Ihre Einkaufsliste"
+    },
+    "summary": {
+      "title": "Perfekte Einkaufsliste",
+      "subtitle": "Ihre aktuelle Einkaufsliste",
+      "itemsToBuy": "Zu kaufende Artikel",
+      "purchasedItems": "Gekaufte Artikel"
+    },
+    "filters": {
+      "allItems": "Alle Artikel",
+      "buyItems": "Zu kaufen",
+      "finished": "Erledigt"
+    },
+    "item": {
+      "item": "Artikel",
+      "quantity": "Menge",
+      "by": "Von",
+      "purchasedAt": "Gekauft am",
+      "pendingPurchase": "Ausstehender Kauf",
+      "unknown": "Unbekannt"
+    },
+    "loading": {
+      "family": "Familiendaten werden geladen...",
+      "items": "Einkaufsartikel werden geladen...",
+      "timeout": "Dauert länger als erwartet. Zum Aktualisieren ziehen.",
+      "initializing": "Familiendaten werden initialisiert...",
+      "timeoutRefresh": "Wenn dies zu lange dauert, zum Aktualisieren ziehen."
+    },
+    "error": {
+      "loadFailed": "Einkaufsartikel konnten nicht geladen werden"
+    },
+    "empty": {
+      "noFamily": "Keine Familie gefunden",
+      "needFamily": "Sie müssen Teil einer Familie sein, um Einkaufsartikel anzuzeigen",
+      "noItems": "Keine Einkaufsartikel gefunden",
+      "addItems": "Fügen Sie einige Artikel zu Ihrer Einkaufsliste hinzu"
+    }
+  },
+  "profilePage": {
+    "role": {
+      "admin": "Familienadministrator",
+      "teenager": "Familienteenager"
+    },
+    "banner": {
+      "title": "Einrichtung & Einstellungen",
+      "subtitle": "Geben Sie Ihrem Profil die besten Einstellungen"
+    },
+    "error": {
+      "noUserData": "Keine Benutzerdaten gefunden. Bitte melden Sie sich erneut an."
+    },
+    "uploading": "Wird hochgeladen...",
+    "passwordChange": {
+      "fillAllFields": "Bitte füllen Sie alle Felder aus",
+      "passwordMismatch": "Passwörter stimmen nicht überein",
+      "passwordTooShort": "Passwort muss mindestens 6 Zeichen lang sein",
+      "success": "Passwort erfolgreich aktualisiert",
+      "failed": "Passwort konnte nicht aktualisiert werden"
+    },
+    "languageChange": {
+      "success": "Sprache wurde auf {{language}} geändert.",
+      "failed": "Sprache konnte nicht geändert werden"
+    },
+    "support": {
+      "title": "Support kontaktieren",
+      "subject": "Hilfe benötigt - Famora App",
+      "body": "Hallo Famora-Team,\n\nIch benötige Hilfe bei:\n\n[Bitte beschreiben Sie Ihr Problem hier]\n\nMeine App-Version: {{version}}\nMein Gerät: {{device}}\nMeine Familien-ID: {{familyId}}\n\nVielen Dank!",
+      "noFamily": "Keine Familie",
+      "emailSent": "E-Mail gesendet an {{email}}",
+      "copyEmail": "E-Mail kopieren",
+      "emailCopied": "E-Mail in die Zwischenablage kopiert",
+      "failed": "Support konnte nicht kontaktiert werden"
+    },
+    "cache": {
+      "title": "Cache leeren",
+      "message": "Dadurch werden alle zwischengespeicherten Daten und temporären Dateien gelöscht. Fortfahren?",
+      "clearButton": "Cache leeren",
+      "success": "Cache erfolgreich geleert",
+      "failed": "Cache konnte nicht geleert werden"
+    },
+    "deleteAccount": {
+      "title": "Konto löschen",
+      "message": "Diese Aktion kann nicht rückgängig gemacht werden. Alle Ihre Daten werden dauerhaft gelöscht.",
+      "deleteButton": "Konto löschen",
+      "notImplemented": "Kontolöschungsfunktion ist noch nicht implementiert."
+    },
+    "sections": {
+      "security": {
+        "title": "Sicherheit & Datenschutz",
+        "subtitle": "Siehe Ihre Sicherheits- & Datenschutzeinstellungen",
+        "twoFactor": {
+          "title": "Zwei-Faktor-Authentifizierung (2FA)",
+          "description": "Richten Sie Ihre Authentifizierung für Ihr Konto ein",
+          "alertTitle": "2FA",
+          "comingSoon": "Einrichtung der Zwei-Faktor-Authentifizierung kommt bald"
+        },
+        "manageSessions": {
+          "title": "Sitzungen verwalten",
+          "description": "Aktive Anmeldungen auf Geräten anzeigen & abmelden",
+          "alertTitle": "Sitzungen",
+          "comingSoon": "Sitzungsverwaltung kommt bald"
+        },
+        "privacy": {
+          "title": "Datenschutzeinstellungen",
+          "description": "Statistiken, Sichtbarkeit von Aktivitäten anzeigen",
+          "alertTitle": "Datenschutz",
+          "comingSoon": "Datenschutzeinstellungen kommen bald"
+        }
+      },
+      "personalization": {
+        "title": "Personalisierung",
+        "subtitle": "Siehe Ihre Personalisierungseinstellungen",
+        "editAccount": {
+          "title": "Konto bearbeiten",
+          "description": "Name, Geburtsdatum und Profilbild"
+        },
+        "changePassword": {
+          "title": "Passwort ändern",
+          "description": "Aktualisieren Sie Ihr Passwort"
+        },
+        "language": {
+          "title": "Sprache",
+          "description": "Wählen Sie Ihre bevorzugte Sprache"
+        },
+        "darkMode": {
+          "title": "Dunkler Modus",
+          "description": "App-Erscheinungsbild anpassen"
+        }
+      },
+      "communication": {
+        "title": "Kommunikation",
+        "subtitle": "Siehe Ihre Kommunikationseinstellungen",
+        "notifications": {
+          "title": "Benachrichtigungen",
+          "description": "Push-Benachrichtigungen für Familienaktivitäten",
+          "permissionMessage": "Benachrichtigungsberechtigung ist für diese Funktion erforderlich"
+        },
+        "feedback": {
+          "title": "Feedback geben",
+          "description": "Wie sehr gefällt Ihnen die App",
+          "alertTitle": "Feedback",
+          "comingSoon": "Feedback-Funktion kommt bald"
+        },
+        "faq": {
+          "title": "FAQ & Hilfe",
+          "description": "Benötigen Sie Hilfe bei etwas"
+        }
+      },
+      "general": {
+        "title": "Allgemeine Einstellungen",
+        "subtitle": "Siehe Ihre allgemeinen Einstellungen",
+        "appVersion": {
+          "title": "APP-Version",
+          "description": "Zeigt Ihre aktuelle App-Version an"
+        },
+        "manageStorage": {
+          "title": "Speicher verwalten",
+          "description": "Leeren Sie Ihren Cache, um alles aufzuräumen"
+        },
+        "logOut": {
+          "title": "Mit Konto abmelden",
+          "description": "Melden Sie sich mit Ihrem aktuellen Konto ab"
+        },
+        "deleteAccount": {
+          "title": "Konto löschen",
+          "description": "Löschen oder deaktivieren Sie Ihr Konto"
+        }
+      }
+    },
+    "modals": {
+      "changePassword": {
+        "title": "Passwort ändern",
+        "currentPassword": "Aktuelles Passwort",
+        "newPassword": "Neues Passwort",
+        "confirmNewPassword": "Neues Passwort bestätigen",
+        "button": "Passwort ändern"
+      },
+      "selectLanguage": {
+        "title": "Sprache wählen"
+      },
+      "changeProfilePicture": {
+        "title": "Profilbild ändern",
+        "subtitle": "Wählen Sie aus, wie Sie Ihr Profilbild aktualisieren möchten",
+        "takePhoto": "Foto aufnehmen",
+        "useCamera": "Kamera verwenden, um ein neues Foto aufzunehmen",
+        "chooseLibrary": "Aus Bibliothek wählen",
+        "selectLibrary": "Aus Ihrer Fotobibliothek auswählen"
+      },
+      "appVersion": {
+        "title": "App-Version",
+        "version": "Version {{version}}\nBuild {{build}}",
+        "gotIt": "Verstanden"
+      }
+    }
+  },
+  "notificationsPage": {
+    "title": "Benachrichtigungen",
+    "loading": "Benachrichtigungen werden geladen...",
+    "retry": "Wiederholen",
+    "empty": {
+      "title": "Noch keine Benachrichtigungen",
+      "subtitle": "Hier werden Aufgabenzuweisungen angezeigt"
+    },
+    "item": {
+      "title": "Neue Aufgabe zugewiesen!",
+      "description": "Du hast eine neue Aufgabe für diesen Sprint von {{assignerName}}, du kannst deine Aufgabe \"{{taskTitle}}\" hier überprüfen",
+      "someone": "Jemand",
+      "aTask": "eine Aufgabe"
+    }
+  },
+  "featuresToCreate": {
+    "title": "Funktionen zum Erstellen",
+    "subtitle": "Zu welcher Funktion möchten Sie etwas Neues hinzufügen? Bitte wählen Sie Ihre Funktion aus",
+    "startButton": "Mit der Erstellung beginnen",
+    "features": {
+      "tasks": {
+        "title": "Aufgaben",
+        "subtitle": "14 Aufgaben"
+      },
+      "calendar": {
+        "title": "Kalender",
+        "subtitle": "6 Ereignisse"
+      },
+      "shopList": {
+        "title": "Einkaufsliste",
+        "subtitle": "25 Artikel"
+      },
+      "comingSoon": {
+        "title": "Demnächst",
+        "subtitle": "Gespannt?"
+      }
+    }
+  },
   "flames": {
     "title": "Flames & Punkte",
     "subtitle": "Familie-Punkte gesammelt",
     "loading": "Flames werden geladen...",
+    "header": {
+      "familyRole": "Familie {{role}}"
+    },
+    "currentRank": {
+      "title": "Aktueller Rang",
+      "subtitle": "Sehen Sie Ihren Rangfortschritt",
+      "goldMember": "Gold-Mitglied",
+      "currentStatus": "Aktueller Status",
+      "progressToPlatinum": "Fortschritt zu Platin-Mitglied",
+      "flamesProgress": "{{current}}/{{total}} Flames"
+    },
+    "familyRanks": {
+      "title": "Familienränge",
+      "currentPosition": "Sie sind derzeit auf {{position}} Platz in der Familie",
+      "position1st": "1.",
+      "position2nd": "2.",
+      "position3rd": "3.",
+      "positionNth": "{{n}}.",
+      "place": "Platz {{position}}",
+      "flames": "{{count}} Flames"
+    },
+    "statusBanner": {
+      "title": "Ihr aktueller Status",
+      "subtitle": "Erfahren Sie alles über die Flames"
+    },
+    "achievements": {
+      "title": "Erfolge",
+      "subtitle": "Hier sind Ihre aktuellen Erfolge",
+      "finished": "Fertig",
+      "progress": "Im Gange",
+      "flamesReward": "+{{count}} Flames",
+      "tasks": "Aufgaben",
+      "tasksCompleted": "{{completed}}/{{total}} abgeschlossen",
+      "calendar": "Kalender",
+      "calendarEvents": "{{completed}}/{{total}} Ereignisse",
+      "shopList": "Einkaufsliste",
+      "shopListItems": "{{completed}}/{{total}} Artikel",
+      "allTasks": "Alle Aufgaben",
+      "allTasksTotal": "{{completed}}/{{total}} insgesamt",
+      "allEvents": "Alle Ereignisse",
+      "allEventsTotal": "{{completed}}/{{total}} insgesamt",
+      "allItems": "Alle Artikel",
+      "allItemsTotal": "{{completed}}/{{total}} insgesamt"
+    },
     "error": {
       "title": "Fehler beim Laden",
       "retry": "Erneut versuchen"
@@ -185,10 +722,6 @@
       "empty": "Noch keine Aktivitäten",
       "emptySubtitle": "Erledigen Sie Aufgaben und sammeln Sie Punkte!",
       "unknown": "Unbekannt"
-    },
-    "achievements": {
-      "title": "Familien-Erfolge",
-      "unlocked": "Freigeschaltet"
     },
     "goal": {
       "title": "Neues Familienziel",

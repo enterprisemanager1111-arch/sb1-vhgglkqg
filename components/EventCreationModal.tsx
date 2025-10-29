@@ -18,20 +18,30 @@ import { useFamily } from '@/contexts/FamilyContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
+import { useDarkMode } from '@/contexts/DarkModeContext';
+import { getTheme } from '@/constants/theme';
 
 // Custom DateTime Picker Modal Component for Start Time
 const DateTimePickerModal = ({ 
   visible, 
   onClose, 
   onDateTimeSelect, 
-  selectedDateTime
+  selectedDateTime,
+  t,
+  theme,
+  isDarkMode
 }: { 
   visible: boolean; 
   onClose: () => void; 
   onDateTimeSelect: (dateTime: Date) => void;
   selectedDateTime: Date;
+  t: any;
+  theme: any;
+  isDarkMode: boolean;
 }) => {
   const [tempDateTime, setTempDateTime] = useState(selectedDateTime);
+  
+  const styles = createStyles(theme, isDarkMode);
 
   // Reset to current date/time when modal opens
   React.useEffect(() => {
@@ -60,8 +70,18 @@ const DateTimePickerModal = ({
 
   const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i);
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    t('eventCreationModal.months.january'),
+    t('eventCreationModal.months.february'),
+    t('eventCreationModal.months.march'),
+    t('eventCreationModal.months.april'),
+    t('eventCreationModal.months.may'),
+    t('eventCreationModal.months.june'),
+    t('eventCreationModal.months.july'),
+    t('eventCreationModal.months.august'),
+    t('eventCreationModal.months.september'),
+    t('eventCreationModal.months.october'),
+    t('eventCreationModal.months.november'),
+    t('eventCreationModal.months.december')
   ];
 
   if (!visible) return null;
@@ -80,21 +100,21 @@ const DateTimePickerModal = ({
               onPress={onClose}
               style={styles.dateTimePickerCancelButton}
             >
-              <Text style={styles.dateTimePickerCancelText}>Cancel</Text>
+              <Text style={styles.dateTimePickerCancelText}>{t('common.cancel')}</Text>
             </Pressable>
-            <Text style={styles.dateTimePickerTitle}>Select Start Date & Time</Text>
+            <Text style={styles.dateTimePickerTitle}>{t('eventCreationModal.dateTimePicker.selectDateTime')}</Text>
             <Pressable
               onPress={handleConfirm}
               style={styles.dateTimePickerDoneButton}
             >
-              <Text style={styles.dateTimePickerDoneText}>Done</Text>
+              <Text style={styles.dateTimePickerDoneText}>{t('eventCreationModal.dateTimePicker.done')}</Text>
             </Pressable>
           </View>
           
           <View style={styles.dateTimePickerContent}>
             <View style={styles.dateTimePickerRow}>
               <View style={styles.dateTimePickerColumn}>
-                <Text style={styles.dateTimePickerLabel}>Year</Text>
+                <Text style={styles.dateTimePickerLabel}>{t('eventCreationModal.dateTimePicker.year')}</Text>
                 <ScrollView style={styles.dateTimePickerScroll} showsVerticalScrollIndicator={false}>
                   {years.map((year) => (
                     <Pressable
@@ -119,7 +139,7 @@ const DateTimePickerModal = ({
               </View>
               
               <View style={styles.dateTimePickerColumn}>
-                <Text style={styles.dateTimePickerLabel}>Month</Text>
+                <Text style={styles.dateTimePickerLabel}>{t('eventCreationModal.dateTimePicker.month')}</Text>
                 <ScrollView style={styles.dateTimePickerScroll} showsVerticalScrollIndicator={false}>
                   {months.map((month, index) => (
                     <Pressable
@@ -144,7 +164,7 @@ const DateTimePickerModal = ({
               </View>
               
               <View style={styles.dateTimePickerColumn}>
-                <Text style={styles.dateTimePickerLabel}>Day</Text>
+                <Text style={styles.dateTimePickerLabel}>{t('eventCreationModal.dateTimePicker.day')}</Text>
                 <ScrollView style={styles.dateTimePickerScroll} showsVerticalScrollIndicator={false}>
                   {generateDays(tempDateTime.getFullYear(), tempDateTime.getMonth()).map((day) => (
                     <Pressable
@@ -169,7 +189,7 @@ const DateTimePickerModal = ({
               </View>
 
               <View style={styles.dateTimePickerColumn}>
-                <Text style={styles.dateTimePickerLabel}>Hour</Text>
+                <Text style={styles.dateTimePickerLabel}>{t('eventCreationModal.dateTimePicker.hour')}</Text>
                 <ScrollView style={styles.dateTimePickerScroll} showsVerticalScrollIndicator={false}>
                   {generateHours().map((hour) => (
                     <Pressable
@@ -194,7 +214,7 @@ const DateTimePickerModal = ({
               </View>
 
               <View style={styles.dateTimePickerColumn}>
-                <Text style={styles.dateTimePickerLabel}>Minute</Text>
+                <Text style={styles.dateTimePickerLabel}>{t('eventCreationModal.dateTimePicker.minute')}</Text>
                 <ScrollView style={styles.dateTimePickerScroll} showsVerticalScrollIndicator={false}>
                   {generateMinutes().map((minute) => (
                     <Pressable
@@ -230,16 +250,24 @@ const DurationPickerModal = ({
   visible, 
   onClose, 
   onDurationSelect, 
-  selectedDuration
+  selectedDuration,
+  t,
+  theme,
+  isDarkMode
 }: { 
   visible: boolean; 
   onClose: () => void; 
   onDurationSelect: (duration: string) => void;
   selectedDuration: string;
+  t: any;
+  theme: any;
+  isDarkMode: boolean;
 }) => {
   const [tempHours, setTempHours] = useState(0);
   const [tempMinutes, setTempMinutes] = useState(0);
   const [tempSeconds, setTempSeconds] = useState(0);
+  
+  const styles = createStyles(theme, isDarkMode);
 
   // Parse existing duration when modal opens
   React.useEffect(() => {
@@ -293,21 +321,21 @@ const DurationPickerModal = ({
               onPress={onClose}
               style={styles.durationPickerCancelButton}
             >
-              <Text style={styles.durationPickerCancelText}>Cancel</Text>
+              <Text style={styles.durationPickerCancelText}>{t('common.cancel')}</Text>
             </Pressable>
-            <Text style={styles.durationPickerTitle}>Select Duration</Text>
+            <Text style={styles.durationPickerTitle}>{t('eventCreationModal.durationPicker.selectDuration')}</Text>
             <Pressable
               onPress={handleConfirm}
               style={styles.durationPickerDoneButton}
             >
-              <Text style={styles.durationPickerDoneText}>Done</Text>
+              <Text style={styles.durationPickerDoneText}>{t('eventCreationModal.durationPicker.done')}</Text>
             </Pressable>
           </View>
           
           <View style={styles.durationPickerContent}>
             <View style={styles.durationPickerRow}>
               <View style={styles.durationPickerColumn}>
-                <Text style={styles.durationPickerLabel}>Hours</Text>
+                <Text style={styles.durationPickerLabel}>{t('eventCreationModal.durationPicker.hours')}</Text>
                 <ScrollView style={styles.durationPickerScroll} showsVerticalScrollIndicator={false}>
                   {generateHours().map((hour) => (
                     <Pressable
@@ -330,7 +358,7 @@ const DurationPickerModal = ({
               </View>
 
               <View style={styles.durationPickerColumn}>
-                <Text style={styles.durationPickerLabel}>Minutes</Text>
+                <Text style={styles.durationPickerLabel}>{t('eventCreationModal.durationPicker.minutes')}</Text>
                 <ScrollView style={styles.durationPickerScroll} showsVerticalScrollIndicator={false}>
                   {generateMinutes().map((minute) => (
                     <Pressable
@@ -353,7 +381,7 @@ const DurationPickerModal = ({
               </View>
 
               <View style={styles.durationPickerColumn}>
-                <Text style={styles.durationPickerLabel}>Seconds</Text>
+                <Text style={styles.durationPickerLabel}>{t('eventCreationModal.durationPicker.seconds')}</Text>
                 <ScrollView style={styles.durationPickerScroll} showsVerticalScrollIndicator={false}>
                   {generateSeconds().map((second) => (
                     <Pressable
@@ -418,6 +446,10 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
   const { familyMembers, currentFamily, refreshFamily, refreshFamilyMembers } = useFamily();
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { isDarkMode } = useDarkMode();
+  const theme = getTheme(isDarkMode);
+  
+  const styles = createStyles(theme, isDarkMode);
 
 
   // Reset form when modal opens and refresh family members
@@ -679,7 +711,7 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
       setShowStartTimePicker(false);
       setShowDurationPicker(false);
       
-      Alert.alert('Success', 'Event created successfully!');
+      Alert.alert(t('eventCreationModal.success.title'), t('eventCreationModal.success.message'));
       handleClose();
       
     } catch (error: any) {
@@ -691,11 +723,11 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
         sessionStorage.setItem('supabase_needs_reload', 'true');
         Alert.alert(
           t('common.error'), 
-          'Database connection issue. Please try again.',
+          t('eventCreationModal.validation.databaseError'),
           [{ text: 'OK', onPress: () => window.location.reload() }]
         );
       } else {
-        Alert.alert(t('common.error'), error.message || 'Failed to create event');
+        Alert.alert(t('common.error'), error.message || t('eventCreationModal.validation.createFailed'));
       }
     }
   };
@@ -717,7 +749,7 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
     }
     
     if (!form.title.trim()) {
-      Alert.alert(t('common.error'), 'Please enter an event title');
+      Alert.alert(t('common.error'), t('eventCreationModal.validation.titleRequired'));
       return;
     }
 
@@ -775,13 +807,13 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
     }
 
     setLoading(true);
-    showLoading('Creating event...');
+    showLoading(t('eventCreationModal.loading'));
     
     try {
       await createEventWithFamily(currentFamily, eventData);
       
     } catch (error: any) {
-      Alert.alert(t('common.error'), error.message || 'Failed to create event');
+      Alert.alert(t('common.error'), error.message || t('eventCreationModal.validation.createFailed'));
     } finally {
       setLoading(false);
       hideLoading();
@@ -813,16 +845,16 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
 
           {/* Modal Header */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Create New Event</Text>
+            <Text style={styles.modalTitle}>{t('eventCreationModal.title')}</Text>
             <Text style={styles.modalSubtitle}>
-              Here you can create a new Event. Be sure about which event you want to create.
+              {t('eventCreationModal.subtitle')}
             </Text>
           </View>
 
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
             {/* Event Title */}
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>Event Title</Text>
+              <Text style={styles.inputLabel}>{t('eventCreationModal.form.eventTitle')}</Text>
               <View style={styles.inputContainer}>
                 <RNImage 
                   source={require('@/assets/images/icon/task_title.png')}
@@ -838,7 +870,7 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
                       boxShadow: 'none',
                     } as any)
                   ]}
-                  placeholder="Bobs Birthday"
+                  placeholder={t('eventCreationModal.form.eventTitlePlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   value={form.title}
                   onChangeText={(value) => handleInputChange('title', value)}
@@ -848,7 +880,7 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
 
             {/* Event Description */}
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>Event Description</Text>
+              <Text style={styles.inputLabel}>{t('eventCreationModal.form.eventDescription')}</Text>
               <View style={styles.inputContainer}>
                 <RNImage 
                   source={require('@/assets/images/icon/note.png')}
@@ -864,7 +896,7 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
                       boxShadow: 'none',
                     } as any)
                   ]}
-                  placeholder="Bring a Gift"
+                  placeholder={t('eventCreationModal.form.eventDescriptionPlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   value={form.description}
                   onChangeText={(value) => handleInputChange('description', value)}
@@ -874,7 +906,7 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
 
             {/* Assign Event */}
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>Assign task</Text>
+              <Text style={styles.inputLabel}>{t('eventCreationModal.form.assignEvent')}</Text>
               <ScrollView 
                 horizontal 
                 showsHorizontalScrollIndicator={false}
@@ -883,7 +915,7 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
               >
                 {familyMembers.length === 0 ? (
                   <Text style={styles.noMembersText}>
-                    No family members found. Please refresh or check your family connection.
+                    {t('eventCreationModal.form.noMembers')}
                   </Text>
                 ) : (
                   familyMembers.map((member) => {
@@ -929,7 +961,7 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
               <View style={styles.timeContainer}>
                 {/* Start time */}
                 <View style={styles.timeFieldContainer}>
-                  <Text style={styles.timeFieldLabel}>Start time</Text>
+                  <Text style={styles.timeFieldLabel}>{t('eventCreationModal.form.startTime')}</Text>
                   <Pressable 
                     style={styles.timeInputContainer}
                     onPress={handleStartTimePress}
@@ -940,7 +972,7 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
                       resizeMode="contain"
                     />
                     <Text style={styles.timeInputText}>
-                      {form.startTime ? formatDateTime(new Date(form.startTime)) : 'Start time'}
+                      {form.startTime ? formatDateTime(new Date(form.startTime)) : t('eventCreationModal.form.startTimePlaceholder')}
                     </Text>
                     <ChevronDown size={16} color="#6B7280" />
                   </Pressable>
@@ -948,7 +980,7 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
 
                 {/* Duration */}
                 <View style={styles.timeFieldContainer}>
-                  <Text style={styles.timeFieldLabel}>Duration (optional)</Text>
+                  <Text style={styles.timeFieldLabel}>{t('eventCreationModal.form.duration')}</Text>
                   <Pressable 
                     style={styles.timeInputContainer}
                     onPress={handleDurationPress}
@@ -977,14 +1009,14 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
                        style={styles.rewardIcon}
                        resizeMode="contain"
                      />
-                     <Text style={styles.rewardTitle}>Event Reward</Text>
+                     <Text style={styles.rewardTitle}>{t('eventCreationModal.reward.title')}</Text>
                    </View>
-                   <Text style={styles.rewardSubtext}>If this event is executed, the user receives</Text>
+                   <Text style={styles.rewardSubtext}>{t('eventCreationModal.reward.subtitle')}</Text>
                  </View>
                  <View style={styles.rewardValue}>
                    <Plus size={16} color="#17F196" strokeWidth={2} />
                    <Text style={styles.rewardNumber}>200</Text>
-                   <Text style={styles.rewardText}>Flames</Text>
+                   <Text style={styles.rewardText}>{t('eventCreationModal.reward.flames')}</Text>
                  </View>
                </View>
              </View>
@@ -996,7 +1028,7 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
             onPress={handleCreateEvent}
             disabled={loading || !form.title.trim()}
           >
-            <Text style={styles.addButtonText}>Add Event</Text>
+            <Text style={styles.addButtonText}>{loading ? t('eventCreationModal.button.creating') : t('eventCreationModal.button.addEvent')}</Text>
           </Pressable>
         </View>
       </View>
@@ -1007,6 +1039,9 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
         onClose={() => setShowStartTimePicker(false)}
         onDateTimeSelect={handleDateTimeSelect}
         selectedDateTime={selectedDateTime}
+        t={t}
+        theme={theme}
+        isDarkMode={isDarkMode}
       />
 
       {/* Duration Picker Modal */}
@@ -1015,12 +1050,15 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
         onClose={() => setShowDurationPicker(false)}
         onDurationSelect={handleDurationSelect}
         selectedDuration={form.duration}
+        t={t}
+        theme={theme}
+        isDarkMode={isDarkMode}
       />
     </Modal>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -1030,7 +1068,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 20,
@@ -1067,13 +1105,13 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1F2937',
+    color: theme.text,
     marginBottom: 8,
     textAlign: 'center',
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: theme.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: 20,
@@ -1088,15 +1126,15 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#374151',
+    color: theme.text,
     marginBottom: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.input,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: theme.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -1109,7 +1147,7 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     fontSize: 16,
-    color: '#1F2937',
+    color: theme.text,
   },
   // Assignee Selection
   assigneeScrollContainer: {
@@ -1125,21 +1163,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.input,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: theme.border,
   },
   selectedAssignee: {
-    backgroundColor: '#F4F3FF',
+    backgroundColor: isDarkMode ? '#2a4a3a' : '#F4F3FF',
     borderColor: '#17f196',
   },
   assigneeText: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#2D2D2D',
+    color: theme.text,
   },
   selectedAssigneeText: {
     // color: '#FFFFFF',
@@ -1149,7 +1187,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#D1D5DB',
+    borderColor: theme.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1177,15 +1215,15 @@ const styles = StyleSheet.create({
   timeFieldLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#374151',
+    color: theme.text,
     marginBottom: 8,
   },
   timeInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.input,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: theme.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -1193,7 +1231,7 @@ const styles = StyleSheet.create({
   timeInputText: {
     flex: 1,
     fontSize: 16,
-    color: '#1F2937',
+    color: theme.text,
     marginLeft: 12,
   },
   // Event Reward - Matching TaskCreationModal style
@@ -1224,11 +1262,11 @@ const styles = StyleSheet.create({
   rewardTitle: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#475467',
+    color: theme.textSecondary,
   },
   rewardSubtext: {
     fontSize: 9,
-    color: '#98A2B3',
+    color: theme.textTertiary,
   },
   rewardValue: {
     flexDirection: 'row',
@@ -1238,12 +1276,12 @@ const styles = StyleSheet.create({
   rewardNumber: {
     fontSize: 18,
     fontWeight: '400',
-    color: '#161B23',
+    color: theme.text,
   },
   rewardText: {
     fontSize: 18,
     fontWeight: '400',
-    color: '#475467',
+    color: theme.textSecondary,
   },
   addButton: {
     width: '100%',
@@ -1274,7 +1312,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   dateTimePickerContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 20,
@@ -1289,7 +1327,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingBottom: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: theme.border,
   },
   dateTimePickerCancelButton: {
     paddingVertical: 8,
@@ -1297,13 +1335,13 @@ const styles = StyleSheet.create({
   },
   dateTimePickerCancelText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: theme.textSecondary,
     fontFamily: 'Helvetica',
   },
   dateTimePickerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: theme.text,
     fontFamily: 'Helvetica',
   },
   dateTimePickerDoneButton: {
@@ -1331,7 +1369,7 @@ const styles = StyleSheet.create({
   dateTimePickerLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#374151',
+    color: theme.text,
     textAlign: 'center',
     marginBottom: 8,
     fontFamily: 'Helvetica',
@@ -1351,7 +1389,7 @@ const styles = StyleSheet.create({
   },
   dateTimePickerOptionText: {
     fontSize: 14,
-    color: '#374151',
+    color: theme.textSecondary,
     fontFamily: 'Helvetica',
   },
   dateTimePickerOptionTextSelected: {
@@ -1366,7 +1404,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   durationPickerContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 20,
@@ -1381,7 +1419,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingBottom: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: theme.border,
   },
   durationPickerCancelButton: {
     paddingVertical: 8,
@@ -1389,13 +1427,13 @@ const styles = StyleSheet.create({
   },
   durationPickerCancelText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: theme.textSecondary,
     fontFamily: 'Helvetica',
   },
   durationPickerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: theme.text,
     fontFamily: 'Helvetica',
   },
   durationPickerDoneButton: {
@@ -1423,7 +1461,7 @@ const styles = StyleSheet.create({
   durationPickerLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: theme.text,
     textAlign: 'center',
     marginBottom: 12,
     fontFamily: 'Helvetica',
@@ -1443,7 +1481,7 @@ const styles = StyleSheet.create({
   },
   durationPickerOptionText: {
     fontSize: 16,
-    color: '#374151',
+    color: theme.textSecondary,
     fontFamily: 'Helvetica',
   },
   durationPickerOptionTextSelected: {
@@ -1452,7 +1490,7 @@ const styles = StyleSheet.create({
   },
   noMembersText: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: theme.textTertiary,
     fontStyle: 'italic',
     textAlign: 'center',
     paddingVertical: 20,

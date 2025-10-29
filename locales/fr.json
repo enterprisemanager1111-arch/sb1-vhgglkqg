@@ -381,10 +381,521 @@
       "loadShoppingItems": "Échec du chargement des articles de course"
     }
   },
+  "taskCreationModal": {
+    "title": "Créer Nouvelle Tâche",
+    "subtitle": "Ici, vous pouvez créer une nouvelle tâche. Soyez sûr des tâches que vous souhaitez créer.",
+    "loading": "Création de la tâche...",
+    "form": {
+      "taskTitle": "Titre de la Tâche",
+      "taskTitlePlaceholder": "Nettoyer la cuisine",
+      "taskDescription": "Description de la Tâche",
+      "taskDescriptionPlaceholder": "Tout sauf le réfrigérateur",
+      "assignTask": "Assigner la tâche",
+      "noMembers": "Aucun membre de famille disponible",
+      "joinFamily": "Rejoignez une famille pour assigner des tâches",
+      "startDate": "Date de début (optionnel)",
+      "startDatePlaceholder": "Date de début",
+      "endDate": "Date de fin (optionnel)",
+      "endDatePlaceholder": "Date de fin"
+    },
+    "reward": {
+      "title": "Récompense de la Tâche",
+      "subtitle": "Si cette tâche est exécutée, l'utilisateur reçoit",
+      "flames": "Flammes"
+    },
+    "button": {
+      "addTask": "Ajouter Tâche",
+      "creating": "Création..."
+    },
+    "datePicker": {
+      "selectStartDate": "Sélectionner Date de Début",
+      "selectEndDate": "Sélectionner Date de Fin",
+      "done": "Terminer",
+      "invalidDate": "Date Invalide",
+      "endDateError": "La date de fin ne peut pas être avant la date de début",
+      "year": "Année",
+      "month": "Mois",
+      "day": "Jour"
+    },
+    "months": {
+      "january": "Janvier",
+      "february": "Février",
+      "march": "Mars",
+      "april": "Avril",
+      "may": "Mai",
+      "june": "Juin",
+      "july": "Juillet",
+      "august": "Août",
+      "september": "Septembre",
+      "october": "Octobre",
+      "november": "Novembre",
+      "december": "Décembre"
+    },
+    "validation": {
+      "titleRequired": "Veuillez entrer un titre de tâche",
+      "authError": "Erreur d'authentification",
+      "authErrorMessage": "Utilisateur pas correctement authentifié. Veuillez vous reconnecter.",
+      "sessionError": "Erreur de Session",
+      "sessionErrorMessage": "Impossible d'obtenir une session valide. Veuillez rafraîchir la page ou vous reconnecter.",
+      "timeout": "Délai de Connexion Dépassé",
+      "timeoutMessage": "La demande a expiré. Cela peut être dû à des problèmes de réseau ou à la charge du serveur. Veuillez réessayer.",
+      "retry": "Réessayer",
+      "createFailed": "Échec de la création de la tâche"
+    },
+    "success": {
+      "task": "Tâche",
+      "createdSingle": "Tâche créée et assignée avec succès!",
+      "createdMultiple": "Tâche créée et assignée à {{count}} membres avec succès!"
+    }
+  },
+  "eventCreationModal": {
+    "title": "Créer Nouvel Événement",
+    "subtitle": "Ici, vous pouvez créer un nouvel événement. Soyez sûr de l'événement que vous souhaitez créer.",
+    "loading": "Création de l'événement...",
+    "form": {
+      "eventTitle": "Titre de l'Événement",
+      "eventTitlePlaceholder": "Anniversaire de Bob",
+      "eventDescription": "Description de l'Événement",
+      "eventDescriptionPlaceholder": "Apporter un cadeau",
+      "assignEvent": "Assigner l'événement",
+      "noMembers": "Aucun membre de famille trouvé. Veuillez rafraîchir ou vérifier votre connexion familiale.",
+      "startTime": "Heure de début",
+      "startTimePlaceholder": "Heure de début",
+      "duration": "Durée (optionnel)"
+    },
+    "reward": {
+      "title": "Récompense de l'Événement",
+      "subtitle": "Si cet événement est exécuté, l'utilisateur reçoit",
+      "flames": "Flammes"
+    },
+    "button": {
+      "addEvent": "Ajouter Événement",
+      "creating": "Création..."
+    },
+    "dateTimePicker": {
+      "selectDateTime": "Sélectionner Date & Heure de Début",
+      "done": "Terminer",
+      "year": "Année",
+      "month": "Mois",
+      "day": "Jour",
+      "hour": "Heure",
+      "minute": "Minute"
+    },
+    "durationPicker": {
+      "selectDuration": "Sélectionner Durée",
+      "done": "Terminer",
+      "hours": "Heures",
+      "minutes": "Minutes",
+      "seconds": "Secondes"
+    },
+    "months": {
+      "january": "Janvier",
+      "february": "Février",
+      "march": "Mars",
+      "april": "Avril",
+      "may": "Mai",
+      "june": "Juin",
+      "july": "Juillet",
+      "august": "Août",
+      "september": "Septembre",
+      "october": "Octobre",
+      "november": "Novembre",
+      "december": "Décembre"
+    },
+    "validation": {
+      "titleRequired": "Veuillez entrer un titre d'événement",
+      "databaseError": "Problème de connexion à la base de données. Veuillez réessayer.",
+      "createFailed": "Échec de la création de l'événement"
+    },
+    "success": {
+      "title": "Succès",
+      "message": "Événement créé avec succès!"
+    }
+  },
+  "shoppingItemCreationModal": {
+    "title": "Créer Nouvel Article de Course",
+    "subtitle": "Ici, vous pouvez créer un nouvel article. Soyez sûr de l'article de course que vous souhaitez créer.",
+    "loading": "Création de l'article...",
+    "form": {
+      "itemTitle": "Titre de l'Article",
+      "itemTitlePlaceholder": "Lait",
+      "quantity": "Quantité (optionnel)",
+      "quantityPlaceholder": "1,0 pce",
+      "itemDescription": "Description de l'Article",
+      "itemDescriptionPlaceholder": "Acheter du lait bio",
+      "assignTask": "Assigner la tâche (optionnel)"
+    },
+    "reward": {
+      "title": "Récompense de l'Article",
+      "subtitle": "Si cet article est exécuté, l'utilisateur reçoit",
+      "flames": "Flammes"
+    },
+    "button": {
+      "addItem": "Ajouter Article",
+      "creating": "Création..."
+    },
+    "validation": {
+      "titleRequired": "Veuillez entrer un titre d'article",
+      "createFailed": "Échec de la création de l'article de course"
+    },
+    "success": {
+      "title": "Succès",
+      "message": "Article de course créé avec succès!",
+      "item": "Article de course créé",
+      "created": "Article de course créé"
+    }
+  },
+  "tasksPage": {
+    "header": {
+      "title": "Tâches en Attente",
+      "subtitle": "Attaquons-nous à votre liste de tâches"
+    },
+    "summary": {
+      "title": "Résumé de Votre Travail",
+      "subtitle": "Votre progression actuelle des tâches",
+      "toDo": "À Faire",
+      "inProgress": "En Cours",
+      "done": "Terminé"
+    },
+    "sprint": {
+      "title": "Sprint 20 - Statistiques d'Épuisement",
+      "status": "Mauvais",
+      "description": "Vous avez terminé 8 tâches de plus que d'habitude, maintenez vos tâches avec votre superviseur"
+    },
+    "filter": {
+      "all": "Tous",
+      "inProgress": "En Cours",
+      "finish": "Terminer"
+    },
+    "taskStatus": {
+      "toDo": "À Faire",
+      "inProgress": "En Cours",
+      "done": "Terminé"
+    },
+    "task": {
+      "noDueDate": "Pas de date d'échéance"
+    },
+    "emptyState": {
+      "title": "Aucune tâche trouvée",
+      "noTasks": "Aucune tâche disponible",
+      "noInProgress": "Aucune tâche en cours",
+      "noCompleted": "Aucune tâche terminée"
+    }
+  },
+  "calendarPage": {
+    "header": {
+      "title": "Événements du Calendrier",
+      "subtitle": "Ne manquez pas votre emploi du temps"
+    },
+    "summary": {
+      "subtitle": "Votre progression actuelle du calendrier",
+      "today": "Aujourd'hui",
+      "nextEvent": "Prochain Événement"
+    },
+    "loading": "Chargement des événements...",
+    "error": "Erreur",
+    "retry": "Réessayer",
+    "event": {
+      "eventTitle": "Titre de l'Événement",
+      "startTime": "Heure de Début",
+      "duration": "Durée",
+      "allDay": "Toute la journée"
+    },
+    "emptyState": {
+      "noEventsFor": "Aucun événement prévu pour",
+      "noEvents": "Aucun événement prévu pour les dates sélectionnées",
+      "showAll": "Afficher Tous les Événements"
+    },
+    "modal": {
+      "title": "Définir le Calendrier",
+      "subtitle": "Sélectionnez 5 jours à afficher dans le calendrier",
+      "submit": "Soumettre la Date",
+      "close": "Fermer le Popup"
+    }
+  },
+  "shopListPage": {
+    "header": {
+      "title": "Liste de Courses",
+      "subtitle": "N'oubliez pas votre liste de courses"
+    },
+    "summary": {
+      "title": "Liste de Courses Parfaite",
+      "subtitle": "Votre liste de courses actuelle",
+      "itemsToBuy": "Articles à Acheter",
+      "purchasedItems": "Articles Achetés"
+    },
+    "filters": {
+      "allItems": "Tous les Articles",
+      "buyItems": "À Acheter",
+      "finished": "Terminé"
+    },
+    "item": {
+      "item": "Article",
+      "quantity": "Quantité",
+      "by": "Par",
+      "purchasedAt": "Acheté le",
+      "pendingPurchase": "Achat en attente",
+      "unknown": "Inconnu"
+    },
+    "loading": {
+      "family": "Chargement des données familiales...",
+      "items": "Chargement des articles...",
+      "timeout": "Cela prend plus de temps que prévu. Tirez pour actualiser.",
+      "initializing": "Initialisation des données familiales...",
+      "timeoutRefresh": "Si cela prend trop de temps, tirez pour actualiser."
+    },
+    "error": {
+      "loadFailed": "Échec du chargement des articles"
+    },
+    "empty": {
+      "noFamily": "Aucune Famille Trouvée",
+      "needFamily": "Vous devez faire partie d'une famille pour voir les articles",
+      "noItems": "Aucun article trouvé",
+      "addItems": "Ajoutez des articles à votre liste de courses"
+    }
+  },
+  "profilePage": {
+    "role": {
+      "admin": "Administrateur Familial",
+      "teenager": "Adolescent Familial"
+    },
+    "banner": {
+      "title": "Configuration & Paramètres",
+      "subtitle": "Donnez à votre profil les meilleurs paramètres"
+    },
+    "error": {
+      "noUserData": "Aucune donnée utilisateur trouvée. Veuillez vous reconnecter."
+    },
+    "uploading": "Téléchargement...",
+    "passwordChange": {
+      "fillAllFields": "Veuillez remplir tous les champs",
+      "passwordMismatch": "Les mots de passe ne correspondent pas",
+      "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères",
+      "success": "Mot de passe mis à jour avec succès",
+      "failed": "Échec de la mise à jour du mot de passe"
+    },
+    "languageChange": {
+      "success": "Langue changée en {{language}}.",
+      "failed": "Échec du changement de langue"
+    },
+    "support": {
+      "title": "Contacter le Support",
+      "subject": "Aide nécessaire - Application Famora",
+      "body": "Bonjour l'équipe Famora,\n\nJ'ai besoin d'aide pour:\n\n[Veuillez décrire votre problème ici]\n\nMa version de l'application: {{version}}\nMon appareil: {{device}}\nMon ID familial: {{familyId}}\n\nMerci!",
+      "noFamily": "Aucune Famille",
+      "emailSent": "E-mail envoyé à {{email}}",
+      "copyEmail": "Copier l'e-mail",
+      "emailCopied": "E-mail copié dans le presse-papiers",
+      "failed": "Échec du contact avec le support"
+    },
+    "cache": {
+      "title": "Vider le Cache",
+      "message": "Cela supprimera toutes les données en cache et les fichiers temporaires. Continuer?",
+      "clearButton": "Vider le Cache",
+      "success": "Cache vidé avec succès",
+      "failed": "Échec du vidage du cache"
+    },
+    "deleteAccount": {
+      "title": "Supprimer le Compte",
+      "message": "Cette action est irréversible. Toutes vos données seront définitivement supprimées.",
+      "deleteButton": "Supprimer le Compte",
+      "notImplemented": "La fonctionnalité de suppression de compte n'est pas encore implémentée."
+    },
+    "sections": {
+      "security": {
+        "title": "Sécurité & Confidentialité",
+        "subtitle": "Consultez vos paramètres de sécurité et confidentialité",
+        "twoFactor": {
+          "title": "Authentification à deux facteurs (2FA)",
+          "description": "Configurez votre authentification pour votre compte",
+          "alertTitle": "2FA",
+          "comingSoon": "Configuration de l'authentification à deux facteurs bientôt disponible"
+        },
+        "manageSessions": {
+          "title": "Gérer les sessions",
+          "description": "Afficher les connexions actives sur les appareils et se déconnecter",
+          "alertTitle": "Sessions",
+          "comingSoon": "Gestion des sessions bientôt disponible"
+        },
+        "privacy": {
+          "title": "Paramètres de confidentialité",
+          "description": "Voir les statistiques, la visibilité des activités",
+          "alertTitle": "Confidentialité",
+          "comingSoon": "Paramètres de confidentialité bientôt disponibles"
+        }
+      },
+      "personalization": {
+        "title": "Personnalisation",
+        "subtitle": "Consultez vos paramètres de personnalisation",
+        "editAccount": {
+          "title": "Modifier le Compte",
+          "description": "Nom, Date de naissance et Photo de profil"
+        },
+        "changePassword": {
+          "title": "Changer le Mot de Passe",
+          "description": "Mettez à jour votre mot de passe"
+        },
+        "language": {
+          "title": "Langue",
+          "description": "Sélectionnez votre langue préférée"
+        },
+        "darkMode": {
+          "title": "Mode Sombre",
+          "description": "Personnaliser l'apparence de l'application"
+        }
+      },
+      "communication": {
+        "title": "Communication",
+        "subtitle": "Consultez vos paramètres de communication",
+        "notifications": {
+          "title": "Notifications",
+          "description": "Notifications push pour les activités familiales",
+          "permissionMessage": "L'autorisation de notification est requise pour cette fonctionnalité"
+        },
+        "feedback": {
+          "title": "Donner un avis",
+          "description": "À quel point aimez-vous l'application",
+          "alertTitle": "Avis",
+          "comingSoon": "Fonctionnalité d'avis bientôt disponible"
+        },
+        "faq": {
+          "title": "FAQ & Aide",
+          "description": "Avez-vous besoin d'aide avec quelque chose"
+        }
+      },
+      "general": {
+        "title": "Paramètres Généraux",
+        "subtitle": "Consultez vos paramètres généraux",
+        "appVersion": {
+          "title": "Version de l'APP",
+          "description": "Affiche votre version actuelle de l'application"
+        },
+        "manageStorage": {
+          "title": "Gérer le stockage",
+          "description": "Videz votre cache pour tout nettoyer"
+        },
+        "logOut": {
+          "title": "Se déconnecter avec le compte",
+          "description": "Déconnectez-vous avec votre compte actuel"
+        },
+        "deleteAccount": {
+          "title": "Supprimer le Compte",
+          "description": "Supprimer ou désactiver votre compte"
+        }
+      }
+    },
+    "modals": {
+      "changePassword": {
+        "title": "Changer le Mot de Passe",
+        "currentPassword": "Mot de Passe Actuel",
+        "newPassword": "Nouveau Mot de Passe",
+        "confirmNewPassword": "Confirmer le Nouveau Mot de Passe",
+        "button": "Changer le Mot de Passe"
+      },
+      "selectLanguage": {
+        "title": "Sélectionner la Langue"
+      },
+      "changeProfilePicture": {
+        "title": "Changer la Photo de Profil",
+        "subtitle": "Choisissez comment vous souhaitez mettre à jour votre photo de profil",
+        "takePhoto": "Prendre une Photo",
+        "useCamera": "Utiliser l'appareil photo pour prendre une nouvelle photo",
+        "chooseLibrary": "Choisir dans la Bibliothèque",
+        "selectLibrary": "Sélectionner dans votre bibliothèque de photos"
+      },
+      "appVersion": {
+        "title": "Version de l'Application",
+        "version": "Version {{version}}\nBuild {{build}}",
+        "gotIt": "Compris"
+      }
+    }
+  },
+  "notificationsPage": {
+    "title": "Notifications",
+    "loading": "Chargement des notifications...",
+    "retry": "Réessayer",
+    "empty": {
+      "title": "Aucune notification pour le moment",
+      "subtitle": "Vous verrez les affectations de tâches ici"
+    },
+    "item": {
+      "title": "Nouvelle Tâche Assignée !",
+      "description": "Vous avez une nouvelle tâche pour ce sprint de {{assignerName}}, vous pouvez vérifier votre tâche \"{{taskTitle}}\" en tapant ici",
+      "someone": "Quelqu'un",
+      "aTask": "une tâche"
+    }
+  },
+  "featuresToCreate": {
+    "title": "Fonctionnalités à Créer",
+    "subtitle": "À quelle fonctionnalité souhaitez-vous ajouter quelque chose de nouveau? Veuillez sélectionner votre fonctionnalité",
+    "startButton": "Commencer la Création",
+    "features": {
+      "tasks": {
+        "title": "Tâches",
+        "subtitle": "14 Tâches"
+      },
+      "calendar": {
+        "title": "Calendrier",
+        "subtitle": "6 Événements"
+      },
+      "shopList": {
+        "title": "Liste de Courses",
+        "subtitle": "25 Articles"
+      },
+      "comingSoon": {
+        "title": "Bientôt Disponible",
+        "subtitle": "Impatient ?"
+      }
+    }
+  },
   "flames": {
     "title": "Flammes & Points",
     "subtitle": "points de famille collectés",
     "loading": "Chargement des flammes...",
+    "header": {
+      "familyRole": "Famille {{role}}"
+    },
+    "currentRank": {
+      "title": "Rang Actuel",
+      "subtitle": "Consultez votre progression de rang",
+      "goldMember": "Membre Or",
+      "currentStatus": "Statut Actuel",
+      "progressToPlatinum": "Progrès vers Membre Platine",
+      "flamesProgress": "{{current}}/{{total}} Flammes"
+    },
+    "familyRanks": {
+      "title": "Classement Familial",
+      "currentPosition": "Vous êtes actuellement à la {{position}} place dans la famille",
+      "position1st": "1ère",
+      "position2nd": "2ème",
+      "position3rd": "3ème",
+      "positionNth": "{{n}}ème",
+      "place": "Place {{position}}",
+      "flames": "{{count}} Flammes"
+    },
+    "statusBanner": {
+      "title": "Votre Statut Actuel",
+      "subtitle": "Apprenez tout sur les Flammes"
+    },
+    "achievements": {
+      "title": "Succès",
+      "subtitle": "Voici vos succès actuels",
+      "finished": "Terminé",
+      "progress": "En cours",
+      "flamesReward": "+{{count}} Flammes",
+      "tasks": "Tâches",
+      "tasksCompleted": "{{completed}}/{{total}} terminées",
+      "calendar": "Calendrier",
+      "calendarEvents": "{{completed}}/{{total}} événements",
+      "shopList": "Liste de courses",
+      "shopListItems": "{{completed}}/{{total}} articles",
+      "allTasks": "Toutes les tâches",
+      "allTasksTotal": "{{completed}}/{{total}} au total",
+      "allEvents": "Tous les événements",
+      "allEventsTotal": "{{completed}}/{{total}} au total",
+      "allItems": "Tous les articles",
+      "allItemsTotal": "{{completed}}/{{total}} au total"
+    },
     "error": {
       "title": "Erreur de chargement",
       "retry": "Réessayer"
@@ -418,10 +929,6 @@
       "empty": "Aucune activité encore",
       "emptySubtitle": "Terminez des tâches et gagnez des points!",
       "unknown": "Inconnu"
-    },
-    "achievements": {
-      "title": "Succès Familiaux",
-      "unlocked": "Débloqué"
     },
     "goal": {
       "title": "Nouvel Objectif Familial",
@@ -599,6 +1106,30 @@
     }
   },
   "family": {
+    "header": {
+      "welcome": "Bienvenue dans notre famille !"
+    },
+    "overview": {
+      "subtitle": "Voici vos activités principales",
+      "total": "Total"
+    },
+    "challenge": {
+      "title": "Défi Familial",
+      "subtitle": "Terminez toutes les activités familiales pour atteindre 100%",
+      "taskTitle": "Défi d'Activités Familiales",
+      "activitiesCompleted": "{{completed}} sur {{total}} activités terminées",
+      "progressComplete": "{{percent}}% terminés",
+      "rewardFlames": "{{points}} Flames"
+    },
+    "members": {
+      "subtitle": "Tous les membres de la famille sont listés ici"
+    },
+    "error": {
+      "tipsTitle": "Conseils de dépannage :",
+      "checkInternet": "Vérifiez votre connexion Internet",
+      "checkSupabase": "Assurez-vous que votre projet Supabase est actif",
+      "tryRefresh": "Essayez d'actualiser la page"
+    },
     "prompt": {
       "title": "Rejoindre la Famille",
       "description": "Vous ne faites pas encore partie d'une famille. Rejoignez une famille ou créez-en une nouvelle.",

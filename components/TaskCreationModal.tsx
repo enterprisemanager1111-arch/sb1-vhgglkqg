@@ -18,7 +18,10 @@ const DatePickerModal = ({
   onDateSelect, 
   selectedDate,
   datePickerType,
-  startDate
+  startDate,
+  t,
+  theme,
+  isDarkMode
 }: { 
   visible: boolean; 
   onClose: () => void; 
@@ -26,8 +29,13 @@ const DatePickerModal = ({
   selectedDate: Date;
   datePickerType: 'start' | 'end';
   startDate?: string;
+  t: any;
+  theme: any;
+  isDarkMode: boolean;
 }) => {
   const [tempDate, setTempDate] = useState(selectedDate);
+  
+  const styles = createStyles(theme, isDarkMode);
 
   // Reset to today's date when modal opens
   React.useEffect(() => {
@@ -41,7 +49,7 @@ const DatePickerModal = ({
     if (datePickerType === 'end' && startDate) {
       const startDateObj = new Date(startDate);
       if (tempDate < startDateObj) {
-        Alert.alert('Invalid Date', 'End date cannot be before start date');
+        Alert.alert(t('taskCreationModal.datePicker.invalidDate'), t('taskCreationModal.datePicker.endDateError'));
         return;
       }
     }
@@ -78,8 +86,18 @@ const DatePickerModal = ({
 
   const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i);
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    t('taskCreationModal.months.january'),
+    t('taskCreationModal.months.february'),
+    t('taskCreationModal.months.march'),
+    t('taskCreationModal.months.april'),
+    t('taskCreationModal.months.may'),
+    t('taskCreationModal.months.june'),
+    t('taskCreationModal.months.july'),
+    t('taskCreationModal.months.august'),
+    t('taskCreationModal.months.september'),
+    t('taskCreationModal.months.october'),
+    t('taskCreationModal.months.november'),
+    t('taskCreationModal.months.december')
   ];
 
   if (!visible) return null;
@@ -98,23 +116,23 @@ const DatePickerModal = ({
               onPress={onClose}
               style={styles.datePickerCancelButton}
             >
-              <Text style={styles.datePickerCancelText}>Cancel</Text>
+              <Text style={styles.datePickerCancelText}>{t('common.cancel')}</Text>
             </Pressable>
             <Text style={styles.datePickerTitle}>
-              Select {datePickerType === 'start' ? 'Start' : 'End'} Date
+              {t(`taskCreationModal.datePicker.select${datePickerType === 'start' ? 'Start' : 'End'}Date`)}
             </Text>
             <Pressable
               onPress={handleConfirm}
               style={styles.datePickerDoneButton}
             >
-              <Text style={styles.datePickerDoneText}>Done</Text>
+              <Text style={styles.datePickerDoneText}>{t('taskCreationModal.datePicker.done')}</Text>
             </Pressable>
           </View>
           
           <View style={styles.datePickerContent}>
             <View style={styles.datePickerRow}>
               <View style={styles.datePickerColumn}>
-                <Text style={styles.datePickerLabel}>Year</Text>
+                <Text style={styles.datePickerLabel}>{t('taskCreationModal.datePicker.year')}</Text>
                 <ScrollView style={styles.datePickerScroll} showsVerticalScrollIndicator={false}>
                   {years.map((year) => {
                     const yearDisabled = !isYearMonthValid(year, tempDate.getMonth());
@@ -147,7 +165,7 @@ const DatePickerModal = ({
               </View>
               
               <View style={styles.datePickerColumn}>
-                <Text style={styles.datePickerLabel}>Month</Text>
+                <Text style={styles.datePickerLabel}>{t('taskCreationModal.datePicker.month')}</Text>
                 <ScrollView style={styles.datePickerScroll} showsVerticalScrollIndicator={false}>
                   {months.map((month, index) => {
                     const monthDisabled = !isYearMonthValid(tempDate.getFullYear(), index);
@@ -180,7 +198,7 @@ const DatePickerModal = ({
               </View>
               
               <View style={styles.datePickerColumn}>
-                <Text style={styles.datePickerLabel}>Day</Text>
+                <Text style={styles.datePickerLabel}>{t('taskCreationModal.datePicker.day')}</Text>
                 <ScrollView style={styles.datePickerScroll} showsVerticalScrollIndicator={false}>
                   {generateDays(tempDate.getFullYear(), tempDate.getMonth()).map((day) => {
                     const disabled = isDateDisabled(day);
@@ -226,6 +244,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/components/NotificationSystem';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
+import { useDarkMode } from '@/contexts/DarkModeContext';
+import { getTheme } from '@/constants/theme';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -263,6 +283,10 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
   const { showPointsEarned, showMemberActivity } = useNotifications();
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { isDarkMode } = useDarkMode();
+  const theme = getTheme(isDarkMode);
+  
+  const styles = createStyles(theme, isDarkMode);
   
   React.useEffect(() => {
     if (visible) {
@@ -465,7 +489,7 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
     
     // Set loading state immediately
     setLoading(true);
-    showLoading('Creating task...');
+    showLoading(t('taskCreationModal.loading'));
     
     // Helper function to clear loading state
     const clearLoadingState = () => {
@@ -476,7 +500,7 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
     
     // Early validation checks (outside try block)
     if (!form.title.trim()) {
-      Alert.alert(t('common.error'), 'Please enter a task title');
+      Alert.alert(t('common.error'), t('taskCreationModal.validation.titleRequired'));
       clearLoadingState();
       return;
     }
@@ -484,10 +508,10 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
     // Ensure user is properly authenticated
     if (!user || !user.id) {
       Alert.alert(
-        'Authentication Error', 
-        'User not properly authenticated. Please sign in again.',
+        t('taskCreationModal.validation.authError'), 
+        t('taskCreationModal.validation.authErrorMessage'),
         [
-          { text: 'OK', style: 'cancel' }
+          { text: t('common.ok'), style: 'cancel' }
         ]
       );
       clearLoadingState();
@@ -517,10 +541,10 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
       } catch (localStorageError) {
         console.error('❌ localStorage token retrieval failed:', localStorageError);
         Alert.alert(
-          'Session Error', 
-          'Unable to get valid session. Please try refreshing the page or sign in again.',
+          t('taskCreationModal.validation.sessionError'), 
+          t('taskCreationModal.validation.sessionErrorMessage'),
           [
-            { text: 'OK', style: 'cancel' }
+            { text: t('common.ok'), style: 'cancel' }
           ]
         );
         clearLoadingState();
@@ -618,10 +642,10 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
       
       // Show success message based on number of assignments
       const assignmentCount = assigneeIds.length;
-      const taskText = assignmentCount === 1 ? 'Task' : 'Task';
+      const taskText = t('taskCreationModal.success.task');
       const successMessage = assignmentCount === 1 
-        ? 'Task created and assigned successfully!' 
-        : `Task created and assigned to ${assignmentCount} members successfully!`;
+        ? t('taskCreationModal.success.createdSingle') 
+        : t('taskCreationModal.success.createdMultiple', { count: String(assignmentCount) });
       
       showPointsEarned(5, `${taskText} created: ${form.title}`);
       showMemberActivity(t('common.familyMember'), `Created ${taskText.toLowerCase()}: ${form.title}`);
@@ -632,7 +656,7 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
       console.log('🔍 Task start_date:', result?.task?.start_date);
       console.log('🔍 Task end_date:', result?.task?.end_date);
       
-      Alert.alert('Success', successMessage);
+      Alert.alert(t('common.success'), successMessage);
       handleClose();
       
     } catch (error: any) {
@@ -644,15 +668,15 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
       // Handle timeout errors specifically
       if (error.message && error.message.includes('timeout')) {
         Alert.alert(
-          'Connection Timeout', 
-          'The request timed out. This might be due to network issues or server load. Please try again.',
+          t('taskCreationModal.validation.timeout'), 
+          t('taskCreationModal.validation.timeoutMessage'),
           [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Retry', onPress: () => handleCreateTask() }
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: t('taskCreationModal.validation.retry'), onPress: () => handleCreateTask() }
           ]
         );
       } else {
-        Alert.alert(t('common.error'), error.message || 'Failed to create task');
+        Alert.alert(t('common.error'), error.message || t('taskCreationModal.validation.createFailed'));
       }
     } finally {
       console.log('🔧 Finally block - resetting loading state');
@@ -687,9 +711,9 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
 
             {/* Modal Header */}
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Create New Task</Text>
+              <Text style={styles.modalTitle}>{t('taskCreationModal.title')}</Text>
               <Text style={styles.modalSubtitle}>
-                Here you can create a new task. Be sure about which tasks you want to create.
+                {t('taskCreationModal.subtitle')}
               </Text>
             </View>
 
@@ -698,7 +722,7 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
               <View style={styles.formContainer}>
                 {/* Task Title */}
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Task Title</Text>
+                  <Text style={styles.inputLabel}>{t('taskCreationModal.form.taskTitle')}</Text>
                   <View style={styles.inputContainer}>
                     <RNImage 
                       source={require('@/assets/images/icon/task_title.png')}
@@ -714,7 +738,7 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
                           boxShadow: 'none',
                         } as any)
                       ]}
-                      placeholder="Clean kitchen"
+                      placeholder={t('taskCreationModal.form.taskTitlePlaceholder')}
                       value={form.title}
                       onChangeText={(value) => updateForm('title', value)}
                       placeholderTextColor="#888888"
@@ -724,7 +748,7 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
 
                 {/* Task Description */}
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Task Description</Text>
+                  <Text style={styles.inputLabel}>{t('taskCreationModal.form.taskDescription')}</Text>
                   <View style={styles.inputContainer}>
                     <RNImage 
                       source={require('@/assets/images/icon/note.png')}
@@ -740,7 +764,7 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
                           boxShadow: 'none',
                         } as any)
                       ]}
-                      placeholder="Everything except the refrigerator"
+                      placeholder={t('taskCreationModal.form.taskDescriptionPlaceholder')}
                       value={form.description}
                       onChangeText={(value) => updateForm('description', value)}
                       placeholderTextColor="#888888"
@@ -750,7 +774,7 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
 
                 {/* Assign Task */}
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Assign task</Text>
+                  <Text style={styles.inputLabel}>{t('taskCreationModal.form.assignTask')}</Text>
                   <ScrollView 
                     horizontal 
                     showsHorizontalScrollIndicator={false}
@@ -793,10 +817,10 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
                     ) : (
                       <View style={styles.assigneeContainer}>
                         <Text style={styles.assigneeText}>
-                          No family members available
+                          {t('taskCreationModal.form.noMembers')}
                         </Text>
                         <Text style={styles.assigneeSubtext}>
-                          Join a family to assign tasks
+                          {t('taskCreationModal.form.joinFamily')}
                         </Text>
                       </View>
                     )}
@@ -808,7 +832,7 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
                   <View style={styles.dateRowContainer}>
                     {/* Start Date */}
                     <View style={styles.halfWidthContainer}>
-                      <Text style={styles.inputLabel}>Start date (optional)</Text>
+                      <Text style={styles.inputLabel}>{t('taskCreationModal.form.startDate')}</Text>
                       <Pressable 
                         style={styles.inputContainer}
                         onPress={() => {
@@ -822,15 +846,15 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
                           resizeMode="contain"
                         />
                         <Text style={[styles.input, form.startDate ? styles.inputText : styles.inputPlaceholder]}>
-                          {form.startDate ? formatDisplayDate(form.startDate) : 'Start date'}
+                          {form.startDate ? formatDisplayDate(form.startDate) : t('taskCreationModal.form.startDatePlaceholder')}
                         </Text>
-                        <ChevronDown size={16} color="#888888" strokeWidth={2} style={styles.chevronIcon} />
+                        <ChevronDown size={16} color={theme.placeholder} strokeWidth={2} style={styles.chevronIcon} />
                       </Pressable>
                     </View>
 
                     {/* End Date */}
                     <View style={styles.halfWidthContainer}>
-                      <Text style={styles.inputLabel}>End date (optional)</Text>
+                      <Text style={styles.inputLabel}>{t('taskCreationModal.form.endDate')}</Text>
                       <Pressable 
                         style={styles.inputContainer}
                         onPress={() => {
@@ -844,9 +868,9 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
                           resizeMode="contain"
                         />
                         <Text style={[styles.input, form.endDate ? styles.inputText : styles.inputPlaceholder]}>
-                          {form.endDate ? formatDisplayDate(form.endDate) : 'End date'}
+                          {form.endDate ? formatDisplayDate(form.endDate) : t('taskCreationModal.form.endDatePlaceholder')}
                         </Text>
-                        <ChevronDown size={16} color="#888888" strokeWidth={2} style={styles.chevronIcon} />
+                        <ChevronDown size={16} color={theme.placeholder} strokeWidth={2} style={styles.chevronIcon} />
                       </Pressable>
                     </View>
                   </View>
@@ -862,14 +886,14 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
                           style={styles.rewardIcon}
                           resizeMode="contain"
                         />
-                        <Text style={styles.rewardTitle}>Task Reward</Text>
+                        <Text style={styles.rewardTitle}>{t('taskCreationModal.reward.title')}</Text>
                       </View>
-                      <Text style={styles.rewardSubtext}>If this task is executed, the user receives</Text>
+                      <Text style={styles.rewardSubtext}>{t('taskCreationModal.reward.subtitle')}</Text>
                     </View>
                     <View style={styles.rewardValue}>
                       <Plus size={16} color="#17F196" strokeWidth={2} />
                       <Text style={styles.rewardNumber}>150</Text>
-                      <Text style={styles.rewardText}>Flames</Text>
+                      <Text style={styles.rewardText}>{t('taskCreationModal.reward.flames')}</Text>
                     </View>
                   </View>
                 </View>
@@ -886,7 +910,7 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
                   disabled={loading || !form.title.trim()}
                 >
                   <Text style={[styles.addTaskButtonText, !form.title.trim() && styles.disabledText]}>
-                    {loading ? 'Creating...' : 'Add Task'}
+                    {loading ? t('taskCreationModal.button.creating') : t('taskCreationModal.button.addTask')}
                   </Text>
                 </Pressable>
               </View>
@@ -903,12 +927,15 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
         selectedDate={selectedDate}
         datePickerType={datePickerType}
         startDate={form.startDate}
+        t={t}
+        theme={theme}
+        isDarkMode={isDarkMode}
       />
     </>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
@@ -922,7 +949,7 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   modalContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     width: '100%',
@@ -968,7 +995,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#101828',
+    color: theme.text,
     textAlign: 'center',
     marginBottom: 8,
     fontFamily: 'Helvetica',
@@ -976,7 +1003,7 @@ const styles = StyleSheet.create({
   modalSubtitle: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#393b41',
+    color: theme.textSecondary,
     textAlign: 'left',
     lineHeight: 18,
     marginBottom: 14,
@@ -1000,19 +1027,19 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 12,
     fontWeight: '400',
-    color: '#475467',
+    color: theme.textSecondary,
     fontFamily: 'Helvetica',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.input,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 14,
     borderWidth: 1,
-    borderColor: '#98a2b3',
-    shadowColor: '#101828',
+    borderColor: theme.inputBorder,
+    shadowColor: theme.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -1024,14 +1051,14 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 14,
-    color: '#161618',
+    color: theme.text,
     fontFamily: 'Helvetica',
   },
   inputText: {
-    color: '#161618',
+    color: theme.text,
   },
   inputPlaceholder: {
-    color: '#888888',
+    color: theme.placeholder,
   },
   chevronIcon: {
     marginLeft: 8,
@@ -1060,26 +1087,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.input,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: theme.border,
   },
   selectedAssignee: {
-    backgroundColor: '#F4F3FF',
+    backgroundColor: isDarkMode ? '#2a4a3a' : '#F4F3FF',
     borderColor: '#17f196',
   },
   assigneeText: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#2D2D2D',
+    color: theme.text,
   },
   assigneeSubtext: {
     fontSize: 12,
     fontWeight: '400',
-    color: '#6B7280',
+    color: theme.textSecondary,
     marginTop: 4,
   },
   selectedAssigneeText: {
@@ -1090,7 +1117,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#D1D5DB',
+    borderColor: theme.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1143,11 +1170,11 @@ const styles = StyleSheet.create({
   rewardTitle: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#475467',
+    color: theme.textSecondary,
   },
   rewardSubtext: {
     fontSize: 9,
-    color: '#98A2B3',
+    color: theme.textTertiary,
   },
   rewardValue: {
     flexDirection: 'row',
@@ -1157,12 +1184,12 @@ const styles = StyleSheet.create({
   rewardNumber: {
     fontSize: 18,
     fontWeight: '400',
-    color: '#161B23',
+    color: theme.text,
   },
   rewardText: {
     fontSize: 18,
     fontWeight: '400',
-    color: '#475467',
+    color: theme.textSecondary,
   },
 
   // Add Task Button - Matching resetPwd button styling
@@ -1202,7 +1229,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   datePickerContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 20,
@@ -1217,7 +1244,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingBottom: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: theme.border,
   },
   datePickerCancelButton: {
     paddingVertical: 8,
@@ -1225,13 +1252,13 @@ const styles = StyleSheet.create({
   },
   datePickerCancelText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: theme.textSecondary,
     fontFamily: 'Helvetica',
   },
   datePickerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: theme.text,
     fontFamily: 'Helvetica',
   },
   datePickerDoneButton: {
@@ -1259,7 +1286,7 @@ const styles = StyleSheet.create({
   datePickerLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: theme.text,
     textAlign: 'center',
     marginBottom: 10,
     fontFamily: 'Helvetica',
@@ -1279,7 +1306,7 @@ const styles = StyleSheet.create({
   },
   datePickerOptionText: {
     fontSize: 16,
-    color: '#374151',
+    color: theme.textSecondary,
     fontFamily: 'Helvetica',
   },
   datePickerOptionTextSelected: {
@@ -1287,10 +1314,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   datePickerOptionDisabled: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: theme.input,
     opacity: 0.5,
   },
   datePickerOptionTextDisabled: {
-    color: '#9CA3AF',
+    color: theme.textTertiary,
   },
 });

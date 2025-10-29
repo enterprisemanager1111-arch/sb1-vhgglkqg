@@ -19,6 +19,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/components/NotificationSystem';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
+import { useDarkMode } from '@/contexts/DarkModeContext';
+import { getTheme } from '@/constants/theme';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -53,6 +55,10 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
   const { showPointsEarned, showMemberActivity } = useNotifications();
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { isDarkMode } = useDarkMode();
+  const theme = getTheme(isDarkMode);
+  
+  const styles = createStyles(theme, isDarkMode);
 
 
   const handleClose = () => {
@@ -113,15 +119,15 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
       
       console.log('✅ Shopping item created successfully via function:', data);
       
-      showPointsEarned(5, `Shopping item created: ${form.title}`);
-      showMemberActivity(t('common.familyMember'), `Created shopping item: ${form.title}`);
+      showPointsEarned(5, `${t('shoppingItemCreationModal.success.item')}: ${form.title}`);
+      showMemberActivity(t('common.familyMember'), `${t('shoppingItemCreationModal.success.created')}: ${form.title}`);
       
-      Alert.alert('Success', 'Shopping item created successfully!');
+      Alert.alert(t('shoppingItemCreationModal.success.title'), t('shoppingItemCreationModal.success.message'));
       handleClose();
       
     } catch (error: any) {
       console.error('❌ Error creating shopping item with family:', error);
-      Alert.alert(t('common.error'), error.message || 'Failed to create shopping item');
+      Alert.alert(t('common.error'), error.message || t('shoppingItemCreationModal.validation.createFailed'));
     }
   };
 
@@ -175,15 +181,15 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
         }
       }
       
-      showPointsEarned(5, `Shopping item created: ${form.title}`);
-      showMemberActivity(t('common.familyMember'), `Created shopping item: ${form.title}`);
+      showPointsEarned(5, `${t('shoppingItemCreationModal.success.item')}: ${form.title}`);
+      showMemberActivity(t('common.familyMember'), `${t('shoppingItemCreationModal.success.created')}: ${form.title}`);
       
-      Alert.alert('Success', 'Shopping item created successfully!');
+      Alert.alert(t('shoppingItemCreationModal.success.title'), t('shoppingItemCreationModal.success.message'));
       handleClose();
       
     } catch (error: any) {
       console.error('❌ Error in direct insert fallback:', error);
-      Alert.alert(t('common.error'), error.message || 'Failed to create shopping item');
+      Alert.alert(t('common.error'), error.message || t('shoppingItemCreationModal.validation.createFailed'));
     }
   };
 
@@ -191,7 +197,7 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
     console.log('🚀 handleCreateShoppingItem called');
     
     if (!form.title.trim()) {
-      Alert.alert(t('common.error'), 'Please enter an item title');
+      Alert.alert(t('common.error'), t('shoppingItemCreationModal.validation.titleRequired'));
       return;
     }
 
@@ -269,7 +275,7 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
 
     console.log('🔧 Setting loading state...');
     setLoading(true);
-    showLoading('Creating shopping item...');
+    showLoading(t('shoppingItemCreationModal.loading'));
     
     try {
       console.log('🔧 About to call createShoppingItemWithFamily with data:', itemData);
@@ -280,7 +286,7 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
       
     } catch (error: any) {
       console.error('❌ Error creating shopping item:', error);
-      Alert.alert(t('common.error'), error.message || 'Failed to create shopping item');
+      Alert.alert(t('common.error'), error.message || t('shoppingItemCreationModal.validation.createFailed'));
     } finally {
       console.log('🔧 Finally block - resetting loading state');
       setLoading(false);
@@ -313,9 +319,9 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
 
           {/* Modal Header */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Create New Shopping Item</Text>
+            <Text style={styles.modalTitle}>{t('shoppingItemCreationModal.title')}</Text>
             <Text style={styles.modalSubtitle}>
-              Here you can create a new Item. Be sure about which shopping item you want to create.
+              {t('shoppingItemCreationModal.subtitle')}
             </Text>
           </View>
 
@@ -325,7 +331,7 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
               <View style={styles.rowContainer}>
                 {/* Item Title */}
                 <View style={styles.halfWidthContainer}>
-                  <Text style={styles.inputLabel}>Item Title</Text>
+                  <Text style={styles.inputLabel}>{t('shoppingItemCreationModal.form.itemTitle')}</Text>
                   <View style={styles.inputContainer}>
                     <RNImage 
                       source={require('@/assets/images/icon/task_title.png')}
@@ -341,7 +347,7 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
                           boxShadow: 'none',
                         } as any)
                       ]}
-                      placeholder="Bobs Birthday"
+                      placeholder={t('shoppingItemCreationModal.form.itemTitlePlaceholder')}
                       placeholderTextColor="#9CA3AF"
                       value={form.title}
                       onChangeText={(value) => handleInputChange('title', value)}
@@ -351,7 +357,7 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
 
                 {/* Quantity (optional) */}
                 <View style={styles.halfWidthContainer}>
-                  <Text style={styles.inputLabel}>Quantity (optional)</Text>
+                  <Text style={styles.inputLabel}>{t('shoppingItemCreationModal.form.quantity')}</Text>
                   <View style={styles.inputContainer}>
                     <RNImage 
                       source={require('@/assets/images/icon/note.png')}
@@ -367,7 +373,7 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
                           boxShadow: 'none',
                         } as any)
                       ]}
-                      placeholder="1.0 stk"
+                      placeholder={t('shoppingItemCreationModal.form.quantityPlaceholder')}
                       placeholderTextColor="#9CA3AF"
                       value={form.quantity}
                       onChangeText={(value) => handleInputChange('quantity', value)}
@@ -377,9 +383,9 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
               </View>
             </View>
 
-            {/* Event Description */}
+            {/* Item Description */}
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>Event Description</Text>
+              <Text style={styles.inputLabel}>{t('shoppingItemCreationModal.form.itemDescription')}</Text>
               <View style={styles.inputContainer}>
                 <RNImage 
                   source={require('@/assets/images/icon/note.png')}
@@ -395,7 +401,7 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
                       boxShadow: 'none',
                     } as any)
                   ]}
-                  placeholder="Bring a Gift"
+                  placeholder={t('shoppingItemCreationModal.form.itemDescriptionPlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   value={form.description}
                   onChangeText={(value) => handleInputChange('description', value)}
@@ -405,7 +411,7 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
 
             {/* Assign Task (optional) */}
             <View style={styles.inputSection}>
-              <Text style={styles.inputLabel}>Assign task (optional)</Text>
+              <Text style={styles.inputLabel}>{t('shoppingItemCreationModal.form.assignTask')}</Text>
               <View style={styles.assigneeContainer}>
                 {familyMembers.map((member) => (
                   <Pressable
@@ -451,26 +457,26 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
                       style={styles.rewardIcon}
                       resizeMode="contain"
                     />
-                    <Text style={styles.rewardTitle}>Shop item Reward</Text>
+                    <Text style={styles.rewardTitle}>{t('shoppingItemCreationModal.reward.title')}</Text>
                   </View>
-                  <Text style={styles.rewardSubtext}>If this item is executed, the user receives</Text>
+                  <Text style={styles.rewardSubtext}>{t('shoppingItemCreationModal.reward.subtitle')}</Text>
                 </View>
                 <View style={styles.rewardValue}>
                   <Plus size={16} color="#17F196" strokeWidth={2} />
                   <Text style={styles.rewardNumber}>{form.reward}</Text>
-                  <Text style={styles.rewardText}>Flames</Text>
+                  <Text style={styles.rewardText}>{t('shoppingItemCreationModal.reward.flames')}</Text>
                 </View>
               </View>
             </View>
           </ScrollView>
 
-          {/* Add Event Button */}
+          {/* Add Item Button */}
           <Pressable
             style={[styles.addButton, loading && styles.addButtonDisabled]}
             onPress={handleCreateShoppingItem}
             disabled={loading || !form.title.trim()}
           >
-            <Text style={styles.addButtonText}>Add Item</Text>
+            <Text style={styles.addButtonText}>{loading ? t('shoppingItemCreationModal.button.creating') : t('shoppingItemCreationModal.button.addItem')}</Text>
           </Pressable>
         </View>
       </View>
@@ -478,7 +484,7 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -488,7 +494,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 20,
@@ -525,13 +531,13 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1F2937',
+    color: theme.text,
     marginBottom: 8,
     textAlign: 'center',
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: theme.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: 20,
@@ -553,15 +559,15 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#374151',
+    color: theme.text,
     marginBottom: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.input,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: theme.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -575,7 +581,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     width: '120%',
-    color: '#1F2937',
+    color: theme.text,
   },
   assigneeContainer: {
     flexDirection: 'row',
@@ -586,9 +592,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.input,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: theme.border,
     borderRadius: 8,
     width: '50%',
     paddingHorizontal: 12,
@@ -600,16 +606,16 @@ const styles = StyleSheet.create({
   },
   assigneeText: {
     fontSize: 14,
-    color: '#374151',
+    color: theme.textSecondary,
   },
   assigneeTextSelected: {
-    color: '#1F2937',
+    color: theme.text,
   },
   checkIcon: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: theme.input,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -624,7 +630,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: theme.border,
   },
   // Shop item Reward - Matching TaskCreationModal style
   rewardContainer: {
@@ -654,11 +660,11 @@ const styles = StyleSheet.create({
   rewardTitle: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#475467',
+    color: theme.textSecondary,
   },
   rewardSubtext: {
     fontSize: 9,
-    color: '#98A2B3',
+    color: theme.textTertiary,
   },
   rewardValue: {
     flexDirection: 'row',
@@ -668,12 +674,12 @@ const styles = StyleSheet.create({
   rewardNumber: {
     fontSize: 18,
     fontWeight: '400',
-    color: '#161B23',
+    color: theme.text,
   },
   rewardText: {
     fontSize: 18,
     fontWeight: '400',
-    color: '#475467',
+    color: theme.textSecondary,
   },
   addButton: {
     width: '100%',

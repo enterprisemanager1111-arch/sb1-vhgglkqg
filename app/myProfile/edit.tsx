@@ -22,12 +22,17 @@ import * as ImagePicker from 'expo-image-picker';
 import { BlurView } from 'expo-blur';
 import { supabase } from '@/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useDarkMode } from '@/contexts/DarkModeContext';
+import { getTheme } from '@/constants/theme';
 
 
 export default function EditProfile() {
   const { profile, updateProfile, user, session, loading: authLoading, refreshProfile, updateProfileDirectly } = useAuth();
   const { loading: familyLoading } = useFamily();
   const { showError } = useCustomAlert();
+  const { isDarkMode } = useDarkMode();
+  const theme = getTheme(isDarkMode);
+  const styles = createStyles(theme, isDarkMode);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -1582,7 +1587,10 @@ export default function EditProfile() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar 
+        barStyle={isDarkMode ? "light-content" : "dark-content"} 
+        backgroundColor={theme.surface} 
+      />
 
       {/* Loading Interface for User Data */}
       {(isLoadingUserData || !isProfileDataLoaded || authLoading || familyLoading) && (
@@ -2266,10 +2274,10 @@ export default function EditProfile() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any, isDarkMode: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: theme.background,
   },
   header: {
     flexDirection: 'row',
@@ -2277,9 +2285,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: theme.border,
   },
   backButton: {
     padding: 8,
@@ -2287,7 +2295,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000000',
+    color: theme.text,
     fontFamily: 'Arial',
   },
   headerSpacer: {
@@ -2297,13 +2305,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     margin: 20,
     borderRadius: 16,
     padding: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: isDarkMode ? 0.3 : 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -2311,7 +2319,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     fontStyle: 'Semi Bold',
-    color: '#000000',
+    color: theme.text,
     marginBottom: 8,
     fontFamily: 'Arial',
   },
@@ -2319,7 +2327,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontStyle: 'regular',
     fontWeight: '400',
-    color: '#667085',
+    color: theme.textSecondary,
     marginBottom: 32,
     fontFamily: 'Arial',
   },
@@ -2330,9 +2338,9 @@ const styles = StyleSheet.create({
   photoPlaceholder: {
     width: 100,
     height: 100,
-    backgroundColor: '#fafaff',
+    backgroundColor: isDarkMode ? theme.input : '#fafaff',
     borderWidth: 2,
-    borderColor: '#bdb4fe',
+    borderColor: isDarkMode ? theme.border : '#bdb4fe',
     borderStyle: 'dashed',
     borderRadius: 8,
     alignItems: 'center',
@@ -2381,7 +2389,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     fontStyle: 'medium',
-    color: '#475467',
+    color: theme.textSecondary,
     marginBottom: 8,
     fontFamily: 'Arial',
   },
@@ -2389,7 +2397,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '400',
     fontStyle: 'regular',
-    color: '#667085',
+    color: theme.textSecondary,
     textAlign: 'center',
     lineHeight: 16,
     width: 190,
@@ -2404,19 +2412,19 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 12,
     fontWeight: '400',
-    color: '#475467',
+    color: theme.textSecondary,
     fontFamily: 'Helvetica',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.input,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 14,
     borderWidth: 1,
-    borderColor: '#98a2b3',
-    shadowColor: '#101828',
+    borderColor: theme.inputBorder,
+    shadowColor: isDarkMode ? '#000' : '#101828',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -2443,11 +2451,11 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     fontSize: 14,
-    color: '#161618',
+    color: theme.text,
     fontFamily: 'Helvetica',
   },
   placeholderText: {
-    color: '#CCCCCC',
+    color: theme.placeholder,
   },
   inputChevron: {
     marginLeft: 12,
@@ -2456,9 +2464,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     paddingBottom: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderTopWidth: 1,
-    borderTopColor: '#E5E5E5',
+    borderTopColor: theme.border,
   },
   updateButton: {
     width: '100%',
@@ -2492,7 +2500,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   datePickerContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: 40,
@@ -2504,20 +2512,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: theme.border,
   },
   datePickerCancelButton: {
     padding: 8,
   },
   datePickerCancelText: {
     fontSize: 16,
-    color: '#666666',
+    color: theme.textSecondary,
     fontFamily: 'Arial',
   },
   datePickerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000000',
+    color: theme.text,
     fontFamily: 'Arial',
   },
   datePickerDoneButton: {
@@ -2553,7 +2561,7 @@ const styles = StyleSheet.create({
   datePickerLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333333',
+    color: theme.text,
     textAlign: 'center',
     marginBottom: 10,
     fontFamily: 'Arial',
@@ -2561,29 +2569,29 @@ const styles = StyleSheet.create({
   yearScrollView: {
     height: 250,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: theme.border,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.input,
   },
   monthScrollView: {
     height: 250,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: theme.border,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.input,
   },
   dayScrollView: {
     height: 250,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: theme.border,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.input,
   },
   datePickerOption: {
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: theme.border,
     alignItems: 'center',
   },
   datePickerOptionSelected: {
@@ -2591,7 +2599,7 @@ const styles = StyleSheet.create({
   },
   datePickerOptionText: {
     fontSize: 14,
-    color: '#333333',
+    color: theme.text,
     fontFamily: 'Arial',
   },
   datePickerOptionTextSelected: {
@@ -2605,7 +2613,7 @@ const styles = StyleSheet.create({
   },
   datePickerNote: {
     fontSize: 14,
-    color: '#666666',
+    color: theme.textSecondary,
     textAlign: 'center',
     marginBottom: 10,
     fontFamily: 'Arial',
@@ -2620,9 +2628,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginVertical: 4,
     borderRadius: 12,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: theme.input,
     borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: theme.border,
     alignItems: 'center',
   },
   positionOptionSelected: {
@@ -2632,7 +2640,7 @@ const styles = StyleSheet.create({
   positionOptionText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333333',
+    color: theme.text,
     fontFamily: 'Arial',
   },
   positionOptionTextSelected: {
@@ -2648,7 +2656,7 @@ const styles = StyleSheet.create({
   imageEditorContainer: {
     width: '90%',
     height: '80%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderRadius: 16,
     overflow: 'hidden',
   },
@@ -2658,9 +2666,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: theme.background,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: theme.border,
   },
   imageEditorCancelButton: {
     padding: 8,
@@ -2668,7 +2676,7 @@ const styles = StyleSheet.create({
   imageEditorTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000000',
+    color: theme.text,
     fontFamily: 'Arial',
   },
   imageEditorSaveButton: {
@@ -2678,7 +2686,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F8F9FA',
+    backgroundColor: theme.background,
   },
   imageEditorImageContainer: {
     width: 300,
@@ -2695,15 +2703,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingVertical: 20,
     paddingHorizontal: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderTopWidth: 1,
-    borderTopColor: '#E5E5E5',
+    borderTopColor: theme.border,
   },
   imageEditorControlButton: {
     alignItems: 'center',
     padding: 12,
     borderRadius: 12,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: theme.input,
     minWidth: 80,
   },
   imageEditorControlText: {
@@ -2816,7 +2824,7 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   confirmationModalContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     borderBottomLeftRadius: 0,
@@ -2860,7 +2868,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     fontStyle: 'Semi Bold',
-    color: '#101828',
+    color: theme.text,
     textAlign: 'center',
     marginBottom: 8,
     fontFamily: 'Helvetica',
@@ -2869,7 +2877,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     fontStyle: 'Medium',
-    color: '#393b41',
+    color: theme.textSecondary,
     textAlign: 'left',
     lineHeight: 18,
     marginTop: 10,
@@ -2937,7 +2945,7 @@ const styles = StyleSheet.create({
     zIndex: 3000,
   },
   successModalContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     borderBottomLeftRadius: 0,
@@ -2981,7 +2989,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     fontStyle: 'Semi Bold',
-    color: '#101828',
+    color: theme.text,
     textAlign: 'center',
     marginBottom: 8,
     fontFamily: 'Helvetica',
@@ -2990,7 +2998,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     fontStyle: 'Medium',
-    color: '#393b41',
+    color: theme.textSecondary,
     textAlign: 'center',
     lineHeight: 18,
     marginTop: 10,
@@ -3029,7 +3037,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: isDarkMode ? 'rgba(18, 18, 18, 0.95)' : 'rgba(255, 255, 255, 0.95)',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 4000,
@@ -3048,14 +3056,14 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     borderWidth: 4,
-    borderColor: '#E5E5E5',
+    borderColor: theme.border,
     borderTopColor: '#17f196',
     borderRightColor: '#17f196',
   },
   loadingText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333333',
+    color: theme.text,
     marginBottom: 20,
     textAlign: 'center',
     fontFamily: 'Arial',

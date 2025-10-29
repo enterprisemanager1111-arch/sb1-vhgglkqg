@@ -25,6 +25,7 @@ import { SnackbarProvider } from '@/contexts/SnackbarContext';
 import { CustomAlertProvider } from '@/contexts/CustomAlertContext';
 import CustomSplashScreen from '@/components/SplashScreen';
 import { ResponsiveProvider } from '@/contexts/ResponsiveContext';
+import { DarkModeProvider } from '@/contexts/DarkModeContext';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -80,30 +81,32 @@ export default function RootLayout() {
 
   return (
     <ResponsiveProvider>
-      <LanguageProvider>
-        <LoadingProvider>
-          <SnackbarProvider>
-            <CustomAlertProvider>
-              <OnboardingProvider>
-                <AuthProvider>
-                  <FamilyProvider>
-                  <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="index" />
-                    <Stack.Screen name="(onboarding)" />
-                    <Stack.Screen name="(tabs)" />
-                    <Stack.Screen name="myProfile" />
-                    <Stack.Screen name="family" />
-                    <Stack.Screen name="auth" />
-                    <Stack.Screen name="+not-found" options={{ headerShown: false }} />
-                  </Stack>
-                  <StatusBar style="auto" />
-                  </FamilyProvider>
-                </AuthProvider>
-              </OnboardingProvider>
-            </CustomAlertProvider>
-          </SnackbarProvider>
-        </LoadingProvider>
-      </LanguageProvider>
+      <DarkModeProvider>
+        <LanguageProvider>
+          <LoadingProvider>
+            <SnackbarProvider>
+              <CustomAlertProvider>
+                <OnboardingProvider>
+                  <AuthProvider>
+                    <FamilyProvider>
+                    <Stack screenOptions={{ headerShown: false }}>
+                      <Stack.Screen name="index" />
+                      <Stack.Screen name="(onboarding)" />
+                      <Stack.Screen name="(tabs)" />
+                      <Stack.Screen name="myProfile" />
+                      <Stack.Screen name="family" />
+                      <Stack.Screen name="auth" />
+                      <Stack.Screen name="+not-found" options={{ headerShown: false }} />
+                    </Stack>
+                    <StatusBar style="auto" />
+                    </FamilyProvider>
+                  </AuthProvider>
+                </OnboardingProvider>
+              </CustomAlertProvider>
+            </SnackbarProvider>
+          </LoadingProvider>
+        </LanguageProvider>
+      </DarkModeProvider>
     </ResponsiveProvider>
   );
 }

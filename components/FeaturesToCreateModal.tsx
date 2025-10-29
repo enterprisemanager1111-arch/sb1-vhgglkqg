@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { Clock } from 'lucide-react-native';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useDarkMode } from '@/contexts/DarkModeContext';
+import { getTheme } from '@/constants/theme';
 
 interface FeaturesToCreateModalProps {
   visible: boolean;
@@ -35,43 +37,47 @@ const FeaturesToCreateModal: React.FC<FeaturesToCreateModalProps> = ({
   onFeatureSelect,
 }) => {
   const { t } = useLanguage();
+  const { isDarkMode } = useDarkMode();
+  const theme = getTheme(isDarkMode);
   const [selectedFeature, setSelectedFeature] = useState<FeatureType>('tasks');
+  
+  const styles = createStyles(theme, isDarkMode);
 
   const features: Feature[] = [
     {
       id: 'tasks',
-      title: 'Tasks',
-      subtitle: '14 Tasks',
+      title: t('featuresToCreate.features.tasks.title'),
+      subtitle: t('featuresToCreate.features.tasks.subtitle'),
       iconActive: require('@/assets/images/icon/tasks_active.png'),
       iconDisabled: require('@/assets/images/icon/tasks_dis.png'),
-      count: '14 Tasks',
+      count: t('featuresToCreate.features.tasks.subtitle'),
       enabled: true,
     },
     {
       id: 'calendar',
-      title: 'Calendar',
-      subtitle: '6 Events',
+      title: t('featuresToCreate.features.calendar.title'),
+      subtitle: t('featuresToCreate.features.calendar.subtitle'),
       iconActive: require('@/assets/images/icon/calendar2_active.png'),
       iconDisabled: require('@/assets/images/icon/calendar2_dis.png'),
-      count: '6 Events',
+      count: t('featuresToCreate.features.calendar.subtitle'),
       enabled: true,
     },
     {
       id: 'shopList',
-      title: 'Shopping List',
-      subtitle: '25 Items',
+      title: t('featuresToCreate.features.shopList.title'),
+      subtitle: t('featuresToCreate.features.shopList.subtitle'),
       iconActive: require('@/assets/images/icon/shop_list_active.png'),
       iconDisabled: require('@/assets/images/icon/shop_list_dis.png'),
-      count: '25 Items',
+      count: t('featuresToCreate.features.shopList.subtitle'),
       enabled: true,
     },
     {
       id: 'coming-soon',
-      title: 'Coming Soon',
-      subtitle: 'Hyped?',
+      title: t('featuresToCreate.features.comingSoon.title'),
+      subtitle: t('featuresToCreate.features.comingSoon.subtitle'),
       iconActive: require('@/assets/images/icon/soon_active.png'),
       iconDisabled: require('@/assets/images/icon/soon_dis.png'),
-      count: 'Hyped?',
+      count: t('featuresToCreate.features.comingSoon.subtitle'),
       enabled: true,
     },
   ];
@@ -166,9 +172,9 @@ const FeaturesToCreateModal: React.FC<FeaturesToCreateModalProps> = ({
 
           {/* Modal Header */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Features to Create</Text>
+            <Text style={styles.modalTitle}>{t('featuresToCreate.title')}</Text>
             <Text style={styles.modalSubtitle}>
-              On which feature would you like to add something new to? Please select your Feature
+              {t('featuresToCreate.subtitle')}
             </Text>
           </View>
 
@@ -182,7 +188,7 @@ const FeaturesToCreateModal: React.FC<FeaturesToCreateModalProps> = ({
             style={styles.startButton}
             onPress={handleStartCreation}
           >
-            <Text style={styles.startButtonText}>Start with Creation</Text>
+            <Text style={styles.startButtonText}>{t('featuresToCreate.startButton')}</Text>
           </Pressable>
         </View>
       </View>
@@ -192,7 +198,7 @@ const FeaturesToCreateModal: React.FC<FeaturesToCreateModalProps> = ({
 
 const { width } = Dimensions.get('window');
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -202,7 +208,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 20,
@@ -240,13 +246,13 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1F2937',
+    color: theme.text,
     marginBottom: 8,
     textAlign: 'center',
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: theme.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: 20,
@@ -259,12 +265,12 @@ const styles = StyleSheet.create({
   },
   featureCard: {
     width: (width - 60) / 2, // Account for padding and gap
-    backgroundColor: '#F9F9F9',
+    backgroundColor: theme.input,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: theme.border,
   },
   featureCardSelected: {
     borderColor: '#17f196',
@@ -300,26 +306,26 @@ const styles = StyleSheet.create({
   featureTitle: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#6B7280',
+    color: theme.textSecondary,
     textAlign: 'left',
   },
   featureTitleSelected: {
     // color: '#17f196',
   },
   featureTitleDisabled: {
-    color: '#9CA3AF',
+    color: theme.textTertiary,
   },
   featureSubtitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: theme.text,
     textAlign: 'left',
   },
   featureSubtitleSelected: {
     // color: '#17f196',
   },
   featureSubtitleDisabled: {
-    color: '#9CA3AF',
+    color: theme.textTertiary,
   },
   startButton: {
     width: '100%',

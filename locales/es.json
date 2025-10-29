@@ -240,6 +240,32 @@
     "flames": "Flames",
     "profile": "Perfil"
   },
+  "family": {
+    "header": {
+      "welcome": "¡Bienvenido a nuestra familia!"
+    },
+    "overview": {
+      "subtitle": "Aquí están tus actividades principales",
+      "total": "Total"
+    },
+    "challenge": {
+      "title": "Desafío Familiar",
+      "subtitle": "Completa todas las actividades familiares para alcanzar el 100%",
+      "taskTitle": "Desafío de Actividades Familiares",
+      "activitiesCompleted": "{{completed}} de {{total}} actividades completadas",
+      "progressComplete": "{{percent}}% completado",
+      "rewardFlames": "{{points}} Flames"
+    },
+    "members": {
+      "subtitle": "Todos los miembros de la familia están listados aquí"
+    },
+    "error": {
+      "tipsTitle": "Consejos de solución de problemas:",
+      "checkInternet": "Verifica tu conexión a Internet",
+      "checkSupabase": "Asegúrate de que tu proyecto de Supabase esté activo",
+      "tryRefresh": "Intenta actualizar la página"
+    }
+  },
   "common": {
     "continue": "Continuar",
     "cancel": "Cancelar",
@@ -381,10 +407,454 @@
       "loadShoppingItems": "Error al cargar artículos de compra"
     }
   },
+  "eventCreationModal": {
+    "title": "Crear Nuevo Evento",
+    "subtitle": "Aquí puedes crear un nuevo evento. Asegúrate del evento que deseas crear.",
+    "loading": "Creando evento...",
+    "form": {
+      "eventTitle": "Título del Evento",
+      "eventTitlePlaceholder": "Cumpleaños de Bob",
+      "eventDescription": "Descripción del Evento",
+      "eventDescriptionPlaceholder": "Traer un regalo",
+      "assignEvent": "Asignar evento",
+      "noMembers": "No se encontraron miembros de la familia. Por favor, actualice o verifique su conexión familiar.",
+      "startTime": "Hora de inicio",
+      "startTimePlaceholder": "Hora de inicio",
+      "duration": "Duración (opcional)"
+    },
+    "reward": {
+      "title": "Recompensa del Evento",
+      "subtitle": "Si se ejecuta este evento, el usuario recibe",
+      "flames": "Flames"
+    },
+    "button": {
+      "addEvent": "Agregar Evento",
+      "creating": "Creando..."
+    },
+    "dateTimePicker": {
+      "selectDateTime": "Seleccionar Fecha y Hora de Inicio",
+      "done": "Hecho",
+      "year": "Año",
+      "month": "Mes",
+      "day": "Día",
+      "hour": "Hora",
+      "minute": "Minuto"
+    },
+    "durationPicker": {
+      "selectDuration": "Seleccionar Duración",
+      "done": "Hecho",
+      "hours": "Horas",
+      "minutes": "Minutos",
+      "seconds": "Segundos"
+    },
+    "months": {
+      "january": "Enero",
+      "february": "Febrero",
+      "march": "Marzo",
+      "april": "Abril",
+      "may": "Mayo",
+      "june": "Junio",
+      "july": "Julio",
+      "august": "Agosto",
+      "september": "Septiembre",
+      "october": "Octubre",
+      "november": "Noviembre",
+      "december": "Diciembre"
+    },
+    "validation": {
+      "titleRequired": "Por favor, ingrese un título de evento",
+      "databaseError": "Problema de conexión a la base de datos. Por favor, inténtelo de nuevo.",
+      "createFailed": "Error al crear el evento"
+    },
+    "success": {
+      "title": "Éxito",
+      "message": "¡Evento creado con éxito!"
+    }
+  },
+  "shoppingItemCreationModal": {
+    "title": "Crear Nuevo Artículo de Compra",
+    "subtitle": "Aquí puedes crear un nuevo artículo. Asegúrate del artículo de compra que deseas crear.",
+    "loading": "Creando artículo...",
+    "form": {
+      "itemTitle": "Título del Artículo",
+      "itemTitlePlaceholder": "Leche",
+      "quantity": "Cantidad (opcional)",
+      "quantityPlaceholder": "1,0 unid",
+      "itemDescription": "Descripción del Artículo",
+      "itemDescriptionPlaceholder": "Comprar leche orgánica",
+      "assignTask": "Asignar tarea (opcional)"
+    },
+    "reward": {
+      "title": "Recompensa del Artículo",
+      "subtitle": "Si se ejecuta este artículo, el usuario recibe",
+      "flames": "Flames"
+    },
+    "button": {
+      "addItem": "Agregar Artículo",
+      "creating": "Creando..."
+    },
+    "validation": {
+      "titleRequired": "Por favor, ingrese un título de artículo",
+      "createFailed": "Error al crear el artículo de compra"
+    },
+    "success": {
+      "title": "Éxito",
+      "message": "¡Artículo de compra creado con éxito!",
+      "item": "Artículo de compra creado",
+      "created": "Artículo de compra creado"
+    }
+  },
+  "tasksPage": {
+    "header": {
+      "title": "Tareas en Espera",
+      "subtitle": "Abordemos tu lista de tareas"
+    },
+    "summary": {
+      "title": "Resumen de Tu Trabajo",
+      "subtitle": "Tu progreso actual de tareas",
+      "toDo": "Por Hacer",
+      "inProgress": "En Progreso",
+      "done": "Hecho"
+    },
+    "sprint": {
+      "title": "Sprint 20 - Estadísticas de Agotamiento",
+      "status": "Malo",
+      "description": "Has completado 8 tareas más de lo habitual, mantén tus tareas con tu supervisor"
+    },
+    "filter": {
+      "all": "Todas",
+      "inProgress": "En Progreso",
+      "finish": "Finalizar"
+    },
+    "taskStatus": {
+      "toDo": "Por Hacer",
+      "inProgress": "En Progreso",
+      "done": "Hecho"
+    },
+    "task": {
+      "noDueDate": "Sin fecha de vencimiento"
+    },
+    "emptyState": {
+      "title": "No se encontraron tareas",
+      "noTasks": "No hay tareas disponibles",
+      "noInProgress": "No hay tareas en progreso",
+      "noCompleted": "No hay tareas completadas"
+    }
+  },
+  "calendarPage": {
+    "header": {
+      "title": "Eventos del Calendario",
+      "subtitle": "No te pierdas tu horario"
+    },
+    "summary": {
+      "subtitle": "Tu progreso actual del calendario",
+      "today": "Hoy",
+      "nextEvent": "Próximo Evento"
+    },
+    "loading": "Cargando eventos...",
+    "error": "Error",
+    "retry": "Reintentar",
+    "event": {
+      "eventTitle": "Título del Evento",
+      "startTime": "Hora de Inicio",
+      "duration": "Duración",
+      "allDay": "Todo el día"
+    },
+    "emptyState": {
+      "noEventsFor": "No hay eventos programados para",
+      "noEvents": "No hay eventos programados para las fechas seleccionadas",
+      "showAll": "Mostrar Todos los Eventos"
+    },
+    "modal": {
+      "title": "Configurar Calendario",
+      "subtitle": "Selecciona 5 días para mostrar en el calendario",
+      "submit": "Enviar Fecha",
+      "close": "Cerrar Popup"
+    }
+  },
+  "shopListPage": {
+    "header": {
+      "title": "Lista de Compras",
+      "subtitle": "No olvides tu lista de compras"
+    },
+    "summary": {
+      "title": "Lista de Compras Perfecta",
+      "subtitle": "Tu lista de compras actual",
+      "itemsToBuy": "Artículos por Comprar",
+      "purchasedItems": "Artículos Comprados"
+    },
+    "filters": {
+      "allItems": "Todos los Artículos",
+      "buyItems": "Por Comprar",
+      "finished": "Terminado"
+    },
+    "item": {
+      "item": "Artículo",
+      "quantity": "Cantidad",
+      "by": "Por",
+      "purchasedAt": "Comprado el",
+      "pendingPurchase": "Compra pendiente",
+      "unknown": "Desconocido"
+    },
+    "loading": {
+      "family": "Cargando datos familiares...",
+      "items": "Cargando artículos...",
+      "timeout": "Está tomando más tiempo del esperado. Desliza para actualizar.",
+      "initializing": "Inicializando datos familiares...",
+      "timeoutRefresh": "Si esto toma demasiado tiempo, desliza para actualizar."
+    },
+    "error": {
+      "loadFailed": "Error al cargar los artículos"
+    },
+    "empty": {
+      "noFamily": "No se Encontró Familia",
+      "needFamily": "Debes ser parte de una familia para ver los artículos",
+      "noItems": "No se encontraron artículos",
+      "addItems": "Agrega algunos artículos a tu lista de compras"
+    }
+  },
+  "profilePage": {
+    "role": {
+      "admin": "Administrador Familiar",
+      "teenager": "Adolescente Familiar"
+    },
+    "banner": {
+      "title": "Configuración y Ajustes",
+      "subtitle": "Dale a tu perfil los mejores ajustes"
+    },
+    "error": {
+      "noUserData": "No se encontraron datos de usuario. Por favor, inicia sesión nuevamente."
+    },
+    "uploading": "Subiendo...",
+    "passwordChange": {
+      "fillAllFields": "Por favor completa todos los campos",
+      "passwordMismatch": "Las contraseñas no coinciden",
+      "passwordTooShort": "La contraseña debe tener al menos 6 caracteres",
+      "success": "Contraseña actualizada exitosamente",
+      "failed": "Error al actualizar la contraseña"
+    },
+    "languageChange": {
+      "success": "Idioma cambiado a {{language}}.",
+      "failed": "Error al cambiar el idioma"
+    },
+    "support": {
+      "title": "Contactar Soporte",
+      "subject": "Ayuda necesaria - Aplicación Famora",
+      "body": "Hola equipo de Famora,\n\nNecesito ayuda con:\n\n[Por favor describe tu problema aquí]\n\nMi versión de la aplicación: {{version}}\nMi dispositivo: {{device}}\nMi ID familiar: {{familyId}}\n\n¡Gracias!",
+      "noFamily": "Sin Familia",
+      "emailSent": "Correo enviado a {{email}}",
+      "copyEmail": "Copiar correo",
+      "emailCopied": "Correo copiado al portapapeles",
+      "failed": "Error al contactar al soporte"
+    },
+    "cache": {
+      "title": "Limpiar Caché",
+      "message": "Esto eliminará todos los datos en caché y archivos temporales. ¿Continuar?",
+      "clearButton": "Limpiar Caché",
+      "success": "Caché limpiado exitosamente",
+      "failed": "Error al limpiar el caché"
+    },
+    "deleteAccount": {
+      "title": "Eliminar Cuenta",
+      "message": "Esta acción no se puede deshacer. Todos tus datos serán eliminados permanentemente.",
+      "deleteButton": "Eliminar Cuenta",
+      "notImplemented": "La función de eliminar cuenta aún no está implementada."
+    },
+    "sections": {
+      "security": {
+        "title": "Seguridad y Privacidad",
+        "subtitle": "Consulta tu configuración de seguridad y privacidad",
+        "twoFactor": {
+          "title": "Autenticación de dos factores (2FA)",
+          "description": "Configura tu autenticación para tu cuenta",
+          "alertTitle": "2FA",
+          "comingSoon": "Configuración de autenticación de dos factores próximamente"
+        },
+        "manageSessions": {
+          "title": "Gestionar sesiones",
+          "description": "Ver inicios de sesión activos en dispositivos y cerrar sesión",
+          "alertTitle": "Sesiones",
+          "comingSoon": "Gestión de sesiones próximamente"
+        },
+        "privacy": {
+          "title": "Configuración de privacidad",
+          "description": "Ver estadísticas, visibilidad de actividades",
+          "alertTitle": "Privacidad",
+          "comingSoon": "Configuración de privacidad próximamente"
+        }
+      },
+      "personalization": {
+        "title": "Personalización",
+        "subtitle": "Consulta tu configuración de personalización",
+        "editAccount": {
+          "title": "Editar Cuenta",
+          "description": "Nombre, Fecha de nacimiento y Foto de perfil"
+        },
+        "changePassword": {
+          "title": "Cambiar Contraseña",
+          "description": "Actualiza tu contraseña"
+        },
+        "language": {
+          "title": "Idioma",
+          "description": "Selecciona tu idioma preferido"
+        },
+        "darkMode": {
+          "title": "Modo Oscuro",
+          "description": "Personalizar la apariencia de la aplicación"
+        }
+      },
+      "communication": {
+        "title": "Comunicación",
+        "subtitle": "Consulta tu configuración de comunicación",
+        "notifications": {
+          "title": "Notificaciones",
+          "description": "Notificaciones push para actividades familiares",
+          "permissionMessage": "Se requiere permiso de notificación para esta función"
+        },
+        "feedback": {
+          "title": "Dar comentarios",
+          "description": "Cuánto te gusta la aplicación",
+          "alertTitle": "Comentarios",
+          "comingSoon": "Función de comentarios próximamente"
+        },
+        "faq": {
+          "title": "Preguntas Frecuentes y Ayuda",
+          "description": "¿Necesitas ayuda con algo?"
+        }
+      },
+      "general": {
+        "title": "Configuración General",
+        "subtitle": "Consulta tu configuración general",
+        "appVersion": {
+          "title": "Versión de la APP",
+          "description": "Muestra tu versión actual de la aplicación"
+        },
+        "manageStorage": {
+          "title": "Gestionar almacenamiento",
+          "description": "Limpia tu caché para limpiar todo"
+        },
+        "logOut": {
+          "title": "Cerrar sesión con cuenta",
+          "description": "Cierra sesión con tu cuenta actual"
+        },
+        "deleteAccount": {
+          "title": "Eliminar Cuenta",
+          "description": "Eliminar o desactivar tu cuenta"
+        }
+      }
+    },
+    "modals": {
+      "changePassword": {
+        "title": "Cambiar Contraseña",
+        "currentPassword": "Contraseña Actual",
+        "newPassword": "Nueva Contraseña",
+        "confirmNewPassword": "Confirmar Nueva Contraseña",
+        "button": "Cambiar Contraseña"
+      },
+      "selectLanguage": {
+        "title": "Seleccionar Idioma"
+      },
+      "changeProfilePicture": {
+        "title": "Cambiar Foto de Perfil",
+        "subtitle": "Elige cómo deseas actualizar tu foto de perfil",
+        "takePhoto": "Tomar Foto",
+        "useCamera": "Usar cámara para tomar una nueva foto",
+        "chooseLibrary": "Elegir de la Biblioteca",
+        "selectLibrary": "Seleccionar de tu biblioteca de fotos"
+      },
+      "appVersion": {
+        "title": "Versión de la Aplicación",
+        "version": "Versión {{version}}\nBuild {{build}}",
+        "gotIt": "Entendido"
+      }
+    }
+  },
+  "notificationsPage": {
+    "title": "Notificaciones",
+    "loading": "Cargando notificaciones...",
+    "retry": "Reintentar",
+    "empty": {
+      "title": "Aún no hay notificaciones",
+      "subtitle": "Aquí verás las asignaciones de tareas"
+    },
+    "item": {
+      "title": "¡Nueva Tarea Asignada!",
+      "description": "Tienes una nueva tarea para este sprint de {{assignerName}}, puedes revisar tu tarea \"{{taskTitle}}\" tocando aquí",
+      "someone": "Alguien",
+      "aTask": "una tarea"
+    }
+  },
+  "featuresToCreate": {
+    "title": "Funciones para Crear",
+    "subtitle": "¿A qué función te gustaría agregar algo nuevo? Por favor selecciona tu función",
+    "startButton": "Comenzar con la Creación",
+    "features": {
+      "tasks": {
+        "title": "Tareas",
+        "subtitle": "14 Tareas"
+      },
+      "calendar": {
+        "title": "Calendario",
+        "subtitle": "6 Eventos"
+      },
+      "shopList": {
+        "title": "Lista de Compras",
+        "subtitle": "25 Artículos"
+      },
+      "comingSoon": {
+        "title": "Próximamente",
+        "subtitle": "¿Emocionado?"
+      }
+    }
+  },
   "flames": {
     "title": "Llamas y Puntos",
     "subtitle": "puntos de familia recopilados",
     "loading": "Cargando llamas...",
+    "header": {
+      "familyRole": "Familia {{role}}"
+    },
+    "currentRank": {
+      "title": "Rango Actual",
+      "subtitle": "Ve tu progreso de rango",
+      "goldMember": "Miembro Oro",
+      "currentStatus": "Estado Actual",
+      "progressToPlatinum": "Progreso a Miembro Platino",
+      "flamesProgress": "{{current}}/{{total}} Llamas"
+    },
+    "familyRanks": {
+      "title": "Rankings Familiares",
+      "currentPosition": "Actualmente estás en {{position}} lugar en la familia",
+      "position1st": "1er",
+      "position2nd": "2do",
+      "position3rd": "3er",
+      "positionNth": "{{n}}º",
+      "place": "Lugar {{position}}",
+      "flames": "{{count}} Llamas"
+    },
+    "statusBanner": {
+      "title": "Tu Estado Actual",
+      "subtitle": "Aprende todo sobre las Llamas"
+    },
+    "achievements": {
+      "title": "Logros",
+      "subtitle": "Aquí están tus logros actuales",
+      "finished": "Terminado",
+      "progress": "En progreso",
+      "flamesReward": "+{{count}} Llamas",
+      "tasks": "Tareas",
+      "tasksCompleted": "{{completed}}/{{total}} completadas",
+      "calendar": "Calendario",
+      "calendarEvents": "{{completed}}/{{total}} eventos",
+      "shopList": "Lista de Compras",
+      "shopListItems": "{{completed}}/{{total}} artículos",
+      "allTasks": "Todas las Tareas",
+      "allTasksTotal": "{{completed}}/{{total}} en total",
+      "allEvents": "Todos los Eventos",
+      "allEventsTotal": "{{completed}}/{{total}} en total",
+      "allItems": "Todos los Artículos",
+      "allItemsTotal": "{{completed}}/{{total}} en total"
+    },
     "error": {
       "title": "Error al cargar",
       "retry": "Intentar de nuevo"
@@ -418,10 +888,6 @@
       "empty": "Aún no hay actividades",
       "emptySubtitle": "¡Completa tareas y gana puntos!",
       "unknown": "Desconocido"
-    },
-    "achievements": {
-      "title": "Logros Familiares",
-      "unlocked": "Desbloqueado"
     },
     "goal": {
       "title": "Nueva Meta Familiar",

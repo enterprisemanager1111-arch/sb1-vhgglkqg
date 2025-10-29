@@ -14,8 +14,15 @@ import {
 import { router } from 'expo-router';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useCalendarEventsByDate } from '@/hooks/useCalendarEventsByDate';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useDarkMode } from '@/contexts/DarkModeContext';
+import { getTheme } from '@/constants/theme';
 
 export default function Calendar() {
+  const { t } = useLanguage();
+  const { isDarkMode } = useDarkMode();
+  const theme = getTheme(isDarkMode);
+  const styles = createStyles(theme, isDarkMode);
   const scrollViewRef = useRef<ScrollView>(null);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [selectedDates, setSelectedDates] = useState<Date[]>(() => {
@@ -245,14 +252,17 @@ export default function Calendar() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#17f196" />
+      <StatusBar 
+        barStyle={isDarkMode ? "light-content" : "dark-content"} 
+        backgroundColor={theme.surface}
+      />
       
       {/* Header Section */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerText}>
-            <Text style={styles.title}>Calendar Events</Text>
-            <Text style={styles.subtitle}>Don't miss your clock in schedule</Text>
+            <Text style={styles.title}>{t('calendarPage.header.title')}</Text>
+            <Text style={styles.subtitle}>{t('calendarPage.header.subtitle')}</Text>
           </View>
           <View style={styles.headerIllustration}>
             <Image
@@ -269,7 +279,7 @@ export default function Calendar() {
           <View style={styles.summaryHeader}>
             <View style={styles.summaryHeaderLeft}>
               <Text style={styles.summaryTitle}>{mockData.currentDate}</Text>
-              <Text style={styles.summarySubtitle}>Your current calendar progress</Text>
+              <Text style={styles.summarySubtitle}>{t('calendarPage.summary.subtitle')}</Text>
             </View>
             <Pressable style={styles.calendarButton} onPress={handleCalendarButtonPress}>
               <Image
@@ -286,7 +296,7 @@ export default function Calendar() {
                   source={require('@/assets/images/icon/clock.png')}
                   style={styles.progressIcon}
                 />
-                <Text style={styles.progressCardTitle}>Today</Text>
+                <Text style={styles.progressCardTitle}>{t('calendarPage.summary.today')}</Text>
               </View>
               <Text style={styles.progressCardValue}>{mockData.progress.today}</Text>
             </View>
@@ -297,7 +307,7 @@ export default function Calendar() {
                   source={require('@/assets/images/icon/clock.png')}
                   style={styles.progressIcon}
                 />
-                <Text style={styles.progressCardTitle}>Next Event</Text>
+                <Text style={styles.progressCardTitle}>{t('calendarPage.summary.nextEvent')}</Text>
               </View>
               <Text style={styles.progressCardValue}>{mockData.progress.nextEvent}</Text>
             </View>
@@ -355,16 +365,16 @@ export default function Calendar() {
              {eventsLoading ? (
                <View style={styles.loadingContainer}>
                  <ActivityIndicator size="small" color="#17f196" />
-                 <Text style={styles.loadingText}>Loading events...</Text>
+                 <Text style={styles.loadingText}>{t('calendarPage.loading')}</Text>
                </View>
              ) : eventsError ? (
                <View style={styles.errorContainer}>
-                 <Text style={styles.errorText}>Error: {eventsError}</Text>
+                 <Text style={styles.errorText}>{t('calendarPage.error')}: {eventsError}</Text>
                  <Pressable 
                    style={styles.retryButton}
                    onPress={refreshEvents}
                  >
-                   <Text style={styles.retryButtonText}>Retry</Text>
+                   <Text style={styles.retryButtonText}>{t('calendarPage.retry')}</Text>
                  </Pressable>
                </View>
              ) : filteredEvents.length > 0 ? (
@@ -394,7 +404,7 @@ export default function Calendar() {
                        return `${diffMinutes}m`;
                      }
                    }
-                   return 'All day';
+                   return t('calendarPage.event.allDay');
                  };
                  
                  return (
@@ -409,15 +419,15 @@ export default function Calendar() {
                      <View style={styles.eventDetailsContainer}>
                        <View style={styles.eventDetailsGroup}>
                          <View style={styles.eventDetailItemLeft}>
-                           <Text style={styles.eventDetailLabel}>Event Title</Text>
+                           <Text style={styles.eventDetailLabel}>{t('calendarPage.event.eventTitle')}</Text>
                            <Text style={styles.eventDetailValue} numberOfLines={1}>{event.title}</Text>
                          </View>
                          <View style={styles.eventDetailItemCenter}>
-                           <Text style={styles.eventDetailLabel}>Start Time</Text>
+                           <Text style={styles.eventDetailLabel}>{t('calendarPage.event.startTime')}</Text>
                            <Text style={styles.eventDetailValue} numberOfLines={1}>{formatTime(eventDate)}</Text>
                          </View>
                          <View style={styles.eventDetailItemRight}>
-                           <Text style={styles.eventDetailLabel}>Duration</Text>
+                           <Text style={styles.eventDetailLabel}>{t('calendarPage.event.duration')}</Text>
                            <Text style={styles.eventDetailValue} numberOfLines={1}>{getDuration()}</Text>
                          </View>
                        </View>
@@ -478,11 +488,11 @@ export default function Calendar() {
                <View style={styles.emptyStateContainer}>
                  <Text style={styles.emptyStateText}>
                    {selectedSingleDate 
-                     ? `No events scheduled for ${selectedSingleDate.toLocaleDateString('en-US', { 
+                     ? `${t('calendarPage.emptyState.noEventsFor')} ${selectedSingleDate.toLocaleDateString('en-US', { 
                          day: 'numeric', 
                          month: 'long' 
                        })}`
-                     : 'No events scheduled for selected dates'
+                     : t('calendarPage.emptyState.noEvents')
                    }
                  </Text>
                  {selectedSingleDate && (
@@ -490,7 +500,7 @@ export default function Calendar() {
                      style={styles.showAllButton}
                      onPress={() => setSelectedSingleDate(null)}
                    >
-                     <Text style={styles.showAllButtonText}>Show All Events</Text>
+                     <Text style={styles.showAllButtonText}>{t('calendarPage.emptyState.showAll')}</Text>
                    </Pressable>
                  )}
                </View>
@@ -509,8 +519,8 @@ export default function Calendar() {
         <View style={styles.modalOverlay}>
           <View style={styles.calendarModal}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Set Calendar</Text>
-              <Text style={styles.modalSubtitle}>Select 5 days to show in calendar</Text>
+              <Text style={styles.modalTitle}>{t('calendarPage.modal.title')}</Text>
+              <Text style={styles.modalSubtitle}>{t('calendarPage.modal.subtitle')}</Text>
               
               <View style={styles.monthNavigation}>
                 <Pressable 
@@ -608,10 +618,10 @@ export default function Calendar() {
 
             <View style={styles.modalActions}>
               <Pressable style={styles.submitButton} onPress={handleSubmitDates}>
-                <Text style={styles.submitButtonText}>Submit Date</Text>
+                <Text style={styles.submitButtonText}>{t('calendarPage.modal.submit')}</Text>
               </Pressable>
               <Pressable style={styles.closeButton} onPress={handleCloseModal}>
-                <Text style={styles.closeButtonText}>Close Popup</Text>
+                <Text style={styles.closeButtonText}>{t('calendarPage.modal.close')}</Text>
               </Pressable>
             </View>
           </View>
@@ -621,10 +631,10 @@ export default function Calendar() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f1f3f8',
+    backgroundColor: theme.background,
   },
   header: {
     backgroundColor: '#17f196',
@@ -670,7 +680,7 @@ const styles = StyleSheet.create({
     marginTop: -10,
   },
   summaryCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     marginHorizontal: 10,
     marginBottom: 16,
     borderRadius: 8,
@@ -689,21 +699,21 @@ const styles = StyleSheet.create({
   summaryTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#101828',
+    color: theme.text,
     lineHeight: 19.6, // 140% of 14px
     marginBottom: 4,
   },
   summarySubtitle: {
     fontSize: 12,
     fontWeight: '400',
-    color: '#475467',
+    color: theme.textSecondary,
     lineHeight: 16.8, // 140% of 12px
   },
   calendarButton: {
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#EAECF0',
+    backgroundColor: theme.input,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 12,
@@ -723,11 +733,11 @@ const styles = StyleSheet.create({
   },
   progressCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: theme.border,
   },
   progressCardHeader: {
     flexDirection: 'row',
@@ -743,12 +753,12 @@ const styles = StyleSheet.create({
   progressCardTitle: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#475467',
+    color: theme.textSecondary,
   },
   progressCardValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2D2D2D',
+    color: theme.text,
   },
   dateSelectorScrollView: {
     marginTop: 16,
@@ -766,8 +776,8 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#EBECEE',
-    backgroundColor: '#F9F9F9',
+    borderColor: theme.border,
+    backgroundColor: theme.input,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -781,7 +791,7 @@ const styles = StyleSheet.create({
   dateNumber: {
     fontSize: 25,
     fontWeight: '500',
-    color: '#2D2D2D',
+    color: theme.text,
     marginBottom: 2,
   },
   dateNumberSelected: {
@@ -790,7 +800,7 @@ const styles = StyleSheet.create({
   dateDay: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#475467',
+    color: theme.textSecondary,
   },
   dateDaySelected: {
     color: '#FFFFFF',
@@ -801,10 +811,10 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   calendarEventCard: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: theme.border,
     padding: 12,
     marginTop: 8,
   },
@@ -814,13 +824,13 @@ const styles = StyleSheet.create({
   eventMainTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#101828',
+    color: theme.text,
     marginBottom: 4,
   },
   eventPrivateMessage: {
     fontSize: 12,
     fontWeight: '400',
-    color: '#101828',
+    color: theme.text,
   },
   eventDetailsContainer: {
     marginBottom: 16,
@@ -828,11 +838,11 @@ const styles = StyleSheet.create({
   eventDetailsGroup: {
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: theme.border,
     borderRadius: 8,
     padding: 12,
     paddingHorizontal: 15,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.input,
     justifyContent: 'space-between',
     alignItems: 'center',
   },
@@ -857,13 +867,13 @@ const styles = StyleSheet.create({
   eventDetailLabel: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#475467',
+    color: theme.textSecondary,
     marginBottom: 2,
   },
   eventDetailValue: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#344054',
+    color: theme.text,
   },
   eventDateContainer: {
     flexDirection: 'row',
@@ -877,7 +887,7 @@ const styles = StyleSheet.create({
   },
   eventDate: {
     fontSize: 12,
-    color: '#475467',
+    color: theme.textSecondary,
   },
   eventFooter: {
     flexDirection: 'row',
@@ -893,7 +903,7 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: theme.surface,
   },
 
   // Calendar Modal Styles
@@ -903,7 +913,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   calendarModal: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 20,
@@ -917,13 +927,13 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#101828',
+    color: theme.text,
     marginBottom: 4,
   },
   modalSubtitle: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#475467',
+    color: theme.textSecondary,
     marginBottom: 16,
   },
   monthNavigation: {
@@ -938,7 +948,7 @@ const styles = StyleSheet.create({
   monthText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#101828',
+    color: theme.text,
   },
   calendarGrid: {
     marginBottom: 20,
@@ -952,7 +962,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 12,
     fontWeight: '500',
-    color: '#475467',
+    color: theme.textSecondary,
     paddingVertical: 8,
   },
   datesGrid: {
@@ -1027,10 +1037,10 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#9CA3AF',
+    color: theme.textTertiary,
   },
   currentMonthDateText: {
-    color: '#101828',
+    color: theme.text,
   },
   selectedDateText: {
     color: '#FFFFFF',
@@ -1121,7 +1131,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginLeft: 8,
     fontSize: 14,
-    color: '#666',
+    color: theme.textSecondary,
   },
   emptyStateContainer: {
     paddingVertical: 20,
@@ -1129,7 +1139,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 14,
-    color: '#666',
+    color: theme.textSecondary,
     fontStyle: 'italic',
   },
   errorContainer: {
@@ -1168,7 +1178,7 @@ const styles = StyleSheet.create({
   attendeeCountText: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: '#666',
+    color: theme.textSecondary,
   },
   attendeeAvatarImage: {
     width: 24,
@@ -1178,7 +1188,7 @@ const styles = StyleSheet.create({
   attendeeInitials: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: '#333',
+    color: theme.text,
   },
   assigneeAvatars: {
     flexDirection: 'row',
@@ -1188,7 +1198,7 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: theme.surface,
     marginLeft: -8,
     justifyContent: 'center',
     alignItems: 'center',
@@ -1212,13 +1222,13 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 10,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: theme.input,
     justifyContent: 'center',
     alignItems: 'center',
   },
   assigneeAvatarInitial: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#6B7280',
+    color: theme.textSecondary,
   },
 });

@@ -15,6 +15,8 @@ import { Flame, Crown, CheckCircle, Clock, Camera, Zap, Users, User, Home } from
 import { useFamily } from '@/contexts/FamilyContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useDarkMode } from '@/contexts/DarkModeContext';
+import { getTheme } from '@/constants/theme';
 import { useFamilyPoints } from '@/hooks/useFamilyPoints';
 import { useFamilyTasks } from '@/hooks/useFamilyTasks';
 import { useFamilyCalendarEvents } from '@/hooks/useFamilyCalendarEvents';
@@ -56,6 +58,11 @@ export default function FlamesScreen() {
   const { isInFamily, familyMembers, loading: familyLoading, refreshFamily, currentFamily } = useFamily();
   const { user, profile, session } = useAuth();
   const { t } = useLanguage();
+  const { isDarkMode } = useDarkMode();
+  const theme = getTheme(isDarkMode);
+  
+  // Create themed styles
+  const styles = createStyles(theme, isDarkMode);
   const {
     leaderboard,
     currentUserPoints,
@@ -112,7 +119,7 @@ export default function FlamesScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={styles.loadingText}>{t('common.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -202,7 +209,10 @@ export default function FlamesScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar 
+        barStyle={isDarkMode ? "light-content" : "dark-content"} 
+        backgroundColor={theme.surface} 
+      />
       
       {/* Fixed Header Section */}
       <View style={styles.fixedHeader}>
@@ -226,7 +236,7 @@ export default function FlamesScreen() {
                 <Text style={styles.userName}>{userName}</Text>
                 <VerificationIcon size={16} />
               </View>
-              <Text style={styles.userRole}>Family {getUserRole()}</Text>
+              <Text style={styles.userRole}>{t('flames.header.familyRole', { role: getUserRole() })}</Text>
             </View>
           </View>
           <View style={styles.headerActions}>
@@ -258,12 +268,12 @@ export default function FlamesScreen() {
         <View style={styles.section}>
           <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Current Rank</Text>
+              <Text style={styles.sectionTitle}>{t('flames.currentRank.title')}</Text>
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{currentRank}</Text>
           </View>
               </View>
-            <Text style={styles.sectionSubtitle}>See in your Rank Progress</Text>
+            <Text style={styles.sectionSubtitle}>{t('flames.currentRank.subtitle')}</Text>
             
             <View style={styles.progressCard}>
               <View style={styles.goldMemberSection}>
@@ -275,14 +285,14 @@ export default function FlamesScreen() {
                   />
               </View>
                 <View style={styles.goldMemberInfo}>
-                  <Text style={styles.goldMemberTitle}>Gold Member</Text>
-                  <Text style={styles.goldMemberSubtitle}>Current Status</Text>
+                  <Text style={styles.goldMemberTitle}>{t('flames.currentRank.goldMember')}</Text>
+                  <Text style={styles.goldMemberSubtitle}>{t('flames.currentRank.currentStatus')}</Text>
                   </View>
                 </View>
               <View style={styles.progressSection}>
                 <View style={styles.progressBarContainer}>
-                  <Text style={styles.progressLabel}>Progress to Platinum Member</Text>
-                  <Text style={styles.progressText}>{progressToNext}/{progressTotal} Flames</Text>
+                  <Text style={styles.progressLabel}>{t('flames.currentRank.progressToPlatinum')}</Text>
+                  <Text style={styles.progressText}>{t('flames.currentRank.flamesProgress', { current: progressToNext, total: progressTotal })}</Text>
                   </View>
                 <View style={styles.progressBar}>
                   <View style={[styles.progressFill, { width: `${(progressToNext / progressTotal) * 100}%` }]} />
@@ -296,19 +306,24 @@ export default function FlamesScreen() {
         <View style={styles.section}>
           <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Family Ranks</Text>
+              <Text style={styles.sectionTitle}>{t('flames.familyRanks.title')}</Text>
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{familyRank}</Text>
           </View>
                   </View>
             <Text style={styles.sectionSubtitle}>
-              You are currently in {familyRank === 1 ? '1st' : familyRank === 2 ? '2nd' : familyRank === 3 ? '3rd' : `${familyRank}th`} place in the family
+              {t('flames.familyRanks.currentPosition', { 
+                position: familyRank === 1 ? t('flames.familyRanks.position1st') : 
+                          familyRank === 2 ? t('flames.familyRanks.position2nd') : 
+                          familyRank === 3 ? t('flames.familyRanks.position3rd') : 
+                          t('flames.familyRanks.positionNth', { n: familyRank })
+              })}
             </Text>
             
             {rankingLoading ? (
               <View style={styles.rankCardsContainer}>
                 <View style={styles.rankCardItem}>
-                  <Text style={styles.rankCardTitle}>Loading...</Text>
+                  <Text style={styles.rankCardTitle}>{t('common.loading')}</Text>
                 </View>
               </View>
             ) : (
@@ -322,10 +337,10 @@ export default function FlamesScreen() {
                   return (
                     <View key={member.user_id} style={styles.rankCardItem}>
                       <Text style={styles.rankCardTitle}>
-                        Place {rankPosition}
+                        {t('flames.familyRanks.place', { position: rankPosition })}
                       </Text>
                       <Text style={styles.rankCardPoints}>
-                        {member.total_points} Flames
+                        {t('flames.familyRanks.flames', { count: member.total_points })}
                       </Text>
                       <View style={styles.rankCardAvatar}>
                         {member.avatar_url ? (
@@ -354,8 +369,8 @@ export default function FlamesScreen() {
           <View style={styles.workSummaryBanner}>
             <View style={styles.workSummaryContent}>
               <View style={styles.workSummaryText}>
-                <Text style={styles.workSummaryTitle}>Your Current Status</Text>
-                <Text style={styles.workSummarySubtitle}>Learn everything about the Flames</Text>
+                <Text style={styles.workSummaryTitle}>{t('flames.statusBanner.title')}</Text>
+                <Text style={styles.workSummarySubtitle}>{t('flames.statusBanner.subtitle')}</Text>
           </View>
               <View style={styles.workSummaryIcon}>
                 <Image
@@ -375,19 +390,19 @@ export default function FlamesScreen() {
         <View style={styles.section}>
           <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Achievements</Text>
+              <Text style={styles.sectionTitle}>{t('flames.achievements.title')}</Text>
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{totalTasks + totalEvents + totalShoppingItems}</Text>
           </View>
             </View>
-            <Text style={styles.sectionSubtitle}>Here are your current achievements</Text>
+            <Text style={styles.sectionSubtitle}>{t('flames.achievements.subtitle')}</Text>
           
           <View style={styles.achievementsGrid}>
                     {/* Tasks Achievement */}
                     <View style={styles.achievementCard}>
                       <View style={styles.achievementRewardContainer}>
-                        <Text style={styles.achievementStatus}>{completedTasks >= 15 ? 'Finished' : 'Progress'}</Text>
-                        <Text style={styles.achievementFlames}>+150 Flames</Text>
+                        <Text style={styles.achievementStatus}>{completedTasks >= 15 ? t('flames.achievements.finished') : t('flames.achievements.progress')}</Text>
+                        <Text style={styles.achievementFlames}>{t('flames.achievements.flamesReward', { count: 150 })}</Text>
                   </View>
                       <View style={completedTasks >= 15 ? styles.achievementIconFinished : styles.achievementIconProgress}>
                         {completedTasks >= 15 ? (
@@ -400,15 +415,15 @@ export default function FlamesScreen() {
                           />
                         )}
                     </View>
-                      <Text style={styles.achievementName}>Tasks</Text>
-                      <Text style={styles.achievementDescription}>{completedTasks}/15 completed</Text>
+                      <Text style={styles.achievementName}>{t('flames.achievements.tasks')}</Text>
+                      <Text style={styles.achievementDescription}>{t('flames.achievements.tasksCompleted', { completed: completedTasks, total: 15 })}</Text>
                 </View>
                     
                     {/* Calendar Events Achievement */}
                     <View style={styles.achievementCard}>
                       <View style={styles.achievementRewardContainer}>
-                        <Text style={styles.achievementStatus}>{totalEvents >= 25 ? 'Finished' : 'Progress'}</Text>
-                        <Text style={styles.achievementFlames}>+250 Flames</Text>
+                        <Text style={styles.achievementStatus}>{totalEvents >= 25 ? t('flames.achievements.finished') : t('flames.achievements.progress')}</Text>
+                        <Text style={styles.achievementFlames}>{t('flames.achievements.flamesReward', { count: 250 })}</Text>
             </View>
                       <View style={totalEvents >= 25 ? styles.achievementIconFinished : styles.achievementIconProgress}>
                         {totalEvents >= 25 ? (
@@ -421,14 +436,14 @@ export default function FlamesScreen() {
                           />
                         )}
                       </View>
-                      <Text style={styles.achievementName}>Calendar</Text>
-                      <Text style={styles.achievementDescription}>{totalEvents}/25 events</Text>
+                      <Text style={styles.achievementName}>{t('flames.achievements.calendar')}</Text>
+                      <Text style={styles.achievementDescription}>{t('flames.achievements.calendarEvents', { completed: totalEvents, total: 25 })}</Text>
               </View>
 
                     <View style={styles.achievementCard}>
                       <View style={styles.achievementRewardContainer}>
-                        <Text style={styles.achievementStatus}>{completedShoppingItems >= 20 ? 'Finished' : 'Progress'}</Text>
-                        <Text style={styles.achievementFlames}>+200 Flames</Text>
+                        <Text style={styles.achievementStatus}>{completedShoppingItems >= 20 ? t('flames.achievements.finished') : t('flames.achievements.progress')}</Text>
+                        <Text style={styles.achievementFlames}>{t('flames.achievements.flamesReward', { count: 200 })}</Text>
                       </View>
                       <View style={completedShoppingItems >= 20 ? styles.achievementIconFinished : styles.achievementIconProgress}>
                         {completedShoppingItems >= 20 ? (
@@ -441,15 +456,15 @@ export default function FlamesScreen() {
                           />
                         )}
               </View>
-                      <Text style={styles.achievementName}>Shop List</Text>
-                      <Text style={styles.achievementDescription}>{completedShoppingItems}/20 items</Text>
+                      <Text style={styles.achievementName}>{t('flames.achievements.shopList')}</Text>
+                      <Text style={styles.achievementDescription}>{t('flames.achievements.shopListItems', { completed: completedShoppingItems, total: 20 })}</Text>
             </View>
 
                     {/* Total Tasks Achievement */}
                     <View style={styles.achievementCard}>
                       <View style={styles.achievementRewardContainer}>
-                        <Text style={styles.achievementStatus}>{totalTasks >= 50 ? 'Finished' : 'Progress'}</Text>
-                        <Text style={styles.achievementFlames}>+300 Flames</Text>
+                        <Text style={styles.achievementStatus}>{totalTasks >= 50 ? t('flames.achievements.finished') : t('flames.achievements.progress')}</Text>
+                        <Text style={styles.achievementFlames}>{t('flames.achievements.flamesReward', { count: 300 })}</Text>
                       </View>
                       <View style={totalTasks >= 50 ? styles.achievementIconFinished : styles.achievementIconProgress}>
                         {totalTasks >= 50 ? (
@@ -462,15 +477,15 @@ export default function FlamesScreen() {
                           />
                         )}
                       </View>
-                      <Text style={styles.achievementName}>All Tasks</Text>
-                      <Text style={styles.achievementDescription}>{totalTasks}/50 total</Text>
+                      <Text style={styles.achievementName}>{t('flames.achievements.allTasks')}</Text>
+                      <Text style={styles.achievementDescription}>{t('flames.achievements.allTasksTotal', { completed: totalTasks, total: 50 })}</Text>
             </View>
 
                     {/* Total Events Achievement */}
                     <View style={styles.achievementCard}>
                       <View style={styles.achievementRewardContainer}>
-                        <Text style={styles.achievementStatus}>{totalEvents >= 50 ? 'Finished' : 'Progress'}</Text>
-                        <Text style={styles.achievementFlames}>+400 Flames</Text>
+                        <Text style={styles.achievementStatus}>{totalEvents >= 50 ? t('flames.achievements.finished') : t('flames.achievements.progress')}</Text>
+                        <Text style={styles.achievementFlames}>{t('flames.achievements.flamesReward', { count: 400 })}</Text>
                       </View>
                       <View style={totalEvents >= 50 ? styles.achievementIconFinished : styles.achievementIconProgress}>
                         {totalEvents >= 50 ? (
@@ -483,15 +498,15 @@ export default function FlamesScreen() {
                           />
                         )}
                       </View>
-                      <Text style={styles.achievementName}>All Events</Text>
-                      <Text style={styles.achievementDescription}>{totalEvents}/50 total</Text>
+                      <Text style={styles.achievementName}>{t('flames.achievements.allEvents')}</Text>
+                      <Text style={styles.achievementDescription}>{t('flames.achievements.allEventsTotal', { completed: totalEvents, total: 50 })}</Text>
             </View>
 
                     {/* Total Shopping Items Achievement */}
                     <View style={styles.achievementCard}>
                       <View style={styles.achievementRewardContainer}>
-                        <Text style={styles.achievementStatus}>{totalShoppingItems >= 30 ? 'Finished' : 'Progress'}</Text>
-                        <Text style={styles.achievementFlames}>+350 Flames</Text>
+                        <Text style={styles.achievementStatus}>{totalShoppingItems >= 30 ? t('flames.achievements.finished') : t('flames.achievements.progress')}</Text>
+                        <Text style={styles.achievementFlames}>{t('flames.achievements.flamesReward', { count: 350 })}</Text>
                       </View>
                       <View style={totalShoppingItems >= 30 ? styles.achievementIconFinished : styles.achievementIconProgress}>
                         {totalShoppingItems >= 30 ? (
@@ -504,8 +519,8 @@ export default function FlamesScreen() {
                           />
                         )}
                       </View>
-                      <Text style={styles.achievementName}>All Items</Text>
-                      <Text style={styles.achievementDescription}>{totalShoppingItems}/30 total</Text>
+                      <Text style={styles.achievementName}>{t('flames.achievements.allItems')}</Text>
+                      <Text style={styles.achievementDescription}>{t('flames.achievements.allItemsTotal', { completed: totalShoppingItems, total: 30 })}</Text>
             </View>
                   </View>
           </View>
@@ -518,10 +533,10 @@ export default function FlamesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f1f3f8',
+    backgroundColor: theme.background,
   },
   scrollView: {
     flex: 1,
@@ -537,11 +552,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 1000,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     paddingTop: 44,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    shadowColor: '#2d2d2d',
+    shadowColor: theme.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -572,7 +587,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000000',
+    color: theme.text === '#ffffff' ? '#FFFFFF' : '#000000',
   },
   profileDetails: {
     gap: 4,
@@ -585,7 +600,7 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#2d2d2d',
+    color: theme.text,
   },
   userRole: {
     fontSize: 12,
@@ -615,7 +630,7 @@ const styles = StyleSheet.create({
   flamesText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#2d2d2d',
+    color: theme.text,
   },
 
   // Section Styling
@@ -623,7 +638,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   futuresElementsPanel: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     marginHorizontal: 0,
     marginVertical: 12,
     borderRadius: 12,
@@ -637,7 +652,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#040404',
+    color: theme.text,
   },
   badge: {
     backgroundColor: '#e9fff6',
@@ -654,7 +669,7 @@ const styles = StyleSheet.create({
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#466759',
+    color: theme.textTertiary,
     fontWeight: '400',
     lineHeight: 20,
     marginBottom: 6,
@@ -662,10 +677,10 @@ const styles = StyleSheet.create({
 
   // Progress Card
   progressCard: {
-    backgroundColor: '#FEFEFE',
+    backgroundColor: theme.surfaceSecondary,
     borderRadius: 12,
     padding: 16,
-    borderColor: '#EAECF0',
+    borderColor: theme.border,
     borderWidth: 1,
     elevation: 2,
   },
@@ -693,13 +708,13 @@ const styles = StyleSheet.create({
   goldMemberTitle: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#2b2b2b',
+    color: theme.text,
     // marginBottom: 2,
   },
   goldMemberSubtitle: {
     fontSize: 10,
     fontWeight: '300',
-    color: '#2b2b2b',
+    color: theme.text,
   },
   progressSection: {
     gap: 8,
@@ -712,11 +727,11 @@ const styles = StyleSheet.create({
   progressLabel: {
     fontSize: 9,
     fontWeight: '500',
-    color: '#2b2b2b',
+    color: theme.text,
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: theme.input,
     borderRadius: 4,
     overflow: 'hidden',
     marginTop: 8,
@@ -729,7 +744,7 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 8,
     fontWeight: '400',
-    color: '#666666',
+    color: theme.textSecondary,
   },
 
   // Rank Cards
@@ -739,24 +754,24 @@ const styles = StyleSheet.create({
   },
   rankCardItem: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.surfaceSecondary,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
-    borderColor: '#eaecf0',
+    borderColor: theme.border,
     borderWidth: 1,
     elevation: 2,
   },
   rankCardTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2d2d2d',
+    color: theme.text,
     marginBottom: 4,
   },
   rankCardPoints: {
     fontSize: 5,
     fontWeight: '400',
-    color: '#466759',
+    color: theme.textTertiary,
     marginBottom: 12,
   },
   rankCardAvatar: {
@@ -777,13 +792,13 @@ const styles = StyleSheet.create({
   rankCardFirstName: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#2D2D2D',
+    color: theme.text,
     letterSpacing: -0.5,
   },
   rankCardLastName: {
     fontSize: 8,
     fontWeight: '400',
-    color: '#466759',
+    color: theme.textTertiary,
     letterSpacing: -0.5,
   },
 
@@ -835,13 +850,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   achievementCard: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.surfaceSecondary,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 8,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#eaecf0',
+    borderColor: theme.border,
     width: '23%',
     minWidth: 80,
     gap: 4,
@@ -856,12 +871,12 @@ const styles = StyleSheet.create({
   achievementStatus: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#2d2d2d',
+    color: theme.text,
   },
   achievementFlames: {
     fontSize: 7,
     fontWeight: '400',
-    color: '#466759',
+    color: theme.textTertiary,
   },
   achievementIconFinished: {
     width: 40,
@@ -880,7 +895,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: theme.input,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
@@ -892,14 +907,14 @@ const styles = StyleSheet.create({
   achievementName: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#2d2d2d',
+    color: theme.text,
     // marginBottom: 4,
   },
   achievementDescription: {
     fontSize: 7,
     fontWeight: '400',
     maxWidth: 55,
-    color: '#466759',
+    color: theme.textTertiary,
     textAlign: 'center',
     // lineHeight: 14,
   },
@@ -914,11 +929,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f1f3f8',
+    backgroundColor: theme.background,
   },
   loadingText: {
     fontSize: 16,
-    color: '#666666',
+    color: theme.textSecondary,
     marginTop: 12,
   },
 });

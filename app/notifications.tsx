@@ -13,6 +13,9 @@ import {
 import { router, useFocusEffect } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useDarkMode } from '@/contexts/DarkModeContext';
+import { getTheme } from '@/constants/theme';
 
 interface Notification {
   id: string;
@@ -36,12 +39,13 @@ interface Notification {
 // Removed mock data - will use real data from database
 
 const getNotificationIcon = (type: string) => {
+  const iconStyle = { width: 64, height: 64 };
   switch (type) {
     case 'task':
       return (
         <Image 
           source={require('@/assets/images/icon/task_image.png')}
-          style={styles.notificationIconImage}
+          style={iconStyle}
           resizeMode="contain"
         />
       );
@@ -49,7 +53,7 @@ const getNotificationIcon = (type: string) => {
       return (
         <Image 
           source={require('@/assets/images/icon/task_image.png')}
-          style={styles.notificationIconImage}
+          style={iconStyle}
           resizeMode="contain"
         />
       );
@@ -57,7 +61,7 @@ const getNotificationIcon = (type: string) => {
       return (
         <Image 
           source={require('@/assets/images/icon/meeting_image.png')}
-          style={styles.notificationIconImage}
+          style={iconStyle}
           resizeMode="contain"
         />
       );
@@ -65,7 +69,7 @@ const getNotificationIcon = (type: string) => {
       return (
         <Image 
           source={require('@/assets/images/icon/meeting_image.png')}
-          style={styles.notificationIconImage}
+          style={iconStyle}
           resizeMode="contain"
         />
       );
@@ -73,7 +77,7 @@ const getNotificationIcon = (type: string) => {
       return (
         <Image 
           source={require('@/assets/images/icon/task_image.png')}
-          style={styles.notificationIconImage}
+          style={iconStyle}
           resizeMode="contain"
         />
       );
@@ -82,11 +86,18 @@ const getNotificationIcon = (type: string) => {
 
 const NotificationItem = ({ 
   notification, 
-  onMarkAsRead 
+  onMarkAsRead,
+  t,
+  theme,
+  isDarkMode
 }: { 
   notification: Notification;
   onMarkAsRead: (id: string) => void;
+  t: any;
+  theme: any;
+  isDarkMode: boolean;
 }) => {
+  const styles = createStyles(theme, isDarkMode);
   const isUnread = notification.status === 'unread';
   console.log('🔔 Notification status check:', {
     id: notification.id,
@@ -94,8 +105,8 @@ const NotificationItem = ({
     isUnread: isUnread,
     statusType: typeof notification.status
   });
-  const assignerName = notification.assigner_profile?.name || 'Someone';
-  const taskTitle = notification.task?.title || 'a task';
+  const assignerName = notification.assigner_profile?.name || t('notificationsPage.item.someone');
+  const taskTitle = notification.task?.title || t('notificationsPage.item.aTask');
   
   const handlePress = () => {
     console.log('🔔 Notification clicked:', {
@@ -143,14 +154,14 @@ const NotificationItem = ({
       <View style={styles.notificationContent}>
         <View style={styles.notificationHeader}>
           <Text style={styles.notificationTitle}>
-                  New Task Assigned to You!
+            {t('notificationsPage.item.title')}
           </Text>
           <Text style={styles.notificationDate}>
             {formatDate(notification.created_at)}
           </Text>
         </View>
         <Text style={styles.notificationDescription}>
-          You have new task for this sprint from {assignerName}, you can check your task "{taskTitle}" by tap here
+          {t('notificationsPage.item.description', { assignerName, taskTitle })}
         </Text>
       </View>
     </Pressable>
@@ -158,7 +169,11 @@ const NotificationItem = ({
 };
 
 export default function Notifications() {
+  const { t } = useLanguage();
   const { user } = useAuth();
+  const { isDarkMode } = useDarkMode();
+  const theme = getTheme(isDarkMode);
+  const styles = createStyles(theme, isDarkMode);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -605,12 +620,12 @@ export default function Notifications() {
               resizeMode="contain"
             />
           </Pressable>
-          <Text style={styles.headerTitle}>Notifications</Text>
+          <Text style={styles.headerTitle}>{t('notificationsPage.title')}</Text>
           <View style={styles.headerSpacer} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#6366F1" />
-          <Text style={styles.loadingText}>Loading notifications...</Text>
+          <Text style={styles.loadingText}>{t('notificationsPage.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -631,7 +646,7 @@ export default function Notifications() {
               resizeMode="contain"
             />
           </Pressable>
-          <Text style={styles.headerTitle}>Notifications</Text>
+          <Text style={styles.headerTitle}>{t('notificationsPage.title')}</Text>
           <View style={styles.headerSpacer} />
         </View>
         <View style={styles.errorContainer}>
@@ -640,7 +655,7 @@ export default function Notifications() {
             style={styles.retryButton}
                     onPress={handleManualRetry}
           >
-            <Text style={styles.retryButtonText}>Retry</Text>
+            <Text style={styles.retryButtonText}>{t('notificationsPage.retry')}</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -649,7 +664,10 @@ export default function Notifications() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar 
+        barStyle={isDarkMode ? "light-content" : "dark-content"} 
+        backgroundColor={theme.surface} 
+      />
       
       {/* Header */}
       <View style={styles.header}>
@@ -664,7 +682,7 @@ export default function Notifications() {
           />
         </Pressable>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Notifications</Text>
+          <Text style={styles.headerTitle}>{t('notificationsPage.title')}</Text>
           {newNotificationCount > 0 && (
             <View style={styles.newNotificationBadge}>
               <Text style={styles.newNotificationBadgeText}>
@@ -685,8 +703,8 @@ export default function Notifications() {
         <View style={styles.notificationsList}>
           {notifications.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No notifications yet</Text>
-              <Text style={styles.emptySubtext}>You'll see task assignments here</Text>
+              <Text style={styles.emptyText}>{t('notificationsPage.empty.title')}</Text>
+              <Text style={styles.emptySubtext}>{t('notificationsPage.empty.subtitle')}</Text>
             </View>
           ) : (
             notifications.map((notification) => (
@@ -694,6 +712,9 @@ export default function Notifications() {
                 key={notification.id} 
                 notification={notification}
                 onMarkAsRead={markAsRead}
+                t={t}
+                theme={theme}
+                isDarkMode={isDarkMode}
               />
             ))
           )}
@@ -703,10 +724,10 @@ export default function Notifications() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any, isDarkMode: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
   },
   header: {
     flexDirection: 'row',
@@ -716,13 +737,13 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingTop: 40,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: theme.border,
   },
   backButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F4F3FF',
+    backgroundColor: theme.input,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -733,7 +754,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000000',
+    color: theme.text,
   },
   headerSpacer: {
     width: 40,
@@ -768,13 +789,13 @@ const styles = StyleSheet.create({
     paddingVertical: 28,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: theme.border,
   },
   notificationIconContainer: {
     width: 64,
     height: 64,
     borderRadius: 8,
-    backgroundColor: '#F3F3F5',
+    backgroundColor: theme.input,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -795,19 +816,19 @@ const styles = StyleSheet.create({
   notificationTitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#101828',
+    color: theme.text,
     flex: 1,
     marginRight: 8,
   },
   notificationDate: {
     fontSize: 12,
     fontWeight: '400',
-    color: '#101828',
+    color: theme.text,
   },
   notificationDescription: {
     fontSize: 12,
     fontWeight: '400',
-    color: '#667085',
+    color: theme.textSecondary,
     // lineHeight: 18,
     letterSpacing: -0.2,
   },
@@ -821,7 +842,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: theme.textSecondary,
   },
   errorContainer: {
     flex: 1,
@@ -856,12 +877,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: theme.text,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#6B7280',
+    color: theme.textSecondary,
     textAlign: 'center',
   },
 });

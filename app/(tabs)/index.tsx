@@ -16,7 +16,9 @@ import { useAuth } from '@/contexts/AuthContext';
 // Removed useFamily import
 import { useLoading } from '@/contexts/LoadingContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useDarkMode } from '@/contexts/DarkModeContext';
 import { router } from 'expo-router';
+import { getTheme, brandColors } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { useCurrentUserEvents } from '@/hooks/useCurrentUserEvents';
 import { useTodayTasks } from '@/hooks/useTodayTasks';
@@ -39,6 +41,8 @@ export default function HomeDashboard() {
   const { user, profile, session, refreshProfile, updateProfileDirectly } = useAuth();
   const { showLoading, hideLoading } = useLoading();
   const { t } = useLanguage();
+  const { isDarkMode } = useDarkMode();
+  const theme = getTheme(isDarkMode);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [loadingStarted, setLoadingStarted] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
@@ -674,10 +678,15 @@ export default function HomeDashboard() {
     ]
   };
 
+  // Create themed styles
+  const styles = createStyles(theme);
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar 
+        barStyle={isDarkMode ? "light-content" : "dark-content"} 
+        backgroundColor={theme.surface} 
+      />
       
       {/* Fixed Header Section */}
       <View style={styles.fixedHeader}>
@@ -1256,10 +1265,10 @@ export default function HomeDashboard() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f1f3f8',
+    backgroundColor: theme.background,
   },
   scrollView: {
     flex: 1,
@@ -1275,11 +1284,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 1000,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     paddingTop: 44,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    shadowColor: '#2d2d2d',
+    shadowColor: theme.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -1310,7 +1319,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000000',
+    color: theme.text === '#ffffff' ? '#FFFFFF' : '#000000',
   },
   profileDetails: {
     gap: 4,
@@ -1323,7 +1332,7 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#2d2d2d',
+    color: theme.text,
   },
   verifiedIcon: {
     // Verified checkmark styling
@@ -1356,7 +1365,7 @@ const styles = StyleSheet.create({
   flamesText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#2d2d2d',
+    color: theme.text,
   },
   notificationButton: {
     width: 40,
@@ -1381,8 +1390,8 @@ const styles = StyleSheet.create({
     height: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#ffffff',
+    // borderWidth: 2,
+    // borderColor: '#ffffff',
   },
   notificationBadgeText: {
     color: '#ffffff',
@@ -1397,7 +1406,7 @@ const styles = StyleSheet.create({
     // paddingVertical: 20,
   },
   futuresElementsPanel: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     marginHorizontal: 10,
     marginVertical: 12,
     borderRadius: 12,
@@ -1413,7 +1422,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#040404',
+    color: theme.text,
   },
   badge: {
     backgroundColor: '#e9fff6',
@@ -1430,7 +1439,7 @@ const styles = StyleSheet.create({
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#466759',
+    color: theme.textTertiary,
     fontWeight: '400',
     lineHeight: 20,
     marginBottom: 6,
@@ -1443,11 +1452,11 @@ const styles = StyleSheet.create({
   },
   quickActionButton: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.surfaceSecondary,
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 0,
-    borderColor: '#eaecf0',
+    borderColor: theme.border,
     borderWidth: 1,
     alignItems: 'center',
     elevation: 2,
@@ -1470,21 +1479,21 @@ const styles = StyleSheet.create({
   quickActionTitle: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#2d2d2d',
+    color: theme.text,
     // marginBottom: 4,
     textAlign: 'center',
   },
   quickActionTitleDisabled: {
-    color: '#999999',
+    color: theme.placeholder,
   },
   quickActionSubtitle: {
     fontSize: 8,
     fontWeight: '400',
-    color: '#666666',
+    color: theme.textSecondary,
     textAlign: 'center',
   },
   quickActionSubtitleDisabled: {
-    color: '#999999',
+    color: theme.placeholder,
   },
 
   // Work Summary Banner
@@ -1554,10 +1563,10 @@ const styles = StyleSheet.create({
   },
 
   emptyShoppingArea: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderRadius: 12,
     height: 120,
-    shadowColor: '#000000',
+    shadowColor: theme.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -1569,13 +1578,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   eventCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    shadowColor: '#000000',
+    shadowColor: theme.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -1585,7 +1594,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: theme.input,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1596,7 +1605,7 @@ const styles = StyleSheet.create({
   eventTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000000',
+    color: theme.text,
   },
   eventAttendees: {
     flexDirection: 'row',
@@ -1612,7 +1621,7 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: theme.surface,
   },
   attendeeAvatar1: {
     backgroundColor: '#FFB6C1',
@@ -1625,7 +1634,7 @@ const styles = StyleSheet.create({
   },
   attendeeCount: {
     fontSize: 12,
-    color: '#666666',
+    color: theme.textSecondary,
   },
   eventActions: {
     alignItems: 'flex-end',
@@ -1633,7 +1642,7 @@ const styles = StyleSheet.create({
   },
   eventTime: {
     fontSize: 12,
-    color: '#666666',
+    color: theme.textSecondary,
   },
   joinButton: {
     backgroundColor: '#17f196',
@@ -1673,12 +1682,12 @@ const styles = StyleSheet.create({
   taskTitle: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#2B2B2B',
+    color: theme.text,
     flex: 1,
   },
   taskDescription: {
     fontSize: 12,
-    color: '#666666',
+    color: theme.textSecondary,
     marginBottom: 12,
     lineHeight: 16,
   },
@@ -1690,7 +1699,7 @@ const styles = StyleSheet.create({
   statusTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E0E0E0',
+    backgroundColor: theme.input,
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1700,12 +1709,12 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#666666',
+    backgroundColor: theme.textSecondary,
   },
   statusTagText: {
     fontSize: 10,
     fontWeight: '500',
-    color: '#666666',
+    color: theme.textSecondary,
   },
   priorityTag: {
     flexDirection: 'row',
@@ -1729,7 +1738,7 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 4,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: theme.input,
     borderRadius: 2,
     overflow: 'hidden',
     marginBottom: 12,
@@ -1752,7 +1761,7 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: theme.surface,
     marginLeft: -8,
   },
   assigneeAvatar1: {
@@ -1774,14 +1783,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 10,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: theme.input,
     justifyContent: 'center',
     alignItems: 'center',
   },
   assigneeAvatarInitial: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#6B7280',
+    color: theme.textSecondary,
   },
   dueDateContainer: {
     flexDirection: 'row',
@@ -1790,11 +1799,11 @@ const styles = StyleSheet.create({
   },
   dueDate: {
     fontSize: 12,
-    color: '#666666',
+    color: theme.textSecondary,
   },
   endTimeText: {
     fontSize: 12,
-    color: 'rgb(102, 102, 102)',
+    color: theme.textSecondary,
     fontWeight: '500',
   },
 
@@ -1903,20 +1912,20 @@ const styles = StyleSheet.create({
    eventDetailLabel: {
      fontSize: 12,
      fontWeight: '500',
-     color: '#475467',
+     color: theme.textTertiary,
      marginBottom: 2,
    },
     eventDetailValue: {
       fontSize: 16,
       fontWeight: '500',
-      color: '#344054',
+      color: theme.text,
     },
     eventDescriptionContainer: {
       marginBottom: 12,
     },
     eventDescription: {
       fontSize: 13,
-      color: '#6B7280',
+      color: theme.textSecondary,
       lineHeight: 18,
     },
     eventDateContainer: {
@@ -1931,7 +1940,7 @@ const styles = StyleSheet.create({
    },
    eventDate: {
      fontSize: 12,
-     color: '#666666',
+     color: theme.textSecondary,
    },
   eventFooter: {
     flexDirection: 'row',
@@ -1940,12 +1949,12 @@ const styles = StyleSheet.create({
 
   // Shopping List Item Card
   shoppingListItemCard: {
-    backgroundColor: '#FEFEFE',
+    backgroundColor: theme.surfaceSecondary,
     borderRadius: 12,
     padding: 16,
     marginTop: 8,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: theme.border,
     elevation: 2,
   },
   shoppingItemHeader: {
@@ -1956,7 +1965,7 @@ const styles = StyleSheet.create({
   },
   shoppingItemDate: {
     fontSize: 14,
-    color: '#101828',
+    color: theme.text,
     fontWeight: '600',
   },
   shoppingItemDetailsGroup: {
@@ -1964,11 +1973,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: theme.border,
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 24,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.input,
   },
   shoppingItemLeft: {
     flex: 1,
@@ -1979,19 +1988,19 @@ const styles = StyleSheet.create({
   },
   shoppingItemLabel: {
     fontSize: 12,
-    color: '#667085',
+    color: theme.textTertiary,
     fontWeight: '500',
     marginBottom: 4,
   },
   shoppingItemName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#344054',
+    color: theme.text,
   },
   shoppingItemQuantity: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#344054',
+    color: theme.text,
   },
   shoppingItemFooter: {
     flexDirection: 'row',
@@ -2033,13 +2042,13 @@ const styles = StyleSheet.create({
   },
   purchaserName: {
     fontSize: 12,
-    color: '#2d2d2d',
+    color: theme.text,
     fontWeight: '500',
   },
   attendeeCountText: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: '#666',
+    color: theme.textSecondary,
   },
   attendeeAvatarImage: {
     width: 24,

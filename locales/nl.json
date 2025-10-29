@@ -337,6 +337,32 @@
   "dashboard": {
     "welcome": "Hallo {{userName}}!"
   },
+  "family": {
+    "header": {
+      "welcome": "Welkom bij onze familie!"
+    },
+    "overview": {
+      "subtitle": "Hier zijn je belangrijkste activiteiten",
+      "total": "Totaal"
+    },
+    "challenge": {
+      "title": "Familie-uitdaging",
+      "subtitle": "Voltooi alle familieactiviteiten om 100% te bereiken",
+      "taskTitle": "Familie-activiteitenuitdaging",
+      "activitiesCompleted": "{{completed}} van {{total}} activiteiten voltooid",
+      "progressComplete": "{{percent}}% voltooid",
+      "rewardFlames": "{{points}} Flames"
+    },
+    "members": {
+      "subtitle": "Alle gezinsleden worden hier weergegeven"
+    },
+    "error": {
+      "tipsTitle": "Tips voor probleemoplossing:",
+      "checkInternet": "Controleer je internetverbinding",
+      "checkSupabase": "Zorg dat je Supabase-project actief is",
+      "tryRefresh": "Probeer de pagina te vernieuwen"
+    }
+  },
   "home": {
     "loading": {
       "dashboard": "Je dashboard laden...",
@@ -781,24 +807,523 @@
     "dashboard": {
       "todayOverview": "Overzicht van Vandaag"
     },
+    "eventCreationModal": {
+      "title": "Nieuw Evenement Aanmaken",
+      "subtitle": "Hier kunt u een nieuw evenement aanmaken. Weet zeker welk evenement u wilt aanmaken.",
+      "loading": "Evenement aanmaken...",
+      "form": {
+        "eventTitle": "Evenement Titel",
+        "eventTitlePlaceholder": "Bobs Verjaardag",
+        "eventDescription": "Evenement Beschrijving",
+        "eventDescriptionPlaceholder": "Breng een cadeau mee",
+        "assignEvent": "Evenement toewijzen",
+        "noMembers": "Geen familieleden gevonden. Vernieuw of controleer uw familieverbinding.",
+        "startTime": "Starttijd",
+        "startTimePlaceholder": "Starttijd",
+        "duration": "Duur (optioneel)"
+      },
+      "reward": {
+        "title": "Evenement Beloning",
+        "subtitle": "Als dit evenement wordt uitgevoerd, ontvangt de gebruiker",
+        "flames": "Flames"
+      },
+      "button": {
+        "addEvent": "Evenement Toevoegen",
+        "creating": "Aanmaken..."
+      },
+      "dateTimePicker": {
+        "selectDateTime": "Selecteer Startdatum & Tijd",
+        "done": "Klaar",
+        "year": "Jaar",
+        "month": "Maand",
+        "day": "Dag",
+        "hour": "Uur",
+        "minute": "Minuut"
+      },
+      "durationPicker": {
+        "selectDuration": "Selecteer Duur",
+        "done": "Klaar",
+        "hours": "Uren",
+        "minutes": "Minuten",
+        "seconds": "Seconden"
+      },
+      "months": {
+        "january": "Januari",
+        "february": "Februari",
+        "march": "Maart",
+        "april": "April",
+        "may": "Mei",
+        "june": "Juni",
+        "july": "Juli",
+        "august": "Augustus",
+        "september": "September",
+        "october": "Oktober",
+        "november": "November",
+        "december": "December"
+      },
+      "validation": {
+        "titleRequired": "Voer een evenement titel in",
+        "databaseError": "Database verbindingsprobleem. Probeer het opnieuw.",
+        "createFailed": "Kan evenement niet aanmaken"
+      },
+      "success": {
+        "title": "Succes",
+        "message": "Evenement succesvol aangemaakt!"
+      }
+    },
+    "shoppingItemCreationModal": {
+      "title": "Nieuw Boodschappenartikel Aanmaken",
+      "subtitle": "Hier kunt u een nieuw artikel aanmaken. Weet zeker welk boodschappenartikel u wilt aanmaken.",
+      "loading": "Artikel aanmaken...",
+      "form": {
+        "itemTitle": "Artikel Titel",
+        "itemTitlePlaceholder": "Melk",
+        "quantity": "Hoeveelheid (optioneel)",
+        "quantityPlaceholder": "1,0 stk",
+        "itemDescription": "Artikel Beschrijving",
+        "itemDescriptionPlaceholder": "Biologische melk kopen",
+        "assignTask": "Taak toewijzen (optioneel)"
+      },
+      "reward": {
+        "title": "Artikel Beloning",
+        "subtitle": "Als dit artikel wordt uitgevoerd, ontvangt de gebruiker",
+        "flames": "Flames"
+      },
+      "button": {
+        "addItem": "Artikel Toevoegen",
+        "creating": "Aanmaken..."
+      },
+      "validation": {
+        "titleRequired": "Voer een artikel titel in",
+        "createFailed": "Kan boodschappenartikel niet aanmaken"
+      },
+      "success": {
+        "title": "Succes",
+        "message": "Boodschappenartikel succesvol aangemaakt!",
+        "item": "Boodschappenartikel aangemaakt",
+        "created": "Boodschappenartikel aangemaakt"
+      }
+    },
+    "tasksPage": {
+      "header": {
+        "title": "Taken in Afwachting",
+        "subtitle": "Laten we je takenlijst aanpakken"
+      },
+      "summary": {
+        "title": "Samenvatting van Je Werk",
+        "subtitle": "Je huidige taakvoortgang",
+        "toDo": "Te Doen",
+        "inProgress": "In Uitvoering",
+        "done": "Klaar"
+      },
+      "sprint": {
+        "title": "Sprint 20 - Burnout Statistieken",
+        "status": "Slecht",
+        "description": "Je hebt 8 taken meer dan gewoonlijk voltooid, houd je taken bij met je supervisor"
+      },
+      "filter": {
+        "all": "Alle",
+        "inProgress": "In Uitvoering",
+        "finish": "Voltooien"
+      },
+      "taskStatus": {
+        "toDo": "Te Doen",
+        "inProgress": "In Uitvoering",
+        "done": "Klaar"
+      },
+      "task": {
+        "noDueDate": "Geen vervaldatum"
+      },
+      "emptyState": {
+        "title": "Geen taken gevonden",
+        "noTasks": "Geen taken beschikbaar",
+        "noInProgress": "Geen taken in uitvoering",
+        "noCompleted": "Geen voltooide taken"
+      }
+    },
+    "calendarPage": {
+      "header": {
+        "title": "Kalender Evenementen",
+        "subtitle": "Mis je schema niet"
+      },
+      "summary": {
+        "subtitle": "Je huidige kalendervoortgang",
+        "today": "Vandaag",
+        "nextEvent": "Volgend Evenement"
+      },
+      "loading": "Evenementen laden...",
+      "error": "Fout",
+      "retry": "Opnieuw Proberen",
+      "event": {
+        "eventTitle": "Evenement Titel",
+        "startTime": "Starttijd",
+        "duration": "Duur",
+        "allDay": "Hele dag"
+      },
+      "emptyState": {
+        "noEventsFor": "Geen evenementen gepland voor",
+        "noEvents": "Geen evenementen gepland voor geselecteerde datums",
+        "showAll": "Toon Alle Evenementen"
+      },
+      "modal": {
+        "title": "Kalender Instellen",
+        "subtitle": "Selecteer 5 dagen om in de kalender te tonen",
+        "submit": "Datum Verzenden",
+        "close": "Popup Sluiten"
+      }
+    },
+    "shopListPage": {
+      "header": {
+        "title": "Boodschappenlijst",
+        "subtitle": "Vergeet je boodschappenlijst niet"
+      },
+      "summary": {
+        "title": "Perfecte Boodschappenlijst",
+        "subtitle": "Je huidige boodschappenlijst",
+        "itemsToBuy": "Te Kopen Artikelen",
+        "purchasedItems": "Gekochte Artikelen"
+      },
+      "filters": {
+        "allItems": "Alle Artikelen",
+        "buyItems": "Te Kopen",
+        "finished": "Voltooid"
+      },
+      "item": {
+        "item": "Artikel",
+        "quantity": "Hoeveelheid",
+        "by": "Door",
+        "purchasedAt": "Gekocht op",
+        "pendingPurchase": "In afwachting van aankoop",
+        "unknown": "Onbekend"
+      },
+      "loading": {
+        "family": "Familiegegevens laden...",
+        "items": "Artikelen laden...",
+        "timeout": "Duurt langer dan verwacht. Trek om te vernieuwen.",
+        "initializing": "Familiegegevens initialiseren...",
+        "timeoutRefresh": "Als dit te lang duurt, trek om te vernieuwen."
+      },
+      "error": {
+        "loadFailed": "Kan artikelen niet laden"
+      },
+      "empty": {
+        "noFamily": "Geen Familie Gevonden",
+        "needFamily": "Je moet deel uitmaken van een familie om artikelen te bekijken",
+        "noItems": "Geen artikelen gevonden",
+        "addItems": "Voeg artikelen toe aan je boodschappenlijst"
+      }
+    },
+    "profilePage": {
+      "role": {
+        "admin": "Familiebeheerder",
+        "teenager": "Familietiener"
+      },
+      "banner": {
+        "title": "Instellen & Instellingen",
+        "subtitle": "Geef je profiel de beste instellingen"
+      },
+      "error": {
+        "noUserData": "Geen gebruikersgegevens gevonden. Log opnieuw in."
+      },
+      "uploading": "Uploaden...",
+      "passwordChange": {
+        "fillAllFields": "Vul alle velden in",
+        "passwordMismatch": "Wachtwoorden komen niet overeen",
+        "passwordTooShort": "Wachtwoord moet minstens 6 tekens bevatten",
+        "success": "Wachtwoord succesvol bijgewerkt",
+        "failed": "Kan wachtwoord niet bijwerken"
+      },
+      "languageChange": {
+        "success": "Taal veranderd naar {{language}}.",
+        "failed": "Kan taal niet wijzigen"
+      },
+      "support": {
+        "title": "Contact Ondersteuning",
+        "subject": "Hulp nodig - Famora App",
+        "body": "Hallo Famora Team,\n\nIk heb hulp nodig met:\n\n[Beschrijf je probleem hier]\n\nMijn App-versie: {{version}}\nMijn Apparaat: {{device}}\nMijn Familie-ID: {{familyId}}\n\nBedankt!",
+        "noFamily": "Geen Familie",
+        "emailSent": "E-mail verzonden naar {{email}}",
+        "copyEmail": "Kopieer E-mail",
+        "emailCopied": "E-mail gekopieerd naar klembord",
+        "failed": "Kan ondersteuning niet contacteren"
+      },
+      "cache": {
+        "title": "Cache Wissen",
+        "message": "Dit zal alle gecachte gegevens en tijdelijke bestanden verwijderen. Doorgaan?",
+        "clearButton": "Cache Wissen",
+        "success": "Cache succesvol gewist",
+        "failed": "Kan cache niet wissen"
+      },
+      "deleteAccount": {
+        "title": "Account Verwijderen",
+        "message": "Deze actie kan niet ongedaan worden gemaakt. Al je gegevens worden permanent verwijderd.",
+        "deleteButton": "Account Verwijderen",
+        "notImplemented": "Functie voor het verwijderen van accounts is nog niet geïmplementeerd."
+      },
+      "sections": {
+        "security": {
+          "title": "Beveiliging & Privacy",
+          "subtitle": "Bekijk je beveiligings- en privacy-instellingen",
+          "twoFactor": {
+            "title": "Twee-factor authenticatie (2FA)",
+            "description": "Stel je authenticatie in voor je account",
+            "alertTitle": "2FA",
+            "comingSoon": "Twee-factor authenticatie instellingen komen binnenkort"
+          },
+          "manageSessions": {
+            "title": "Beheer sessies",
+            "description": "Bekijk actieve aanmeldingen op apparaten en log uit",
+            "alertTitle": "Sessies",
+            "comingSoon": "Sessiebeheer komt binnenkort"
+          },
+          "privacy": {
+            "title": "Privacy-instellingen",
+            "description": "Bekijk statistieken, zichtbaarheid van activiteiten",
+            "alertTitle": "Privacy",
+            "comingSoon": "Privacy-instellingen komen binnenkort"
+          }
+        },
+        "personalization": {
+          "title": "Personalisatie",
+          "subtitle": "Bekijk je personalisatie-instellingen",
+          "editAccount": {
+            "title": "Account Bewerken",
+            "description": "Naam, Geboortedatum en Profielfoto"
+          },
+          "changePassword": {
+            "title": "Wachtwoord Wijzigen",
+            "description": "Update je wachtwoord"
+          },
+          "language": {
+            "title": "Taal",
+            "description": "Selecteer je voorkeurstaal"
+          },
+          "darkMode": {
+            "title": "Donkere Modus",
+            "description": "App-uiterlijk aanpassen"
+          }
+        },
+        "communication": {
+          "title": "Communicatie",
+          "subtitle": "Bekijk je communicatie-instellingen",
+          "notifications": {
+            "title": "Meldingen",
+            "description": "Push-meldingen voor familieactiviteiten",
+            "permissionMessage": "Meldingstoestemming is vereist voor deze functie"
+          },
+          "feedback": {
+            "title": "Feedback geven",
+            "description": "Hoe leuk vind je de app",
+            "alertTitle": "Feedback",
+            "comingSoon": "Feedbackfunctie komt binnenkort"
+          },
+          "faq": {
+            "title": "Veelgestelde Vragen & Hulp",
+            "description": "Heb je hulp nodig met iets"
+          }
+        },
+        "general": {
+          "title": "Algemene Instellingen",
+          "subtitle": "Bekijk je algemene instellingen",
+          "appVersion": {
+            "title": "APP-versie",
+            "description": "Toont je huidige app-versie"
+          },
+          "manageStorage": {
+            "title": "Opslag beheren",
+            "description": "Wis je cache om alles op te ruimen"
+          },
+          "logOut": {
+            "title": "Uitloggen met account",
+            "description": "Log uit met je huidige account"
+          },
+          "deleteAccount": {
+            "title": "Account Verwijderen",
+            "description": "Verwijder of deactiveer je account"
+          }
+        }
+      },
+      "modals": {
+        "changePassword": {
+          "title": "Wachtwoord Wijzigen",
+          "currentPassword": "Huidig Wachtwoord",
+          "newPassword": "Nieuw Wachtwoord",
+          "confirmNewPassword": "Bevestig Nieuw Wachtwoord",
+          "button": "Wachtwoord Wijzigen"
+        },
+        "selectLanguage": {
+          "title": "Selecteer Taal"
+        },
+        "changeProfilePicture": {
+          "title": "Profielfoto Wijzigen",
+          "subtitle": "Kies hoe je je profielfoto wilt bijwerken",
+          "takePhoto": "Foto Maken",
+          "useCamera": "Gebruik camera om een nieuwe foto te maken",
+          "chooseLibrary": "Kies uit Bibliotheek",
+          "selectLibrary": "Selecteer uit je fotobibliotheek"
+        },
+        "appVersion": {
+          "title": "App-versie",
+          "version": "Versie {{version}}\nBuild {{build}}",
+          "gotIt": "Begrepen"
+      }
+    }
+    },
+    "notificationsPage": {
+      "title": "Meldingen",
+      "loading": "Meldingen laden...",
+      "retry": "Opnieuw Proberen",
+      "empty": {
+        "title": "Nog geen meldingen",
+        "subtitle": "Hier zie je taakopdrachten"
+      },
+      "item": {
+        "title": "Nieuwe Taak Toegewezen!",
+        "description": "Je hebt een nieuwe taak voor deze sprint van {{assignerName}}, je kunt je taak \"{{taskTitle}}\" hier controleren door te tikken",
+        "someone": "Iemand",
+        "aTask": "een taak"
+      }
+    },
+    "featuresToCreate": {
+      "title": "Functies om te Creëren",
+      "subtitle": "Aan welke functie wil je iets nieuws toevoegen? Selecteer je functie",
+      "startButton": "Begin met Creëren",
+      "features": {
+        "tasks": {
+          "title": "Taken",
+          "subtitle": "14 Taken"
+        },
+        "calendar": {
+          "title": "Kalender",
+          "subtitle": "6 Gebeurtenissen"
+        },
+        "shopList": {
+          "title": "Boodschappenlijst",
+          "subtitle": "25 Artikelen"
+        },
+        "comingSoon": {
+          "title": "Binnenkort",
+          "subtitle": "Enthousiast?"
+        }
+      }
+    },
     "flames": {
-      "achievements": "Familie Prestaties",
-      "firstTask": "Eerste Taak",
-      "firstTaskDesc": "Eerste taak succesvol voltooid",
-      "teamPlayer": "Teamspeler",
-      "teamPlayerDesc": "10 taken succesvol voltooid",
-      "streakMaster": "Streak Meester",
-      "streakMasterDesc": "7 dagen achter elkaar actief",
-      "familyHero": "Familie Held",
-      "familyHeroDesc": "100+ punten verzameld",
-      "organizer": "Organisator",
-      "organizerDesc": "5 gebeurtenissen gemaakt",
-      "helper": "Helper",
-      "helperDesc": "20 aankopen voltooid",
-      "first100": "Eerste 100",
-      "first100Desc": "100 punten bereikt",
-      "halftime": "Rust!",
-      "halftimeDesc": "500 punten bereikt"
+      "title": "Flames & Punten",
+      "subtitle": "familie punten verzameld",
+      "loading": "Flames laden...",
+      "header": {
+        "familyRole": "Familie {{role}}"
+      },
+      "currentRank": {
+        "title": "Huidige Rang",
+        "subtitle": "Bekijk je rangvooruitgang",
+        "goldMember": "Goud Lid",
+        "currentStatus": "Huidige Status",
+        "progressToPlatinum": "Voortgang naar Platina Lid",
+        "flamesProgress": "{{current}}/{{total}} Flames"
+      },
+      "familyRanks": {
+        "title": "Familierankings",
+        "currentPosition": "Je staat momenteel op {{position}} plaats in de familie",
+        "position1st": "1e",
+        "position2nd": "2e",
+        "position3rd": "3e",
+        "positionNth": "{{n}}e",
+        "place": "Plaats {{position}}",
+        "flames": "{{count}} Flames"
+      },
+      "statusBanner": {
+        "title": "Jouw Huidige Status",
+        "subtitle": "Leer alles over de Flames"
+      },
+      "achievements": {
+        "title": "Prestaties",
+        "subtitle": "Hier zijn je huidige prestaties",
+        "finished": "Voltooid",
+        "progress": "Bezig",
+        "flamesReward": "+{{count}} Flames",
+        "tasks": "Taken",
+        "tasksCompleted": "{{completed}}/{{total}} voltooid",
+        "calendar": "Kalender",
+        "calendarEvents": "{{completed}}/{{total}} gebeurtenissen",
+        "shopList": "Boodschappenlijst",
+        "shopListItems": "{{completed}}/{{total}} artikelen",
+        "allTasks": "Alle Taken",
+        "allTasksTotal": "{{completed}}/{{total}} totaal",
+        "allEvents": "Alle Gebeurtenissen",
+        "allEventsTotal": "{{completed}}/{{total}} totaal",
+        "allItems": "Alle Artikelen",
+        "allItemsTotal": "{{completed}}/{{total}} totaal"
+      },
+      "error": {
+        "title": "Fout bij laden",
+        "retry": "Probeer opnieuw"
+      },
+      "period": {
+        "week": "Week",
+        "month": "Maand",
+        "all": "Totaal"
+      },
+      "family": {
+        "level": "Familie Niveau",
+        "points": "Familie Punten",
+        "progress": "Familie Voortgang",
+        "progressPoints": "punten naar Niveau",
+        "maxLevel": "Maximaal niveau bereikt! 👑",
+        "nextLevel": "Volgend Niveau:"
+      },
+      "leaderboard": {
+        "title": "Klassement",
+        "thisWeek": "Deze Week",
+        "thisMonth": "Deze Maand",
+        "total": "Totaal",
+        "you": "(Jij)",
+        "achievements": "Prestaties",
+        "activities": "Activiteiten",
+        "pointsToFirst": "naar 1e plaats",
+        "points": "Punten"
+      },
+      "activities": {
+        "title": "Recente Activiteiten",
+        "empty": "Nog geen activiteiten",
+        "emptySubtitle": "Voltooi taken en verdien punten!",
+        "unknown": "Onbekend"
+      },
+      "goal": {
+        "title": "Nieuw Familiedoel",
+        "name": "Doelnaam",
+        "namePlaceholder": "bijv. 50 taken deze week",
+        "points": "Doelpunten",
+        "pointsPlaceholder": "100",
+        "cancel": "Annuleren",
+        "create": "Maken",
+        "error": {
+          "name": "Voer een doelnaam in",
+          "points": "Voer een geldige puntwaarde in",
+          "create": "Doel kon niet worden gemaakt:"
+        },
+        "description": "Bereik punten als gezin",
+        "created": "heeft een nieuw doel gemaakt:"
+      },
+      "oldAchievements": {
+        "achievements": "Familie Prestaties",
+        "firstTask": "Eerste Taak",
+        "firstTaskDesc": "Eerste taak succesvol voltooid",
+        "teamPlayer": "Teamspeler",
+        "teamPlayerDesc": "10 taken succesvol voltooid",
+        "streakMaster": "Streak Meester",
+        "streakMasterDesc": "7 dagen achter elkaar actief",
+        "familyHero": "Familie Held",
+        "familyHeroDesc": "100+ punten verzameld",
+        "organizer": "Organisator",
+        "organizerDesc": "5 gebeurtenissen gemaakt",
+        "helper": "Helper",
+        "helperDesc": "20 aankopen voltooid",
+        "first100": "Eerste 100",
+        "first100Desc": "100 punten bereikt",
+        "halftime": "Rust!",
+        "halftimeDesc": "500 punten bereikt"
+      }
     }
   }
 }

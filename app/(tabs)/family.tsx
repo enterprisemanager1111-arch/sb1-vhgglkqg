@@ -21,6 +21,8 @@ import { useFamily } from '@/contexts/FamilyContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFamilyPoints } from '@/hooks/useFamilyPoints';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useDarkMode } from '@/contexts/DarkModeContext';
+import { getTheme } from '@/constants/theme';
 import { useRealTimeFamily } from '@/hooks/useRealTimeFamily';
 import { useFamilyTasks } from '@/hooks/useFamilyTasks';
 import { useFamilyCalendarEvents } from '@/hooks/useFamilyCalendarEvents';
@@ -36,6 +38,8 @@ export default function FamilyDashboard() {
   const { isInFamily, currentFamily, familyMembers, loading: familyLoading, refreshFamily, retryConnection, error } = useFamily();
   
   const { user, profile, session } = useAuth();
+  const { isDarkMode } = useDarkMode();
+  const theme = getTheme(isDarkMode);
   
   // Get data from hooks
   const { tasks: familyTasks } = useFamilyTasks();
@@ -254,10 +258,10 @@ export default function FamilyDashboard() {
           {/* Add helpful instructions for connectivity issues */}
           {error.includes('Connection failed') && (
             <View style={styles.helpContainer}>
-              <Text style={styles.helpTitle}>Troubleshooting Tips:</Text>
-              <Text style={styles.helpText}>• Check your internet connection</Text>
-              <Text style={styles.helpText}>• Make sure your Supabase project is active</Text>
-              <Text style={styles.helpText}>• Try refreshing the page</Text>
+              <Text style={styles.helpTitle}>{t('family.error.tipsTitle')}</Text>
+              <Text style={styles.helpText}>• {t('family.error.checkInternet')}</Text>
+              <Text style={styles.helpText}>• {t('family.error.checkSupabase')}</Text>
+              <Text style={styles.helpText}>• {t('family.error.tryRefresh')}</Text>
             </View>
           )}
           
@@ -271,9 +275,15 @@ export default function FamilyDashboard() {
 
   const { totalMembers, onlineMembers, weeklyProgress, completedTasks, totalTasks, totalEvents, completedShoppingItems, totalShoppingItems } = stats;
 
+  // Create themed styles
+  const styles = createStyles(theme);
+
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar 
+        barStyle={isDarkMode ? "light-content" : "dark-content"} 
+        backgroundColor={theme.surface} 
+      />
       
       {/* Fixed Header Section */}
       <View style={styles.fixedHeader}>
@@ -296,14 +306,14 @@ export default function FamilyDashboard() {
             </View>
             <View style={styles.profileDetails}>
               <View style={styles.nameRow}>
-                <Text style={styles.userName}>{currentFamily?.name || "Family"}</Text>
+                <Text style={styles.userName}>{currentFamily?.name || t('tabs.family.defaultName')}</Text>
                 <Image
                   source={require('@/assets/images/icon/verification.png')}
                   style={styles.verifiedIcon}
                   resizeMode="contain"
                 />
               </View>
-              <Text style={styles.userRole}>Welcome to our family!</Text>
+              <Text style={styles.userRole}>{t('family.header.welcome')}</Text>
             </View>
           </View>
           
@@ -342,8 +352,8 @@ export default function FamilyDashboard() {
           <View style={styles.workSummaryBanner}>
             <View style={styles.workSummaryContent}>
               <View style={styles.workSummaryText}>
-                <Text style={styles.workSummaryTitle}>Family Progress</Text>
-                <Text style={styles.workSummarySubtitle}>Together we can achieve more!</Text>
+                <Text style={styles.workSummaryTitle}>{t('tabs.family.weeklyProgress')}</Text>
+                <Text style={styles.workSummarySubtitle}>{t('tabs.family.togetherWeCan')}</Text>
               </View>
               <View style={styles.workSummaryIcon}>
                 <Image
@@ -362,12 +372,12 @@ export default function FamilyDashboard() {
         {/* === FAMILY OVERVIEW === */}
         <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Family Overview</Text>
+            <Text style={styles.sectionTitle}>{t('tabs.family.familyOverview')}</Text>
             <View style={styles.badge}>
               <Text style={styles.badgeText}>3</Text>
             </View>
           </View>
-          <Text style={styles.sectionSubtitle}>Here are your top activities</Text>
+          <Text style={styles.sectionSubtitle}>{t('family.overview.subtitle')}</Text>
           
           <View style={styles.quickActionsGrid}>
             {/* Tasks */}
@@ -375,8 +385,8 @@ export default function FamilyDashboard() {
               <View style={styles.quickActionIcon}>
                 <Text style={styles.quickActionNumber}>{totalTasks}</Text>
               </View>
-              <Text style={styles.quickActionTitle}>Tasks</Text>
-              <Text style={styles.quickActionSubtitle}>Total</Text>
+              <Text style={styles.quickActionTitle}>{t('tabs.family.tasks')}</Text>
+              <Text style={styles.quickActionSubtitle}>{t('family.overview.total')}</Text>
             </Pressable>
 
             {/* Calendar */}
@@ -384,8 +394,8 @@ export default function FamilyDashboard() {
               <View style={styles.quickActionIcon}>
                 <Text style={styles.quickActionNumber}>{totalEvents}</Text>
               </View>
-              <Text style={styles.quickActionTitle}>Calendar</Text>
-              <Text style={styles.quickActionSubtitle}>Events</Text>
+              <Text style={styles.quickActionTitle}>{t('calendar.title')}</Text>
+              <Text style={styles.quickActionSubtitle}>{t('tabs.family.appointments')}</Text>
             </Pressable>
 
             {/* Shop List */}
@@ -393,8 +403,8 @@ export default function FamilyDashboard() {
               <View style={styles.quickActionIcon}>
                 <Text style={styles.quickActionNumber}>{totalShoppingItems}</Text>
               </View>
-              <Text style={styles.quickActionTitle}>Shop List</Text>
-              <Text style={styles.quickActionSubtitle}>Items</Text>
+              <Text style={styles.quickActionTitle}>{t('shopping.title')}</Text>
+              <Text style={styles.quickActionSubtitle}>{t('dashboard.items')}</Text>
             </Pressable>
 
             {/* Soon */}
@@ -409,8 +419,8 @@ export default function FamilyDashboard() {
                   }}
                 />
               </View>
-              <Text style={[styles.quickActionTitle, styles.quickActionTitleDisabled]}>Soon</Text>
-              <Text style={[styles.quickActionSubtitle, styles.quickActionSubtitleDisabled]}>Hyped?</Text>
+              <Text style={[styles.quickActionTitle, styles.quickActionTitleDisabled]}>{t('home.quickActions.soon.title')}</Text>
+              <Text style={[styles.quickActionSubtitle, styles.quickActionSubtitleDisabled]}>{t('home.quickActions.soon.subtitle')}</Text>
             </Pressable>
           </View>
         </View>
@@ -419,12 +429,12 @@ export default function FamilyDashboard() {
         <View style={styles.section}>
           <View style={styles.futuresElementsPanel}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Family Challenge</Text>
+              <Text style={styles.sectionTitle}>{t('family.challenge.title')}</Text>
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{completionStats.percentage}%</Text>
               </View>
             </View>
-            <Text style={styles.sectionSubtitle}>Complete all family activities to reach 100%</Text>
+            <Text style={styles.sectionSubtitle}>{t('family.challenge.subtitle')}</Text>
             <View style={styles.taskCard}>
               <View style={styles.taskHeader}>
                 <View style={styles.taskIcon}>
@@ -437,14 +447,14 @@ export default function FamilyDashboard() {
                     }}
                   />
                 </View>
-                <Text style={styles.taskTitle}>Family Activity Challenge</Text>
+                <Text style={styles.taskTitle}>{t('family.challenge.taskTitle')}</Text>
               </View>
               
               <View style={styles.taskTags}>
                 <View style={styles.statusTag}>
                   <View style={styles.taskDot} />
                   <Text style={styles.taskText}>
-                    {completionStats.totalCompleted} of {completionStats.totalItems} activities completed
+                    {t('family.challenge.activitiesCompleted', { completed: String(completionStats.totalCompleted), total: String(completionStats.totalItems) })}
                   </Text>
                 </View>
               </View>
@@ -453,20 +463,20 @@ export default function FamilyDashboard() {
                 <View style={styles.progressBar}>
                   <View style={[styles.progressFill, { width: `${completionStats.percentage}%` }]} />
                 </View>
-                <Text style={styles.progressText}>{completionStats.percentage}% Complete</Text>
+                <Text style={styles.progressText}>{t('family.challenge.progressComplete', { percent: String(completionStats.percentage) })}</Text>
               </View>
               
               <View style={styles.challengeStats}>
                 <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>Tasks</Text>
+                  <Text style={styles.statLabel}>{t('tabs.family.tasks')}</Text>
                   <Text style={styles.statValue}>{completionStats.completedTasks}/{completionStats.totalTasks}</Text>
                 </View>
                 <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>Events</Text>
+                  <Text style={styles.statLabel}>{t('calendar.title')}</Text>
                   <Text style={styles.statValue}>{completionStats.completedEvents}/{completionStats.totalEvents}</Text>
                 </View>
                 <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>Shopping</Text>
+                  <Text style={styles.statLabel}>{t('shopping.list.shopping')}</Text>
                   <Text style={styles.statValue}>{completionStats.completedShoppingItems}/{completionStats.totalShoppingItems}</Text>
                 </View>
               </View>
@@ -487,7 +497,7 @@ export default function FamilyDashboard() {
                     style={styles.flameIcon}
                     resizeMode="contain"
                   />
-                  <Text style={styles.rewardText}>+{completionStats.totalCompleted * 10} Flames</Text>
+                  <Text style={styles.rewardText}>{t('family.challenge.rewardFlames', { points: `+${String(completionStats.totalCompleted * 10)}` })}</Text>
                 </View>
               </View>
             </View>
@@ -498,12 +508,12 @@ export default function FamilyDashboard() {
         <View style={styles.section}>
           <View style={styles.futuresElementsPanel}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Family Members</Text>
+              <Text style={styles.sectionTitle}>{t('family.members.title')}</Text>
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{familyMembers ? familyMembers.length : 0}</Text>
               </View>
             </View>
-            <Text style={styles.sectionSubtitle}>Alle Family Members are here listed</Text>
+            <Text style={styles.sectionSubtitle}>{t('family.members.subtitle')}</Text>
             
             <View style={styles.memberCards}>
               {familyMembers && familyMembers.length > 0 ? (
@@ -541,7 +551,7 @@ export default function FamilyDashboard() {
                       </View>
                       <Text style={styles.memberName}>{firstName}</Text>
                       <Text style={styles.memberLastName}>{lastName}</Text>
-                      <Text style={styles.memberRole}>{member.role === 'admin' ? 'Admin' : 'Member'}</Text>
+                      <Text style={styles.memberRole}>{member.role === 'admin' ? t('family.members.role.admin') : t('family.members.role.member')}</Text>
                     </View>
                   );
                 })
@@ -550,9 +560,7 @@ export default function FamilyDashboard() {
                   <View style={styles.memberAvatar}>
                     <Text style={styles.memberAvatarText}>?</Text>
                   </View>
-                  <Text style={styles.memberName}>No</Text>
-                  <Text style={styles.memberLastName}>Members</Text>
-                  <Text style={styles.memberRole}>Found</Text>
+                  <Text style={styles.memberName}>{t('family.members.empty')}</Text>
                 </View>
               )}
               
@@ -568,8 +576,8 @@ export default function FamilyDashboard() {
                       }}
                     />
                   </View>
-                  <Text style={styles.inviteTitle}>Invite</Text>
-                  <Text style={styles.inviteSubtitle}>Member</Text>
+                  <Text style={styles.inviteTitle}>{t('family.members.invite')}</Text>
+                  <Text style={styles.inviteSubtitle}>{t('tabs.family.member')}</Text>
                 </Pressable>
               )}
             </View>
@@ -642,10 +650,10 @@ export default function FamilyDashboard() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f1f3f8',
+    backgroundColor: theme.background,
   },
   scrollView: {
     flex: 1,
@@ -666,7 +674,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#666666',
+    color: theme.textSecondary,
     fontFamily: 'Montserrat-Regular',
   },
   errorContainer: {
@@ -685,14 +693,14 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 14,
     fontFamily: 'Montserrat-Regular',
-    color: '#666666',
+    color: theme.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
   },
   helpContainer: {
     marginTop: 16,
     padding: 16,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: theme.input,
     borderRadius: 8,
     borderLeftWidth: 4,
     borderLeftColor: '#007AFF',
@@ -700,13 +708,13 @@ const styles = StyleSheet.create({
   helpTitle: {
     fontSize: 16,
     fontFamily: 'Montserrat-Bold',
-    color: '#333333',
+    color: theme.text,
     marginBottom: 8,
   },
   helpText: {
     fontSize: 14,
     fontFamily: 'Montserrat-Regular',
-    color: '#666666',
+    color: theme.textSecondary,
     marginBottom: 4,
     lineHeight: 18,
   },
@@ -738,11 +746,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 1000,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     paddingTop: 44,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    shadowColor: '#2d2d2d',
+    shadowColor: theme.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -773,7 +781,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000000',
+    color: theme.text === '#ffffff' ? '#FFFFFF' : '#000000',
   },
   profileDetails: {
     gap: 4,
@@ -786,7 +794,7 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#2d2d2d',
+    color: theme.text,
   },
   verifiedIcon: {
     width: 16,
@@ -821,7 +829,7 @@ const styles = StyleSheet.create({
     // marginBottom: 8,
   },
   futuresElementsPanel: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     marginHorizontal: 10,
     marginVertical: 8,
     borderRadius: 12,
@@ -838,7 +846,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontStyle: 'semibold',
     fontWeight: '600',
-    color: '#2d2d2d',
+    color: theme.text,
   },
   badge: {
     backgroundColor: '#e9fff6',
@@ -856,7 +864,7 @@ const styles = StyleSheet.create({
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#466759',
+    color: theme.textTertiary,
     fontStyle: 'normal',
     marginBottom: 16,
   },
@@ -942,11 +950,11 @@ const styles = StyleSheet.create({
   },
   quickActionButton: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.surfaceSecondary,
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 0,
-    borderColor: '#eaecf0',
+    borderColor: theme.border,
     borderWidth: 1,
     alignItems: 'center',
     elevation: 2,
@@ -964,7 +972,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   quickActionIconDisabled: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: theme.input,
   },
   quickActionNumber: {
     fontSize: 16,
@@ -974,28 +982,29 @@ const styles = StyleSheet.create({
   quickActionTitle: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#2d2d2d',
+    color: theme.text,
     textAlign: 'center',
   },
   quickActionTitleDisabled: {
-    color: '#999999',
+    color: theme.placeholder,
   },
   quickActionSubtitle: {
     fontSize: 8,
     fontWeight: '400',
-    color: '#666666',
+    color: theme.textSecondary,
     textAlign: 'center',
   },
   quickActionSubtitleDisabled: {
-    color: '#999999',
+    color: theme.placeholder,
   },
 
   // Task Card
   taskCard: {
-    backgroundColor: '#FEFEFE',
+    backgroundColor: theme.surfaceSecondary,
     borderRadius: 12,
     padding: 16,
-    border: '1px solid #EAECF0',
+    borderWidth: 1,
+    borderColor: theme.border,
     elevation: 2,
   },
   taskHeader: {
@@ -1015,7 +1024,7 @@ const styles = StyleSheet.create({
   taskTitle: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#2B2B2B',
+    color: theme.text,
     flex: 1,
   },
   taskTags: {
@@ -1026,7 +1035,7 @@ const styles = StyleSheet.create({
   statusTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E0E0E0',
+    backgroundColor: theme.input,
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1035,7 +1044,7 @@ const styles = StyleSheet.create({
 
   // === CHALLENGE CARD ===
   challengeCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderRadius: 12,
     padding: 16,
   },
@@ -1052,7 +1061,7 @@ const styles = StyleSheet.create({
   challengeTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2d2d2d',
+    color: theme.text,
   },
   challengeTask: {
     flexDirection: 'row',
@@ -1063,19 +1072,19 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#666666',
+    backgroundColor: theme.textSecondary,
     marginRight: 8,
   },
   taskText: {
     fontSize: 14,
-    color: '#666666',
+    color: theme.textSecondary,
   },
   challengeProgress: {
     marginBottom: 12,
   },
   progressBar: {
     height: 6,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: theme.input,
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -1103,13 +1112,13 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: '#666666',
+    color: theme.textSecondary,
     marginBottom: 2,
   },
   statValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2d2d2d',
+    color: theme.text,
   },
   challengeFooter: {
     flexDirection: 'row',
@@ -1145,7 +1154,7 @@ const styles = StyleSheet.create({
   rewardText: {
     fontSize: 10,
     fontWeight: '500',
-    color: '#040404',
+    color: theme.text,
   },
 
   // === MEMBER CARDS ===
@@ -1155,12 +1164,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   memberCard: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.surfaceSecondary,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: theme.border,
     minWidth: 80,
   },
   memberAvatar: {
@@ -1185,12 +1194,12 @@ const styles = StyleSheet.create({
   memberName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2d2d2d',
+    color: theme.text,
     marginBottom: 2,
   },
   memberLastName: {
     fontSize: 12,
-    color: '#666666',
+    color: theme.textSecondary,
   },
   memberRole: {
     fontSize: 10,
@@ -1247,12 +1256,12 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   inviteModal: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderRadius: 20,
     padding: 24,
     width: '100%',
     maxWidth: 340,
-    shadowColor: '#000000',
+    shadowColor: theme.shadow,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -1267,13 +1276,13 @@ const styles = StyleSheet.create({
   inviteModalTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#040404',
+    color: theme.text,
   },
   closeButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F3F3F5',
+    backgroundColor: theme.input,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1284,7 +1293,7 @@ const styles = StyleSheet.create({
   codeLabel: {
     fontSize: 16,
     // fontFamily: 'Montserrat-Medium',
-    color: '#666666',
+    color: theme.textSecondary,
     marginBottom: 12,
   },
   codeDisplay: {

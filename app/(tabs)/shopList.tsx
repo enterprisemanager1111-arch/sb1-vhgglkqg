@@ -15,8 +15,15 @@ import { router } from 'expo-router';
 import { useFamilyShoppingItems } from '@/hooks/useFamilyShoppingItems';
 import { useFamily } from '@/contexts/FamilyContext';
 import { supabase } from '@/lib/supabase';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useDarkMode } from '@/contexts/DarkModeContext';
+import { getTheme } from '@/constants/theme';
 
 export default function ShopListScreen() {
+  const { t } = useLanguage();
+  const { isDarkMode } = useDarkMode();
+  const theme = getTheme(isDarkMode);
+  const styles = createStyles(theme, isDarkMode);
   const [activeFilter, setActiveFilter] = useState('Buy Items');
   const [familyTimeout, setFamilyTimeout] = useState(false);
   
@@ -141,19 +148,21 @@ export default function ShopListScreen() {
         groups[date] = [];
       }
       
+      const purchasedDate = new Date(item.updated_at).toLocaleDateString('en-US', { 
+        day: 'numeric', 
+        month: 'short', 
+        year: 'numeric' 
+      });
+      
       groups[date].push({
         id: item.id,
         name: item.name,
         quantity: item.quantity || '1 stk.',
         status: item.completed ? 'purchased' : 'pending',
         statusText: item.completed 
-          ? `Purchased at ${new Date(item.updated_at).toLocaleDateString('en-US', { 
-              day: 'numeric', 
-              month: 'short', 
-              year: 'numeric' 
-            })}`
-          : 'Pending purchase',
-        purchaser: item.creator_profile?.name || 'Unknown',
+          ? `${t('shopListPage.item.purchasedAt')} ${purchasedDate}`
+          : t('shopListPage.item.pendingPurchase'),
+        purchaser: item.creator_profile?.name || t('shopListPage.item.unknown'),
         purchaserAvatar: item.creator_profile?.name ? item.creator_profile.name.charAt(0).toUpperCase() : '?',
       });
     });
@@ -172,11 +181,11 @@ export default function ShopListScreen() {
     const finishedItems = getCompletedItems().length;
     
     return [
-      { id: 'all', label: 'All Items', count: allItems, active: activeFilter === 'All Items' },
-      { id: 'buy', label: 'Buy Items', count: buyItems, active: activeFilter === 'Buy Items' },
-      { id: 'finished', label: 'Finished', count: finishedItems, active: activeFilter === 'Finished' },
+      { id: 'all', label: t('shopListPage.filters.allItems'), count: allItems, active: activeFilter === 'All Items' },
+      { id: 'buy', label: t('shopListPage.filters.buyItems'), count: buyItems, active: activeFilter === 'Buy Items' },
+      { id: 'finished', label: t('shopListPage.filters.finished'), count: finishedItems, active: activeFilter === 'Finished' },
     ];
-  }, [items, activeFilter, getPendingItems, getCompletedItems]);
+  }, [items, activeFilter, getPendingItems, getCompletedItems, t]);
 
   // Show loading state for family or items
   if (familyLoading || itemsLoading) {
@@ -185,11 +194,11 @@ export default function ShopListScreen() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#17f196" />
           <Text style={styles.loadingText}>
-            {familyLoading ? 'Loading family data...' : 'Loading shopping items...'}
+            {familyLoading ? t('shopListPage.loading.family') : t('shopListPage.loading.items')}
           </Text>
           {familyTimeout && (
             <Text style={styles.timeoutText}>
-              Taking longer than expected. Pull to refresh.
+              {t('shopListPage.loading.timeout')}
             </Text>
           )}
         </View>
@@ -203,9 +212,9 @@ export default function ShopListScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#17f196" />
-          <Text style={styles.loadingText}>Initializing family data...</Text>
+          <Text style={styles.loadingText}>{t('shopListPage.loading.initializing')}</Text>
           <Text style={styles.timeoutText}>
-            If this takes too long, pull to refresh.
+            {t('shopListPage.loading.timeoutRefresh')}
           </Text>
         </View>
       </SafeAreaView>
@@ -217,7 +226,7 @@ export default function ShopListScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Failed to load shopping items</Text>
+          <Text style={styles.errorText}>{t('shopListPage.error.loadFailed')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -228,8 +237,8 @@ export default function ShopListScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No Family Found</Text>
-          <Text style={styles.emptySubtext}>You need to be part of a family to view shopping items</Text>
+          <Text style={styles.emptyText}>{t('shopListPage.empty.noFamily')}</Text>
+          <Text style={styles.emptySubtext}>{t('shopListPage.empty.needFamily')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -240,8 +249,8 @@ export default function ShopListScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No shopping items found</Text>
-          <Text style={styles.emptySubtext}>Add some items to your shopping list</Text>
+          <Text style={styles.emptyText}>{t('shopListPage.empty.noItems')}</Text>
+          <Text style={styles.emptySubtext}>{t('shopListPage.empty.addItems')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -249,14 +258,17 @@ export default function ShopListScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#17f196" />
+      <StatusBar 
+        barStyle={isDarkMode ? "light-content" : "dark-content"} 
+        backgroundColor={theme.surface}
+      />
       
       {/* Header Section */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerText}>
-            <Text style={styles.title}>Shopping List</Text>
-            <Text style={styles.subtitle}>Don't forget your shopping list</Text>
+            <Text style={styles.title}>{t('shopListPage.header.title')}</Text>
+            <Text style={styles.subtitle}>{t('shopListPage.header.subtitle')}</Text>
           </View>
           <View style={styles.headerIllustration}>
             <Image
@@ -280,14 +292,14 @@ export default function ShopListScreen() {
       >
         {/* Summary Card */}
         <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>Perfekt Shopping List</Text>
-          <Text style={styles.summarySubtitle}>Your current shopping list</Text>
+          <Text style={styles.summaryTitle}>{t('shopListPage.summary.title')}</Text>
+          <Text style={styles.summarySubtitle}>{t('shopListPage.summary.subtitle')}</Text>
           
           <View style={styles.progressCards}>
             <View style={styles.progressCard}>
               <View style={styles.progressCardHeader}>
                 <View style={styles.progressDotGreen} />
-                <Text style={styles.progressCardTitle}>Items to Buy</Text>
+                <Text style={styles.progressCardTitle}>{t('shopListPage.summary.itemsToBuy')}</Text>
               </View>
               <Text style={styles.progressCardValue}>{summaryData.itemsToBuy}</Text>
             </View>
@@ -295,7 +307,7 @@ export default function ShopListScreen() {
             <View style={styles.progressCard}>
               <View style={styles.progressCardHeader}>
                 <View style={styles.progressDotBlue} />
-                <Text style={styles.progressCardTitle}>Purchased Items</Text>
+                <Text style={styles.progressCardTitle}>{t('shopListPage.summary.purchasedItems')}</Text>
               </View>
               <Text style={styles.progressCardValue}>{summaryData.purchasedItems}</Text>
             </View>
@@ -353,11 +365,11 @@ export default function ShopListScreen() {
                   <View style={styles.itemCard}>
                     <View style={styles.itemHeader}>
                       <View style={styles.itemInfo}>
-                        <Text style={styles.itemLabel}>Item</Text>
+                        <Text style={styles.itemLabel}>{t('shopListPage.item.item')}</Text>
                         <Text style={styles.itemName}>{item.name}</Text>
                       </View>
                       <View style={styles.quantityInfo}>
-                        <Text style={styles.quantityLabel}>Quantity</Text>
+                        <Text style={styles.quantityLabel}>{t('shopListPage.item.quantity')}</Text>
                         <Text style={styles.quantityValue}>{item.quantity}</Text>
                       </View>
                     </View>
@@ -380,7 +392,7 @@ export default function ShopListScreen() {
                       </Text>
                     </View>
                     <View style={styles.purchaserContainer}>
-                      <Text style={styles.byText}>By</Text>
+                      <Text style={styles.byText}>{t('shopListPage.item.by')}</Text>
                       <View style={styles.purchaserAvatar}>
                         <Text style={styles.purchaserAvatarText}>{item.purchaserAvatar}</Text>
                       </View>
@@ -400,10 +412,10 @@ export default function ShopListScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f1f3f8',
+    backgroundColor: theme.background,
   },
   header: {
     backgroundColor: '#17f196',
@@ -456,7 +468,7 @@ const styles = StyleSheet.create({
     marginTop: -10,
   },
   summaryCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     marginHorizontal: 10,
     marginBottom: 16,
     borderRadius: 8,
@@ -466,14 +478,14 @@ const styles = StyleSheet.create({
   summaryTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#101828',
+    color: theme.text,
     lineHeight: 19.6,
     marginBottom: 4,
   },
   summarySubtitle: {
     fontSize: 12,
     fontWeight: '400',
-    color: '#475467',
+    color: theme.textSecondary,
     lineHeight: 16.8,
     marginBottom: 16,
   },
@@ -483,11 +495,11 @@ const styles = StyleSheet.create({
   },
   progressCard: {
     flex: 1,
-    backgroundColor: '#F9F9F9',
+    backgroundColor: theme.input,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#EBECEE',
+    borderColor: theme.border,
   },
   progressCardHeader: {
     flexDirection: 'row',
@@ -510,20 +522,20 @@ const styles = StyleSheet.create({
   progressCardTitle: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#475467',
+    color: theme.textSecondary,
   },
   progressCardValue: {
     fontSize: 22,
     fontWeight: '400',
-    color: '#101828',
+    color: theme.text,
   },
   filterBarContainer: {
     marginHorizontal: 10,
     marginBottom: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: theme.border,
     padding: 0,
     padding: 4,
     alignItems: 'center',
@@ -551,7 +563,7 @@ const styles = StyleSheet.create({
   filterText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#475467',
+    color: theme.textSecondary,
     numberOfLines: 1,
   },
   filterTextActive: {
@@ -561,7 +573,7 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: theme.input,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -571,20 +583,20 @@ const styles = StyleSheet.create({
   filterBadgeText: {
     fontSize: 11,
     fontWeight: '500',
-    color: '#475467',
+    color: theme.textSecondary,
   },
   filterBadgeTextActive: {
-    color: '#475467',
+    color: theme.textSecondary,
   },
   contentContainer: {
     paddingHorizontal: 10,
   },
   dateGroupPanel: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.surface,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: theme.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -609,17 +621,17 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2D2D2D',
+    color: theme.text,
   },
   itemContainer: {
     marginBottom: 12,
   },
   itemCard: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.input,
     borderRadius: 8,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: theme.border,
     marginBottom: 8,
   },
   itemHeader: {
@@ -633,13 +645,13 @@ const styles = StyleSheet.create({
   itemLabel: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#475467',
+    color: theme.textSecondary,
     marginBottom: 2,
   },
   itemName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2D2D2D',
+    color: theme.text,
   },
   quantityInfo: {
     alignItems: 'flex-end',
@@ -647,13 +659,13 @@ const styles = StyleSheet.create({
   quantityLabel: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#475467',
+    color: theme.textSecondary,
     marginBottom: 2,
   },
   quantityValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2D2D2D',
+    color: theme.text,
   },
   itemFooter: {
     flexDirection: 'row',
@@ -690,7 +702,7 @@ const styles = StyleSheet.create({
   byText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#475467',
+    color: theme.textSecondary,
   },
   purchaserAvatar: {
     width: 24,
@@ -708,7 +720,7 @@ const styles = StyleSheet.create({
   purchaserName: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#2D2D2D',
+    color: theme.text,
   },
   bottomSpacing: {
     height: 100,
@@ -722,7 +734,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666',
+    color: theme.textSecondary,
     fontWeight: '500',
   },
   errorContainer: {
@@ -746,19 +758,19 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    color: '#666',
+    color: theme.textSecondary,
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#999',
+    color: theme.textTertiary,
     textAlign: 'center',
   },
   timeoutText: {
     fontSize: 12,
-    color: '#666',
+    color: theme.textSecondary,
     textAlign: 'center',
     marginTop: 8,
     fontStyle: 'italic',
