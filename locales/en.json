@@ -474,6 +474,12 @@
       "deleteButton": "Delete Account",
       "notImplemented": "Account deletion feature is not yet implemented."
     },
+    "feedback": {
+      "emptyMessage": "Please enter your feedback",
+      "success": "Thank you for your feedback!",
+      "failed": "Failed to submit feedback. Please try again.",
+      "emailFallback": "Opening email client to send feedback"
+    },
     "sections": {
       "security": {
         "title": "Security & Privacy",
@@ -576,10 +582,212 @@
         "chooseLibrary": "Choose from Library",
         "selectLibrary": "Select from your photo library"
       },
+      "feedback": {
+        "title": "Give Feedback",
+        "subtitle": "Help us improve your experience",
+        "category": "Category",
+        "message": "Your Feedback",
+        "placeholder": "Tell us what you think...",
+        "submit": "Submit",
+        "submitting": "Submitting...",
+        "categories": {
+          "general": "General",
+          "bug": "Bug Report",
+          "feature": "Feature Request",
+          "improvement": "Improvement"
+        }
+      },
       "appVersion": {
         "title": "App Version",
         "version": "Version {{version}}\nBuild {{build}}",
         "gotIt": "Got it"
+      },
+      "faq": {
+        "title": "FAQ & Help",
+        "subtitle": "Find answers to common questions",
+        "stillNeedHelp": "Still need help?",
+        "contactSupport": "Contact Support"
+      },
+      "storage": {
+        "title": "Manage Storage",
+        "subtitle": "View and manage your app storage"
+      },
+      "twoFA": {
+        "title": "Setup 2FA",
+        "titleEnabled": "2FA Status",
+        "subtitle": "Scan this code with your authenticator app",
+        "verifySubtitle": "Enter the 6-digit code from your app"
+      },
+      "sessions": {
+        "title": "Manage Sessions",
+        "subtitle": "View and manage your active login sessions"
+      },
+      "privacy": {
+        "title": "Privacy Settings",
+        "subtitle": "Control who can see your information and activity"
+      }
+    },
+    "twoFA": {
+      "setupFailed": "Failed to setup 2FA",
+      "invalidCode": "Please enter a 6-digit code",
+      "enabled": "2FA enabled successfully!",
+      "disabled": "2FA disabled",
+      "verificationFailed": "Verification failed",
+      "disableTitle": "Disable 2FA",
+      "disableMessage": "Are you sure you want to disable two-factor authentication?",
+      "disableButton": "Disable",
+      "disableFailed": "Failed to disable 2FA",
+      "secretKey": "Secret Key",
+      "copy": "Copy",
+      "secretCopied": "Secret key copied!",
+      "codeCopied": "Code copied!",
+      "secretKeyHint": "Enter this key in your authenticator app (Google Authenticator, Authy, etc.)",
+      "instructions": "How to setup:",
+      "step1": "Open your authenticator app",
+      "step2": "Add a new account manually",
+      "step3": "Enter the secret key above",
+      "step4": "Enter the 6-digit code below to verify",
+      "next": "Next: Verify Code",
+      "backupCodesInfo": "After verification, you'll receive 8 backup codes. Save them securely!",
+      "enabling": "Enabling...",
+      "enable": "Enable 2FA",
+      "enabledMessage": "Two-Factor Authentication is enabled",
+      "backupCodesTitle": "Backup Codes",
+      "backupCodesSubtitle": "Save these codes in a secure place. Each code can be used once if you lose access to your authenticator app.",
+      "disable": "Disable 2FA"
+    },
+    "sessions": {
+      "loading": "Loading sessions...",
+      "loadFailed": "Failed to load sessions",
+      "current": "Current",
+      "location": "Location",
+      "lastActive": "Last Active",
+      "revoke": "Revoke Session",
+      "revokeTitle": "Revoke Session",
+      "revokeMessage": "This will log out this device. Continue?",
+      "revoked": "Session revoked",
+      "revokeFailed": "Failed to revoke session",
+      "revokeAll": "Revoke All Others",
+      "revokeAllTitle": "Revoke All Other Sessions",
+      "revokeAllMessage": "This will log out {{count}} other device(s). Continue?",
+      "allRevoked": "All other sessions revoked",
+      "revokeAllFailed": "Failed to revoke sessions",
+      "noOtherSessions": "No other sessions to revoke",
+      "info": "Sessions expire automatically after 30 days of inactivity. Revoking a session will immediately log out that device."
+    },
+    "storage": {
+      "calculating": "Calculating storage...",
+      "totalStorage": "Total Storage",
+      "totalItems": "{{count}} items",
+      "cacheData": "Cache Data",
+      "cacheItems": "cached items",
+      "tempFiles": "Temporary Files",
+      "tempItems": "temporary items",
+      "info": "Clearing cache will remove temporary data and may improve app performance. Your personal data will not be affected.",
+      "clearCache": "Clear Cache",
+      "clearing": "Clearing...",
+      "calculationFailed": "Failed to calculate storage",
+      "noCacheToClean": "No cache to clear"
+    },
+    "privacy": {
+      "saved": "Privacy settings saved",
+      "saveFailed": "Failed to save privacy settings",
+      "save": "Save",
+      "saving": "Saving...",
+      "reset": "Reset",
+      "resetTitle": "Reset Privacy Settings",
+      "resetMessage": "This will reset all privacy settings to default values. Continue?",
+      "resetSuccess": "Privacy settings reset",
+      "info": "These settings control how your information is shared within your family. Your data is always encrypted and secure.",
+      "sections": {
+        "profile": "Profile Information",
+        "activity": "Activity & Data",
+        "notifications": "Notifications",
+        "appData": "App Data"
+      },
+      "showProfilePhoto": {
+        "label": "Show Profile Photo",
+        "description": "Display your profile photo to family members"
+      },
+      "showBirthday": {
+        "label": "Show Birthday",
+        "description": "Share your birthday with family members"
+      },
+      "showEmail": {
+        "label": "Show Email",
+        "description": "Display your email address to family"
+      },
+      "showPhone": {
+        "label": "Show Phone Number",
+        "description": "Share your phone number with family"
+      },
+      "showActivity": {
+        "label": "Show Activity",
+        "description": "Share your task and event activity"
+      },
+      "showStats": {
+        "label": "Show Statistics",
+        "description": "Display your points and achievements"
+      },
+      "shareLocation": {
+        "label": "Share Location",
+        "description": "Allow family to see your location"
+      },
+      "taskNotifications": {
+        "label": "Task Notifications",
+        "description": "Get notified about task assignments"
+      },
+      "eventNotifications": {
+        "label": "Event Notifications",
+        "description": "Get notified about calendar events"
+      },
+      "shoppingNotifications": {
+        "label": "Shopping Notifications",
+        "description": "Get notified about shopping list updates"
+      },
+      "shareAnalytics": {
+        "label": "Share Analytics",
+        "description": "Help improve the app with usage data"
+      }
+    },
+    "faq": {
+      "items": {
+        "gettingStarted": {
+          "question": "How do I get started with Famora?",
+          "answer": "Create a family, invite members, and start managing tasks together! You can create tasks, set up a shopping list, and track family activities."
+        },
+        "addMembers": {
+          "question": "How do I add family members?",
+          "answer": "Go to your family settings and use the invite link or email invitation feature. Family members can join using the unique family code."
+        },
+        "manageTasks": {
+          "question": "How do tasks work?",
+          "answer": "Create tasks, assign them to family members, set due dates, and track completion. Completed tasks earn points that contribute to family flames!"
+        },
+        "flamesPoints": {
+          "question": "What are Flames and Points?",
+          "answer": "Flames are family activity points earned by completing tasks and engaging with the app. They help track your family's productivity and unlock achievements!"
+        },
+        "notifications": {
+          "question": "How do I manage notifications?",
+          "answer": "Go to Profile → Communication → Notifications to enable or disable push notifications for family activities, task assignments, and updates."
+        },
+        "changePassword": {
+          "question": "How do I change my password?",
+          "answer": "Go to Profile → Personalization → Change Password. Enter your current password and your new password twice to confirm."
+        },
+        "darkMode": {
+          "question": "How do I enable Dark Mode?",
+          "answer": "Go to Profile → Personalization → Dark Mode and toggle the switch. The app will immediately switch to dark mode."
+        },
+        "deleteAccount": {
+          "question": "How do I delete my account?",
+          "answer": "Go to Profile → General → Delete Account. This action is permanent and will delete all your data. Please contact support if you need assistance."
+        },
+        "contactSupport": {
+          "question": "How do I contact support?",
+          "answer": "You can reach our support team through the FAQ & Help section. Click \"Contact Support\" to send us an email with your question or concern."
+        }
       }
     }
   },

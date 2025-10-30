@@ -660,6 +660,12 @@
       "deleteButton": "Eliminar Cuenta",
       "notImplemented": "La función de eliminar cuenta aún no está implementada."
     },
+    "feedback": {
+      "emptyMessage": "Por favor ingresa tu comentario",
+      "success": "¡Gracias por tus comentarios!",
+      "failed": "No se pudo enviar el comentario. Por favor intenta de nuevo.",
+      "emailFallback": "Abriendo cliente de correo para enviar comentarios"
+    },
     "sections": {
       "security": {
         "title": "Seguridad y Privacidad",
@@ -762,10 +768,165 @@
         "chooseLibrary": "Elegir de la Biblioteca",
         "selectLibrary": "Seleccionar de tu biblioteca de fotos"
       },
+      "feedback": {
+        "title": "Dar Opinión",
+        "subtitle": "Ayúdanos a mejorar tu experiencia",
+        "category": "Categoría",
+        "message": "Tu Opinión",
+        "placeholder": "Dinos lo que piensas...",
+        "submit": "Enviar",
+        "submitting": "Enviando...",
+        "categories": {
+          "general": "General",
+          "bug": "Reporte de Error",
+          "feature": "Solicitud de Función",
+          "improvement": "Mejora"
+        }
+      },
       "appVersion": {
         "title": "Versión de la Aplicación",
         "version": "Versión {{version}}\nBuild {{build}}",
         "gotIt": "Entendido"
+      },
+      "twoFA": {
+        "title": "Configurar 2FA",
+        "titleEnabled": "Estado 2FA",
+        "subtitle": "Escanea este código con tu aplicación de autenticación",
+        "verifySubtitle": "Ingresa el código de 6 dígitos de tu aplicación"
+      },
+      "sessions": {
+        "title": "Gestionar sesiones",
+        "subtitle": "Ver y gestionar tus sesiones de inicio de sesión activas"
+      },
+      "storage": {
+        "title": "Gestionar almacenamiento",
+        "subtitle": "Ver y gestionar el almacenamiento de tu aplicación"
+      },
+      "privacy": {
+        "title": "Configuración de privacidad",
+        "subtitle": "Controla quién puede ver tu información y actividad"
+      }
+    },
+    "twoFA": {
+      "setupFailed": "Error al configurar 2FA",
+      "invalidCode": "Por favor, ingresa un código de 6 dígitos",
+      "enabled": "¡2FA activado exitosamente!",
+      "disabled": "2FA desactivado",
+      "verificationFailed": "Verificación fallida",
+      "disableTitle": "Desactivar 2FA",
+      "disableMessage": "¿Estás seguro de que deseas desactivar la autenticación de dos factores?",
+      "disableButton": "Desactivar",
+      "disableFailed": "Error al desactivar 2FA",
+      "secretKey": "Clave secreta",
+      "copy": "Copiar",
+      "secretCopied": "¡Clave secreta copiada!",
+      "codeCopied": "¡Código copiado!",
+      "secretKeyHint": "Ingresa esta clave en tu aplicación de autenticación (Google Authenticator, Authy, etc.)",
+      "instructions": "Cómo configurar:",
+      "step1": "Abre tu aplicación de autenticación",
+      "step2": "Añade una nueva cuenta manualmente",
+      "step3": "Ingresa la clave secreta anterior",
+      "step4": "Ingresa el código de 6 dígitos a continuación para verificar",
+      "next": "Siguiente: Verificar código",
+      "backupCodesInfo": "Después de la verificación, recibirás 8 códigos de respaldo. ¡Guárdalos de forma segura!",
+      "enabling": "Activando...",
+      "enable": "Activar 2FA",
+      "enabledMessage": "La autenticación de dos factores está activada",
+      "backupCodesTitle": "Códigos de respaldo",
+      "backupCodesSubtitle": "Guarda estos códigos en un lugar seguro. Cada código se puede usar una vez si pierdes el acceso a tu aplicación de autenticación.",
+      "disable": "Desactivar 2FA"
+    },
+    "sessions": {
+      "loading": "Cargando sesiones...",
+      "loadFailed": "Error al cargar sesiones",
+      "current": "Actual",
+      "location": "Ubicación",
+      "lastActive": "Última actividad",
+      "revoke": "Revocar sesión",
+      "revokeTitle": "Revocar sesión",
+      "revokeMessage": "Esto cerrará la sesión de este dispositivo. ¿Continuar?",
+      "revoked": "Sesión revocada",
+      "revokeFailed": "Error al revocar sesión",
+      "revokeAll": "Revocar todas las demás",
+      "revokeAllTitle": "Revocar todas las demás sesiones",
+      "revokeAllMessage": "Esto cerrará la sesión de {{count}} otro(s) dispositivo(s). ¿Continuar?",
+      "allRevoked": "Todas las demás sesiones revocadas",
+      "revokeAllFailed": "Error al revocar sesiones",
+      "noOtherSessions": "No hay otras sesiones para revocar",
+      "info": "Las sesiones caducan automáticamente después de 30 días de inactividad. Revocar una sesión cerrará la sesión de ese dispositivo inmediatamente."
+    },
+    "storage": {
+      "calculating": "Calculando almacenamiento...",
+      "totalStorage": "Almacenamiento total",
+      "totalItems": "{{count}} elementos",
+      "cacheData": "Datos de caché",
+      "cacheItems": "elementos en caché",
+      "tempFiles": "Archivos temporales",
+      "tempItems": "elementos temporales",
+      "info": "Limpiar la caché eliminará los datos temporales y puede mejorar el rendimiento de la aplicación. Tus datos personales no se verán afectados.",
+      "clearButton": "Limpiar caché",
+      "clearing": "Limpiando...",
+      "cleared": "¡Caché limpiada exitosamente!"
+    },
+    "privacy": {
+      "saved": "Configuración de privacidad guardada",
+      "saveFailed": "Error al guardar la configuración de privacidad",
+      "save": "Guardar",
+      "saving": "Guardando...",
+      "reset": "Restablecer",
+      "resetTitle": "Restablecer configuración de privacidad",
+      "resetMessage": "Esto restablecerá toda la configuración de privacidad a los valores predeterminados. ¿Continuar?",
+      "resetSuccess": "Configuración de privacidad restablecida",
+      "info": "Esta configuración controla cómo se comparte tu información dentro de tu familia. Tus datos siempre están encriptados y seguros.",
+      "sections": {
+        "profile": "Información del perfil",
+        "activity": "Actividad & Datos",
+        "notifications": "Notificaciones",
+        "appData": "Datos de la aplicación"
+      },
+      "showProfilePhoto": {
+        "label": "Mostrar foto de perfil",
+        "description": "Mostrar tu foto de perfil a los miembros de la familia"
+      },
+      "showBirthday": {
+        "label": "Mostrar cumpleaños",
+        "description": "Compartir tu cumpleaños con los miembros de la familia"
+      },
+      "showEmail": {
+        "label": "Mostrar correo electrónico",
+        "description": "Mostrar tu dirección de correo electrónico a la familia"
+      },
+      "showPhone": {
+        "label": "Mostrar número de teléfono",
+        "description": "Compartir tu número de teléfono con la familia"
+      },
+      "showActivity": {
+        "label": "Mostrar actividad",
+        "description": "Compartir tu actividad de tareas y eventos"
+      },
+      "showStats": {
+        "label": "Mostrar estadísticas",
+        "description": "Mostrar tus puntos y logros"
+      },
+      "shareLocation": {
+        "label": "Compartir ubicación",
+        "description": "Permitir que la familia vea tu ubicación"
+      },
+      "taskNotifications": {
+        "label": "Notificaciones de tareas",
+        "description": "Recibir notificaciones sobre asignaciones de tareas"
+      },
+      "eventNotifications": {
+        "label": "Notificaciones de eventos",
+        "description": "Recibir notificaciones sobre eventos del calendario"
+      },
+      "shoppingNotifications": {
+        "label": "Notificaciones de compras",
+        "description": "Recibir notificaciones sobre actualizaciones de la lista de compras"
+      },
+      "shareAnalytics": {
+        "label": "Compartir análisis",
+        "description": "Ayudar a mejorar la aplicación con datos de uso"
       }
     }
   },

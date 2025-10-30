@@ -1060,6 +1060,12 @@
         "deleteButton": "Account Verwijderen",
         "notImplemented": "Functie voor het verwijderen van accounts is nog niet geïmplementeerd."
       },
+      "feedback": {
+        "emptyMessage": "Voer je feedback in",
+        "success": "Bedankt voor je feedback!",
+        "failed": "Kan feedback niet verzenden. Probeer het opnieuw.",
+        "emailFallback": "E-mailclient openen om feedback te verzenden"
+      },
       "sections": {
         "security": {
           "title": "Beveiliging & Privacy",
@@ -1162,12 +1168,167 @@
           "chooseLibrary": "Kies uit Bibliotheek",
           "selectLibrary": "Selecteer uit je fotobibliotheek"
         },
+        "feedback": {
+          "title": "Feedback Geven",
+          "subtitle": "Help ons je ervaring te verbeteren",
+          "category": "Categorie",
+          "message": "Jouw Feedback",
+          "placeholder": "Vertel ons wat je denkt...",
+          "submit": "Verzenden",
+          "submitting": "Verzenden...",
+          "categories": {
+            "general": "Algemeen",
+            "bug": "Bugrapport",
+            "feature": "Functieverzoek",
+            "improvement": "Verbetering"
+          }
+        },
         "appVersion": {
           "title": "App-versie",
           "version": "Versie {{version}}\nBuild {{build}}",
           "gotIt": "Begrepen"
+        },
+        "twoFA": {
+          "title": "2FA instellen",
+          "titleEnabled": "2FA-status",
+          "subtitle": "Scan deze code met je authenticatie-app",
+          "verifySubtitle": "Voer de 6-cijferige code van je app in"
+        },
+        "sessions": {
+          "title": "Sessies beheren",
+          "subtitle": "Bekijk en beheer je actieve inlogsessies"
+        },
+        "storage": {
+          "title": "Opslag beheren",
+          "subtitle": "Bekijk en beheer je app-opslag"
+        },
+        "privacy": {
+          "title": "Privacy-instellingen",
+          "subtitle": "Bepaal wie je informatie en activiteit kan zien"
+        }
+      },
+      "twoFA": {
+        "setupFailed": "2FA-instelling mislukt",
+        "invalidCode": "Voer een 6-cijferige code in",
+        "enabled": "2FA succesvol ingeschakeld!",
+        "disabled": "2FA uitgeschakeld",
+        "verificationFailed": "Verificatie mislukt",
+        "disableTitle": "2FA uitschakelen",
+        "disableMessage": "Weet je zeker dat je tweefactorauthenticatie wilt uitschakelen?",
+        "disableButton": "Uitschakelen",
+        "disableFailed": "2FA uitschakelen mislukt",
+        "secretKey": "Geheime sleutel",
+        "copy": "Kopiëren",
+        "secretCopied": "Geheime sleutel gekopieerd!",
+        "codeCopied": "Code gekopieerd!",
+        "secretKeyHint": "Voer deze sleutel in je authenticatie-app in (Google Authenticator, Authy, etc.)",
+        "instructions": "Hoe in te stellen:",
+        "step1": "Open je authenticatie-app",
+        "step2": "Voeg handmatig een nieuw account toe",
+        "step3": "Voer de bovenstaande geheime sleutel in",
+        "step4": "Voer hieronder de 6-cijferige code in om te verifiëren",
+        "next": "Volgende: Code verifiëren",
+        "backupCodesInfo": "Na verificatie ontvang je 8 back-upcodes. Bewaar ze veilig!",
+        "enabling": "Inschakelen...",
+        "enable": "2FA inschakelen",
+        "enabledMessage": "Tweefactorauthenticatie is ingeschakeld",
+        "backupCodesTitle": "Back-upcodes",
+        "backupCodesSubtitle": "Bewaar deze codes op een veilige plaats. Elke code kan eenmaal worden gebruikt als je de toegang tot je authenticatie-app verliest.",
+        "disable": "2FA uitschakelen"
+      },
+      "sessions": {
+        "loading": "Sessies laden...",
+        "loadFailed": "Sessies laden mislukt",
+        "current": "Huidig",
+        "location": "Locatie",
+        "lastActive": "Laatst actief",
+        "revoke": "Sessie intrekken",
+        "revokeTitle": "Sessie intrekken",
+        "revokeMessage": "Dit zal dit apparaat uitloggen. Doorgaan?",
+        "revoked": "Sessie ingetrokken",
+        "revokeFailed": "Sessie intrekken mislukt",
+        "revokeAll": "Alle anderen intrekken",
+        "revokeAllTitle": "Alle andere sessies intrekken",
+        "revokeAllMessage": "Dit zal {{count}} ander(e) apparaat/apparaten uitloggen. Doorgaan?",
+        "allRevoked": "Alle andere sessies ingetrokken",
+        "revokeAllFailed": "Sessies intrekken mislukt",
+        "noOtherSessions": "Geen andere sessies om in te trekken",
+        "info": "Sessies verlopen automatisch na 30 dagen inactiviteit. Het intrekken van een sessie zal dat apparaat onmiddellijk uitloggen."
+      },
+      "storage": {
+        "calculating": "Opslag berekenen...",
+        "totalStorage": "Totale opslag",
+        "totalItems": "{{count}} items",
+        "cacheData": "Cache-gegevens",
+        "cacheItems": "gecachte items",
+        "tempFiles": "Tijdelijke bestanden",
+        "tempItems": "tijdelijke items",
+        "info": "Het wissen van de cache verwijdert tijdelijke gegevens en kan de app-prestaties verbeteren. Je persoonlijke gegevens worden niet beïnvloed.",
+        "clearButton": "Cache wissen",
+        "clearing": "Wissen...",
+        "cleared": "Cache succesvol gewist!"
+      },
+      "privacy": {
+        "saved": "Privacy-instellingen opgeslagen",
+        "saveFailed": "Privacy-instellingen opslaan mislukt",
+        "save": "Opslaan",
+        "saving": "Opslaan...",
+        "reset": "Resetten",
+        "resetTitle": "Privacy-instellingen resetten",
+        "resetMessage": "Dit zal alle privacy-instellingen naar standaardwaarden resetten. Doorgaan?",
+        "resetSuccess": "Privacy-instellingen gereset",
+        "info": "Deze instellingen bepalen hoe je informatie binnen je familie wordt gedeeld. Je gegevens zijn altijd versleuteld en veilig.",
+        "sections": {
+          "profile": "Profielinformatie",
+          "activity": "Activiteit & Gegevens",
+          "notifications": "Meldingen",
+          "appData": "App-gegevens"
+        },
+        "showProfilePhoto": {
+          "label": "Profielfoto tonen",
+          "description": "Toon je profielfoto aan familieleden"
+        },
+        "showBirthday": {
+          "label": "Verjaardag tonen",
+          "description": "Deel je verjaardag met familieleden"
+        },
+        "showEmail": {
+          "label": "E-mail tonen",
+          "description": "Toon je e-mailadres aan de familie"
+        },
+        "showPhone": {
+          "label": "Telefoonnummer tonen",
+          "description": "Deel je telefoonnummer met de familie"
+        },
+        "showActivity": {
+          "label": "Activiteit tonen",
+          "description": "Deel je taak- en evenementactiviteit"
+        },
+        "showStats": {
+          "label": "Statistieken tonen",
+          "description": "Toon je punten en prestaties"
+        },
+        "shareLocation": {
+          "label": "Locatie delen",
+          "description": "Sta familie toe je locatie te zien"
+        },
+        "taskNotifications": {
+          "label": "Taakmeldingen",
+          "description": "Ontvang meldingen over taaktoewijzingen"
+        },
+        "eventNotifications": {
+          "label": "Evenementmeldingen",
+          "description": "Ontvang meldingen over agenda-evenementen"
+        },
+        "shoppingNotifications": {
+          "label": "Boodschappenmeldingen",
+          "description": "Ontvang meldingen over updates van de boodschappenlijst"
+        },
+        "shareAnalytics": {
+          "label": "Analyses delen",
+          "description": "Help de app te verbeteren met gebruiksgegevens"
+        }
       }
-    }
     },
     "notificationsPage": {
       "title": "Meldingen",

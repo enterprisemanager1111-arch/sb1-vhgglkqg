@@ -494,6 +494,12 @@
       "deleteButton": "Konto löschen",
       "notImplemented": "Kontolöschungsfunktion ist noch nicht implementiert."
     },
+    "feedback": {
+      "emptyMessage": "Bitte geben Sie Ihr Feedback ein",
+      "success": "Vielen Dank für Ihr Feedback!",
+      "failed": "Feedback konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
+      "emailFallback": "E-Mail-Client wird geöffnet, um Feedback zu senden"
+    },
     "sections": {
       "security": {
         "title": "Sicherheit & Datenschutz",
@@ -596,10 +602,165 @@
         "chooseLibrary": "Aus Bibliothek wählen",
         "selectLibrary": "Aus Ihrer Fotobibliothek auswählen"
       },
+      "feedback": {
+        "title": "Feedback geben",
+        "subtitle": "Helfen Sie uns, Ihre Erfahrung zu verbessern",
+        "category": "Kategorie",
+        "message": "Ihr Feedback",
+        "placeholder": "Sagen Sie uns, was Sie denken...",
+        "submit": "Senden",
+        "submitting": "Wird gesendet...",
+        "categories": {
+          "general": "Allgemein",
+          "bug": "Fehlerbericht",
+          "feature": "Funktionswunsch",
+          "improvement": "Verbesserung"
+        }
+      },
       "appVersion": {
         "title": "App-Version",
         "version": "Version {{version}}\nBuild {{build}}",
         "gotIt": "Verstanden"
+      },
+      "twoFA": {
+        "title": "2FA einrichten",
+        "titleEnabled": "2FA-Status",
+        "subtitle": "Scannen Sie diesen Code mit Ihrer Authenticator-App",
+        "verifySubtitle": "Geben Sie den 6-stelligen Code aus Ihrer App ein"
+      },
+      "sessions": {
+        "title": "Sitzungen verwalten",
+        "subtitle": "Anzeigen und verwalten Sie Ihre aktiven Anmeldesitzungen"
+      },
+      "storage": {
+        "title": "Speicher verwalten",
+        "subtitle": "Anzeigen und verwalten Sie Ihren App-Speicher"
+      },
+      "privacy": {
+        "title": "Datenschutzeinstellungen",
+        "subtitle": "Steuern Sie, wer Ihre Informationen und Aktivitäten sehen kann"
+      }
+    },
+    "twoFA": {
+      "setupFailed": "2FA-Einrichtung fehlgeschlagen",
+      "invalidCode": "Bitte geben Sie einen 6-stelligen Code ein",
+      "enabled": "2FA erfolgreich aktiviert!",
+      "disabled": "2FA deaktiviert",
+      "verificationFailed": "Verifizierung fehlgeschlagen",
+      "disableTitle": "2FA deaktivieren",
+      "disableMessage": "Möchten Sie die Zwei-Faktor-Authentifizierung wirklich deaktivieren?",
+      "disableButton": "Deaktivieren",
+      "disableFailed": "2FA konnte nicht deaktiviert werden",
+      "secretKey": "Geheimer Schlüssel",
+      "copy": "Kopieren",
+      "secretCopied": "Geheimer Schlüssel kopiert!",
+      "codeCopied": "Code kopiert!",
+      "secretKeyHint": "Geben Sie diesen Schlüssel in Ihrer Authenticator-App ein (Google Authenticator, Authy, etc.)",
+      "instructions": "So richten Sie es ein:",
+      "step1": "Öffnen Sie Ihre Authenticator-App",
+      "step2": "Fügen Sie ein neues Konto manuell hinzu",
+      "step3": "Geben Sie den oben genannten geheimen Schlüssel ein",
+      "step4": "Geben Sie den 6-stelligen Code unten ein, um zu verifizieren",
+      "next": "Weiter: Code verifizieren",
+      "backupCodesInfo": "Nach der Verifizierung erhalten Sie 8 Backup-Codes. Bewahren Sie diese sicher auf!",
+      "enabling": "Wird aktiviert...",
+      "enable": "2FA aktivieren",
+      "enabledMessage": "Zwei-Faktor-Authentifizierung ist aktiviert",
+      "backupCodesTitle": "Backup-Codes",
+      "backupCodesSubtitle": "Speichern Sie diese Codes an einem sicheren Ort. Jeder Code kann einmal verwendet werden, wenn Sie den Zugriff auf Ihre Authenticator-App verlieren.",
+      "disable": "2FA deaktivieren"
+    },
+    "sessions": {
+      "loading": "Sitzungen werden geladen...",
+      "loadFailed": "Sitzungen konnten nicht geladen werden",
+      "current": "Aktuell",
+      "location": "Standort",
+      "lastActive": "Zuletzt aktiv",
+      "revoke": "Sitzung widerrufen",
+      "revokeTitle": "Sitzung widerrufen",
+      "revokeMessage": "Dadurch wird dieses Gerät abgemeldet. Fortfahren?",
+      "revoked": "Sitzung widerrufen",
+      "revokeFailed": "Sitzung konnte nicht widerrufen werden",
+      "revokeAll": "Alle anderen widerrufen",
+      "revokeAllTitle": "Alle anderen Sitzungen widerrufen",
+      "revokeAllMessage": "Dadurch werden {{count}} andere Geräte abgemeldet. Fortfahren?",
+      "allRevoked": "Alle anderen Sitzungen widerrufen",
+      "revokeAllFailed": "Sitzungen konnten nicht widerrufen werden",
+      "noOtherSessions": "Keine anderen Sitzungen zum Widerrufen",
+      "info": "Sitzungen laufen nach 30 Tagen Inaktivität automatisch ab. Das Widerrufen einer Sitzung meldet das Gerät sofort ab."
+    },
+    "storage": {
+      "calculating": "Speicher wird berechnet...",
+      "totalStorage": "Gesamtspeicher",
+      "totalItems": "{{count}} Elemente",
+      "cacheData": "Cache-Daten",
+      "cacheItems": "zwischengespeicherte Elemente",
+      "tempFiles": "Temporäre Dateien",
+      "tempItems": "temporäre Elemente",
+      "info": "Das Löschen des Caches entfernt temporäre Daten und kann die App-Leistung verbessern. Ihre persönlichen Daten bleiben unberührt.",
+      "clearButton": "Cache leeren",
+      "clearing": "Wird geleert...",
+      "cleared": "Cache erfolgreich geleert!"
+    },
+    "privacy": {
+      "saved": "Datenschutzeinstellungen gespeichert",
+      "saveFailed": "Datenschutzeinstellungen konnten nicht gespeichert werden",
+      "save": "Speichern",
+      "saving": "Wird gespeichert...",
+      "reset": "Zurücksetzen",
+      "resetTitle": "Datenschutzeinstellungen zurücksetzen",
+      "resetMessage": "Dadurch werden alle Datenschutzeinstellungen auf die Standardwerte zurückgesetzt. Fortfahren?",
+      "resetSuccess": "Datenschutzeinstellungen zurückgesetzt",
+      "info": "Diese Einstellungen steuern, wie Ihre Informationen innerhalb Ihrer Familie geteilt werden. Ihre Daten sind immer verschlüsselt und sicher.",
+      "sections": {
+        "profile": "Profilinformationen",
+        "activity": "Aktivität & Daten",
+        "notifications": "Benachrichtigungen",
+        "appData": "App-Daten"
+      },
+      "showProfilePhoto": {
+        "label": "Profilfoto anzeigen",
+        "description": "Ihr Profilfoto für Familienmitglieder anzeigen"
+      },
+      "showBirthday": {
+        "label": "Geburtstag anzeigen",
+        "description": "Ihren Geburtstag mit Familienmitgliedern teilen"
+      },
+      "showEmail": {
+        "label": "E-Mail anzeigen",
+        "description": "Ihre E-Mail-Adresse für Familie anzeigen"
+      },
+      "showPhone": {
+        "label": "Telefonnummer anzeigen",
+        "description": "Ihre Telefonnummer mit Familie teilen"
+      },
+      "showActivity": {
+        "label": "Aktivität anzeigen",
+        "description": "Ihre Aufgaben- und Ereignisaktivität teilen"
+      },
+      "showStats": {
+        "label": "Statistiken anzeigen",
+        "description": "Ihre Punkte und Erfolge anzeigen"
+      },
+      "shareLocation": {
+        "label": "Standort teilen",
+        "description": "Familie erlauben, Ihren Standort zu sehen"
+      },
+      "taskNotifications": {
+        "label": "Aufgabenbenachrichtigungen",
+        "description": "Benachrichtigungen über Aufgabenzuweisungen erhalten"
+      },
+      "eventNotifications": {
+        "label": "Ereignisbenachrichtigungen",
+        "description": "Benachrichtigungen über Kalenderereignisse erhalten"
+      },
+      "shoppingNotifications": {
+        "label": "Einkaufsbenachrichtigungen",
+        "description": "Benachrichtigungen über Einkaufslistenaktualisierungen erhalten"
+      },
+      "shareAnalytics": {
+        "label": "Analysen teilen",
+        "description": "Helfen Sie mit Nutzungsdaten, die App zu verbessern"
       }
     }
   },
