@@ -562,20 +562,20 @@ export default function UserProfile() {
       case 'phone':
       case 'ios':
       case 'android':
-        return '📱';
+        return require('@/assets/images/icon/iphone.png');
       case 'tablet':
       case 'ipad':
-        return '📱';
+        return require('@/assets/images/icon/iphone.png');
       case 'desktop':
       case 'windows':
       case 'mac':
       case 'linux':
-        return '💻';
+        return require('@/assets/images/icon/computer.png');
       case 'web':
       case 'browser':
-        return '🌐';
+        return require('@/assets/images/icon/global.png');
       default:
-        return '📱';
+        return require('@/assets/images/icon/iphone.png');
     }
   };
 
@@ -938,55 +938,55 @@ export default function UserProfile() {
       id: 'getting-started',
       question: t('profilePage.faq.items.gettingStarted.question') || 'How do I get started with Famora?',
       answer: t('profilePage.faq.items.gettingStarted.answer') || 'Create a family, invite members, and start managing tasks together! You can create tasks, set up a shopping list, and track family activities.',
-      icon: '🚀'
+      icon: require('@/assets/images/icon/improvement.png')
     },
     {
       id: 'add-family-members',
       question: t('profilePage.faq.items.addMembers.question') || 'How do I add family members?',
       answer: t('profilePage.faq.items.addMembers.answer') || 'Go to your family settings and use the invite link or email invitation feature. Family members can join using the unique family code.',
-      icon: '👨‍👩‍👧‍👦'
+      icon: require('@/assets/images/icon/family_group.png')
     },
     {
       id: 'manage-tasks',
       question: t('profilePage.faq.items.manageTasks.question') || 'How do tasks work?',
       answer: t('profilePage.faq.items.manageTasks.answer') || 'Create tasks, assign them to family members, set due dates, and track completion. Completed tasks earn points that contribute to family flames!',
-      icon: '✅'
+      icon: require('@/assets/images/icon/checkbox.png')
     },
     {
       id: 'flames-points',
       question: t('profilePage.faq.items.flamesPoints.question') || 'What are Flames and Points?',
       answer: t('profilePage.faq.items.flamesPoints.answer') || 'Flames are family activity points earned by completing tasks and engaging with the app. They help track your family\'s productivity and unlock achievements!',
-      icon: '🔥'
+      icon: require('@/assets/images/icon/flames_active.png')
     },
     {
       id: 'notifications',
       question: t('profilePage.faq.items.notifications.question') || 'How do I manage notifications?',
       answer: t('profilePage.faq.items.notifications.answer') || 'Go to Profile → Communication → Notifications to enable or disable push notifications for family activities, task assignments, and updates.',
-      icon: '🔔'
+      icon: require('@/assets/images/icon/notification.png')
     },
     {
       id: 'change-password',
       question: t('profilePage.faq.items.changePassword.question') || 'How do I change my password?',
       answer: t('profilePage.faq.items.changePassword.answer') || 'Go to Profile → Personalization → Change Password. Enter your current password and your new password twice to confirm.',
-      icon: '🔐'
+      icon: require('@/assets/images/icon/protect.png')
     },
     {
       id: 'dark-mode',
       question: t('profilePage.faq.items.darkMode.question') || 'How do I enable Dark Mode?',
       answer: t('profilePage.faq.items.darkMode.answer') || 'Go to Profile → Personalization → Dark Mode and toggle the switch. The app will immediately switch to dark mode.',
-      icon: '🌙'
+      icon: require('@/assets/images/icon/moon.png')
     },
     {
       id: 'delete-account',
       question: t('profilePage.faq.items.deleteAccount.question') || 'How do I delete my account?',
       answer: t('profilePage.faq.items.deleteAccount.answer') || 'Go to Profile → General → Delete Account. This action is permanent and will delete all your data. Please contact support if you need assistance.',
-      icon: '⚠️'
+      icon: require('@/assets/images/icon/warning.png')
     },
     {
       id: 'contact-support',
       question: t('profilePage.faq.items.contactSupport.question') || 'How do I contact support?',
       answer: t('profilePage.faq.items.contactSupport.answer') || 'You can reach our support team through the FAQ & Help section. Click "Contact Support" to send us an email with your question or concern.',
-      icon: '💬'
+      icon: require('@/assets/images/icon/cloud_active.png')
     }
   ];
 
@@ -1606,22 +1606,24 @@ export default function UserProfile() {
                   ]}
                   onPress={() => handleLanguageChange(language.code)}
                 >
-                  <Text style={styles.languageFlag}>{language.flag}</Text>
                   <Text style={[
                     styles.languageName,
                     currentLanguage.code === language.code && styles.selectedLanguageName
                   ]}>
                     {language.nativeName}
                   </Text>
-                  {currentLanguage.code === language.code && (
-                    <CheckSquare size={18} color="#17F196" strokeWidth={2} />
-                  )}
+                  <Text style={[
+                    styles.languageSubtitle,
+                    currentLanguage.code === language.code && styles.selectedLanguageSubtitle
+                  ]}>
+                    {language.name}
+                  </Text>
                 </Pressable>
               ))}
             </View>
 
             <Pressable
-              style={styles.modalCancelButton}
+              style={[styles.modalCancelButton, { width: '100%' }]}
               onPress={() => setShowLanguageModal(false)}
             >
               <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
@@ -1648,7 +1650,7 @@ export default function UserProfile() {
                 onPress={() => handleImagePicker('camera')}
               >
                 <View style={styles.imagePickerIcon}>
-                  <Camera size={24} color="#17F196" strokeWidth={2} />
+                  <Camera size={24} color="#17f196" strokeWidth={2} />
                 </View>
                 <Text style={styles.imagePickerOptionText}>{t('profilePage.modals.changeProfilePicture.takePhoto')}</Text>
                 <Text style={styles.imagePickerOptionSubtext}>{t('profilePage.modals.changeProfilePicture.useCamera')}</Text>
@@ -1671,7 +1673,7 @@ export default function UserProfile() {
             </View>
 
             <Pressable
-              style={styles.modalCancelButton}
+              style={[styles.modalCancelButton, { width: '100%' }]}
               onPress={() => setShowImagePickerModal(false)}
             >
               <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
@@ -1701,7 +1703,7 @@ export default function UserProfile() {
             <Text style={styles.modalTitle}>{t('profilePage.modals.appVersion.title')}</Text>
             <Text style={styles.modalSubtitle}>{t('profilePage.modals.appVersion.version', { version: '1.0.0', build: '2025.1' })}</Text>
             <Pressable
-              style={styles.modalCancelButton}
+              style={[styles.modalCancelButton, { width: '100%' }]}
               onPress={() => setShowAppVersionModal(false)}
             >
               <Text style={styles.modalCancelText}>{t('profilePage.modals.appVersion.gotIt')}</Text>
@@ -1728,10 +1730,10 @@ export default function UserProfile() {
                 <Text style={styles.feedbackLabel}>{t('profilePage.modals.feedback.category') || 'Category'}</Text>
                 <View style={styles.feedbackCategories}>
                   {[
-                    { id: 'general', label: t('profilePage.modals.feedback.categories.general') || 'General', icon: '💬' },
-                    { id: 'bug', label: t('profilePage.modals.feedback.categories.bug') || 'Bug Report', icon: '🐛' },
-                    { id: 'feature', label: t('profilePage.modals.feedback.categories.feature') || 'Feature Request', icon: '✨' },
-                    { id: 'improvement', label: t('profilePage.modals.feedback.categories.improvement') || 'Improvement', icon: '🚀' },
+                    { id: 'general', label: t('profilePage.modals.feedback.categories.general') || 'General', icon: require('@/assets/images/icon/cloud.png') },
+                    { id: 'bug', label: t('profilePage.modals.feedback.categories.bug') || 'Bug Report', icon: require('@/assets/images/icon/report.png') },
+                    { id: 'feature', label: t('profilePage.modals.feedback.categories.feature') || 'Feature Request', icon: require('@/assets/images/icon/magicpen.png') },
+                    { id: 'improvement', label: t('profilePage.modals.feedback.categories.improvement') || 'Improvement', icon: require('@/assets/images/icon/improvement.png') },
                   ].map((category) => (
                     <Pressable
                       key={category.id}
@@ -1741,7 +1743,11 @@ export default function UserProfile() {
                       ]}
                       onPress={() => setFeedbackCategory(category.id)}
                     >
-                      <Text style={styles.feedbackCategoryIcon}>{category.icon}</Text>
+                      <Image
+                        source={category.icon}
+                        style={styles.feedbackCategoryIcon}
+                        resizeMode="contain"
+                      />
                       <Text style={[
                         styles.feedbackCategoryText,
                         feedbackCategory === category.id && styles.feedbackCategoryTextActive
@@ -1827,7 +1833,11 @@ export default function UserProfile() {
                     onPress={() => toggleFaqItem(item.id)}
                   >
                     <View style={styles.faqQuestionLeft}>
-                      <Text style={styles.faqIcon}>{item.icon}</Text>
+                      <Image
+                        source={item.icon}
+                        style={styles.faqIcon}
+                        resizeMode="contain"
+                      />
                       <Text style={[
                         styles.faqQuestion,
                         expandedFaqId === item.id && styles.faqQuestionActive
@@ -1837,9 +1847,9 @@ export default function UserProfile() {
                     </View>
                     <View style={styles.faqChevron}>
                       {expandedFaqId === item.id ? (
-                        <ChevronUp size={20} color="#17F196" strokeWidth={2} />
+                        <ChevronUp size={20} color="#17f196" strokeWidth={2} />
                       ) : (
-                        <ChevronDown size={20} color={isDarkMode ? colors.dark.textSecondary : colors.light.textSecondary} strokeWidth={2} />
+                        <ChevronDown size={20} color="#17f196" strokeWidth={2} />
                       )}
                     </View>
                   </Pressable>
@@ -1867,7 +1877,7 @@ export default function UserProfile() {
             </View>
 
             <Pressable
-              style={styles.modalCancelButton}
+              style={[styles.modalCancelButton, { width: '100%' }]}
               onPress={() => setShowFaqModal(false)}
             >
               <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
@@ -1897,7 +1907,11 @@ export default function UserProfile() {
                 {/* Total Storage */}
                 <View style={styles.storageCard}>
                   <View style={styles.storageCardHeader}>
-                    <Text style={styles.storageCardIcon}>💾</Text>
+                    <Image
+                      source={require('@/assets/images/icon/storage.png')}
+                      style={styles.storageCardIcon}
+                      resizeMode="contain"
+                    />
                     <Text style={styles.storageCardTitle}>{t('profilePage.storage.totalStorage') || 'Total Storage'}</Text>
                   </View>
                   <Text style={styles.storageCardValue}>{storageData.estimatedSize}</Text>
@@ -1907,7 +1921,11 @@ export default function UserProfile() {
                 {/* Cache Data */}
                 <View style={styles.storageCard}>
                   <View style={styles.storageCardHeader}>
-                    <Text style={styles.storageCardIcon}>🗂️</Text>
+                    <Image
+                      source={require('@/assets/images/icon/folder.png')}
+                      style={styles.storageCardIcon}
+                      resizeMode="contain"
+                    />
                     <Text style={styles.storageCardTitle}>{t('profilePage.storage.cacheData') || 'Cache Data'}</Text>
                   </View>
                   <Text style={styles.storageCardValue}>{storageData.cacheKeys}</Text>
@@ -1917,7 +1935,11 @@ export default function UserProfile() {
                 {/* Temporary Files */}
                 <View style={styles.storageCard}>
                   <View style={styles.storageCardHeader}>
-                    <Text style={styles.storageCardIcon}>📄</Text>
+                    <Image
+                      source={require('@/assets/images/icon/docFile.png')}
+                      style={styles.storageCardIcon}
+                      resizeMode="contain"
+                    />
                     <Text style={styles.storageCardTitle}>{t('profilePage.storage.tempFiles') || 'Temporary Files'}</Text>
                   </View>
                   <Text style={styles.storageCardValue}>{storageData.tempKeys}</Text>
@@ -1926,7 +1948,11 @@ export default function UserProfile() {
 
                 {/* Storage Info */}
                 <View style={styles.storageInfoBox}>
-                  <Text style={styles.storageInfoIcon}>ℹ️</Text>
+                  <Image
+                    source={require('@/assets/images/icon/info-circle.png')}
+                    style={styles.storageInfoIcon}
+                    resizeMode="contain"
+                  />
                   <Text style={styles.storageInfoText}>
                     {t('profilePage.storage.info') || 'Clearing cache will remove temporary data and may improve app performance. Your personal data will not be affected.'}
                   </Text>
@@ -2103,7 +2129,13 @@ export default function UserProfile() {
             {twoFAStep === 'enabled' && (
               <View style={styles.enabledContainer}>
                 <View style={styles.enabled2FAStatus}>
-                  <Text style={styles.enabled2FAIcon}>✅</Text>
+                    <View style={styles.enabled2FAIconContainer}>
+                      <Image
+                        source={require('@/assets/images/icon/check.png')}
+                        style={styles.enabled2FAIconImage}
+                        resizeMode="contain"
+                      />
+                    </View>
                   <Text style={styles.enabled2FAText}>
                     {t('profilePage.twoFA.enabledMessage') || 'Two-Factor Authentication is enabled'}
                   </Text>
@@ -2125,7 +2157,7 @@ export default function UserProfile() {
                         onPress={() => copyBackupCode(code)}
                       >
                         <Text style={styles.backupCodeText}>{code}</Text>
-                        <Copy size={16} color="#17F196" />
+                        <Copy size={16} color="#17f196" />
                       </Pressable>
                     ))}
                   </View>
@@ -2139,7 +2171,7 @@ export default function UserProfile() {
                     <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
                   </Pressable>
                   <Pressable
-                    style={[styles.modalConfirmButton, { backgroundColor: '#FF6B6B' }]}
+                    style={[styles.modalConfirmButton, styles.destructiveButton]}
                     onPress={disable2FA}
                   >
                     <Text style={styles.modalConfirmText}>
@@ -2153,7 +2185,7 @@ export default function UserProfile() {
             {/* Close button for setup step */}
             {twoFAStep === 'setup' && (
               <Pressable
-                style={styles.modalCancelButton}
+                style={[styles.modalCancelButton, { width: '100%' }]}
                 onPress={() => setShow2FAModal(false)}
               >
                 <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
@@ -2186,7 +2218,13 @@ export default function UserProfile() {
                 {sessions.map((session) => (
                   <View key={session.id} style={styles.sessionCard}>
                     <View style={styles.sessionHeader}>
-                      <Text style={styles.sessionDeviceIcon}>{getDeviceIcon(session.deviceType)}</Text>
+                      <View style={styles.sessionDeviceIconContainer}>
+                        <Image
+                          source={getDeviceIcon(session.deviceType)}
+                          style={styles.sessionDeviceIcon}
+                          resizeMode="contain"
+                        />
+                      </View>
                       <View style={styles.sessionHeaderInfo}>
                         <View style={styles.sessionTitleRow}>
                           <Text style={styles.sessionDeviceName}>{session.deviceName}</Text>
@@ -2236,7 +2274,11 @@ export default function UserProfile() {
 
                 {/* Info Box */}
                 <View style={styles.sessionsInfoBox}>
-                  <Text style={styles.sessionsInfoIcon}>ℹ️</Text>
+                  <Image
+                    source={require('@/assets/images/icon/info-circle.png')}
+                    style={styles.sessionsInfoIcon}
+                    resizeMode="contain"
+                  />
                   <Text style={styles.sessionsInfoText}>
                     {t('profilePage.sessions.info') || 'Sessions expire automatically after 30 days of inactivity. Revoking a session will immediately log out that device.'}
                   </Text>
@@ -2252,7 +2294,7 @@ export default function UserProfile() {
                 <Text style={styles.modalCancelText}>{t('common.cancel')}</Text>
               </Pressable>
               <Pressable
-                style={[styles.modalConfirmButton, { backgroundColor: '#FF6B6B' }]}
+                style={[styles.modalConfirmButton, styles.destructiveButton]}
                 onPress={revokeAllOtherSessions}
               >
                 <Text style={styles.modalConfirmText}>
@@ -2400,7 +2442,11 @@ export default function UserProfile() {
 
               {/* Info Box */}
               <View style={styles.privacyInfoBox}>
-                <Text style={styles.privacyInfoIcon}>🔒</Text>
+                <Image
+                  source={require('@/assets/images/icon/lock.png')}
+                  style={styles.privacyInfoIcon}
+                  resizeMode="contain"
+                />
                 <Text style={styles.privacyInfoText}>
                   {t('profilePage.privacy.info') || 'These settings control how your information is shared within your family. Your data is always encrypted and secure.'}
                 </Text>
@@ -2631,13 +2677,18 @@ const createStyles = (isDarkMode: boolean) => {
     width: 28,
     height: 28,
     borderRadius: 20,
-    backgroundColor: '#17F196',
+    backgroundColor: '#17f196',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   destructiveIcon: {
     backgroundColor: '#FF6B6B',
+    shadowColor: '#FF6B6B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   settingsContent: {
     flex: 1,
@@ -2677,8 +2728,8 @@ const createStyles = (isDarkMode: boolean) => {
     borderRadius: 20,
     padding: 24,
     width: '100%',
-    maxWidth: 400,
-    shadowColor: '#000000',
+    maxWidth: 340,
+    shadowColor: theme.shadow,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -2686,7 +2737,7 @@ const createStyles = (isDarkMode: boolean) => {
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '600',
     color: theme.text,
     marginBottom: 16,
     textAlign: 'center',
@@ -2702,13 +2753,13 @@ const createStyles = (isDarkMode: boolean) => {
     marginBottom: 24,
   },
   modalInput: {
-    backgroundColor: theme.input,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: theme.inputBorder,
+    borderColor: theme.border,
     color: theme.text,
   },
   modalActions: {
@@ -2717,26 +2768,39 @@ const createStyles = (isDarkMode: boolean) => {
   },
   modalCancelButton: {
     flex: 1,
-    backgroundColor: theme.input,
-    borderRadius: 12,
-    paddingVertical: 12,
+    minHeight: 50,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#17f196',
+    borderRadius: 28,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   modalCancelText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '500',
-    color: theme.textSecondary,
+    color: '#17f196',
   },
   modalConfirmButton: {
     flex: 1,
-    backgroundColor: '#17F196',
-    borderRadius: 12,
-    paddingVertical: 12,
+    height: 50,
+    backgroundColor: '#17f196',
+    borderRadius: 25,
     alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  destructiveButton: {
+    backgroundColor: '#FF6B6B',
+    shadowColor: '#FF6B6B',
   },
   modalConfirmText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
     color: '#FFFFFF',
   },
 
@@ -2746,31 +2810,48 @@ const createStyles = (isDarkMode: boolean) => {
     marginBottom: 24,
   },
   languageOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: theme.input,
-    borderWidth: 1,
-    borderColor: theme.inputBorder,
+    backgroundColor: theme.surface,
+    borderRadius: 10,
+    padding: 14,
+    paddingLeft: 25,
+    borderWidth: 2,
+    borderColor: isDarkMode ? theme.inputBorder : '#eaecf0',
+    elevation: 1,
+    alignItems: 'flex-start',
   },
   selectedLanguageOption: {
-    backgroundColor: 'rgba(23, 241, 150, 0.1)',
-    borderColor: '#17F196',
+    borderColor: '#59f6b5',
+    backgroundColor: theme.surface,
+    shadowColor: '#41ffb0',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
   },
   languageFlag: {
     fontSize: 20,
     marginRight: 12,
   },
   languageName: {
-    flex: 1,
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     color: theme.text,
+    fontFamily: 'Helvetica',
+    textAlign: 'left',
+    marginBottom: 4,
   },
   selectedLanguageName: {
-    fontWeight: '600',
-    color: '#17F196',
+    color: theme.text,
+  },
+  languageSubtitle: {
+    fontSize: 14,
+    color: theme.textSecondary,
+    fontFamily: 'Helvetica',
+    textAlign: 'left',
+    lineHeight: 18,
+  },
+  selectedLanguageSubtitle: {
+    color: theme.textSecondary,
   },
 
   // Image Picker Modal
@@ -2782,16 +2863,16 @@ const createStyles = (isDarkMode: boolean) => {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: theme.input,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: theme.inputBorder,
+    borderColor: theme.border,
   },
   imagePickerIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(23, 241, 150, 0.1)',
+    backgroundColor: '#e9fff6',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -2865,16 +2946,17 @@ const createStyles = (isDarkMode: boolean) => {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: theme.input,
+    backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: theme.inputBorder,
+    borderColor: theme.border,
   },
   feedbackCategoryButtonActive: {
-    backgroundColor: 'rgba(23, 241, 150, 0.15)',
-    borderColor: '#17F196',
+    backgroundColor: 'transparent',
+    borderColor: '#17f196',
   },
   feedbackCategoryIcon: {
-    fontSize: 16,
+    width: 16,
+    height: 16,
   },
   feedbackCategoryText: {
     fontSize: 13,
@@ -2882,20 +2964,20 @@ const createStyles = (isDarkMode: boolean) => {
     color: theme.textSecondary,
   },
   feedbackCategoryTextActive: {
-    color: '#17F196',
-    fontWeight: '600',
+    color: '#17f196',
+    fontWeight: '500',
   },
   feedbackMessageContainer: {
     gap: 8,
   },
   feedbackTextArea: {
-    backgroundColor: theme.input,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 15,
     borderWidth: 1,
-    borderColor: theme.inputBorder,
+    borderColor: theme.border,
     color: theme.text,
     minHeight: 120,
   },
@@ -2920,14 +3002,14 @@ const createStyles = (isDarkMode: boolean) => {
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: theme.input,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: theme.inputBorder,
+    borderColor: theme.border,
   },
   faqQuestionContainerActive: {
-    backgroundColor: 'rgba(23, 241, 150, 0.1)',
-    borderColor: '#17F196',
+    backgroundColor: '#e9fff6',
+    borderColor: '#17f196',
   },
   faqQuestionLeft: {
     flexDirection: 'row',
@@ -2936,7 +3018,8 @@ const createStyles = (isDarkMode: boolean) => {
     gap: 12,
   },
   faqIcon: {
-    fontSize: 20,
+    width: 20,
+    height: 20,
   },
   faqQuestion: {
     fontSize: 15,
@@ -2945,19 +3028,19 @@ const createStyles = (isDarkMode: boolean) => {
     flex: 1,
   },
   faqQuestionActive: {
-    color: '#17F196',
-    fontWeight: '600',
+    color: '#17f196',
+    fontWeight: '500',
   },
   faqChevron: {
     marginLeft: 8,
   },
   faqAnswerContainer: {
     padding: 16,
-    backgroundColor: theme.input,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     marginTop: 8,
     borderWidth: 1,
-    borderColor: 'rgba(23, 241, 150, 0.3)',
+    borderColor: '#17f196',
   },
   faqAnswer: {
     fontSize: 14,
@@ -2969,10 +3052,10 @@ const createStyles = (isDarkMode: boolean) => {
     marginBottom: 16,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: theme.input,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: theme.inputBorder,
+    borderColor: theme.border,
   },
   faqFooterText: {
     fontSize: 14,
@@ -2981,14 +3064,19 @@ const createStyles = (isDarkMode: boolean) => {
     marginBottom: 12,
   },
   faqContactButton: {
-    backgroundColor: '#17F196',
+    backgroundColor: '#17f196',
     paddingHorizontal: 24,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: 25,
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   faqContactButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#FFFFFF',
   },
 
@@ -3006,11 +3094,11 @@ const createStyles = (isDarkMode: boolean) => {
     marginBottom: 16,
   },
   storageCard: {
-    backgroundColor: theme.input,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: theme.inputBorder,
+    borderColor: theme.border,
   },
   storageCardHeader: {
     flexDirection: 'row',
@@ -3019,7 +3107,8 @@ const createStyles = (isDarkMode: boolean) => {
     marginBottom: 12,
   },
   storageCardIcon: {
-    fontSize: 20,
+    width: 20,
+    height: 20,
   },
   storageCardTitle: {
     fontSize: 14,
@@ -3028,8 +3117,8 @@ const createStyles = (isDarkMode: boolean) => {
   },
   storageCardValue: {
     fontSize: 28,
-    fontWeight: '700',
-    color: '#17F196',
+    fontWeight: '600',
+    color: '#17f196',
     marginBottom: 4,
   },
   storageCardSubtext: {
@@ -3040,14 +3129,15 @@ const createStyles = (isDarkMode: boolean) => {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
-    backgroundColor: 'rgba(23, 241, 150, 0.1)',
+    backgroundColor: '#e9fff6',
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(23, 241, 150, 0.3)',
+    borderColor: '#17f196',
   },
   storageInfoIcon: {
-    fontSize: 16,
+    width: 16,
+    height: 16,
     marginTop: 2,
   },
   storageInfoText: {
@@ -3080,28 +3170,33 @@ const createStyles = (isDarkMode: boolean) => {
     color: theme.text,
   },
   copyButton: {
-    backgroundColor: '#17F196',
+    backgroundColor: '#17f196',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 8,
+    borderRadius: 12,
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   copyButtonText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#FFFFFF',
   },
   secretKeyBox: {
-    backgroundColor: theme.input,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: theme.inputBorder,
+    borderColor: theme.border,
     marginBottom: 8,
   },
   secretKeyText: {
     fontSize: 14,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    color: '#17F196',
+    color: '#17f196',
     fontWeight: '600',
     textAlign: 'center',
     letterSpacing: 2,
@@ -3132,10 +3227,10 @@ const createStyles = (isDarkMode: boolean) => {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#17F196',
+    backgroundColor: '#17f196',
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -3146,15 +3241,20 @@ const createStyles = (isDarkMode: boolean) => {
     lineHeight: 20,
   },
   nextButton: {
-    backgroundColor: '#17F196',
-    borderRadius: 12,
+    backgroundColor: '#17f196',
+    borderRadius: 25,
     paddingVertical: 14,
     alignItems: 'center',
     marginBottom: 16,
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   nextButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#FFFFFF',
   },
   verifyContainer: {
@@ -3165,27 +3265,27 @@ const createStyles = (isDarkMode: boolean) => {
     marginVertical: 8,
   },
   verificationInput: {
-    backgroundColor: theme.input,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     paddingHorizontal: 20,
     paddingVertical: 16,
     fontSize: 32,
-    fontWeight: '700',
+    fontWeight: '600',
     textAlign: 'center',
     letterSpacing: 8,
     borderWidth: 2,
-    borderColor: '#17F196',
+    borderColor: '#17f196',
     color: theme.text,
   },
   backupCodesInfo: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
-    backgroundColor: 'rgba(23, 241, 150, 0.1)',
+    backgroundColor: '#e9fff6',
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(23, 241, 150, 0.3)',
+    borderColor: '#17f196',
   },
   backupCodesInfoIcon: {
     fontSize: 18,
@@ -3204,20 +3304,30 @@ const createStyles = (isDarkMode: boolean) => {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: 'rgba(23, 241, 150, 0.1)',
+    backgroundColor: 'transparent',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#17F196',
+    borderColor: '#17f196',
   },
-  enabled2FAIcon: {
-    fontSize: 24,
+  enabled2FAIconContainer: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  enabled2FAIconImage: { 
+    width: '80%',
+    height: '80%',
+    resizeMode: 'contain',
+    // width: 24,
+    // height: 24,
   },
   enabled2FAText: {
     flex: 1,
     fontSize: 14,
-    fontWeight: '600',
-    color: '#17F196',
+    fontWeight: '500',
+    color: '#17f196',
   },
   backupCodesSection: {
     gap: 12,
@@ -3241,11 +3351,11 @@ const createStyles = (isDarkMode: boolean) => {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: theme.input,
+    backgroundColor: theme.surface,
     borderRadius: 8,
     padding: 12,
     borderWidth: 1,
-    borderColor: theme.inputBorder,
+    borderColor: theme.border,
     width: '48%',
   },
   backupCodeText: {
@@ -3273,12 +3383,12 @@ const createStyles = (isDarkMode: boolean) => {
     marginBottom: 16,
   },
   sessionCard: {
-    backgroundColor: theme.input,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: theme.inputBorder,
+    borderColor: theme.border,
   },
   sessionHeader: {
     flexDirection: 'row',
@@ -3286,8 +3396,15 @@ const createStyles = (isDarkMode: boolean) => {
     gap: 12,
     marginBottom: 12,
   },
+  sessionDeviceIconContainer: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   sessionDeviceIcon: {
-    fontSize: 24,
+    width: 20,
+    height: 20,
   },
   sessionHeaderInfo: {
     flex: 1,
@@ -3305,14 +3422,14 @@ const createStyles = (isDarkMode: boolean) => {
     color: theme.text,
   },
   currentBadge: {
-    backgroundColor: '#17F196',
+    backgroundColor: '#17f196',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
   },
   currentBadgeText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#FFFFFF',
   },
   sessionOS: {
@@ -3323,7 +3440,7 @@ const createStyles = (isDarkMode: boolean) => {
     gap: 6,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: theme.inputBorder,
+    borderTopColor: theme.border,
     marginBottom: 12,
   },
   sessionDetailRow: {
@@ -3347,6 +3464,11 @@ const createStyles = (isDarkMode: boolean) => {
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: 'center',
+    shadowColor: '#FF6B6B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   revokeSessionButtonText: {
     fontSize: 13,
@@ -3357,15 +3479,16 @@ const createStyles = (isDarkMode: boolean) => {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
-    backgroundColor: 'rgba(23, 241, 150, 0.1)',
+    backgroundColor: '#e9fff6',
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(23, 241, 150, 0.3)',
+    borderColor: '#17f196',
     marginTop: 8,
   },
   sessionsInfoIcon: {
-    fontSize: 16,
+    width: 16,
+    height: 16,
   },
   sessionsInfoText: {
     flex: 1,
@@ -3399,11 +3522,11 @@ const createStyles = (isDarkMode: boolean) => {
     justifyContent: 'space-between',
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: theme.input,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: theme.inputBorder,
+    borderColor: theme.border,
   },
   privacyItemInfo: {
     flex: 1,
@@ -3424,15 +3547,16 @@ const createStyles = (isDarkMode: boolean) => {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
-    backgroundColor: 'rgba(147, 112, 219, 0.1)',
+    backgroundColor: '#e9fff6',
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(147, 112, 219, 0.3)',
+    borderColor: '#17f196',
     marginTop: 8,
   },
   privacyInfoIcon: {
-    fontSize: 16,
+    width: 16,
+    height: 16,
   },
   privacyInfoText: {
     flex: 1,
@@ -3442,20 +3566,18 @@ const createStyles = (isDarkMode: boolean) => {
   },
   privacyResetButton: {
     flex: 1,
-    backgroundColor: theme.input,
-    borderRadius: 12,
-    paddingVertical: 14,
+    height: 50,
+    backgroundColor: theme.surface,
+    borderRadius: 25,
     alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
-    borderColor: theme.inputBorder,
+    borderColor: theme.border,
   },
   privacyResetButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
     color: theme.text,
-  },
-  modalConfirmButtonDisabled: {
-    opacity: 0.5,
   },
 
   // Loading and Error States
