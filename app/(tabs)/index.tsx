@@ -1365,7 +1365,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
   flamesText: {
     fontSize: 13,
     fontWeight: '600',
-    color: theme.text,
+    color: '#000000',
   },
   notificationButton: {
     width: 40,
@@ -1431,6 +1431,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     paddingVertical: 2,
     minWidth: 24,
     alignItems: 'center',
+    marginLeft: 8,
   },
   badgeText: {
     fontSize: 12,

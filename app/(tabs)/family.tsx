@@ -436,28 +436,7 @@ export default function FamilyDashboard() {
             </View>
             <Text style={styles.sectionSubtitle}>{t('family.challenge.subtitle')}</Text>
             <View style={styles.taskCard}>
-              <View style={styles.taskHeader}>
-                <View style={styles.taskIcon}>
-                  <Image
-                    source={require('@/assets/images/icon/flash.png')}
-                    style={{
-                      width: 20,
-                      height: 20,
-                      resizeMode: 'contain'
-                    }}
-                  />
-                </View>
-                <Text style={styles.taskTitle}>{t('family.challenge.taskTitle')}</Text>
-              </View>
-              
-              <View style={styles.taskTags}>
-                <View style={styles.statusTag}>
-                  <View style={styles.taskDot} />
-                  <Text style={styles.taskText}>
-                    {t('family.challenge.activitiesCompleted', { completed: String(completionStats.totalCompleted), total: String(completionStats.totalItems) })}
-                  </Text>
-                </View>
-              </View>
+              <Text style={styles.taskTitle}>{t('family.challenge.taskTitle')}</Text>
               
               <View style={styles.challengeProgress}>
                 <View style={styles.progressBar}>
@@ -466,30 +445,37 @@ export default function FamilyDashboard() {
                 <Text style={styles.progressText}>{t('family.challenge.progressComplete', { percent: String(completionStats.percentage) })}</Text>
               </View>
               
-              <View style={styles.challengeStats}>
-                <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>{t('tabs.family.tasks')}</Text>
-                  <Text style={styles.statValue}>{completionStats.completedTasks}/{completionStats.totalTasks}</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>{t('calendar.title')}</Text>
-                  <Text style={styles.statValue}>{completionStats.completedEvents}/{completionStats.totalEvents}</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>{t('shopping.list.shopping')}</Text>
-                  <Text style={styles.statValue}>{completionStats.completedShoppingItems}/{completionStats.totalShoppingItems}</Text>
-                </View>
-              </View>
-              
               <View style={styles.challengeFooter}>
                 <View style={styles.participants}>
-                  {familyMembers.slice(0, 3).map((member, index) => (
-                    <View key={member.id} style={styles.participantAvatar}>
+                  {familyMembers.slice(0, 3).map((member, index) => {
+                    const avatarColors = ['#FFB6C1', '#FFD700', '#87CEEB'];
+                    return (
+                      <View key={member.id} style={[
+                        styles.participantAvatar, 
+                        { backgroundColor: avatarColors[index % 3] },
+                        index === 0 && { marginLeft: 0 }
+                      ]}>
+                        {member.profiles?.avatar_url ? (
+                          <Image
+                            source={{ uri: member.profiles.avatar_url }}
+                            style={styles.participantAvatarImage}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <Text style={styles.participantAvatarText}>
+                            {member.profiles?.name?.charAt(0)?.toUpperCase() || '?'}
+                          </Text>
+                        )}
+                      </View>
+                    );
+                  })}
+                  {familyMembers.length > 3 && (
+                    <View style={[styles.participantAvatar, { backgroundColor: '#9CA3AF' }]}>
                       <Text style={styles.participantAvatarText}>
-                        {member.profiles?.name?.charAt(0)?.toUpperCase() || '?'}
+                        +{familyMembers.length - 3}
                       </Text>
                     </View>
-                  ))}
+                  )}
                 </View>
                 <View style={styles.reward}>
                   <Image
@@ -515,9 +501,13 @@ export default function FamilyDashboard() {
             </View>
             <Text style={styles.sectionSubtitle}>{t('family.members.subtitle')}</Text>
             
-            <View style={styles.memberCards}>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.memberCards}
+            >
               {familyMembers && familyMembers.length > 0 ? (
-                familyMembers.slice(0, 4).map((member, index) => {
+                familyMembers.map((member, index) => {
                   const memberName = member.profiles?.name || 'Unknown Member';
                   const nameParts = memberName.split(' ');
                   const firstName = nameParts[0] || 'Unknown';
@@ -549,8 +539,8 @@ export default function FamilyDashboard() {
                           <Text style={styles.memberAvatarText}>{initials}</Text>
                         )}
                       </View>
-                      <Text style={styles.memberName}>{firstName}</Text>
-                      <Text style={styles.memberLastName}>{lastName}</Text>
+                      <Text style={styles.memberName} numberOfLines={1}>{firstName}</Text>
+                      <Text style={styles.memberLastName} numberOfLines={1}>{lastName}</Text>
                       <Text style={styles.memberRole}>{member.role === 'admin' ? t('family.members.role.admin') : t('family.members.role.member')}</Text>
                     </View>
                   );
@@ -564,23 +554,21 @@ export default function FamilyDashboard() {
                 </View>
               )}
               
-              {(!familyMembers || familyMembers.length < 4) && (
-                <Pressable style={styles.inviteMemberCard} onPress={handleInvitePress}>
-                  <View style={styles.inviteIcon}>
-                    <Image
-                      source={require('@/assets/images/icon/link_dis.png')}
-                      style={{
-                        width: 18,
-                        height: 18,
-                        resizeMode: 'contain'
-                      }}
-                    />
-                  </View>
-                  <Text style={styles.inviteTitle}>{t('family.members.invite')}</Text>
-                  <Text style={styles.inviteSubtitle}>{t('tabs.family.member')}</Text>
-                </Pressable>
-              )}
-            </View>
+              <Pressable style={styles.inviteMemberCard} onPress={handleInvitePress}>
+                <View style={styles.inviteIcon}>
+                  <Image
+                    source={require('@/assets/images/icon/link_dis.png')}
+                    style={{
+                      width: 18,
+                      height: 18,
+                      resizeMode: 'contain'
+                    }}
+                  />
+                </View>
+                <Text style={styles.inviteTitle}>{t('family.members.invite')}</Text>
+                <Text style={styles.inviteSubtitle}>{t('tabs.family.member')}</Text>
+              </Pressable>
+            </ScrollView>
           </View>
         </View>
 
@@ -855,6 +843,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     paddingVertical: 4,
     minWidth: 24,
     alignItems: 'center',
+    marginLeft: 8,
   },
   badgeText: {
     fontSize: 12,
@@ -1025,7 +1014,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: theme.text,
-    flex: 1,
+    marginBottom: 12,
   },
   taskTags: {
     flexDirection: 'row',
@@ -1127,7 +1116,6 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
   },
   participants: {
     flexDirection: 'row',
-    gap: 4,
   },
   participantAvatar: {
     width: 24,
@@ -1136,6 +1124,15 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     backgroundColor: '#FFB6C1',
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+    marginLeft: -8,
+    borderWidth: 2,
+    borderColor: theme.surface,
+  },
+  participantAvatarImage: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
   },
   participantAvatarText: {
     fontSize: 12,
@@ -1160,8 +1157,8 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
   // === MEMBER CARDS ===
   memberCards: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
     gap: 8,
+    paddingVertical: 4,
   },
   memberCard: {
     backgroundColor: theme.surfaceSecondary,
@@ -1170,7 +1167,9 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: theme.border,
-    minWidth: 80,
+    width: 100,
+    height: 150,
+    justifyContent: 'space-between',
   },
   memberAvatar: {
     width: 50,
@@ -1179,7 +1178,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     backgroundColor: '#FFB6C1',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    overflow: 'hidden',
   },
   memberAvatarImage: {
     width: 50,
@@ -1192,14 +1191,17 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     color: '#FFFFFF',
   },
   memberName: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: theme.text,
-    marginBottom: 2,
+    textAlign: 'center',
+    marginTop: 8,
   },
   memberLastName: {
-    fontSize: 12,
+    fontSize: 11,
     color: theme.textSecondary,
+    textAlign: 'center',
+    marginTop: 2,
   },
   memberRole: {
     fontSize: 10,
@@ -1208,11 +1210,15 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     marginTop: 2,
   },
   inviteMemberCard: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: theme.surfaceSecondary,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
-    minWidth: 80,
+    borderWidth: 1,
+    borderColor: theme.border,
+    width: 100,
+    height: 150,
+    justifyContent: 'space-between',
   },
   inviteIcon: {
     width: 50,
@@ -1221,17 +1227,19 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     backgroundColor: '#E0E0E0',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
   },
   inviteTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#999999',
-    marginBottom: 2,
+    textAlign: 'center',
+    marginTop: 8,
   },
   inviteSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#999999',
+    textAlign: 'center',
+    marginTop: 2,
   },
 
 

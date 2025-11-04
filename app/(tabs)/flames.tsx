@@ -630,7 +630,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
   flamesText: {
     fontSize: 13,
     fontWeight: '600',
-    color: theme.text,
+    color: '#17F196',
   },
 
   // Section Styling
@@ -661,6 +661,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     paddingVertical: 2,
     minWidth: 24,
     alignItems: 'center',
+    marginLeft: 8,
   },
   badgeText: {
     fontSize: 12,

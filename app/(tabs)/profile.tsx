@@ -2632,6 +2632,7 @@ const createStyles = (isDarkMode: boolean) => {
     paddingVertical: 2,
     minWidth: 24,
     alignItems: 'center',
+    marginLeft: 8,
   },
   badgeText: {
     fontSize: 12,
