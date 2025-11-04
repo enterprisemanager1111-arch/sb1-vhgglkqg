@@ -1204,14 +1204,14 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     alignItems: 'center',
   },
   assigneeAvatar1: {
-    backgroundColor: '#FFB6C1',
+    backgroundColor: '#17F196',
     marginLeft: 0, // First avatar has no left margin
   },
   assigneeAvatar2: {
-    backgroundColor: '#FFD700',
+    backgroundColor: '#17F196',
   },
   assigneeAvatar3: {
-    backgroundColor: '#87CEEB',
+    backgroundColor: '#17F196',
   },
   assigneeAvatarImage: {
     width: '100%',

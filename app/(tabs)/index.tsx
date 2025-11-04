@@ -961,7 +961,7 @@ export default function HomeDashboard() {
                             );
                           })}
                          {event.assignees.length > 3 && (
-                           <View style={[styles.assigneeAvatar, { backgroundColor: '#9CA3AF' }]}>
+                           <View style={[styles.assigneeAvatar, { backgroundColor: '#17F196' }]}>
                              <View style={styles.assigneeAvatarPlaceholder}>
                                <Text style={styles.assigneeAvatarInitial}>+{event.assignees.length - 3}</Text>
                              </View>
@@ -971,7 +971,7 @@ export default function HomeDashboard() {
                      ) : (
                        <View style={styles.assigneeAvatars}>
                          {/* Show current user as assignee when no assignees */}
-                         <View style={[styles.assigneeAvatar, { backgroundColor: '#FF6B6B' }]}>
+                         <View style={[styles.assigneeAvatar, { backgroundColor: '#17F196' }]}>
                            {profile?.avatar_url ? (
                              <Image
                                source={{ uri: profile.avatar_url }}
@@ -1012,7 +1012,10 @@ export default function HomeDashboard() {
           ) : (
             <View style={styles.emptyTaskCard}>
               <Image
-                source={require('@/assets/images/icon/meeting_image.png')}
+                source={isDarkMode 
+                  ? require('@/assets/images/icon/meeting_image_dark.png')
+                  : require('@/assets/images/icon/meeting_image.png')
+                }
                 style={styles.emptyTaskIcon}
                 resizeMode="contain"
               />
@@ -1094,7 +1097,7 @@ export default function HomeDashboard() {
             
             <View style={styles.taskFooter}>
               <View style={styles.assigneeAvatars}>
-                <View style={[styles.assigneeAvatar, { backgroundColor: '#FF6B6B' }]}>
+                <View style={[styles.assigneeAvatar, { backgroundColor: '#17F196' }]}>
                   <View style={styles.assigneeAvatarPlaceholder}>
                     <Text style={styles.assigneeAvatarInitial}>?</Text>
                   </View>
@@ -1123,7 +1126,10 @@ export default function HomeDashboard() {
           ) : (
             <View style={styles.emptyTaskCard}>
               <Image
-                source={require('@/assets/images/icon/no_task.svg')}
+                source={isDarkMode 
+                  ? require('@/assets/images/icon/no_task_dark.png')
+                  : require('@/assets/images/icon/no_task.svg')
+                }
                 style={styles.emptyTaskIcon}
                 resizeMode="contain"
               />
@@ -1311,7 +1317,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 25,
-    backgroundColor: '#FFB6C1',
+    backgroundColor: '#17F196',
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -1350,7 +1356,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
   flamesContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#e9fff6',
+    backgroundColor: theme.text === '#ffffff' ? '#495f56' : '#e9fff6',
     borderRadius: 25,
     paddingHorizontal: 12,
     paddingVertical: 11,
@@ -1371,7 +1377,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#e9fff6',
+    backgroundColor: theme.text === '#ffffff' ? '#495f56' : '#e9fff6',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -1425,7 +1431,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     color: theme.text,
   },
   badge: {
-    backgroundColor: '#e9fff6',
+    backgroundColor: theme.text === '#ffffff' ? '#495f56' : '#e9fff6',
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -1625,13 +1631,13 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     borderColor: theme.surface,
   },
   attendeeAvatar1: {
-    backgroundColor: '#FFB6C1',
+    backgroundColor: '#17F196',
   },
   attendeeAvatar2: {
-    backgroundColor: '#FFD700',
+    backgroundColor: '#17F196',
   },
   attendeeAvatar3: {
-    backgroundColor: '#87CEEB',
+    backgroundColor: '#17F196',
   },
   attendeeCount: {
     fontSize: 12,
@@ -1766,14 +1772,14 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     marginLeft: -8,
   },
   assigneeAvatar1: {
-    backgroundColor: '#FFB6C1',
+    backgroundColor: '#17F196',
     marginLeft: 0, // First avatar has no left margin
   },
   assigneeAvatar2: {
-    backgroundColor: '#FFD700',
+    backgroundColor: '#17F196',
   },
   assigneeAvatar3: {
-    backgroundColor: '#87CEEB',
+    backgroundColor: '#17F196',
   },
   assigneeAvatarImage: {
     width: '100%',
@@ -2027,7 +2033,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#FFB6C1',
+    backgroundColor: '#17F196',
     alignItems: 'center',
     justifyContent: 'center',
   },

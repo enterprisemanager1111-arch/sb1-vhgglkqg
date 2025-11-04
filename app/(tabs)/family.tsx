@@ -470,7 +470,7 @@ export default function FamilyDashboard() {
                     );
                   })}
                   {familyMembers.length > 3 && (
-                    <View style={[styles.participantAvatar, { backgroundColor: '#9CA3AF' }]}>
+                    <View style={[styles.participantAvatar, { backgroundColor: '#17F196' }]}>
                       <Text style={styles.participantAvatarText}>
                         +{familyMembers.length - 3}
                       </Text>
@@ -761,7 +761,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 25,
-    backgroundColor: '#FFB6C1',
+    backgroundColor: '#17F196',
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -805,7 +805,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#e9fff6',
+    backgroundColor: theme.text === '#ffffff' ? '#495f56' : '#e9fff6',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -837,7 +837,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     color: theme.text,
   },
   badge: {
-    backgroundColor: '#e9fff6',
+    backgroundColor: theme.text === '#ffffff' ? '#495f56' : '#e9fff6',
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1121,7 +1121,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#FFB6C1',
+    backgroundColor: '#17F196',
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -1175,7 +1175,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#FFB6C1',
+    backgroundColor: '#17F196',
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',

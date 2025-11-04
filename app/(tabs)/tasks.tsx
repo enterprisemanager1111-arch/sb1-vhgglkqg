@@ -363,7 +363,10 @@ export default function Tasks() {
           {filteredTasks.length === 0 ? (
             <View style={styles.emptyState}>
               <Image
-                source={require('@/assets/images/icon/no_task.svg')}
+                source={isDarkMode 
+                  ? require('@/assets/images/icon/no_task_dark.png')
+                  : require('@/assets/images/icon/no_task.svg')
+                }
                 style={styles.emptyStateImage}
               />
               <Text style={styles.emptyStateText}>{t('tasksPage.emptyState.title')}</Text>

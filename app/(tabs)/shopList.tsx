@@ -708,7 +708,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#FFB6C1',
+    backgroundColor: '#17F196',
     justifyContent: 'center',
     alignItems: 'center',
   },
