@@ -1048,7 +1048,7 @@ export default function HomeDashboard() {
                 </View>
               ) : todayTasks.length > 0 ? (
                 todayTasks.map((task) => (
-              <View key={task.id} style={styles.taskCard}>
+              <View key={task.task_id} style={styles.taskCard}>
              <View style={styles.taskHeader}>
                <View style={styles.taskIcon}>
                  <Image
@@ -1097,11 +1097,30 @@ export default function HomeDashboard() {
             
             <View style={styles.taskFooter}>
               <View style={styles.assigneeAvatars}>
-                <View style={[styles.assigneeAvatar, { backgroundColor: '#17F196' }]}>
-                  <View style={styles.assigneeAvatarPlaceholder}>
-                    <Text style={styles.assigneeAvatarInitial}>?</Text>
+                {task.assignees && task.assignees.length > 0 ? (
+                  task.assignees.slice(0, 3).map((assignee, index) => (
+                    <View key={assignee.user_id} style={[styles.assigneeAvatar, { backgroundColor: '#17F196' }]}>
+                      {assignee.avatar_url ? (
+                        <Image 
+                          source={{ uri: assignee.avatar_url }} 
+                          style={styles.assigneeAvatarImage}
+                        />
+                      ) : (
+                        <View style={styles.assigneeAvatarPlaceholder}>
+                          <Text style={styles.assigneeAvatarInitial}>
+                            {assignee.name?.charAt(0).toUpperCase() || '?'}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  ))
+                ) : (
+                  <View style={[styles.assigneeAvatar, { backgroundColor: '#17F196' }]}>
+                    <View style={styles.assigneeAvatarPlaceholder}>
+                      <Text style={styles.assigneeAvatarInitial}>?</Text>
+                    </View>
                   </View>
-                </View>
+                )}
               </View>
                <View style={styles.dueDateContainer}>
                  <Image
@@ -1252,7 +1271,10 @@ export default function HomeDashboard() {
           ) : (
             <View style={styles.emptyTaskCard}>
               <Image
-                source={require('@/assets/images/icon/no_shopping_item.png')}
+                source={isDarkMode 
+                  ? require('@/assets/images/icon/task_image_dark.png')
+                  : require('@/assets/images/icon/task_image.png')
+                }
                 style={styles.emptyTaskIcon}
                 resizeMode="contain"
               />
@@ -1665,11 +1687,12 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
 
   // Task Card
   taskCard: {
-    backgroundColor: '#FEFEFE',
+    backgroundColor: theme.surface,
     borderRadius: 12,
     padding: 16,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#EAECF0',
+    borderColor: theme.border,
     elevation: 2,
   },
   taskHeader: {

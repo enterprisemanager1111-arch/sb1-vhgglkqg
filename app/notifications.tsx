@@ -38,13 +38,16 @@ interface Notification {
 
 // Removed mock data - will use real data from database
 
-const getNotificationIcon = (type: string) => {
+const getNotificationIcon = (type: string, isDarkMode: boolean) => {
   const iconStyle = { width: 64, height: 64 };
   switch (type) {
     case 'task':
       return (
         <Image 
-          source={require('@/assets/images/icon/task_image.png')}
+          source={isDarkMode 
+            ? require('@/assets/images/icon/task_image_dark.png')
+            : require('@/assets/images/icon/task_image.png')
+          }
           style={iconStyle}
           resizeMode="contain"
         />
@@ -52,7 +55,10 @@ const getNotificationIcon = (type: string) => {
     case 'expense':
       return (
         <Image 
-          source={require('@/assets/images/icon/task_image.png')}
+          source={isDarkMode 
+            ? require('@/assets/images/icon/task_image_dark.png')
+            : require('@/assets/images/icon/task_image.png')
+          }
           style={iconStyle}
           resizeMode="contain"
         />
@@ -60,7 +66,10 @@ const getNotificationIcon = (type: string) => {
     case 'meeting':
       return (
         <Image 
-          source={require('@/assets/images/icon/meeting_image.png')}
+          source={isDarkMode 
+            ? require('@/assets/images/icon/meeting_image_dark.png')
+            : require('@/assets/images/icon/meeting_image.png')
+          }
           style={iconStyle}
           resizeMode="contain"
         />
@@ -68,7 +77,10 @@ const getNotificationIcon = (type: string) => {
     case 'event':
       return (
         <Image 
-          source={require('@/assets/images/icon/meeting_image.png')}
+          source={isDarkMode 
+            ? require('@/assets/images/icon/meeting_image_dark.png')
+            : require('@/assets/images/icon/meeting_image.png')
+          }
           style={iconStyle}
           resizeMode="contain"
         />
@@ -76,7 +88,10 @@ const getNotificationIcon = (type: string) => {
     default:
       return (
         <Image 
-          source={require('@/assets/images/icon/task_image.png')}
+          source={isDarkMode 
+            ? require('@/assets/images/icon/task_image_dark.png')
+            : require('@/assets/images/icon/task_image.png')
+          }
           style={iconStyle}
           resizeMode="contain"
         />
@@ -149,7 +164,7 @@ const NotificationItem = ({
       onPress={handlePress}
     >
       <View style={styles.notificationIconContainer}>
-        {getNotificationIcon(notification.type)}
+        {getNotificationIcon(notification.type, isDarkMode)}
       </View>
       <View style={styles.notificationContent}>
         <View style={styles.notificationHeader}>

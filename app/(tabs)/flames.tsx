@@ -9,6 +9,7 @@ import {
   Pressable,
   StatusBar,
   Image,
+  Dimensions,
 } from 'react-native';
 import { Flame, Crown, CheckCircle, Clock, Camera, Zap, Users, User, Home } from 'lucide-react-native';
 
@@ -533,7 +534,17 @@ export default function FlamesScreen() {
   );
 }
 
-const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) => StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) => {
+  const screenWidth = Dimensions.get('window').width;
+  const sectionPadding = 20; // section paddingHorizontal (10) * 2
+  const panelPadding = 40; // futuresElementsPanel padding (20) * 2
+  const gap = 8;
+  const numberOfCards = 4;
+  const availableWidth = screenWidth - sectionPadding - panelPadding;
+  const totalGapSpace = gap * (numberOfCards - 1);
+  const cardWidth = (availableWidth - totalGapSpace) / numberOfCards;
+
+  return StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.background,
@@ -858,8 +869,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     alignItems: 'center',
     borderWidth: 1,
     borderColor: theme.border,
-    width: '23%',
-    minWidth: 80,
+    width: cardWidth,
     gap: 4,
   },
   achievementRewardContainer: {
@@ -938,3 +948,4 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     marginTop: 12,
   },
 });
+};
