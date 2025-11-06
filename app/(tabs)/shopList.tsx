@@ -18,6 +18,11 @@ import { supabase } from '@/lib/supabase';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useDarkMode } from '@/contexts/DarkModeContext';
 import { getTheme } from '@/constants/theme';
+import { 
+  FadeInAnimation, 
+  SlideInAnimation, 
+  BounceInAnimation 
+} from '@/components/CoolAnimations';
 
 export default function ShopListScreen() {
   const { t } = useLanguage();
@@ -264,8 +269,9 @@ export default function ShopListScreen() {
       />
       
       {/* Header Section */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
+      <FadeInAnimation delay={0} duration={500}>
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
           <View style={styles.headerText}>
             <Text style={styles.title}>{t('shopListPage.header.title')}</Text>
             <Text style={styles.subtitle}>{t('shopListPage.header.subtitle')}</Text>
@@ -277,7 +283,8 @@ export default function ShopListScreen() {
             />
           </View>
         </View>
-      </View>
+        </View>
+      </FadeInAnimation>
 
       <ScrollView 
         style={styles.scrollView} 
@@ -291,35 +298,42 @@ export default function ShopListScreen() {
         }
       >
         {/* Summary Card */}
-        <View style={styles.summaryCard}>
+        <SlideInAnimation direction="up" delay={0} duration={600} intensity={50}>
+          <View style={styles.summaryCard}>
           <Text style={styles.summaryTitle}>{t('shopListPage.summary.title')}</Text>
           <Text style={styles.summarySubtitle}>{t('shopListPage.summary.subtitle')}</Text>
           
           <View style={styles.progressCards}>
-            <View style={styles.progressCard}>
-              <View style={styles.progressCardHeader}>
-                <View style={styles.progressDotGreen} />
-                <Text style={styles.progressCardTitle}>{t('shopListPage.summary.itemsToBuy')}</Text>
+            <BounceInAnimation delay={100} duration={800}>
+              <View style={styles.progressCard}>
+                <View style={styles.progressCardHeader}>
+                  <View style={styles.progressDotGreen} />
+                  <Text style={styles.progressCardTitle}>{t('shopListPage.summary.itemsToBuy')}</Text>
+                </View>
+                <Text style={styles.progressCardValue}>{summaryData.itemsToBuy}</Text>
               </View>
-              <Text style={styles.progressCardValue}>{summaryData.itemsToBuy}</Text>
-            </View>
+            </BounceInAnimation>
             
-            <View style={styles.progressCard}>
-              <View style={styles.progressCardHeader}>
-                <View style={styles.progressDotBlue} />
-                <Text style={styles.progressCardTitle}>{t('shopListPage.summary.purchasedItems')}</Text>
+            <BounceInAnimation delay={200} duration={800}>
+              <View style={styles.progressCard}>
+                <View style={styles.progressCardHeader}>
+                  <View style={styles.progressDotBlue} />
+                  <Text style={styles.progressCardTitle}>{t('shopListPage.summary.purchasedItems')}</Text>
+                </View>
+                <Text style={styles.progressCardValue}>{summaryData.purchasedItems}</Text>
               </View>
-              <Text style={styles.progressCardValue}>{summaryData.purchasedItems}</Text>
-            </View>
+            </BounceInAnimation>
           </View>
         </View>
+        </SlideInAnimation>
 
         {/* Filter Bar */}
-        <View style={styles.filterBarContainer}>
+        <SlideInAnimation direction="up" delay={200} duration={600} intensity={50}>
+          <View style={styles.filterBarContainer}>
           <View style={styles.filterBar}>
-            {filterData.map((filter) => (
-              <Pressable
-                key={filter.id}
+            {filterData.map((filter, index) => (
+              <BounceInAnimation key={filter.id} delay={300 + (index * 50)} duration={600}>
+                <Pressable
                 style={[
                   styles.filterButton,
                   filter.active && styles.filterButtonActive
@@ -344,14 +358,18 @@ export default function ShopListScreen() {
                   </Text>
                 </View>
               </Pressable>
+              </BounceInAnimation>
             ))}
           </View>
         </View>
+        </SlideInAnimation>
 
         {/* Shopping Items List */}
-        <View style={styles.contentContainer}>
-          {groupedItems.map((dateGroup) => (
-            <View key={dateGroup.id} style={styles.dateGroupPanel}>
+        <SlideInAnimation direction="up" delay={400} duration={600} intensity={50}>
+          <View style={styles.contentContainer}>
+            {groupedItems.map((dateGroup, groupIndex) => (
+              <SlideInAnimation key={dateGroup.id} direction="up" delay={500 + (groupIndex * 100)} duration={600} intensity={30}>
+                <View style={styles.dateGroupPanel}>
               <View style={styles.dateHeader}>
                 <Image
                   source={require('@/assets/images/icon/shop_date.png')}
@@ -360,8 +378,9 @@ export default function ShopListScreen() {
                 <Text style={styles.dateText}>{dateGroup.date}</Text>
               </View>
               
-              {dateGroup.items.map((item) => (
-                <View key={item.id} style={styles.itemContainer}>
+              {dateGroup.items.map((item, itemIndex) => (
+                <BounceInAnimation key={item.id} delay={600 + (groupIndex * 100) + (itemIndex * 50)} duration={600}>
+                  <View style={styles.itemContainer}>
                   <View style={styles.itemCard}>
                     <View style={styles.itemHeader}>
                       <View style={styles.itemInfo}>
@@ -400,10 +419,13 @@ export default function ShopListScreen() {
                     </View>
                   </View>
                 </View>
+                </BounceInAnimation>
               ))}
             </View>
+            </SlideInAnimation>
           ))}
         </View>
+        </SlideInAnimation>
 
         {/* Bottom spacing for tab bar */}
         <View style={styles.bottomSpacing} />

@@ -27,6 +27,12 @@ import { useRealTimeFamily } from '@/hooks/useRealTimeFamily';
 import { useFamilyTasks } from '@/hooks/useFamilyTasks';
 import { useFamilyCalendarEvents } from '@/hooks/useFamilyCalendarEvents';
 import { useFamilyShoppingItems } from '@/hooks/useFamilyShoppingItems';
+// Animation imports
+import { 
+  FadeInAnimation, 
+  SlideInAnimation, 
+  BounceInAnimation 
+} from '@/components/CoolAnimations';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -285,55 +291,6 @@ export default function FamilyDashboard() {
         backgroundColor={theme.surface} 
       />
       
-      {/* Fixed Header Section */}
-      <View style={styles.fixedHeader}>
-        <View style={styles.profileSection}>
-          <View style={styles.profileInfo}>
-            <View style={styles.avatarContainer}>
-              {false ? (
-                <Image 
-                  source={{ uri: '' }} 
-                  style={styles.avatar}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>
-                    {currentFamily?.name?.charAt(0).toUpperCase() || 'F'}
-                  </Text>
-                </View>
-              )}
-            </View>
-            <View style={styles.profileDetails}>
-              <View style={styles.nameRow}>
-                <Text style={styles.userName}>{currentFamily?.name || t('tabs.family.defaultName')}</Text>
-                <Image
-                  source={require('@/assets/images/icon/verification.png')}
-                  style={styles.verifiedIcon}
-                  resizeMode="contain"
-                />
-              </View>
-              <Text style={styles.userRole}>{t('family.header.welcome')}</Text>
-            </View>
-          </View>
-          
-          <View style={styles.headerActions}>
-            <View style={styles.linkIconContainer}>
-              <View style={styles.linkIcon}>
-                <Image
-                  source={require('@/assets/images/icon/link.png')}
-                  style={{
-                    width: 18,
-                    height: 18,
-                    resizeMode: 'contain'
-                  }}
-                />
-              </View>
-            </View>
-          </View>
-        </View>
-      </View>
-
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -348,8 +305,9 @@ export default function FamilyDashboard() {
       >
 
         {/* === FAMILY PROGRESS BANNER === */}
-        <View style={styles.section}>
-          <View style={styles.workSummaryBanner}>
+        <SlideInAnimation direction="up" delay={0} duration={600} intensity={50}>
+          <View style={styles.section}>
+            <View style={styles.workSummaryBanner}>
             <View style={styles.workSummaryContent}>
               <View style={styles.workSummaryText}>
                 <Text style={styles.workSummaryTitle}>{t('tabs.family.weeklyProgress')}</Text>
@@ -367,10 +325,12 @@ export default function FamilyDashboard() {
               </View>
             </View>
           </View>
-        </View>
+          </View>
+        </SlideInAnimation>
 
         {/* === FAMILY OVERVIEW === */}
-        <View style={styles.futuresElementsPanel}>
+        <SlideInAnimation direction="up" delay={200} duration={600} intensity={50}>
+          <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{t('tabs.family.familyOverview')}</Text>
             <View style={styles.badge}>
@@ -381,53 +341,92 @@ export default function FamilyDashboard() {
           
           <View style={styles.quickActionsGrid}>
             {/* Tasks */}
-            <Pressable style={styles.quickActionButton}>
-              <View style={styles.quickActionIcon}>
-                <Text style={styles.quickActionNumber}>{totalTasks}</Text>
-              </View>
-              <Text style={styles.quickActionTitle}>{t('tabs.family.tasks')}</Text>
-              <Text style={styles.quickActionSubtitle}>{t('family.overview.total')}</Text>
-            </Pressable>
+            <View style={{ flex: 1 }}>
+              <BounceInAnimation delay={300} duration={800}>
+                <Pressable style={styles.quickActionButton}>
+                  <View style={styles.quickActionIcon}>
+                    <Image
+                      source={require('@/assets/images/icon/tasks.png')}
+                      style={{
+                        width: 18,
+                        height: 18,
+                        resizeMode: 'contain'
+                      }}
+                    />
+                  </View>
+                  <Text style={styles.quickActionTitle}>{t('home.quickActions.tasks.title')}</Text>
+                  <Text style={styles.quickActionSubtitle}>{t('home.quickActions.tasks.subtitle')}</Text>
+                </Pressable>
+              </BounceInAnimation>
+            </View>
 
             {/* Calendar */}
-            <Pressable style={styles.quickActionButton}>
-              <View style={styles.quickActionIcon}>
-                <Text style={styles.quickActionNumber}>{totalEvents}</Text>
-              </View>
-              <Text style={styles.quickActionTitle}>{t('calendar.title')}</Text>
-              <Text style={styles.quickActionSubtitle}>{t('tabs.family.appointments')}</Text>
-            </Pressable>
+            <View style={{ flex: 1 }}>
+              <BounceInAnimation delay={400} duration={800}>
+                <Pressable style={styles.quickActionButton}>
+                  <View style={styles.quickActionIcon}>
+                    <Image
+                      source={require('@/assets/images/icon/calendar2.png')}
+                      style={{
+                        width: 18,
+                        height: 18,
+                        resizeMode: 'contain'
+                      }}
+                    />
+                  </View>
+                  <Text style={styles.quickActionTitle}>{t('home.quickActions.calendar.title')}</Text>
+                  <Text style={styles.quickActionSubtitle}>{t('home.quickActions.calendar.subtitle')}</Text>
+                </Pressable>
+              </BounceInAnimation>
+            </View>
 
             {/* Shop List */}
-            <Pressable style={styles.quickActionButton}>
-              <View style={styles.quickActionIcon}>
-                <Text style={styles.quickActionNumber}>{totalShoppingItems}</Text>
-              </View>
-              <Text style={styles.quickActionTitle}>{t('shopping.title')}</Text>
-              <Text style={styles.quickActionSubtitle}>{t('dashboard.items')}</Text>
-            </Pressable>
+            <View style={{ flex: 1 }}>
+              <BounceInAnimation delay={500} duration={800}>
+                <Pressable style={styles.quickActionButton}>
+                  <View style={styles.quickActionIcon}>
+                    <Image
+                      source={require('@/assets/images/icon/shop_list.png')}
+                      style={{
+                        width: 18,
+                        height: 18,
+                        resizeMode: 'contain'
+                      }}
+                    />
+                  </View>
+                  <Text style={styles.quickActionTitle}>{t('home.quickActions.shopList.title')}</Text>
+                  <Text style={styles.quickActionSubtitle}>{t('home.quickActions.shopList.subtitle')}</Text>
+                </Pressable>
+              </BounceInAnimation>
+            </View>
 
             {/* Soon */}
-            <Pressable style={[styles.quickActionButton, styles.quickActionButtonDisabled]}>
-              <View style={[styles.quickActionIcon, styles.quickActionIconDisabled]}>
-                <Image
-                  source={require('@/assets/images/icon/soon_dis.png')}
-                  style={{
-                    width: 18,
-                    height: 18,
-                    resizeMode: 'contain'
-                  }}
-                />
-              </View>
-              <Text style={[styles.quickActionTitle, styles.quickActionTitleDisabled]}>{t('home.quickActions.soon.title')}</Text>
-              <Text style={[styles.quickActionSubtitle, styles.quickActionSubtitleDisabled]}>{t('home.quickActions.soon.subtitle')}</Text>
-            </Pressable>
+            <View style={{ flex: 1 }}>
+              <BounceInAnimation delay={600} duration={800}>
+                <Pressable style={[styles.quickActionButton, styles.quickActionButtonDisabled]}>
+                  <View style={[styles.quickActionIcon, styles.quickActionIconDisabled]}>
+                    <Image
+                      source={require('@/assets/images/icon/soon_dis.png')}
+                      style={{
+                        width: 18,
+                        height: 18,
+                        resizeMode: 'contain'
+                      }}
+                    />
+                  </View>
+                  <Text style={[styles.quickActionTitle, styles.quickActionTitleDisabled]}>{t('home.quickActions.soon.title')}</Text>
+                  <Text style={[styles.quickActionSubtitle, styles.quickActionSubtitleDisabled]}>{t('home.quickActions.soon.subtitle')}</Text>
+                </Pressable>
+              </BounceInAnimation>
+            </View>
           </View>
-        </View>
+          </View>
+        </SlideInAnimation>
 
         {/* === FAMILY CHALLENGE === */}
-        <View style={styles.section}>
-          <View style={styles.futuresElementsPanel}>
+        <SlideInAnimation direction="up" delay={400} duration={600} intensity={50}>
+          <View style={styles.section}>
+            <View style={styles.futuresElementsPanel}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>{t('family.challenge.title')}</Text>
               <View style={styles.badge}>
@@ -488,11 +487,13 @@ export default function FamilyDashboard() {
               </View>
             </View>
           </View>
-        </View>
+          </View>
+        </SlideInAnimation>
 
         {/* === FAMILY MEMBERS === */}
-        <View style={styles.section}>
-          <View style={styles.futuresElementsPanel}>
+        <SlideInAnimation direction="up" delay={500} duration={600} intensity={50}>
+          <View style={styles.section}>
+            <View style={styles.futuresElementsPanel}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>{t('family.members.title')}</Text>
               <View style={styles.badge}>
@@ -525,7 +526,8 @@ export default function FamilyDashboard() {
                   });
                   
                   return (
-                    <View key={member.user_id || index} style={styles.memberCard}>
+                    <FadeInAnimation key={member.user_id || index} delay={600 + (index * 100)} duration={600}>
+                      <View style={styles.memberCard}>
                       <View style={styles.memberAvatar}>
                         {member.profiles?.avatar_url ? (
                           <Image
@@ -542,19 +544,23 @@ export default function FamilyDashboard() {
                       <Text style={styles.memberName} numberOfLines={1}>{firstName}</Text>
                       <Text style={styles.memberLastName} numberOfLines={1}>{lastName}</Text>
                       <Text style={styles.memberRole}>{member.role === 'admin' ? t('family.members.role.admin') : t('family.members.role.member')}</Text>
-                    </View>
+                      </View>
+                    </FadeInAnimation>
                   );
                 })
               ) : (
-                <View style={styles.memberCard}>
-                  <View style={styles.memberAvatar}>
-                    <Text style={styles.memberAvatarText}>?</Text>
+                <FadeInAnimation delay={600} duration={600}>
+                  <View style={styles.memberCard}>
+                    <View style={styles.memberAvatar}>
+                      <Text style={styles.memberAvatarText}>?</Text>
+                    </View>
+                    <Text style={styles.memberName}>{t('family.members.empty')}</Text>
                   </View>
-                  <Text style={styles.memberName}>{t('family.members.empty')}</Text>
-                </View>
+                </FadeInAnimation>
               )}
               
-              <Pressable style={styles.inviteMemberCard} onPress={handleInvitePress}>
+              <FadeInAnimation delay={600 + (familyMembers.length * 100)} duration={600}>
+                <Pressable style={styles.inviteMemberCard} onPress={handleInvitePress}>
                 <View style={styles.inviteIcon}>
                   <Image
                     source={require('@/assets/images/icon/link_dis.png')}
@@ -567,15 +573,68 @@ export default function FamilyDashboard() {
                 </View>
                 <Text style={styles.inviteTitle}>{t('family.members.invite')}</Text>
                 <Text style={styles.inviteSubtitle}>{t('tabs.family.member')}</Text>
-              </Pressable>
+                </Pressable>
+              </FadeInAnimation>
             </ScrollView>
           </View>
-        </View>
+          </View>
+        </SlideInAnimation>
 
 
         {/* Bottom Spacing für Tab Bar */}
         <View style={styles.bottomSpacing} />
       </ScrollView>
+
+      {/* Fixed Header Section - Rendered last to ensure it's on top */}
+      <View style={styles.fixedHeader}>
+        <FadeInAnimation delay={0} duration={500}>
+          <View style={styles.profileSection}>
+            <View style={styles.profileInfo}>
+              <View style={styles.avatarContainer}>
+                {false ? (
+                  <Image 
+                    source={{ uri: '' }} 
+                    style={styles.avatar}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>
+                      {currentFamily?.name?.charAt(0).toUpperCase() || 'F'}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <View style={styles.profileDetails}>
+                <View style={styles.nameRow}>
+                  <Text style={styles.userName}>{currentFamily?.name || t('tabs.family.defaultName')}</Text>
+                  <Image
+                    source={require('@/assets/images/icon/verification.png')}
+                    style={styles.verifiedIcon}
+                    resizeMode="contain"
+                  />
+                </View>
+                <Text style={styles.userRole}>{t('family.header.welcome')}</Text>
+              </View>
+            </View>
+            
+            <View style={styles.headerActions}>
+              <View style={styles.linkIconContainer}>
+                <View style={styles.linkIcon}>
+                  <Image
+                    source={require('@/assets/images/icon/link.png')}
+                    style={{
+                      width: 18,
+                      height: 18,
+                      resizeMode: 'contain'
+                    }}
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+        </FadeInAnimation>
+      </View>
 
       {/* Invite Modal */}
       <Modal
@@ -961,12 +1020,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     marginBottom: 8,
   },
   quickActionIconDisabled: {
-    backgroundColor: theme.input,
-  },
-  quickActionNumber: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    backgroundColor: '#E0E0E0',
   },
   quickActionTitle: {
     fontSize: 11,

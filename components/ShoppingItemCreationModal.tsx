@@ -21,6 +21,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import { useDarkMode } from '@/contexts/DarkModeContext';
 import { getTheme } from '@/constants/theme';
+import { FadeInAnimation, SlideInAnimation, BounceInAnimation } from '@/components/CoolAnimations';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -305,29 +306,36 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
       <View style={styles.overlay}>
         <Pressable style={styles.overlayPressable} onPress={handleClose} />
         
-        <View style={styles.modalContainer}>
-          {/* Main Icon */}
-          <View style={styles.iconContainer}>
-            <View style={styles.icon}>
-              <RNImage 
-                source={require('@/assets/images/icon/add_task.png')}
-                style={styles.iconImage}
-                resizeMode="contain"
-              />
-            </View>
-          </View>
+        <View style={{ width: '100%' }}>
+          <SlideInAnimation direction="up" delay={100} duration={400} intensity={50}>
+            <View style={styles.modalContainer}>
+              {/* Main Icon */}
+              <BounceInAnimation delay={200} duration={600}>
+                <View style={styles.iconContainer}>
+                  <View style={styles.icon}>
+                    <RNImage 
+                      source={require('@/assets/images/icon/add_task.png')}
+                      style={styles.iconImage}
+                      resizeMode="contain"
+                    />
+                  </View>
+                </View>
+              </BounceInAnimation>
 
-          {/* Modal Header */}
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{t('shoppingItemCreationModal.title')}</Text>
-            <Text style={styles.modalSubtitle}>
-              {t('shoppingItemCreationModal.subtitle')}
-            </Text>
-          </View>
+              {/* Modal Header */}
+              <FadeInAnimation delay={300} duration={400}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>{t('shoppingItemCreationModal.title')}</Text>
+                  <Text style={styles.modalSubtitle}>
+                    {t('shoppingItemCreationModal.subtitle')}
+                  </Text>
+                </View>
+              </FadeInAnimation>
 
-          <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+              <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
             {/* Item Title and Quantity on same line */}
-            <View style={styles.inputSection}>
+            <SlideInAnimation direction="up" delay={400} duration={400} intensity={30}>
+              <View style={styles.inputSection}>
               <View style={styles.rowContainer}>
                 {/* Item Title */}
                 <View style={styles.halfWidthContainer}>
@@ -382,9 +390,11 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
                 </View>
               </View>
             </View>
+            </SlideInAnimation>
 
             {/* Item Description */}
-            <View style={styles.inputSection}>
+            <SlideInAnimation direction="up" delay={500} duration={400} intensity={30}>
+              <View style={styles.inputSection}>
               <Text style={styles.inputLabel}>{t('shoppingItemCreationModal.form.itemDescription')}</Text>
               <View style={styles.inputContainer}>
                 <RNImage 
@@ -408,9 +418,11 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
                 />
               </View>
             </View>
+            </SlideInAnimation>
 
             {/* Assign Task (optional) */}
-            <View style={styles.inputSection}>
+            <SlideInAnimation direction="up" delay={600} duration={400} intensity={30}>
+              <View style={styles.inputSection}>
               <Text style={styles.inputLabel}>{t('shoppingItemCreationModal.form.assignTask')}</Text>
               <View style={styles.assigneeContainer}>
                 {familyMembers.map((member) => (
@@ -446,9 +458,11 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
                 ))}
               </View>
             </View>
+            </SlideInAnimation>
 
             {/* Shop item Reward */}
-            <View style={styles.rewardContainer}>
+            <SlideInAnimation direction="up" delay={700} duration={400} intensity={30}>
+              <View style={styles.rewardContainer}>
               <View style={styles.rewardContent}>
                 <View style={styles.rewardLeft}>
                   <View style={styles.rewardHeader}>
@@ -468,18 +482,23 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
                 </View>
               </View>
             </View>
+            </SlideInAnimation>
           </ScrollView>
 
           {/* Add Item Button */}
-          <Pressable
-            style={[styles.addButton, loading && styles.addButtonDisabled]}
-            onPress={handleCreateShoppingItem}
-            disabled={loading || !form.title.trim()}
-          >
-            <Text style={styles.addButtonText}>{loading ? t('shoppingItemCreationModal.button.creating') : t('shoppingItemCreationModal.button.addItem')}</Text>
-          </Pressable>
+          <BounceInAnimation delay={800} duration={600}>
+            <Pressable
+              style={[styles.addButton, loading && styles.addButtonDisabled]}
+              onPress={handleCreateShoppingItem}
+              disabled={loading || !form.title.trim()}
+            >
+              <Text style={styles.addButtonText}>{loading ? t('shoppingItemCreationModal.button.creating') : t('shoppingItemCreationModal.button.addItem')}</Text>
+            </Pressable>
+          </BounceInAnimation>
         </View>
-      </View>
+            </SlideInAnimation>
+          </View>
+        </View>
     </Modal>
   );
 };

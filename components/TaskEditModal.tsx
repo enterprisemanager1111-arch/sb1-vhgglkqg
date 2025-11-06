@@ -22,6 +22,7 @@ import { useDarkMode } from '@/contexts/DarkModeContext';
 import { getTheme } from '@/constants/theme';
 import { TodayTask } from '@/hooks/useTodayTasks';
 import { FamilyTask } from '@/hooks/useFamilyTasks';
+import { FadeInAnimation, SlideInAnimation, BounceInAnimation } from '@/components/CoolAnimations';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -267,26 +268,31 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
       <Modal
         visible={visible}
         transparent
-        animationType="slide"
+        animationType="none"
         onRequestClose={handleClose}
       >
         <View style={styles.overlay}>
           <Pressable style={styles.overlayPressable} onPress={handleClose} />
           
-          <View style={styles.modalContainer}>
-            {/* Header */}
-            <View style={styles.header}>
-              <Text style={styles.headerTitle}>Edit Task</Text>
-              <Pressable style={styles.closeButton} onPress={handleClose}>
-                <X size={24} color="#161618" strokeWidth={2} />
-              </Pressable>
-            </View>
+          <View style={{ width: '100%' }}>
+            <SlideInAnimation direction="up" delay={100} duration={400} intensity={50}>
+              <View style={styles.modalContainer}>
+                {/* Header */}
+                <FadeInAnimation delay={200} duration={400}>
+                  <View style={styles.header}>
+                    <Text style={styles.headerTitle}>Edit Task</Text>
+                    <Pressable style={styles.closeButton} onPress={handleClose}>
+                      <X size={24} color="#161618" strokeWidth={2} />
+                    </Pressable>
+                  </View>
+                </FadeInAnimation>
 
-            {/* Content */}
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+                {/* Content */}
+                <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
               <View style={styles.formContainer}>
                 {/* Task Title */}
-                <View style={styles.inputGroup}>
+                <SlideInAnimation direction="up" delay={300} duration={400} intensity={30}>
+                  <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Task Title *</Text>
                   <View style={styles.inputContainer}>
                     <RNImage 
@@ -310,9 +316,11 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
                     />
                   </View>
                 </View>
+                </SlideInAnimation>
 
                 {/* Task Description */}
-                <View style={styles.inputGroup}>
+                <SlideInAnimation direction="up" delay={400} duration={400} intensity={30}>
+                  <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Description</Text>
                   <View style={styles.inputContainer}>
                     <RNImage 
@@ -339,9 +347,11 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
                     />
                   </View>
                 </View>
+                </SlideInAnimation>
 
                 {/* Assign Task */}
-                <View style={styles.inputGroup}>
+                <SlideInAnimation direction="up" delay={500} duration={400} intensity={30}>
+                  <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Assign To</Text>
                   <ScrollView 
                     horizontal 
@@ -387,9 +397,11 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
                     )}
                   </ScrollView>
                 </View>
+                </SlideInAnimation>
 
                 {/* Start Date and End Date */}
-                <View style={styles.inputGroup}>
+                <SlideInAnimation direction="up" delay={600} duration={400} intensity={30}>
+                  <View style={styles.inputGroup}>
                   <View style={styles.dateRowContainer}>
                     <View style={styles.halfWidthContainer}>
                       <Text style={styles.inputLabel}>Start Date</Text>
@@ -434,9 +446,11 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
                     </View>
                   </View>
                 </View>
+                </SlideInAnimation>
 
                 {/* Category */}
-                <View style={styles.inputGroup}>
+                <SlideInAnimation direction="up" delay={700} duration={400} intensity={30}>
+                  <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Category</Text>
                   <View style={styles.inputContainer}>
                     <TextInput
@@ -455,9 +469,11 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
                     />
                   </View>
                 </View>
+                </SlideInAnimation>
 
                 {/* Points */}
-                <View style={styles.inputGroup}>
+                <SlideInAnimation direction="up" delay={750} duration={400} intensity={30}>
+                  <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Points</Text>
                   <View style={styles.inputContainer}>
                     <TextInput
@@ -480,20 +496,25 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
                     />
                   </View>
                 </View>
+                </SlideInAnimation>
 
                 {/* Update Button */}
-                <Pressable
-                  style={[styles.updateButton, (!form.title.trim() || loading) && styles.disabledButton]}
-                  onPress={handleUpdateTask}
-                  disabled={loading || !form.title.trim()}
-                >
-                  <Text style={[styles.updateButtonText, (!form.title.trim() || loading) && styles.disabledText]}>
-                    {loading ? 'Updating...' : 'Update Task'}
-                  </Text>
-                </Pressable>
+                <BounceInAnimation delay={800} duration={600}>
+                  <Pressable
+                    style={[styles.updateButton, (!form.title.trim() || loading) && styles.disabledButton]}
+                    onPress={handleUpdateTask}
+                    disabled={loading || !form.title.trim()}
+                  >
+                    <Text style={[styles.updateButtonText, (!form.title.trim() || loading) && styles.disabledText]}>
+                      {loading ? 'Updating...' : 'Update Task'}
+                    </Text>
+                  </Pressable>
+                </BounceInAnimation>
               </View>
             </ScrollView>
-          </View>
+            </View>
+              </SlideInAnimation>
+            </View>
         </View>
       </Modal>
 

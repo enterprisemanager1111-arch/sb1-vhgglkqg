@@ -16,6 +16,7 @@ import { supabase } from '@/lib/supabase';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useDarkMode } from '@/contexts/DarkModeContext';
 import { getTheme } from '@/constants/theme';
+import { FadeInAnimation, SlideInAnimation, BounceInAnimation } from '@/components/CoolAnimations';
 
 interface Notification {
   id: string;
@@ -104,13 +105,15 @@ const NotificationItem = ({
   onMarkAsRead,
   t,
   theme,
-  isDarkMode
+  isDarkMode,
+  index = 0
 }: { 
   notification: Notification;
   onMarkAsRead: (id: string) => void;
   t: any;
   theme: any;
   isDarkMode: boolean;
+  index?: number;
 }) => {
   const styles = createStyles(theme, isDarkMode);
   const isUnread = notification.status === 'unread';
@@ -159,27 +162,29 @@ const NotificationItem = ({
   };
 
   return (
-    <Pressable 
-      style={styles.notificationItem}
-      onPress={handlePress}
-    >
-      <View style={styles.notificationIconContainer}>
-        {getNotificationIcon(notification.type, isDarkMode)}
-      </View>
-      <View style={styles.notificationContent}>
-        <View style={styles.notificationHeader}>
-          <Text style={styles.notificationTitle}>
-            {t('notificationsPage.item.title')}
-          </Text>
-          <Text style={styles.notificationDate}>
-            {formatDate(notification.created_at)}
+    <BounceInAnimation delay={200 + (index * 100)} duration={600}>
+      <Pressable 
+        style={styles.notificationItem}
+        onPress={handlePress}
+      >
+        <View style={styles.notificationIconContainer}>
+          {getNotificationIcon(notification.type, isDarkMode)}
+        </View>
+        <View style={styles.notificationContent}>
+          <View style={styles.notificationHeader}>
+            <Text style={styles.notificationTitle}>
+              {t('notificationsPage.item.title')}
+            </Text>
+            <Text style={styles.notificationDate}>
+              {formatDate(notification.created_at)}
+            </Text>
+          </View>
+          <Text style={styles.notificationDescription}>
+            {t('notificationsPage.item.description', { assignerName, taskTitle })}
           </Text>
         </View>
-        <Text style={styles.notificationDescription}>
-          {t('notificationsPage.item.description', { assignerName, taskTitle })}
-        </Text>
-      </View>
-    </Pressable>
+      </Pressable>
+    </BounceInAnimation>
   );
 };
 
@@ -685,29 +690,31 @@ export default function Notifications() {
       />
       
       {/* Header */}
-      <View style={styles.header}>
-        <Pressable 
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Image 
-            source={require('@/assets/images/icon/arrow-left.svg')}
-            style={styles.backButtonIcon}
-            resizeMode="contain"
-          />
-        </Pressable>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>{t('notificationsPage.title')}</Text>
-          {newNotificationCount > 0 && (
-            <View style={styles.newNotificationBadge}>
-              <Text style={styles.newNotificationBadgeText}>
-                {newNotificationCount > 9 ? '9+' : newNotificationCount}
-              </Text>
-            </View>
-          )}
+      <FadeInAnimation delay={0} duration={400}>
+        <View style={styles.header}>
+          <Pressable 
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Image 
+              source={require('@/assets/images/icon/arrow-left.svg')}
+              style={styles.backButtonIcon}
+              resizeMode="contain"
+            />
+          </Pressable>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerTitle}>{t('notificationsPage.title')}</Text>
+            {newNotificationCount > 0 && (
+              <View style={styles.newNotificationBadge}>
+                <Text style={styles.newNotificationBadgeText}>
+                  {newNotificationCount > 9 ? '9+' : newNotificationCount}
+                </Text>
+              </View>
+            )}
+          </View>
+          <View style={styles.headerSpacer} />
         </View>
-        <View style={styles.headerSpacer} />
-      </View>
+      </FadeInAnimation>
 
       {/* Notifications List */}
       <ScrollView 
@@ -715,25 +722,30 @@ export default function Notifications() {
         showsVerticalScrollIndicator={false}
         onScrollBeginDrag={clearNewNotificationCount}
       >
-        <View style={styles.notificationsList}>
-          {notifications.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>{t('notificationsPage.empty.title')}</Text>
-              <Text style={styles.emptySubtext}>{t('notificationsPage.empty.subtitle')}</Text>
-            </View>
-          ) : (
-            notifications.map((notification) => (
-              <NotificationItem 
-                key={notification.id} 
-                notification={notification}
-                onMarkAsRead={markAsRead}
-                t={t}
-                theme={theme}
-                isDarkMode={isDarkMode}
-              />
-            ))
-          )}
-        </View>
+        <SlideInAnimation direction="up" delay={100} duration={400} intensity={30}>
+          <View style={styles.notificationsList}>
+            {notifications.length === 0 ? (
+              <FadeInAnimation delay={200} duration={400}>
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>{t('notificationsPage.empty.title')}</Text>
+                  <Text style={styles.emptySubtext}>{t('notificationsPage.empty.subtitle')}</Text>
+                </View>
+              </FadeInAnimation>
+            ) : (
+              notifications.map((notification, index) => (
+                <NotificationItem 
+                  key={notification.id} 
+                  notification={notification}
+                  onMarkAsRead={markAsRead}
+                  t={t}
+                  theme={theme}
+                  isDarkMode={isDarkMode}
+                  index={index}
+                />
+              ))
+            )}
+          </View>
+        </SlideInAnimation>
       </ScrollView>
     </SafeAreaView>
   );

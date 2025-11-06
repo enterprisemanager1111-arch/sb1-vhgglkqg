@@ -12,6 +12,7 @@ import { Clock } from 'lucide-react-native';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useDarkMode } from '@/contexts/DarkModeContext';
 import { getTheme } from '@/constants/theme';
+import { FadeInAnimation, SlideInAnimation, BounceInAnimation } from '@/components/CoolAnimations';
 
 interface FeaturesToCreateModalProps {
   visible: boolean;
@@ -158,40 +159,56 @@ const FeaturesToCreateModal: React.FC<FeaturesToCreateModalProps> = ({
       <View style={styles.overlay}>
         <Pressable style={styles.overlayPressable} onPress={onClose} />
         
-        <View style={styles.modalContainer}>
-          {/* Icon */}
-          <View style={styles.iconContainer}>
-            <View style={styles.icon}>
-              <RNImage 
-                source={require('@/assets/images/icon/add_new.png')}
-                style={styles.iconImage}
-                resizeMode="contain"
-              />
-            </View>
-          </View>
+        <View style={{ width: '100%' }}>
+          <SlideInAnimation direction="up" delay={100} duration={400} intensity={50}>
+            <View style={styles.modalContainer}>
+              {/* Icon */}
+              <BounceInAnimation delay={200} duration={600}>
+                <View style={styles.iconContainer}>
+                  <View style={styles.icon}>
+                    <RNImage 
+                      source={require('@/assets/images/icon/add_new.png')}
+                      style={styles.iconImage}
+                      resizeMode="contain"
+                    />
+                  </View>
+                </View>
+              </BounceInAnimation>
 
-          {/* Modal Header */}
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{t('featuresToCreate.title')}</Text>
-            <Text style={styles.modalSubtitle}>
-              {t('featuresToCreate.subtitle')}
-            </Text>
-          </View>
+              {/* Modal Header */}
+              <FadeInAnimation delay={300} duration={400}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>{t('featuresToCreate.title')}</Text>
+                  <Text style={styles.modalSubtitle}>
+                    {t('featuresToCreate.subtitle')}
+                  </Text>
+                </View>
+              </FadeInAnimation>
 
-          {/* Feature Selection Grid */}
-          <View style={styles.featuresGrid}>
-            {features.map(renderFeatureCard)}
-          </View>
+              {/* Feature Selection Grid */}
+              <SlideInAnimation direction="up" delay={400} duration={400} intensity={30}>
+                <View style={styles.featuresGrid}>
+                  {features.map((feature, index) => (
+                    <BounceInAnimation key={feature.id} delay={500 + (index * 100)} duration={500}>
+                      {renderFeatureCard(feature)}
+                    </BounceInAnimation>
+                  ))}
+                </View>
+              </SlideInAnimation>
 
-          {/* Start with Creation Button */}
-          <Pressable
-            style={styles.startButton}
-            onPress={handleStartCreation}
-          >
-            <Text style={styles.startButtonText}>{t('featuresToCreate.startButton')}</Text>
-          </Pressable>
+              {/* Start with Creation Button */}
+              <BounceInAnimation delay={900} duration={600}>
+                <Pressable
+                  style={styles.startButton}
+                  onPress={handleStartCreation}
+                >
+                  <Text style={styles.startButtonText}>{t('featuresToCreate.startButton')}</Text>
+                </Pressable>
+              </BounceInAnimation>
+              </View>
+            </SlideInAnimation>
+          </View>
         </View>
-      </View>
     </Modal>
   );
 };

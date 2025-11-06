@@ -17,6 +17,11 @@ import { useCalendarEventsByDate } from '@/hooks/useCalendarEventsByDate';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useDarkMode } from '@/contexts/DarkModeContext';
 import { getTheme } from '@/constants/theme';
+import { 
+  FadeInAnimation, 
+  SlideInAnimation, 
+  BounceInAnimation 
+} from '@/components/CoolAnimations';
 
 export default function Calendar() {
   const { t } = useLanguage();
@@ -258,8 +263,9 @@ export default function Calendar() {
       />
       
       {/* Header Section */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
+      <FadeInAnimation delay={0} duration={500}>
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
           <View style={styles.headerText}>
             <Text style={styles.title}>{t('calendarPage.header.title')}</Text>
             <Text style={styles.subtitle}>{t('calendarPage.header.subtitle')}</Text>
@@ -271,11 +277,13 @@ export default function Calendar() {
             />
           </View>
         </View>
-      </View>
+        </View>
+      </FadeInAnimation>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Current Date and Progress */}
-        <View style={styles.summaryCard}>
+        <SlideInAnimation direction="up" delay={0} duration={600} intensity={50}>
+          <View style={styles.summaryCard}>
           <View style={styles.summaryHeader}>
             <View style={styles.summaryHeaderLeft}>
               <Text style={styles.summaryTitle}>{mockData.currentDate}</Text>
@@ -290,46 +298,55 @@ export default function Calendar() {
           </View>
           
           <View style={styles.progressCards}>
-            <View style={styles.progressCard}>
-              <View style={styles.progressCardHeader}>
-                <Image
-                  source={require('@/assets/images/icon/clock.png')}
-                  style={styles.progressIcon}
-                />
-                <Text style={styles.progressCardTitle}>{t('calendarPage.summary.today')}</Text>
-              </View>
-              <Text style={styles.progressCardValue}>{mockData.progress.today}</Text>
+            <View style={{ flex: 1 }}>
+              <BounceInAnimation delay={100} duration={800}>
+                <View style={styles.progressCard}>
+                  <View style={styles.progressCardHeader}>
+                    <Image
+                      source={require('@/assets/images/icon/clock.png')}
+                      style={styles.progressIcon}
+                    />
+                    <Text style={styles.progressCardTitle}>{t('calendarPage.summary.today')}</Text>
+                  </View>
+                  <Text style={styles.progressCardValue}>{mockData.progress.today}</Text>
+                </View>
+              </BounceInAnimation>
             </View>
             
-            <View style={styles.progressCard}>
-              <View style={styles.progressCardHeader}>
-                <Image
-                  source={require('@/assets/images/icon/clock.png')}
-                  style={styles.progressIcon}
-                />
-                <Text style={styles.progressCardTitle}>{t('calendarPage.summary.nextEvent')}</Text>
-              </View>
-              <Text style={styles.progressCardValue}>{mockData.progress.nextEvent}</Text>
+            <View style={{ flex: 1 }}>
+              <BounceInAnimation delay={200} duration={800}>
+                <View style={styles.progressCard}>
+                  <View style={styles.progressCardHeader}>
+                    <Image
+                      source={require('@/assets/images/icon/clock.png')}
+                      style={styles.progressIcon}
+                    />
+                    <Text style={styles.progressCardTitle}>{t('calendarPage.summary.nextEvent')}</Text>
+                  </View>
+                  <Text style={styles.progressCardValue}>{mockData.progress.nextEvent}</Text>
+                </View>
+              </BounceInAnimation>
             </View>
           </View>
 
           {/* Date Selector - Horizontal Scrollable */}
-          <ScrollView 
-            ref={scrollViewRef}
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            scrollEnabled={false}
-            style={styles.dateSelectorScrollView}
-            contentContainerStyle={styles.dateSelector}
-          >
-            {/* Always show selected dates (initialized with 5 days centered around today) */}
-            {selectedDates.map((date, index) => {
-              const dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
-              const dateString = `${date.getDate()} ${dayName}`;
-              
-              return (
-                <Pressable
-                  key={index}
+          <SlideInAnimation direction="up" delay={200} duration={600} intensity={50}>
+            <ScrollView 
+              ref={scrollViewRef}
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              scrollEnabled={false}
+              style={styles.dateSelectorScrollView}
+              contentContainerStyle={styles.dateSelector}
+            >
+              {/* Always show selected dates (initialized with 5 days centered around today) */}
+              {selectedDates.map((date, index) => {
+                const dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
+                const dateString = `${date.getDate()} ${dayName}`;
+                
+                return (
+                  <BounceInAnimation key={index} delay={300 + (index * 50)} duration={600}>
+                    <Pressable
                   style={[
                     styles.dateCard,
                     selectedDate === dateString && styles.dateCardSelected,
@@ -354,13 +371,17 @@ export default function Calendar() {
                     {dayName}
                   </Text>
                 </Pressable>
+                  </BounceInAnimation>
               );
             })}
           </ScrollView>
+          </SlideInAnimation>
           </View>
+        </SlideInAnimation>
 
          {/* Event Cards */}
-         <View style={styles.contentContainer}>
+         <SlideInAnimation direction="up" delay={400} duration={600} intensity={50}>
+           <View style={styles.contentContainer}>
            <View style={styles.eventsContainer}>
              {eventsLoading ? (
                <View style={styles.loadingContainer}>
@@ -407,8 +428,9 @@ export default function Calendar() {
                    return t('calendarPage.event.allDay');
                  };
                  
-                 return (
-                   <View key={event.id} style={styles.calendarEventCard}>
+                return (
+                  <BounceInAnimation key={event.id} delay={500 + (filteredEvents.indexOf(event) * 50)} duration={600}>
+                    <View style={styles.calendarEventCard}>
                      <View style={styles.eventHeader}>
                        <Text style={styles.eventMainTitle}>{event.title}</Text>
                        {event.description && (
@@ -482,6 +504,7 @@ export default function Calendar() {
                        </View>
                      </View>
                    </View>
+                  </BounceInAnimation>
                  );
                })
              ) : (
@@ -505,8 +528,9 @@ export default function Calendar() {
                  )}
                </View>
              )}
-            </View>
+           </View>
          </View>
+         </SlideInAnimation>
       </ScrollView>
 
       {/* Calendar Selection Modal */}

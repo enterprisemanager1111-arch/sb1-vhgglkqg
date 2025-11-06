@@ -697,62 +697,6 @@ export default function HomeDashboard() {
         backgroundColor={theme.surface} 
       />
       
-      {/* Fixed Header Section */}
-      <FadeInAnimation delay={0} duration={500}>
-        <View style={styles.fixedHeader}>
-          <View style={styles.profileSection}>
-            <View style={styles.profileInfo}>
-              <View style={styles.avatarContainer}>
-                {currentProfile?.avatar_url ? (
-                  <Image 
-                    source={{ uri: currentProfile.avatar_url }} 
-                    style={styles.avatar}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{getUserInitials()}</Text>
-                  </View>
-                )}
-              </View>
-              <View style={styles.profileDetails}>
-                <View style={styles.nameRow}>
-                  <Text style={styles.userName}>{userName}</Text>
-                  <View style={styles.verifiedIcon}>
-                    <VerificationIcon size={20} />
-                  </View>
-                </View>
-                <Text style={styles.userRole}>{t('home.profile.family')} {getUserRole()}</Text>
-              </View>
-            </View>
-            
-            <View style={styles.headerActions}>
-              <Pressable 
-                style={styles.notificationButton}
-                onPress={() => {
-                  // Clear notification count when user opens notifications
-                  setNotificationCount(0);
-                  router.push('/notifications');
-                }}
-              >
-                <Image 
-                  source={require('@/assets/images/icon/notification.png')}
-                  style={styles.notificationIcon}
-                  resizeMode="contain"
-                />
-                {notificationCount > 0 && (
-                  <View style={styles.notificationBadge}>
-                    <Text style={styles.notificationBadgeText}>
-                      {notificationCount > 99 ? '99+' : notificationCount}
-                    </Text>
-                  </View>
-                )}
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </FadeInAnimation>
-      
       <ScrollView 
         style={styles.scrollView} 
         contentContainerStyle={styles.scrollContent}
@@ -1338,6 +1282,62 @@ export default function HomeDashboard() {
         {/* Bottom spacing for navigation */}
         <View style={styles.bottomSpacing} />
       </ScrollView>
+
+      {/* Fixed Header Section - Rendered last to ensure it's on top */}
+      <View style={styles.fixedHeader}>
+        <FadeInAnimation delay={0} duration={500}>
+          <View style={styles.profileSection}>
+            <View style={styles.profileInfo}>
+              <View style={styles.avatarContainer}>
+                {currentProfile?.avatar_url ? (
+                  <Image 
+                    source={{ uri: currentProfile.avatar_url }} 
+                    style={styles.avatar}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>{getUserInitials()}</Text>
+                  </View>
+                )}
+              </View>
+              <View style={styles.profileDetails}>
+                <View style={styles.nameRow}>
+                  <Text style={styles.userName}>{userName}</Text>
+                  <View style={styles.verifiedIcon}>
+                    <VerificationIcon size={20} />
+                  </View>
+                </View>
+                <Text style={styles.userRole}>{t('home.profile.family')} {getUserRole()}</Text>
+              </View>
+            </View>
+            
+            <View style={styles.headerActions}>
+              <Pressable 
+                style={styles.notificationButton}
+                onPress={() => {
+                  // Clear notification count when user opens notifications
+                  setNotificationCount(0);
+                  router.push('/notifications');
+                }}
+              >
+                <Image 
+                  source={require('@/assets/images/icon/notification.png')}
+                  style={styles.notificationIcon}
+                  resizeMode="contain"
+                />
+                {notificationCount > 0 && (
+                  <View style={styles.notificationBadge}>
+                    <Text style={styles.notificationBadgeText}>
+                      {notificationCount > 99 ? '99+' : notificationCount}
+                    </Text>
+                  </View>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </FadeInAnimation>
+      </View>
 
       {/* Task Edit Modal */}
       <TaskEditModal

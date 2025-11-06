@@ -246,6 +246,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import { useDarkMode } from '@/contexts/DarkModeContext';
 import { getTheme } from '@/constants/theme';
+import { FadeInAnimation, SlideInAnimation, BounceInAnimation } from '@/components/CoolAnimations';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -697,31 +698,38 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
         <View style={styles.overlay}>
           <Pressable style={styles.overlayPressable} onPress={handleClose} />
           
-          <View style={styles.modalContainer}>
-            {/* Icon */}
-            <View style={styles.iconContainer}>
-              <View style={styles.icon}>
-                <RNImage 
-                  source={require('@/assets/images/icon/add_task.png')}
-                  style={styles.iconImage}
-                  resizeMode="contain"
-                />
-              </View>
-            </View>
+          <View style={{ width: '100%' }}>
+            <SlideInAnimation direction="up" delay={100} duration={400} intensity={50}>
+              <View style={styles.modalContainer}>
+                {/* Icon */}
+                <BounceInAnimation delay={200} duration={600}>
+                  <View style={styles.iconContainer}>
+                    <View style={styles.icon}>
+                      <RNImage 
+                        source={require('@/assets/images/icon/add_task.png')}
+                        style={styles.iconImage}
+                        resizeMode="contain"
+                      />
+                    </View>
+                  </View>
+                </BounceInAnimation>
 
-            {/* Modal Header */}
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('taskCreationModal.title')}</Text>
-              <Text style={styles.modalSubtitle}>
-                {t('taskCreationModal.subtitle')}
-              </Text>
-            </View>
+                {/* Modal Header */}
+                <FadeInAnimation delay={300} duration={400}>
+                  <View style={styles.modalHeader}>
+                    <Text style={styles.modalTitle}>{t('taskCreationModal.title')}</Text>
+                    <Text style={styles.modalSubtitle}>
+                      {t('taskCreationModal.subtitle')}
+                    </Text>
+                  </View>
+                </FadeInAnimation>
 
-            {/* Content */}
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+                {/* Content */}
+                <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
               <View style={styles.formContainer}>
                 {/* Task Title */}
-                <View style={styles.inputGroup}>
+                <SlideInAnimation direction="up" delay={400} duration={400} intensity={30}>
+                  <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>{t('taskCreationModal.form.taskTitle')}</Text>
                   <View style={styles.inputContainer}>
                     <RNImage 
@@ -745,9 +753,11 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
                     />
                   </View>
                 </View>
+                </SlideInAnimation>
 
                 {/* Task Description */}
-                <View style={styles.inputGroup}>
+                <SlideInAnimation direction="up" delay={500} duration={400} intensity={30}>
+                  <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>{t('taskCreationModal.form.taskDescription')}</Text>
                   <View style={styles.inputContainer}>
                     <RNImage 
@@ -771,9 +781,11 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
                     />
                   </View>
                 </View>
+                </SlideInAnimation>
 
                 {/* Assign Task */}
-                <View style={styles.inputGroup}>
+                <SlideInAnimation direction="up" delay={600} duration={400} intensity={30}>
+                  <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>{t('taskCreationModal.form.assignTask')}</Text>
                   <ScrollView 
                     horizontal 
@@ -826,9 +838,11 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
                     )}
                   </ScrollView>
                 </View>
+                </SlideInAnimation>
 
                 {/* Start Date and End Date on same line */}
-                <View style={styles.inputGroup}>
+                <SlideInAnimation direction="up" delay={700} duration={400} intensity={30}>
+                  <View style={styles.inputGroup}>
                   <View style={styles.dateRowContainer}>
                     {/* Start Date */}
                     <View style={styles.halfWidthContainer}>
@@ -875,9 +889,11 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
                     </View>
                   </View>
                 </View>
+                </SlideInAnimation>
 
                 {/* Task Reward */}
-                <View style={styles.rewardContainer}>
+                <SlideInAnimation direction="up" delay={750} duration={400} intensity={30}>
+                  <View style={styles.rewardContainer}>
                   <View style={styles.rewardContent}>
                     <View style={styles.rewardLeft}>
                       <View style={styles.rewardHeader}>
@@ -897,25 +913,30 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
                     </View>
                   </View>
                 </View>
+                </SlideInAnimation>
 
                 {/* Add Task Button */}
-                <Pressable
-                  style={[styles.addTaskButton, !form.title.trim() && styles.disabledButton]}
-                  onPress={() => {
-                    console.log('🔥 Add Task button pressed!');
-                    console.log('🔥 Button disabled?', loading || !form.title.trim());
-                    console.log('🔥 Form title:', form.title);
-                    handleCreateTask();
-                  }}
-                  disabled={loading || !form.title.trim()}
-                >
-                  <Text style={[styles.addTaskButtonText, !form.title.trim() && styles.disabledText]}>
-                    {loading ? t('taskCreationModal.button.creating') : t('taskCreationModal.button.addTask')}
-                  </Text>
-                </Pressable>
+                <BounceInAnimation delay={800} duration={600}>
+                  <Pressable
+                    style={[styles.addTaskButton, !form.title.trim() && styles.disabledButton]}
+                    onPress={() => {
+                      console.log('🔥 Add Task button pressed!');
+                      console.log('🔥 Button disabled?', loading || !form.title.trim());
+                      console.log('🔥 Form title:', form.title);
+                      handleCreateTask();
+                    }}
+                    disabled={loading || !form.title.trim()}
+                  >
+                    <Text style={[styles.addTaskButtonText, !form.title.trim() && styles.disabledText]}>
+                      {loading ? t('taskCreationModal.button.creating') : t('taskCreationModal.button.addTask')}
+                    </Text>
+                  </Pressable>
+                </BounceInAnimation>
               </View>
             </ScrollView>
-          </View>
+            </View>
+              </SlideInAnimation>
+            </View>
         </View>
       </Modal>
 

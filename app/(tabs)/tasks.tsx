@@ -16,6 +16,11 @@ import { useDarkMode } from '@/contexts/DarkModeContext';
 import { router } from 'expo-router';
 import { getTheme } from '@/constants/theme';
 import TaskEditModal from '@/components/TaskEditModal';
+import { 
+  FadeInAnimation, 
+  SlideInAnimation, 
+  BounceInAnimation 
+} from '@/components/CoolAnimations';
 
 export default function Tasks() {
   const { user, profile } = useAuth();
@@ -236,8 +241,9 @@ export default function Tasks() {
       />
       
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
+      <FadeInAnimation delay={0} duration={500}>
+        <View style={styles.header}>
+          <View style={styles.headerTop}>
           <View style={styles.statusBarIcons}>
             {/* Status bar icons would go here */}
           </View>
@@ -255,52 +261,68 @@ export default function Tasks() {
             />
           </View>
         </View>
-      </View>
+        </View>
+      </FadeInAnimation>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Summary of Your Work */}
-        <View style={styles.summaryCard}>
+        <SlideInAnimation direction="up" delay={0} duration={600} intensity={50}>
+          <View style={styles.summaryCard}>
           <Text style={styles.summaryTitle}>{t('tasksPage.summary.title')}</Text>
           <Text style={styles.summarySubtitle}>{t('tasksPage.summary.subtitle')}</Text>
           
           <View style={styles.progressCards}>
-            <View style={styles.progressCard}>
-              <View style={styles.progressCardContent}>
-                <Image
-                  source={require('@/assets/images/icon/code-circle.png')}
-                  style={styles.progressIconImage}
-                />
-                <Text style={styles.progressLabel}>{t('tasksPage.summary.toDo')}</Text>
-              </View>
-              <Text style={styles.progressNumber}>{todo}</Text>
+            <View style={{ flex: 1 }}>
+              <BounceInAnimation delay={100} duration={800}>
+                <View style={styles.progressCard}>
+                  <View style={styles.progressCardContent}>
+                    <Image
+                      source={require('@/assets/images/icon/code-circle.png')}
+                      style={styles.progressIconImage}
+                    />
+                    <Text style={styles.progressLabel}>{t('tasksPage.summary.toDo')}</Text>
+                  </View>
+                  <Text style={styles.progressNumber}>{todo}</Text>
+                </View>
+              </BounceInAnimation>
             </View>
             
-            <View style={styles.progressCard}>
-              <View style={styles.progressCardContent}>
-                <Image
-                  source={require('@/assets/images/icon/task_clock.png')}
-                  style={styles.progressIconImage}
-                />
-                <Text style={styles.progressLabel}>{t('tasksPage.summary.inProgress')}</Text>
-              </View>
-              <Text style={styles.progressNumber}>{inProgress}</Text>
+            <View style={{ flex: 1 }}>
+              <BounceInAnimation delay={200} duration={800}>
+                <View style={styles.progressCard}>
+                  <View style={styles.progressCardContent}>
+                    <Image
+                      source={require('@/assets/images/icon/task_clock.png')}
+                      style={styles.progressIconImage}
+                    />
+                    <Text style={styles.progressLabel}>{t('tasksPage.summary.inProgress')}</Text>
+                  </View>
+                  <Text style={styles.progressNumber}>{inProgress}</Text>
+                </View>
+              </BounceInAnimation>
             </View>
             
-            <View style={styles.progressCard}>
-              <View style={styles.progressCardContent}>
-                <Image
-                  source={require('@/assets/images/icon/tick-circle.png')}
-                  style={styles.progressIconImage}
-                />
-                <Text style={styles.progressLabel}>{t('tasksPage.summary.done')}</Text>
-              </View>
-              <Text style={styles.progressNumber}>{done}</Text>
+            <View style={{ flex: 1 }}>
+              <BounceInAnimation delay={300} duration={800}>
+                <View style={styles.progressCard}>
+                  <View style={styles.progressCardContent}>
+                    <Image
+                      source={require('@/assets/images/icon/tick-circle.png')}
+                      style={styles.progressIconImage}
+                    />
+                    <Text style={styles.progressLabel}>{t('tasksPage.summary.done')}</Text>
+                  </View>
+                  <Text style={styles.progressNumber}>{done}</Text>
+                </View>
+              </BounceInAnimation>
             </View>
           </View>
         </View>
+        </SlideInAnimation>
 
         {/* Sprint Stats */}
-        <View style={styles.sprintCard}>
+        <SlideInAnimation direction="up" delay={200} duration={600} intensity={50}>
+          <View style={styles.sprintCard}>
           <View style={styles.sprintHeader}>
             <View style={styles.sprintTitleContainer}>
               <Text style={styles.sprintTitle}>{t('tasksPage.sprint.title')}</Text>
@@ -325,9 +347,11 @@ export default function Tasks() {
             </View>
           </View>
         </View>
+        </SlideInAnimation>
 
         {/* Filter Bar */}
-        <View style={styles.filterBarContainer}>
+        <SlideInAnimation direction="up" delay={300} duration={600} intensity={50}>
+          <View style={styles.filterBarContainer}>
           <View style={styles.filterBar}>
             <Pressable 
               style={[styles.filterButton, selectedFilter === 'all' && styles.filterButtonActive]}
@@ -360,9 +384,11 @@ export default function Tasks() {
             </Pressable>
           </View>
         </View>
+        </SlideInAnimation>
 
         {/* Task List */}
-        <View style={styles.taskList}>
+        <SlideInAnimation direction="up" delay={400} duration={600} intensity={50}>
+          <View style={styles.taskList}>
           {filteredTasks.length === 0 ? (
             <View style={styles.emptyState}>
               <Image
@@ -414,14 +440,14 @@ export default function Tasks() {
               const progress = calculateProgress();
 
               return (
-                <Pressable 
-                  key={task.id} 
-                  style={styles.taskCard}
-                  onPress={() => {
-                    setSelectedTask(task);
-                    setShowTaskEditModal(true);
-                  }}
-                >
+                <BounceInAnimation key={task.id} delay={500 + (filteredTasks.indexOf(task) * 50)} duration={600}>
+                  <Pressable 
+                    style={styles.taskCard}
+                    onPress={() => {
+                      setSelectedTask(task);
+                      setShowTaskEditModal(true);
+                    }}
+                  >
                   <View style={styles.taskHeader}>
                     <View style={styles.taskIcon}>
                       <Image
@@ -500,10 +526,12 @@ export default function Tasks() {
                      </View>
                    </View>
                 </Pressable>
+                </BounceInAnimation>
               );
             })
           )}
         </View>
+        </SlideInAnimation>
       </ScrollView>
 
       {/* Task Edit Modal */}

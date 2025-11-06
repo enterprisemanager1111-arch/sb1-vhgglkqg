@@ -20,6 +20,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import { useDarkMode } from '@/contexts/DarkModeContext';
 import { getTheme } from '@/constants/theme';
+import { FadeInAnimation, SlideInAnimation, BounceInAnimation } from '@/components/CoolAnimations';
 
 // Custom DateTime Picker Modal Component for Start Time
 const DateTimePickerModal = ({ 
@@ -831,29 +832,36 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
       <View style={styles.overlay}>
         <Pressable style={styles.overlayPressable} onPress={handleClose} />
         
-        <View style={styles.modalContainer}>
-          {/* Main Icon */}
-          <View style={styles.iconContainer}>
-            <View style={styles.icon}>
-              <RNImage 
-                source={require('@/assets/images/icon/add_task.png')}
-                style={styles.iconImage}
-                resizeMode="contain"
-              />
-            </View>
-          </View>
+        <View style={{ width: '100%' }}>
+          <SlideInAnimation direction="up" delay={100} duration={400} intensity={50}>
+            <View style={styles.modalContainer}>
+              {/* Main Icon */}
+              <BounceInAnimation delay={200} duration={600}>
+                <View style={styles.iconContainer}>
+                  <View style={styles.icon}>
+                    <RNImage 
+                      source={require('@/assets/images/icon/add_task.png')}
+                      style={styles.iconImage}
+                      resizeMode="contain"
+                    />
+                  </View>
+                </View>
+              </BounceInAnimation>
 
-          {/* Modal Header */}
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{t('eventCreationModal.title')}</Text>
-            <Text style={styles.modalSubtitle}>
-              {t('eventCreationModal.subtitle')}
-            </Text>
-          </View>
+              {/* Modal Header */}
+              <FadeInAnimation delay={300} duration={400}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>{t('eventCreationModal.title')}</Text>
+                  <Text style={styles.modalSubtitle}>
+                    {t('eventCreationModal.subtitle')}
+                  </Text>
+                </View>
+              </FadeInAnimation>
 
-          <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+              <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
             {/* Event Title */}
-            <View style={styles.inputSection}>
+            <SlideInAnimation direction="up" delay={400} duration={400} intensity={30}>
+              <View style={styles.inputSection}>
               <Text style={styles.inputLabel}>{t('eventCreationModal.form.eventTitle')}</Text>
               <View style={styles.inputContainer}>
                 <RNImage 
@@ -877,9 +885,11 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
                 />
               </View>
             </View>
+            </SlideInAnimation>
 
             {/* Event Description */}
-            <View style={styles.inputSection}>
+            <SlideInAnimation direction="up" delay={500} duration={400} intensity={30}>
+              <View style={styles.inputSection}>
               <Text style={styles.inputLabel}>{t('eventCreationModal.form.eventDescription')}</Text>
               <View style={styles.inputContainer}>
                 <RNImage 
@@ -903,9 +913,11 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
                 />
               </View>
             </View>
+            </SlideInAnimation>
 
             {/* Assign Event */}
-            <View style={styles.inputSection}>
+            <SlideInAnimation direction="up" delay={600} duration={400} intensity={30}>
+              <View style={styles.inputSection}>
               <Text style={styles.inputLabel}>{t('eventCreationModal.form.assignEvent')}</Text>
               <ScrollView 
                 horizontal 
@@ -955,9 +967,11 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
                 )}
               </ScrollView>
             </View>
+            </SlideInAnimation>
 
             {/* Start time & Duration */}
-            <View style={styles.inputSection}>
+            <SlideInAnimation direction="up" delay={700} duration={400} intensity={30}>
+              <View style={styles.inputSection}>
               <View style={styles.timeContainer}>
                 {/* Start time */}
                 <View style={styles.timeFieldContainer}>
@@ -998,9 +1012,11 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
                 </View>
               </View>
             </View>
+            </SlideInAnimation>
 
              {/* Event Reward */}
-             <View style={styles.rewardContainer}>
+             <SlideInAnimation direction="up" delay={750} duration={400} intensity={30}>
+               <View style={styles.rewardContainer}>
                <View style={styles.rewardContent}>
                  <View style={styles.rewardLeft}>
                    <View style={styles.rewardHeader}>
@@ -1020,18 +1036,23 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
                  </View>
                </View>
              </View>
+             </SlideInAnimation>
           </ScrollView>
 
           {/* Add Event Button */}
-          <Pressable
-            style={[styles.addButton, loading && styles.addButtonDisabled]}
-            onPress={handleCreateEvent}
-            disabled={loading || !form.title.trim()}
-          >
-            <Text style={styles.addButtonText}>{loading ? t('eventCreationModal.button.creating') : t('eventCreationModal.button.addEvent')}</Text>
-          </Pressable>
+          <BounceInAnimation delay={800} duration={600}>
+            <Pressable
+              style={[styles.addButton, loading && styles.addButtonDisabled]}
+              onPress={handleCreateEvent}
+              disabled={loading || !form.title.trim()}
+            >
+              <Text style={styles.addButtonText}>{loading ? t('eventCreationModal.button.creating') : t('eventCreationModal.button.addEvent')}</Text>
+            </Pressable>
+          </BounceInAnimation>
         </View>
-      </View>
+            </SlideInAnimation>
+          </View>
+        </View>
 
       {/* DateTime Picker Modal */}
       <DateTimePickerModal

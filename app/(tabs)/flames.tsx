@@ -23,6 +23,11 @@ import { useFamilyTasks } from '@/hooks/useFamilyTasks';
 import { useFamilyCalendarEvents } from '@/hooks/useFamilyCalendarEvents';
 import { useFamilyShoppingItems } from '@/hooks/useFamilyShoppingItems';
 import { supabase } from '@/lib/supabase';
+import { 
+  FadeInAnimation, 
+  SlideInAnimation, 
+  BounceInAnimation 
+} from '@/components/CoolAnimations';
 
 // Custom verification icon component
 const VerificationIcon = ({ size = 16 }: { size?: number }) => (
@@ -217,7 +222,8 @@ export default function FlamesScreen() {
       
       {/* Fixed Header Section */}
       <View style={styles.fixedHeader}>
-        <View style={styles.profileSection}>
+        <FadeInAnimation delay={0} duration={500}>
+          <View style={styles.profileSection}>
           <View style={styles.profileInfo}>
             <View style={styles.avatarContainer}>
               {currentProfile?.avatar_url ? (
@@ -250,6 +256,7 @@ export default function FlamesScreen() {
             </View>
           </View>
         </View>
+        </FadeInAnimation>
       </View>
 
       <ScrollView 
@@ -266,8 +273,9 @@ export default function FlamesScreen() {
       >
 
         {/* Current Rank Section */}
-        <View style={styles.section}>
-          <View style={styles.futuresElementsPanel}>
+        <SlideInAnimation direction="up" delay={0} duration={600} intensity={50}>
+          <View style={styles.section}>
+            <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>{t('flames.currentRank.title')}</Text>
               <View style={styles.badge}>
@@ -302,10 +310,12 @@ export default function FlamesScreen() {
                 </View>
           </View>
         </View>
+        </SlideInAnimation>
 
         {/* Family Ranks Section */}
-        <View style={styles.section}>
-          <View style={styles.futuresElementsPanel}>
+        <SlideInAnimation direction="up" delay={200} duration={600} intensity={50}>
+          <View style={styles.section}>
+            <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>{t('flames.familyRanks.title')}</Text>
               <View style={styles.badge}>
@@ -336,7 +346,10 @@ export default function FlamesScreen() {
                   const rankPosition = member.rank_position || index + 1;
                   
                   return (
-                    <View key={member.user_id} style={styles.rankCardItem}>
+                    <View key={member.user_id} style={{ flex: 1, alignSelf: 'stretch' }}>
+                      <View style={{ flex: 1, alignSelf: 'stretch' }}>
+                        <BounceInAnimation delay={300 + (index * 100)} duration={800}>
+                          <View style={[styles.rankCardItem, { flex: 1, alignSelf: 'stretch', height: '100%' }]}>
                       <Text style={styles.rankCardTitle}>
                         {t('flames.familyRanks.place', { position: rankPosition })}
                       </Text>
@@ -358,16 +371,21 @@ export default function FlamesScreen() {
                         <Text style={styles.rankCardLastName}>{lastName}</Text>
                       </View>
                     </View>
+                        </BounceInAnimation>
+                      </View>
+                    </View>
                   );
                 })}
               </View>
             )}
           </View>
         </View>
+        </SlideInAnimation>
 
         {/* Your Current Status Banner */}
-        <View style={styles.section}>
-          <View style={styles.workSummaryBanner}>
+        <SlideInAnimation direction="up" delay={400} duration={600} intensity={50}>
+          <View style={styles.section}>
+            <View style={styles.workSummaryBanner}>
             <View style={styles.workSummaryContent}>
               <View style={styles.workSummaryText}>
                 <Text style={styles.workSummaryTitle}>{t('flames.statusBanner.title')}</Text>
@@ -386,10 +404,12 @@ export default function FlamesScreen() {
                 </View>
           </View>
         </View>
+        </SlideInAnimation>
 
         {/* Achievements Section */}
-        <View style={styles.section}>
-          <View style={styles.futuresElementsPanel}>
+        <SlideInAnimation direction="up" delay={500} duration={600} intensity={50}>
+          <View style={styles.section}>
+            <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>{t('flames.achievements.title')}</Text>
               <View style={styles.badge}>
@@ -400,7 +420,8 @@ export default function FlamesScreen() {
           
           <View style={styles.achievementsGrid}>
                     {/* Tasks Achievement */}
-                    <View style={styles.achievementCard}>
+                    <BounceInAnimation delay={600} duration={800}>
+                      <View style={styles.achievementCard}>
                       <View style={styles.achievementRewardContainer}>
                         <Text style={styles.achievementStatus}>{completedTasks >= 15 ? t('flames.achievements.finished') : t('flames.achievements.progress')}</Text>
                         <Text style={styles.achievementFlames}>{t('flames.achievements.flamesReward', { count: 150 })}</Text>
@@ -419,9 +440,11 @@ export default function FlamesScreen() {
                       <Text style={styles.achievementName}>{t('flames.achievements.tasks')}</Text>
                       <Text style={styles.achievementDescription}>{t('flames.achievements.tasksCompleted', { completed: completedTasks, total: 15 })}</Text>
                 </View>
+                    </BounceInAnimation>
                     
                     {/* Calendar Events Achievement */}
-                    <View style={styles.achievementCard}>
+                    <BounceInAnimation delay={700} duration={800}>
+                      <View style={styles.achievementCard}>
                       <View style={styles.achievementRewardContainer}>
                         <Text style={styles.achievementStatus}>{totalEvents >= 25 ? t('flames.achievements.finished') : t('flames.achievements.progress')}</Text>
                         <Text style={styles.achievementFlames}>{t('flames.achievements.flamesReward', { count: 250 })}</Text>
@@ -440,8 +463,10 @@ export default function FlamesScreen() {
                       <Text style={styles.achievementName}>{t('flames.achievements.calendar')}</Text>
                       <Text style={styles.achievementDescription}>{t('flames.achievements.calendarEvents', { completed: totalEvents, total: 25 })}</Text>
               </View>
+                    </BounceInAnimation>
 
-                    <View style={styles.achievementCard}>
+                    <BounceInAnimation delay={800} duration={800}>
+                      <View style={styles.achievementCard}>
                       <View style={styles.achievementRewardContainer}>
                         <Text style={styles.achievementStatus}>{completedShoppingItems >= 20 ? t('flames.achievements.finished') : t('flames.achievements.progress')}</Text>
                         <Text style={styles.achievementFlames}>{t('flames.achievements.flamesReward', { count: 200 })}</Text>
@@ -460,9 +485,11 @@ export default function FlamesScreen() {
                       <Text style={styles.achievementName}>{t('flames.achievements.shopList')}</Text>
                       <Text style={styles.achievementDescription}>{t('flames.achievements.shopListItems', { completed: completedShoppingItems, total: 20 })}</Text>
             </View>
+                    </BounceInAnimation>
 
                     {/* Total Tasks Achievement */}
-                    <View style={styles.achievementCard}>
+                    <BounceInAnimation delay={900} duration={800}>
+                      <View style={styles.achievementCard}>
                       <View style={styles.achievementRewardContainer}>
                         <Text style={styles.achievementStatus}>{totalTasks >= 50 ? t('flames.achievements.finished') : t('flames.achievements.progress')}</Text>
                         <Text style={styles.achievementFlames}>{t('flames.achievements.flamesReward', { count: 300 })}</Text>
@@ -481,9 +508,11 @@ export default function FlamesScreen() {
                       <Text style={styles.achievementName}>{t('flames.achievements.allTasks')}</Text>
                       <Text style={styles.achievementDescription}>{t('flames.achievements.allTasksTotal', { completed: totalTasks, total: 50 })}</Text>
             </View>
+                    </BounceInAnimation>
 
                     {/* Total Events Achievement */}
-                    <View style={styles.achievementCard}>
+                    <BounceInAnimation delay={1000} duration={800}>
+                      <View style={styles.achievementCard}>
                       <View style={styles.achievementRewardContainer}>
                         <Text style={styles.achievementStatus}>{totalEvents >= 50 ? t('flames.achievements.finished') : t('flames.achievements.progress')}</Text>
                         <Text style={styles.achievementFlames}>{t('flames.achievements.flamesReward', { count: 400 })}</Text>
@@ -502,9 +531,11 @@ export default function FlamesScreen() {
                       <Text style={styles.achievementName}>{t('flames.achievements.allEvents')}</Text>
                       <Text style={styles.achievementDescription}>{t('flames.achievements.allEventsTotal', { completed: totalEvents, total: 50 })}</Text>
             </View>
+                    </BounceInAnimation>
 
                     {/* Total Shopping Items Achievement */}
-                    <View style={styles.achievementCard}>
+                    <BounceInAnimation delay={1100} duration={800}>
+                      <View style={styles.achievementCard}>
                       <View style={styles.achievementRewardContainer}>
                         <Text style={styles.achievementStatus}>{totalShoppingItems >= 30 ? t('flames.achievements.finished') : t('flames.achievements.progress')}</Text>
                         <Text style={styles.achievementFlames}>{t('flames.achievements.flamesReward', { count: 350 })}</Text>
@@ -523,9 +554,11 @@ export default function FlamesScreen() {
                       <Text style={styles.achievementName}>{t('flames.achievements.allItems')}</Text>
                       <Text style={styles.achievementDescription}>{t('flames.achievements.allItemsTotal', { completed: totalShoppingItems, total: 30 })}</Text>
             </View>
+                    </BounceInAnimation>
                   </View>
           </View>
         </View>
+        </SlideInAnimation>
 
         {/* Bottom spacing for tab bar */}
         <View style={styles.bottomSpacing} />
@@ -763,6 +796,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
   rankCardsContainer: {
     flexDirection: 'row',
     gap: 12,
+    alignItems: 'stretch',
   },
   rankCardItem: {
     flex: 1,

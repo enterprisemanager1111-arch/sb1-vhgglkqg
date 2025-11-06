@@ -63,6 +63,11 @@ import * as Clipboard from 'expo-clipboard';
 import CustomToggleSwitch from '@/components/CustomToggleSwitch';
 import ProfileDetailIcon from '@/components/ProfileDetailIcon';
 import { colors as themeColors, brandColors, getTheme } from '@/constants/theme';
+import { 
+  FadeInAnimation, 
+  SlideInAnimation, 
+  BounceInAnimation 
+} from '@/components/CoolAnimations';
 
 // Custom verification icon component
 const VerificationIcon = ({ size = 16 }: { size?: number }) => (
@@ -1378,7 +1383,8 @@ export default function UserProfile() {
 
       {/* Fixed Header Section */}
       <View style={styles.fixedHeader}>
-        <View style={styles.profileSection}>
+        <FadeInAnimation delay={0} duration={500}>
+          <View style={styles.profileSection}>
           <View style={styles.profileInfo}>
             <View style={styles.avatarContainer}>
               {currentProfile?.avatar_url ? (
@@ -1402,6 +1408,7 @@ export default function UserProfile() {
             </View>
           </View>
         </View>
+        </FadeInAnimation>
       </View>
 
       <ScrollView
@@ -1418,8 +1425,9 @@ export default function UserProfile() {
       >
 
         {/* Setup & Settings Banner */}
-        <View style={styles.section}>
-          <View style={styles.workSummaryBanner}>
+        <SlideInAnimation direction="up" delay={0} duration={600} intensity={50}>
+          <View style={styles.section}>
+            <View style={styles.workSummaryBanner}>
             <View style={styles.workSummaryContent}>
               <View style={styles.workSummaryText}>
                 <Text style={styles.workSummaryTitle}>{t('profilePage.banner.title')}</Text>
@@ -1438,11 +1446,13 @@ export default function UserProfile() {
             </View>
           </View>
         </View>
+        </SlideInAnimation>
 
         {/* Settings Sections */}
-        {settingsSections.map((section) => (
-          <View key={section.id} style={styles.section}>
-            <View style={styles.futuresElementsPanel}>
+        {settingsSections.map((section, sectionIndex) => (
+          <SlideInAnimation key={section.id} direction="up" delay={200 + (sectionIndex * 200)} duration={600} intensity={50}>
+            <View style={styles.section}>
+              <View style={styles.futuresElementsPanel}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>{section.title}</Text>
                 <View style={styles.badge}>
@@ -1453,8 +1463,8 @@ export default function UserProfile() {
 
               <View style={styles.settingsCard}>
                 {section.items.map((item, index) => (
-                  <Pressable
-                    key={item.id}
+                  <BounceInAnimation key={item.id} delay={300 + (sectionIndex * 200) + (index * 50)} duration={600}>
+                    <Pressable
                     style={[
                       styles.settingsItem,
                       item.destructive && styles.destructiveItem,
@@ -1495,10 +1505,12 @@ export default function UserProfile() {
                       )}
                     </View>
                   </Pressable>
+                  </BounceInAnimation>
                 ))}
               </View>
             </View>
           </View>
+        </SlideInAnimation>
         ))}
 
         {/* Bottom Spacing for Tab Bar */}
