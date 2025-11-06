@@ -26,6 +26,261 @@ import { FadeInAnimation, SlideInAnimation, BounceInAnimation } from '@/componen
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
+// Date Range Picker Modal Component
+const DateRangePickerModal = ({
+  visible,
+  onClose,
+  onDateSelect,
+  selectedStartDate,
+  selectedEndDate,
+  currentTab,
+  onTabChange,
+  theme,
+  isDarkMode,
+  t,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onDateSelect: (date: Date, type: 'start' | 'end') => void;
+  selectedStartDate: Date | null;
+  selectedEndDate: Date | null;
+  currentTab: 'start' | 'end';
+  onTabChange: (tab: 'start' | 'end') => void;
+  theme: any;
+  isDarkMode: boolean;
+  t: any;
+}) => {
+  const [tempDate, setTempDate] = useState(new Date());
+
+  const styles = createDatePickerStyles(theme, isDarkMode);
+
+  // Update tempDate when tab changes or modal opens
+  useEffect(() => {
+    if (visible) {
+      if (currentTab === 'start' && selectedStartDate) {
+        setTempDate(selectedStartDate);
+      } else if (currentTab === 'end' && selectedEndDate) {
+        setTempDate(selectedEndDate);
+      } else {
+        setTempDate(new Date());
+      }
+    }
+  }, [visible, currentTab, selectedStartDate, selectedEndDate]);
+
+  const handleConfirm = () => {
+    // Validate end date is not before start date
+    if (currentTab === 'end' && selectedStartDate && tempDate < selectedStartDate) {
+      Alert.alert('Invalid Date', 'End date cannot be before start date');
+      return;
+    }
+    
+    onDateSelect(tempDate, currentTab);
+    // Auto-switch to end date tab after selecting start date
+    if (currentTab === 'start') {
+      onTabChange('end');
+    } else {
+      onClose();
+    }
+  };
+
+  const generateDays = (year: number, month: number) => {
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    return Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  };
+
+  // Check if a date is disabled (for end date picker)
+  const isDateDisabled = (day: number) => {
+    if (currentTab === 'end' && selectedStartDate) {
+      const currentDate = new Date(tempDate.getFullYear(), tempDate.getMonth(), day);
+      return currentDate < selectedStartDate;
+    }
+    return false;
+  };
+
+  // Check if year/month combination is valid for end date picker
+  const isYearMonthValid = (year: number, month: number) => {
+    if (currentTab === 'end' && selectedStartDate) {
+      const startDateObj = selectedStartDate;
+      const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+      const lastDateOfMonth = new Date(year, month, lastDayOfMonth);
+      return lastDateOfMonth >= startDateObj;
+    }
+    return true;
+  };
+
+  const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i);
+  const months = [
+    t('taskCreationModal.months.january') || 'January',
+    t('taskCreationModal.months.february') || 'February',
+    t('taskCreationModal.months.march') || 'March',
+    t('taskCreationModal.months.april') || 'April',
+    t('taskCreationModal.months.may') || 'May',
+    t('taskCreationModal.months.june') || 'June',
+    t('taskCreationModal.months.july') || 'July',
+    t('taskCreationModal.months.august') || 'August',
+    t('taskCreationModal.months.september') || 'September',
+    t('taskCreationModal.months.october') || 'October',
+    t('taskCreationModal.months.november') || 'November',
+    t('taskCreationModal.months.december') || 'December'
+  ];
+
+  if (!visible) return null;
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={styles.datePickerOverlay}>
+        <View style={styles.datePickerContainer}>
+          <View style={styles.datePickerHeader}>
+            <Pressable
+              onPress={onClose}
+              style={styles.datePickerCancelButton}
+            >
+              <Text style={styles.datePickerCancelText}>{t('common.cancel') || 'Cancel'}</Text>
+            </Pressable>
+            <Text style={styles.datePickerTitle}>
+              Select {currentTab === 'start' ? 'Start' : 'End'} Date
+            </Text>
+            <Pressable
+              onPress={handleConfirm}
+              style={styles.datePickerDoneButton}
+            >
+              <Text style={styles.datePickerDoneText}>{t('taskCreationModal.datePicker.done') || 'Done'}</Text>
+            </Pressable>
+          </View>
+
+          {/* Tab Selector */}
+          <View style={styles.tabContainer}>
+            <Pressable
+              style={[styles.tab, currentTab === 'start' && styles.tabActive]}
+              onPress={() => onTabChange('start')}
+            >
+              <Text style={[styles.tabText, currentTab === 'start' && styles.tabTextActive]}>
+                Start Date
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.tab, currentTab === 'end' && styles.tabActive]}
+              onPress={() => onTabChange('end')}
+            >
+              <Text style={[styles.tabText, currentTab === 'end' && styles.tabTextActive]}>
+                End Date
+              </Text>
+            </Pressable>
+          </View>
+          
+          <View style={styles.datePickerContent}>
+            <View style={styles.datePickerRow}>
+              <View style={styles.datePickerColumn}>
+                <Text style={styles.datePickerLabel}>{t('taskCreationModal.datePicker.year') || 'Year'}</Text>
+                <ScrollView style={styles.datePickerScroll} showsVerticalScrollIndicator={false}>
+                  {years.map((year) => {
+                    const yearDisabled = !isYearMonthValid(year, tempDate.getMonth());
+                    return (
+                      <Pressable
+                        key={year}
+                        style={[
+                          styles.datePickerOption,
+                          tempDate.getFullYear() === year && styles.datePickerOptionSelected,
+                          yearDisabled && styles.datePickerOptionDisabled
+                        ]}
+                        onPress={() => {
+                          if (!yearDisabled) {
+                            setTempDate(new Date(year, tempDate.getMonth(), tempDate.getDate()));
+                          }
+                        }}
+                        disabled={yearDisabled}
+                      >
+                        <Text style={[
+                          styles.datePickerOptionText,
+                          tempDate.getFullYear() === year && styles.datePickerOptionTextSelected,
+                          yearDisabled && styles.datePickerOptionTextDisabled
+                        ]}>
+                          {year}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+              
+              <View style={styles.datePickerColumn}>
+                <Text style={styles.datePickerLabel}>{t('taskCreationModal.datePicker.month') || 'Month'}</Text>
+                <ScrollView style={styles.datePickerScroll} showsVerticalScrollIndicator={false}>
+                  {months.map((month, index) => {
+                    const monthDisabled = !isYearMonthValid(tempDate.getFullYear(), index);
+                    return (
+                      <Pressable
+                        key={month}
+                        style={[
+                          styles.datePickerOption,
+                          tempDate.getMonth() === index && styles.datePickerOptionSelected,
+                          monthDisabled && styles.datePickerOptionDisabled
+                        ]}
+                        onPress={() => {
+                          if (!monthDisabled) {
+                            setTempDate(new Date(tempDate.getFullYear(), index, tempDate.getDate()));
+                          }
+                        }}
+                        disabled={monthDisabled}
+                      >
+                        <Text style={[
+                          styles.datePickerOptionText,
+                          tempDate.getMonth() === index && styles.datePickerOptionTextSelected,
+                          monthDisabled && styles.datePickerOptionTextDisabled
+                        ]}>
+                          {month}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+              
+              <View style={styles.datePickerColumn}>
+                <Text style={styles.datePickerLabel}>{t('taskCreationModal.datePicker.day') || 'Day'}</Text>
+                <ScrollView style={styles.datePickerScroll} showsVerticalScrollIndicator={false}>
+                  {generateDays(tempDate.getFullYear(), tempDate.getMonth()).map((day) => {
+                    const disabled = isDateDisabled(day);
+                    return (
+                      <Pressable
+                        key={day}
+                        style={[
+                          styles.datePickerOption,
+                          tempDate.getDate() === day && styles.datePickerOptionSelected,
+                          disabled && styles.datePickerOptionDisabled
+                        ]}
+                        onPress={() => {
+                          if (!disabled) {
+                            setTempDate(new Date(tempDate.getFullYear(), tempDate.getMonth(), day));
+                          }
+                        }}
+                        disabled={disabled}
+                      >
+                        <Text style={[
+                          styles.datePickerOptionText,
+                          tempDate.getDate() === day && styles.datePickerOptionTextSelected,
+                          disabled && styles.datePickerOptionTextDisabled
+                        ]}>
+                          {day}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
 // Union type for task
 type TaskData = TodayTask | FamilyTask;
 
@@ -58,8 +313,9 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
   });
   const [loading, setLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [datePickerType, setDatePickerType] = useState<'start' | 'end'>('start');
+  const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(null);
+  const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null);
+  const [currentPickerTab, setCurrentPickerTab] = useState<'start' | 'end'>('start');
   const { showLoading, hideLoading } = useLoading();
   
   const { familyMembers, currentFamily } = useFamily();
@@ -133,15 +389,40 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
     });
   };
 
-  const handleDateSelect = (selectedDate: Date) => {
-    setSelectedDate(selectedDate);
-    
-    const year = selectedDate.getFullYear();
-    const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-    const day = String(selectedDate.getDate()).padStart(2, '0');
+  const handleDateSelect = (date: Date, type: 'start' | 'end') => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
     const formattedDate = `${year}-${month}-${day}`;
     
-    updateForm(datePickerType === 'start' ? 'startDate' : 'endDate', formattedDate);
+    if (type === 'start') {
+      setSelectedStartDate(date);
+      updateForm('startDate', formattedDate);
+      // If end date is before new start date, clear it
+      if (form.endDate && new Date(form.endDate) < date) {
+        updateForm('endDate', '');
+        setSelectedEndDate(null);
+      }
+    } else {
+      setSelectedEndDate(date);
+      updateForm('endDate', formattedDate);
+    }
+  };
+
+  const handleDueDatePress = () => {
+    // Initialize dates if they exist in form
+    if (form.startDate) {
+      setSelectedStartDate(new Date(form.startDate));
+    }
+    if (form.endDate) {
+      setSelectedEndDate(new Date(form.endDate));
+    }
+    setCurrentPickerTab('end'); // Start with end date (due date)
+    setShowDatePicker(true);
+  };
+
+  const handleDatePickerDone = () => {
+    setShowDatePicker(false);
   };
 
   const formatDisplayDate = (dateString: string) => {
@@ -163,6 +444,17 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const formatDateRange = () => {
+    if (form.startDate && form.endDate) {
+      return `${formatDisplayDate(form.startDate)} ~ ${formatDisplayDate(form.endDate)}`;
+    } else if (form.endDate) {
+      return formatDisplayDate(form.endDate);
+    } else if (form.startDate) {
+      return formatDisplayDate(form.startDate);
+    }
+    return 'Due date';
   };
 
   const handleUpdateTask = async () => {
@@ -277,290 +569,360 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
           <View style={{ width: '100%' }} pointerEvents="box-none">
             <SlideInAnimation direction="up" delay={100} duration={400} intensity={50}>
               <View style={styles.modalContainer}>
-                {/* Header */}
+                {/* Header with Icon, Title, Reward, and Intro Text */}
                 <FadeInAnimation delay={200} duration={400}>
-                  <View style={styles.header}>
-                    <Text style={styles.headerTitle}>Edit Task</Text>
-                    <Pressable style={styles.closeButton} onPress={handleClose}>
-                      <X size={24} color="#161618" strokeWidth={2} />
-                    </Pressable>
+                  <View style={styles.modalHeader}>
+                    <BounceInAnimation delay={250} duration={600}>
+                      <View style={styles.iconContainer} pointerEvents="box-none">
+                        <View style={styles.icon}>
+                          <RNImage 
+                            source={require('@/assets/images/icon/edit_task.png')}
+                            style={styles.iconImage}
+                            resizeMode="contain"
+                          />
+                        </View>
+                      </View>
+                    </BounceInAnimation>
+                    <Text style={styles.modalTitle}>{task.title || 'Task'}</Text>
+                    <Text style={styles.modalReward}>+ {form.points} Flames</Text>
+                    <Text style={styles.modalIntroText}>
+                      Here you can edit the task. Be sure about which setting you want to change
+                    </Text>
                   </View>
                 </FadeInAnimation>
 
                 {/* Content */}
-                <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-              <View style={styles.formContainer}>
-                {/* Task Title */}
-                <SlideInAnimation direction="up" delay={300} duration={400} intensity={30}>
-                  <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Task Title *</Text>
-                  <View style={styles.inputContainer}>
-                    <RNImage 
-                      source={require('@/assets/images/icon/task_title.png')}
-                      style={styles.inputIcon}
-                      resizeMode="contain"
-                    />
-                    <TextInput
-                      style={[
-                        styles.input,
-                        Platform.OS === 'web' && ({
-                          outline: 'none',
-                          border: 'none',
-                          boxShadow: 'none',
-                        } as any)
-                      ]}
-                      placeholder="Enter task title"
-                      value={form.title}
-                      onChangeText={(value) => updateForm('title', value)}
-                      placeholderTextColor="#888888"
-                    />
-                  </View>
-                </View>
-                </SlideInAnimation>
-
-                {/* Task Description */}
-                <SlideInAnimation direction="up" delay={400} duration={400} intensity={30}>
-                  <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Description</Text>
-                  <View style={styles.inputContainer}>
-                    <RNImage 
-                      source={require('@/assets/images/icon/note.png')}
-                      style={styles.inputIcon}
-                      resizeMode="contain"
-                    />
-                    <TextInput
-                      style={[
-                        styles.input,
-                        styles.textArea,
-                        Platform.OS === 'web' && ({
-                          outline: 'none',
-                          border: 'none',
-                          boxShadow: 'none',
-                        } as any)
-                      ]}
-                      placeholder="Enter task description"
-                      value={form.description}
-                      onChangeText={(value) => updateForm('description', value)}
-                      placeholderTextColor="#888888"
-                      multiline
-                      numberOfLines={3}
-                    />
-                  </View>
-                </View>
-                </SlideInAnimation>
-
-                {/* Assign Task */}
-                <SlideInAnimation direction="up" delay={500} duration={400} intensity={30}>
-                  <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Assign To</Text>
-                  <ScrollView 
-                    horizontal 
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.assigneeScrollContainer}
-                    contentContainerStyle={styles.assigneeContainer}
-                  >
-                    {familyMembers && familyMembers.length > 0 ? (
-                      familyMembers.map((member) => {
-                        const isSelected = form.assignee.includes(member.user_id);
-                        return (
-                          <Pressable
-                            key={member.user_id}
+                <View style={styles.content}>
+                  <View style={styles.formContainer}>
+                    {/* Task Title */}
+                    <SlideInAnimation direction="up" delay={300} duration={400} intensity={30}>
+                      <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>Task Title</Text>
+                        <View style={styles.inputContainer}>
+                          <RNImage 
+                            source={require('@/assets/images/icon/task_title.png')}
+                            style={styles.inputIcon}
+                            resizeMode="contain"
+                          />
+                          <TextInput
                             style={[
-                              styles.assigneeButton,
-                              isSelected && styles.selectedAssignee
+                              styles.input,
+                              Platform.OS === 'web' && ({
+                                outline: 'none',
+                                border: 'none',
+                                boxShadow: 'none',
+                              } as any)
                             ]}
-                            onPress={() => toggleAssignee(member.user_id)}
-                          >
-                            <Text style={[
-                              styles.assigneeText,
-                              isSelected && styles.selectedAssigneeText
-                            ]}>
-                              {member.profiles?.name || 'Unknown'}
-                            </Text>
-                            <View style={[
-                              styles.radioButton,
-                              isSelected && styles.radioButtonSelected
-                            ]}>
-                              {isSelected && (
-                                <RNImage
-                                  source={require('@/assets/images/icon/finished.png')}
-                                  style={styles.finishedIcon}
-                                  resizeMode="contain"
-                                />
-                              )}
-                            </View>
-                          </Pressable>
-                        );
-                      })
-                    ) : (
-                      <Text style={styles.assigneeText}>No family members</Text>
-                    )}
-                  </ScrollView>
-                </View>
-                </SlideInAnimation>
+                            placeholder="Enter task title"
+                            value={form.title}
+                            onChangeText={(value) => updateForm('title', value)}
+                            placeholderTextColor={isDarkMode ? theme.placeholder : '#888888'}
+                          />
+                        </View>
+                      </View>
+                    </SlideInAnimation>
 
-                {/* Start Date and End Date */}
-                <SlideInAnimation direction="up" delay={600} duration={400} intensity={30}>
-                  <View style={styles.inputGroup}>
-                  <View style={styles.dateRowContainer}>
-                    <View style={styles.halfWidthContainer}>
-                      <Text style={styles.inputLabel}>Start Date</Text>
-                      <Pressable 
-                        style={styles.inputContainer}
-                        onPress={() => {
-                          setDatePickerType('start');
-                          setShowDatePicker(true);
-                        }}
-                      >
-                        <RNImage 
-                          source={require('@/assets/images/icon/calendar.png')}
-                          style={styles.inputIcon}
-                          resizeMode="contain"
-                        />
-                        <Text style={[styles.input, form.startDate ? styles.inputText : styles.inputPlaceholder]}>
-                          {form.startDate ? formatDisplayDate(form.startDate) : 'Select start date'}
-                        </Text>
-                        <ChevronDown size={16} color={theme.placeholder} strokeWidth={2} style={styles.chevronIcon} />
-                      </Pressable>
+                    {/* Task Description */}
+                    <SlideInAnimation direction="up" delay={400} duration={400} intensity={30}>
+                      <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>Task Description</Text>
+                        <View style={styles.inputContainer}>
+                          <RNImage 
+                            source={require('@/assets/images/icon/note.png')}
+                            style={styles.inputIcon}
+                            resizeMode="contain"
+                          />
+                          <TextInput
+                            style={[
+                              styles.input,
+                              styles.textArea,
+                              Platform.OS === 'web' && ({
+                                outline: 'none',
+                                border: 'none',
+                                boxShadow: 'none',
+                              } as any)
+                            ]}
+                            placeholder="Enter task description"
+                            value={form.description}
+                            onChangeText={(value) => updateForm('description', value)}
+                            placeholderTextColor={isDarkMode ? theme.placeholder : '#888888'}
+                            multiline
+                            numberOfLines={2}
+                          />
+                        </View>
+                      </View>
+                    </SlideInAnimation>
+
+                    {/* Assign Task */}
+                    <SlideInAnimation direction="up" delay={500} duration={400} intensity={30}>
+                      <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>Assign task</Text>
+                        <ScrollView 
+                          horizontal 
+                          showsHorizontalScrollIndicator={false}
+                          style={styles.assigneeScrollContainer}
+                          contentContainerStyle={styles.assigneeContainer}
+                        >
+                          {familyMembers && familyMembers.length > 0 ? (
+                            familyMembers.map((member) => {
+                              const isSelected = form.assignee.includes(member.user_id);
+                              return (
+                                <Pressable
+                                  key={member.user_id}
+                                  style={[
+                                    styles.assigneeButton,
+                                    isSelected && styles.selectedAssignee
+                                  ]}
+                                  onPress={() => toggleAssignee(member.user_id)}
+                                >
+                                  <Text style={[
+                                    styles.assigneeText,
+                                    isSelected && styles.selectedAssigneeText
+                                  ]}>
+                                    {member.profiles?.name || 'Unknown'}
+                                  </Text>
+                                  <View style={[
+                                    styles.radioButton,
+                                    isSelected && styles.radioButtonSelected
+                                  ]}>
+                                    {isSelected && (
+                                      <RNImage
+                                        source={require('@/assets/images/icon/finished.png')}
+                                        style={styles.finishedIcon}
+                                        resizeMode="contain"
+                                      />
+                                    )}
+                                  </View>
+                                </Pressable>
+                              );
+                            })
+                          ) : (
+                            <Text style={styles.assigneeText}>No family members</Text>
+                          )}
+                        </ScrollView>
+                      </View>
+                    </SlideInAnimation>
+
+                    {/* Due Date (optional) */}
+                    <SlideInAnimation direction="up" delay={600} duration={400} intensity={30}>
+                      <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>Due date (optional)</Text>
+                        <Pressable 
+                          style={styles.inputContainer}
+                          onPress={handleDueDatePress}
+                        >
+                          <RNImage 
+                            source={require('@/assets/images/icon/calendar.png')}
+                            style={styles.inputIcon}
+                            resizeMode="contain"
+                          />
+                          <Text style={[styles.input, (form.startDate || form.endDate) ? styles.inputText : styles.inputPlaceholder]}>
+                            {formatDateRange()}
+                          </Text>
+                          <ChevronDown size={16} color={theme.placeholder} strokeWidth={2} style={styles.chevronIcon} />
+                        </Pressable>
+                      </View>
+                    </SlideInAnimation>
+
+                    {/* Priority */}
+                    <SlideInAnimation direction="up" delay={700} duration={400} intensity={30}>
+                      <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>Priority</Text>
+                        <Pressable 
+                          style={styles.inputContainer}
+                          onPress={() => {
+                            // TODO: Implement priority picker
+                            Alert.alert('Priority', 'Priority picker coming soon');
+                          }}
+                        >
+                          <RNImage 
+                            source={require('@/assets/images/icon/priority.png')}
+                            style={styles.inputIcon}
+                            resizeMode="contain"
+                          />
+                          <Text style={styles.input}>
+                            {form.category === 'household' ? 'High Priority' : form.category || 'High Priority'}
+                          </Text>
+                          <ChevronDown size={16} color={theme.placeholder} strokeWidth={2} style={styles.chevronIcon} />
+                        </Pressable>
+                      </View>
+                    </SlideInAnimation>
+
+                    {/* Action Buttons */}
+                    <View style={styles.actionButtonsContainer}>
+                      <BounceInAnimation delay={800} duration={600}>
+                        <Pressable
+                          style={[styles.finishButton, (!form.title.trim() || loading) && styles.disabledButton]}
+                          onPress={handleUpdateTask}
+                          disabled={loading || !form.title.trim()}
+                        >
+                          <Text style={[styles.finishButtonText, (!form.title.trim() || loading) && styles.disabledText]}>
+                            {loading ? 'Updating...' : 'Finish Task'}
+                          </Text>
+                        </Pressable>
+                      </BounceInAnimation>
+                      
+                      <BounceInAnimation delay={850} duration={600}>
+                        <Pressable
+                          style={styles.cancelButton}
+                          onPress={handleClose}
+                        >
+                          <Text style={styles.cancelButtonText}>Cancel Task</Text>
+                        </Pressable>
+                      </BounceInAnimation>
                     </View>
-
-                    <View style={styles.halfWidthContainer}>
-                      <Text style={styles.inputLabel}>End Date</Text>
-                      <Pressable 
-                        style={styles.inputContainer}
-                        onPress={() => {
-                          setDatePickerType('end');
-                          setShowDatePicker(true);
-                        }}
-                      >
-                        <RNImage 
-                          source={require('@/assets/images/icon/calendar.png')}
-                          style={styles.inputIcon}
-                          resizeMode="contain"
-                        />
-                        <Text style={[styles.input, form.endDate ? styles.inputText : styles.inputPlaceholder]}>
-                          {form.endDate ? formatDisplayDate(form.endDate) : 'Select end date'}
-                        </Text>
-                        <ChevronDown size={16} color={theme.placeholder} strokeWidth={2} style={styles.chevronIcon} />
-                      </Pressable>
-                    </View>
                   </View>
                 </View>
-                </SlideInAnimation>
-
-                {/* Category */}
-                <SlideInAnimation direction="up" delay={700} duration={400} intensity={30}>
-                  <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Category</Text>
-                  <View style={styles.inputContainer}>
-                    <TextInput
-                      style={[
-                        styles.input,
-                        Platform.OS === 'web' && ({
-                          outline: 'none',
-                          border: 'none',
-                          boxShadow: 'none',
-                        } as any)
-                      ]}
-                      placeholder="Category"
-                      value={form.category}
-                      onChangeText={(value) => updateForm('category', value)}
-                      placeholderTextColor="#888888"
-                    />
-                  </View>
-                </View>
-                </SlideInAnimation>
-
-                {/* Points */}
-                <SlideInAnimation direction="up" delay={750} duration={400} intensity={30}>
-                  <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Points</Text>
-                  <View style={styles.inputContainer}>
-                    <TextInput
-                      style={[
-                        styles.input,
-                        Platform.OS === 'web' && ({
-                          outline: 'none',
-                          border: 'none',
-                          boxShadow: 'none',
-                        } as any)
-                      ]}
-                      placeholder="Points"
-                      value={form.points.toString()}
-                      onChangeText={(value) => {
-                        const numValue = parseInt(value) || 0;
-                        updateForm('points', numValue);
-                      }}
-                      keyboardType="numeric"
-                      placeholderTextColor="#888888"
-                    />
-                  </View>
-                </View>
-                </SlideInAnimation>
-
-                {/* Update Button */}
-                <BounceInAnimation delay={800} duration={600}>
-                  <Pressable
-                    style={[styles.updateButton, (!form.title.trim() || loading) && styles.disabledButton]}
-                    onPress={handleUpdateTask}
-                    disabled={loading || !form.title.trim()}
-                  >
-                    <Text style={[styles.updateButtonText, (!form.title.trim() || loading) && styles.disabledText]}>
-                      {loading ? 'Updating...' : 'Update Task'}
-                    </Text>
-                  </Pressable>
-                </BounceInAnimation>
               </View>
-            </ScrollView>
-            </View>
               </SlideInAnimation>
             </View>
-        </View>
+          </View>
       </Modal>
 
-      {/* Simple Date Picker Modal */}
+      {/* Date Picker Modal with Start and End Date Selection */}
       {showDatePicker && (
-        <Modal
+        <DateRangePickerModal
           visible={showDatePicker}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setShowDatePicker(false)}
-        >
-          <View style={styles.datePickerOverlay}>
-            <View style={styles.datePickerContainer}>
-              <View style={styles.datePickerHeader}>
-                <Pressable
-                  onPress={() => setShowDatePicker(false)}
-                  style={styles.datePickerCancelButton}
-                >
-                  <Text style={styles.datePickerCancelText}>Cancel</Text>
-                </Pressable>
-                <Text style={styles.datePickerTitle}>
-                  Select {datePickerType === 'start' ? 'Start' : 'End'} Date
-                </Text>
-                <Pressable
-                  onPress={() => {
-                    handleDateSelect(selectedDate);
-                    setShowDatePicker(false);
-                  }}
-                  style={styles.datePickerDoneButton}
-                >
-                  <Text style={styles.datePickerDoneText}>Done</Text>
-                </Pressable>
-              </View>
-              {/* Simple date picker - you can enhance this later */}
-              <View style={styles.datePickerContent}>
-                <Text style={styles.datePickerInfo}>
-                  Date picker implementation can be enhanced here
-                </Text>
-              </View>
-            </View>
-          </View>
-        </Modal>
+          onClose={() => setShowDatePicker(false)}
+          onDateSelect={handleDateSelect}
+          selectedStartDate={selectedStartDate}
+          selectedEndDate={selectedEndDate}
+          currentTab={currentPickerTab}
+          onTabChange={setCurrentPickerTab}
+          theme={theme}
+          isDarkMode={isDarkMode}
+          t={t}
+        />
       )}
     </>
   );
 }
+
+const createDatePickerStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) => StyleSheet.create({
+  datePickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  datePickerContainer: {
+    backgroundColor: theme.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+    maxHeight: '60%',
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border,
+  },
+  datePickerCancelButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  datePickerCancelText: {
+    fontSize: 16,
+    color: theme.textSecondary,
+    fontFamily: 'Helvetica',
+  },
+  datePickerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: theme.text,
+    fontFamily: 'Helvetica',
+  },
+  datePickerDoneButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  datePickerDoneText: {
+    fontSize: 16,
+    color: '#17f196',
+    fontWeight: '600',
+    fontFamily: 'Helvetica',
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    gap: 8,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: theme.input,
+    alignItems: 'center',
+  },
+  tabActive: {
+    backgroundColor: '#17f196',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: theme.textSecondary,
+    fontFamily: 'Helvetica',
+  },
+  tabTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  datePickerContent: {
+    flex: 1,
+  },
+  datePickerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    height: 200,
+  },
+  datePickerColumn: {
+    flex: 1,
+    marginHorizontal: 8,
+  },
+  datePickerLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.text,
+    textAlign: 'center',
+    marginBottom: 10,
+    fontFamily: 'Helvetica',
+  },
+  datePickerScroll: {
+    flex: 1,
+  },
+  datePickerOption: {
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    marginVertical: 2,
+    alignItems: 'center',
+  },
+  datePickerOptionSelected: {
+    backgroundColor: '#17f196',
+  },
+  datePickerOptionText: {
+    fontSize: 16,
+    color: theme.textSecondary,
+    fontFamily: 'Helvetica',
+  },
+  datePickerOptionTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  datePickerOptionDisabled: {
+    backgroundColor: theme.input,
+    opacity: 0.5,
+  },
+  datePickerOptionTextDisabled: {
+    color: theme.textTertiary,
+  },
+});
 
 const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) => StyleSheet.create({
   overlay: {
@@ -579,51 +941,91 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     backgroundColor: theme.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: screenHeight * 0.9,
-    paddingBottom: 40,
+    maxHeight: screenHeight * 0.95,
+    paddingBottom: 20,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  modalHeader: {
     alignItems: 'center',
-    paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
+    paddingHorizontal: 20,
   },
-  headerTitle: {
+  iconContainer: {
+    alignItems: 'center',
+    marginTop: -70,
+    marginBottom: 30,
+  },
+  icon: {
+    width: 100,
+    height: 100,
+    backgroundColor: '#17F196',
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    shadowColor: '#17F196',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 9,
+    elevation: 10,
+  },
+  iconImage: {
+    width: 35,
+    height: 35,
+  },
+  modalTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: '700',
     color: theme.text,
+    textAlign: 'center',
+    marginBottom: 4,
   },
-  closeButton: {
-    padding: 4,
-  },
-  content: {
-    flex: 1,
-  },
-  formContainer: {
-    padding: 20,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  inputLabel: {
+  modalReward: {
     fontSize: 14,
     fontWeight: '500',
     color: theme.text,
+    textAlign: 'center',
     marginBottom: 8,
+  },
+  modalIntroText: {
+    fontSize: 12,
+    color: theme.textSecondary,
+    textAlign: 'center',
+    lineHeight: 16,
+    paddingHorizontal: 20,
+    marginTop: 4,
+  },
+  content: {
+    flexShrink: 1,
+  },
+  formContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+  },
+  inputGroup: {
+    marginBottom: 10,
+  },
+  inputLabel: {
+    fontSize: 12,
+    marginBottom: 8,
+    fontWeight: '500',
+    color: isDarkMode ? theme.textSecondary : '#475467',
+    fontFamily: 'Helvetica',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.input,
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    backgroundColor: isDarkMode ? theme.input : '#FFFFFF',
+    borderRadius: 8,
+    paddingHorizontal: 10,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: theme.border,
+    borderColor: isDarkMode ? theme.inputBorder : '#98a2b3',
+    shadowColor: isDarkMode ? theme.shadow : '#101828',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   inputIcon: {
     width: 20,
@@ -632,11 +1034,13 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
   },
   input: {
     flex: 1,
-    fontSize: 16,
-    color: theme.text,
+    fontSize: 14,
+    color: isDarkMode ? theme.text : '#161618',
+    fontFamily: 'Helvetica',
   },
   textArea: {
-    minHeight: 80,
+    minHeight: 50,
+    maxHeight: 60,
     textAlignVertical: 'top',
   },
   inputText: {
@@ -649,37 +1053,41 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     marginLeft: 8,
   },
   assigneeScrollContainer: {
-    marginTop: 8,
+    maxHeight: 60,
   },
   assigneeContainer: {
     flexDirection: 'row',
     gap: 8,
+    paddingRight: 8,
   },
   assigneeButton: {
+    minWidth: 120,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    justifyContent: 'space-between',
     backgroundColor: theme.input,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     borderWidth: 1,
     borderColor: theme.border,
-    gap: 8,
   },
   selectedAssignee: {
-    backgroundColor: '#17F196',
-    borderColor: '#17F196',
+    backgroundColor: isDarkMode ? '#2a4a3a' : '#F4F3FF',
+    borderColor: '#17f196',
   },
   assigneeText: {
     fontSize: 14,
+    fontWeight: '400',
     color: theme.text,
   },
   selectedAssigneeText: {
-    color: '#FFFFFF',
+    // color: '#FFFFFF',
   },
   radioButton: {
     width: 20,
     height: 20,
+    marginLeft: 10,
     borderRadius: 10,
     borderWidth: 2,
     borderColor: theme.border,
@@ -687,11 +1095,19 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     alignItems: 'center',
   },
   radioButtonSelected: {
-    borderColor: '#FFFFFF',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#17f196',
+    backgroundColor: '#17f196',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   finishedIcon: {
     width: 12,
     height: 12,
+    tintColor: '#FFFFFF',
   },
   dateRowContainer: {
     flexDirection: 'row',
@@ -700,24 +1116,52 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
   halfWidthContainer: {
     flex: 1,
   },
-  updateButton: {
-    backgroundColor: '#17F196',
-    borderRadius: 12,
-    paddingVertical: 16,
+  actionButtonsContainer: {
+    gap: 16,
+    marginTop: 12,
+  },
+  finishButton: {
+    width: '100%',
+    height: 50,
+    backgroundColor: '#17f196',
+    borderRadius: 25,
     alignItems: 'center',
-    marginTop: 8,
+    justifyContent: 'center',
+    shadowColor: '#17f196',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   disabledButton: {
-    backgroundColor: theme.input,
-    opacity: 0.5,
+    backgroundColor: '#E0E0E0',
+    shadowColor: '#E0E0E0',
+    shadowOpacity: 0.2,
   },
-  updateButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
+  finishButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
     color: '#FFFFFF',
+    fontFamily: 'Helvetica',
   },
   disabledText: {
-    color: theme.textSecondary,
+    color: '#999999',
+  },
+  cancelButton: {
+    width: '100%',
+    height: 50,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#17f196',
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#17f196',
+    fontFamily: 'Helvetica',
   },
   datePickerOverlay: {
     flex: 1,
