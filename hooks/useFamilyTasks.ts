@@ -42,6 +42,12 @@ export interface FamilyTask {
     avatar_url?: string;
   };
   task_assignments?: TaskAssignment[];
+  // Transformed assignees (same format as home page TodayTask)
+  assignees?: Array<{
+    user_id: string;
+    name: string;
+    avatar_url?: string;
+  }>;
 }
 
 interface UseFamilyTasksReturn {
@@ -137,19 +143,39 @@ export const useFamilyTasks = (): UseFamilyTasksReturn => {
         throw queryError;
       }
       
-      // The get_all_tasks function already returns all profile data and assignments
+      // The get_all_tasks function already returns assignees in the correct format
       console.log('✅ Tasks loaded with profiles and assignments from function');
 
       if (tasksError) throw tasksError;
 
-      console.log('📊 Setting tasks in state:', data?.map((t: any) => ({ 
+      // Process task data - assignees are already in the correct format from RPC
+      const processedData = (data || []).map((t: any) => {
+        // Ensure assignees is an array (should already be from RPC)
+        if (!t.assignees || !Array.isArray(t.assignees)) {
+          t.assignees = [];
+        }
+        
+        // Log for debugging
+        if (__DEV__) {
+          console.log(`📋 Task "${t.title}" assignees:`, {
+            count: t.assignees?.length || 0,
+            assignees: t.assignees
+          });
+        }
+        
+        return t;
+      });
+      
+      console.log('📊 Setting tasks in state:', processedData.map((t: any) => ({ 
         id: t.id, 
         title: t.title, 
         start_date: t.start_date, 
-        end_date: t.end_date 
+        end_date: t.end_date,
+        hasTaskAssignments: !!t.task_assignments,
+        taskAssignmentsLength: Array.isArray(t.task_assignments) ? t.task_assignments.length : 0
       })));
-      console.log('📊 Total tasks to set:', data?.length || 0);
-      setTasks(data || []);
+      console.log('📊 Total tasks to set:', processedData.length);
+      setTasks(processedData);
       console.log('📊 Tasks state updated');
     } catch (error: any) {
       console.error('Error loading tasks:', error);

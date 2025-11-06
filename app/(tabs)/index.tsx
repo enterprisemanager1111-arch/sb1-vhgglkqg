@@ -1050,6 +1050,10 @@ export default function HomeDashboard() {
                   <Text style={styles.taskTitle}>{task.title}</Text>
              </View>
             
+             {task.description && (
+               <Text style={styles.taskDescription}>{task.description}</Text>
+             )}
+            
              <View style={styles.taskTags}>
                <View style={styles.statusTag}>
                  <Image

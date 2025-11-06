@@ -306,12 +306,12 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
       <View style={styles.overlay}>
         <Pressable style={styles.overlayPressable} onPress={handleClose} />
         
-        <View style={{ width: '100%' }}>
+        <View style={{ width: '100%' }} pointerEvents="box-none">
           <SlideInAnimation direction="up" delay={100} duration={400} intensity={50}>
             <View style={styles.modalContainer}>
               {/* Main Icon */}
               <BounceInAnimation delay={200} duration={600}>
-                <View style={styles.iconContainer}>
+                <View style={styles.iconContainer} pointerEvents="box-none">
                   <View style={styles.icon}>
                     <RNImage 
                       source={require('@/assets/images/icon/add_task.png')}
@@ -510,7 +510,11 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     justifyContent: 'flex-end',
   },
   overlayPressable: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   modalContainer: {
     backgroundColor: theme.surface,

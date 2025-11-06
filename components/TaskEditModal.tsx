@@ -274,7 +274,7 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
         <View style={styles.overlay}>
           <Pressable style={styles.overlayPressable} onPress={handleClose} />
           
-          <View style={{ width: '100%' }}>
+          <View style={{ width: '100%' }} pointerEvents="box-none">
             <SlideInAnimation direction="up" delay={100} duration={400} intensity={50}>
               <View style={styles.modalContainer}>
                 {/* Header */}

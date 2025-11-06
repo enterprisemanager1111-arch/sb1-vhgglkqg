@@ -480,38 +480,30 @@ export default function Tasks() {
                   </View>
                    
                    <View style={styles.taskFooter}>
-                     <View style={styles.assignees}>
-                       {task.task_assignments && task.task_assignments.length > 0 ? (
-                         task.task_assignments.slice(0, 3).map((assignment: any, index: number) => (
-                           <View key={assignment.id} style={[styles.assigneeAvatar, { marginLeft: index > 0 ? -8 : 0 }]}>
-                             {assignment.assignee_profile?.avatar_url ? (
-                               <Image
-                                 source={{ uri: assignment.assignee_profile.avatar_url }}
+                     <View style={styles.assigneeAvatars}>
+                       {task.assignees && task.assignees.length > 0 ? (
+                         task.assignees.slice(0, 3).map((assignee: any, index: number) => (
+                           <View key={assignee.user_id || `assignee-${index}`} style={[styles.assigneeAvatar, { backgroundColor: '#17F196', marginLeft: index > 0 ? -8 : 0 }]}>
+                             {assignee.avatar_url ? (
+                               <Image 
+                                 source={{ uri: assignee.avatar_url }} 
                                  style={styles.assigneeAvatarImage}
+                                 resizeMode="cover"
                                />
                              ) : (
-                               <Text style={styles.assigneeText}>
-                                 {assignment.assignee_profile?.name?.charAt(0).toUpperCase() || '?'}
-                               </Text>
+                               <View style={styles.assigneeAvatarPlaceholder}>
+                                 <Text style={styles.assigneeAvatarInitial}>
+                                   {assignee.name?.charAt(0).toUpperCase() || '?'}
+                                 </Text>
+                               </View>
                              )}
                            </View>
                          ))
-                       ) : task.assignee_profile ? (
-                         <View style={styles.assigneeAvatar}>
-                           {task.assignee_profile.avatar_url ? (
-                             <Image
-                               source={{ uri: task.assignee_profile.avatar_url }}
-                               style={styles.assigneeAvatarImage}
-                             />
-                           ) : (
-                             <Text style={styles.assigneeText}>
-                               {task.assignee_profile.name.charAt(0).toUpperCase()}
-                             </Text>
-                           )}
-                         </View>
                        ) : (
-                         <View style={styles.assigneeAvatar}>
-                           <Text style={styles.assigneeText}>?</Text>
+                         <View style={[styles.assigneeAvatar, { backgroundColor: '#17F196', marginLeft: 0 }]}>
+                           <View style={styles.assigneeAvatarPlaceholder}>
+                             <Text style={styles.assigneeAvatarInitial}>?</Text>
+                           </View>
                          </View>
                        )}
                      </View>
@@ -894,28 +886,33 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     alignItems: 'center',
     marginTop: 24,
   },
-  assignees: {
+  assigneeAvatars: {
     flexDirection: 'row',
   },
   assigneeAvatar: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#17f196',
-    justifyContent: 'center',
-    alignItems: 'center',
     borderWidth: 2,
     borderColor: theme.surface,
   },
-  assigneeText: {
+  assigneeAvatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+  },
+  assigneeAvatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+    backgroundColor: theme.input,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  assigneeAvatarInitial: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  assigneeAvatarImage: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    color: theme.textSecondary,
   },
   dueDate: {
     flexDirection: 'row',

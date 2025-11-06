@@ -698,12 +698,12 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
         <View style={styles.overlay}>
           <Pressable style={styles.overlayPressable} onPress={handleClose} />
           
-          <View style={{ width: '100%' }}>
+          <View style={{ width: '100%' }} pointerEvents="box-none">
             <SlideInAnimation direction="up" delay={100} duration={400} intensity={50}>
               <View style={styles.modalContainer}>
                 {/* Icon */}
                 <BounceInAnimation delay={200} duration={600}>
-                  <View style={styles.iconContainer}>
+                  <View style={styles.iconContainer} pointerEvents="box-none">
                     <View style={styles.icon}>
                       <RNImage 
                         source={require('@/assets/images/icon/add_task.png')}
@@ -1136,6 +1136,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
   radioButton: {
     width: 20,
     height: 20,
+    marginLeft: 10,
     borderRadius: 10,
     borderWidth: 2,
     borderColor: theme.border,

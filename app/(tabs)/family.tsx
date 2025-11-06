@@ -308,9 +308,19 @@ export default function FamilyDashboard() {
         <SlideInAnimation direction="up" delay={0} duration={600} intensity={50}>
           <View style={styles.section}>
             <View style={styles.workSummaryBanner}>
+            <View style={styles.workSummaryHeader}>
+              <Text style={styles.workSummaryTitle}>{t('tabs.family.weeklyProgress')}</Text>
+              <View style={styles.reward}>
+                <Image
+                  source={require('@/assets/images/icon/flames_active.png')}
+                  style={styles.flameIcon}
+                  resizeMode="contain"
+                />
+                <Text style={styles.rewardTextBanner}>{t('family.challenge.rewardFlames', { points: `+${String(completionStats.totalCompleted * 10)}` })}</Text>
+              </View>
+            </View>
             <View style={styles.workSummaryContent}>
               <View style={styles.workSummaryText}>
-                <Text style={styles.workSummaryTitle}>{t('tabs.family.weeklyProgress')}</Text>
                 <Text style={styles.workSummarySubtitle}>{t('tabs.family.togetherWeCan')}</Text>
               </View>
               <View style={styles.workSummaryIcon}>
@@ -435,47 +445,8 @@ export default function FamilyDashboard() {
             </View>
             <Text style={styles.sectionSubtitle}>{t('family.challenge.subtitle')}</Text>
             <View style={styles.taskCard}>
-              <Text style={styles.taskTitle}>{t('family.challenge.taskTitle')}</Text>
-              
-              <View style={styles.challengeProgress}>
-                <View style={styles.progressBar}>
-                  <View style={[styles.progressFill, { width: `${completionStats.percentage}%` }]} />
-                </View>
-                <Text style={styles.progressText}>{t('family.challenge.progressComplete', { percent: String(completionStats.percentage) })}</Text>
-              </View>
-              
-              <View style={styles.challengeFooter}>
-                <View style={styles.participants}>
-                  {familyMembers.slice(0, 3).map((member, index) => {
-                    const avatarColors = ['#FFB6C1', '#FFD700', '#87CEEB'];
-                    return (
-                      <View key={member.id} style={[
-                        styles.participantAvatar, 
-                        { backgroundColor: avatarColors[index % 3] },
-                        index === 0 && { marginLeft: 0 }
-                      ]}>
-                        {member.profiles?.avatar_url ? (
-                          <Image
-                            source={{ uri: member.profiles.avatar_url }}
-                            style={styles.participantAvatarImage}
-                            resizeMode="cover"
-                          />
-                        ) : (
-                          <Text style={styles.participantAvatarText}>
-                            {member.profiles?.name?.charAt(0)?.toUpperCase() || '?'}
-                          </Text>
-                        )}
-                      </View>
-                    );
-                  })}
-                  {familyMembers.length > 3 && (
-                    <View style={[styles.participantAvatar, { backgroundColor: '#17F196' }]}>
-                      <Text style={styles.participantAvatarText}>
-                        +{familyMembers.length - 3}
-                      </Text>
-                    </View>
-                  )}
-                </View>
+              <View style={styles.taskTitleRow}>
+                <Text style={styles.taskTitle}>{t('family.challenge.taskTitle')}</Text>
                 <View style={styles.reward}>
                   <Image
                     source={require('@/assets/images/icon/flames_active.png')}
@@ -484,6 +455,13 @@ export default function FamilyDashboard() {
                   />
                   <Text style={styles.rewardText}>{t('family.challenge.rewardFlames', { points: `+${String(completionStats.totalCompleted * 10)}` })}</Text>
                 </View>
+              </View>
+              
+              <View style={styles.challengeProgress}>
+                <View style={styles.progressBar}>
+                  <View style={[styles.progressFill, { width: `${completionStats.percentage}%` }]} />
+                </View>
+                <Text style={styles.progressText}>{t('family.challenge.progressComplete', { percent: String(completionStats.percentage) })}</Text>
               </View>
             </View>
           </View>
@@ -886,8 +864,14 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 8,
     marginBottom: 8,
+  },
+  sectionHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   sectionTitle: {
     fontSize: 14,
@@ -902,7 +886,6 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     paddingVertical: 4,
     minWidth: 24,
     alignItems: 'center',
-    marginLeft: 8,
   },
   badgeText: {
     fontSize: 12,
@@ -924,6 +907,12 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     marginVertical: 0,
     borderRadius: 12,
     padding: 20,
+  },
+  workSummaryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   workSummaryContent: {
     flexDirection: 'row',
@@ -1064,11 +1053,17 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  taskTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   taskTitle: {
     fontSize: 14,
     fontWeight: '500',
     color: theme.text,
-    marginBottom: 12,
+    flex: 1,
   },
   taskTags: {
     flexDirection: 'row',
@@ -1206,6 +1201,11 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
     fontSize: 10,
     fontWeight: '500',
     color: theme.text,
+  },
+  rewardTextBanner: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: '#FFFFFF',
   },
 
   // === MEMBER CARDS ===

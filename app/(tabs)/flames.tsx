@@ -339,42 +339,57 @@ export default function FlamesScreen() {
               </View>
             ) : (
               <View style={styles.rankCardsContainer}>
-                {familyRanking.slice(0, 3).map((member, index) => {
-                  const nameParts = member.name.split(' ');
-                  const firstName = nameParts[0] || '';
-                  const lastName = nameParts.slice(1).join(' ') || '';
-                  const rankPosition = member.rank_position || index + 1;
+                {Array.from({ length: 3 }, (_, index) => {
+                  const member = familyRanking[index];
+                  const rankPosition = index + 1;
                   
-                  return (
-                    <View key={member.user_id} style={{ flex: 1, alignSelf: 'stretch' }}>
-                      <View style={{ flex: 1, alignSelf: 'stretch' }}>
-                        <BounceInAnimation delay={300 + (index * 100)} duration={800}>
-                          <View style={[styles.rankCardItem, { flex: 1, alignSelf: 'stretch', height: '100%' }]}>
-                      <Text style={styles.rankCardTitle}>
-                        {t('flames.familyRanks.place', { position: rankPosition })}
-                      </Text>
-                      <Text style={styles.rankCardPoints}>
-                        {t('flames.familyRanks.flames', { count: member.total_points })}
-                      </Text>
-                      <View style={styles.rankCardAvatar}>
-                        {member.avatar_url ? (
-                          <Image
-                            source={{ uri: member.avatar_url }}
-                            style={{ width: 40, height: 40, borderRadius: 20 }}
-                          />
-                        ) : (
-                          <User size={40} color="#17f196" strokeWidth={2} />
-                        )}
+                  if (member) {
+                    const nameParts = member.name.split(' ');
+                    const firstName = nameParts[0] || '';
+                    const lastName = nameParts.slice(1).join(' ') || '';
+                    const memberRankPosition = member.rank_position || rankPosition;
+                    const firstLetter = member.name?.charAt(0)?.toUpperCase() || '?';
+                    
+                    return (
+                      <View key={member.user_id} style={{ flex: 1, alignSelf: 'stretch' }}>
+                        <View style={{ flex: 1, alignSelf: 'stretch' }}>
+                          <BounceInAnimation delay={300 + (index * 100)} duration={800}>
+                            <View style={[styles.rankCardItem, { flex: 1, alignSelf: 'stretch', height: '100%' }]}>
+                              <Text style={styles.rankCardTitle}>
+                                {t('flames.familyRanks.place', { position: memberRankPosition })}
+                              </Text>
+                              <Text style={styles.rankCardPoints}>
+                                {t('flames.familyRanks.flames', { count: member.total_points })}
+                              </Text>
+                              <View style={styles.rankCardAvatar}>
+                                {member.avatar_url ? (
+                                  <Image
+                                    source={{ uri: member.avatar_url }}
+                                    style={{ width: 40, height: 40, borderRadius: 20 }}
+                                  />
+                                ) : (
+                                  <Text style={styles.rankCardAvatarText}>{firstLetter}</Text>
+                                )}
+                              </View>
+                              <View style={styles.rankCardNameContainer}>
+                                <Text style={styles.rankCardFirstName}>{firstName}</Text>
+                                <Text style={styles.rankCardLastName}>{lastName}</Text>
+                              </View>
+                            </View>
+                          </BounceInAnimation>
+                        </View>
                       </View>
-                      <View style={styles.rankCardNameContainer}>
-                        <Text style={styles.rankCardFirstName}>{firstName}</Text>
-                        <Text style={styles.rankCardLastName}>{lastName}</Text>
+                    );
+                  } else {
+                    // Empty blank area
+                    return (
+                      <View key={`empty-${index}`} style={{ flex: 1, alignSelf: 'stretch' }}>
+                        <View style={{ flex: 1, alignSelf: 'stretch' }}>
+                          <View style={[styles.rankCardItem, styles.rankCardItemEmpty, { flex: 1, alignSelf: 'stretch', height: '100%' }]} />
+                        </View>
                       </View>
-                    </View>
-                        </BounceInAnimation>
-                      </View>
-                    </View>
-                  );
+                    );
+                  }
                 })}
               </View>
             )}
@@ -808,6 +823,10 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     borderWidth: 1,
     elevation: 2,
   },
+  rankCardItemEmpty: {
+    opacity: 0.5,
+    borderStyle: 'dashed',
+  },
   rankCardTitle: {
     fontSize: 14,
     fontWeight: '600',
@@ -830,6 +849,11 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     marginBottom: 8,
     borderWidth: 2,
     borderColor: '#17f196',
+  },
+  rankCardAvatarText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   rankCardNameContainer: {
     alignItems: 'center',
