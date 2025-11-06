@@ -23,6 +23,12 @@ import { supabase } from '@/lib/supabase';
 import { useCurrentUserEvents } from '@/hooks/useCurrentUserEvents';
 import { useTodayTasks } from '@/hooks/useTodayTasks';
 import { useTodayShoppingItems } from '@/hooks/useTodayShoppingItems';
+// Animation imports
+import { 
+  FadeInAnimation, 
+  SlideInAnimation, 
+  BounceInAnimation 
+} from '@/components/CoolAnimations';
 // Removed unused imports
 
 // Custom verification icon component
@@ -689,58 +695,60 @@ export default function HomeDashboard() {
       />
       
       {/* Fixed Header Section */}
-      <View style={styles.fixedHeader}>
-        <View style={styles.profileSection}>
-          <View style={styles.profileInfo}>
-            <View style={styles.avatarContainer}>
-              {currentProfile?.avatar_url ? (
-                <Image 
-                  source={{ uri: currentProfile.avatar_url }} 
-                  style={styles.avatar}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{getUserInitials()}</Text>
-                </View>
-              )}
-            </View>
-            <View style={styles.profileDetails}>
-              <View style={styles.nameRow}>
-                <Text style={styles.userName}>{userName}</Text>
-                <View style={styles.verifiedIcon}>
-                  <VerificationIcon size={20} />
-                </View>
+      <FadeInAnimation delay={0} duration={500}>
+        <View style={styles.fixedHeader}>
+          <View style={styles.profileSection}>
+            <View style={styles.profileInfo}>
+              <View style={styles.avatarContainer}>
+                {currentProfile?.avatar_url ? (
+                  <Image 
+                    source={{ uri: currentProfile.avatar_url }} 
+                    style={styles.avatar}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>{getUserInitials()}</Text>
+                  </View>
+                )}
               </View>
-              <Text style={styles.userRole}>{t('home.profile.family')} {getUserRole()}</Text>
-            </View>
-          </View>
-          
-          <View style={styles.headerActions}>
-            <Pressable 
-              style={styles.notificationButton}
-              onPress={() => {
-                // Clear notification count when user opens notifications
-                setNotificationCount(0);
-                router.push('/notifications');
-              }}
-            >
-              <Image 
-                source={require('@/assets/images/icon/notification.png')}
-                style={styles.notificationIcon}
-                resizeMode="contain"
-              />
-              {notificationCount > 0 && (
-                <View style={styles.notificationBadge}>
-                  <Text style={styles.notificationBadgeText}>
-                    {notificationCount > 99 ? '99+' : notificationCount}
-                  </Text>
+              <View style={styles.profileDetails}>
+                <View style={styles.nameRow}>
+                  <Text style={styles.userName}>{userName}</Text>
+                  <View style={styles.verifiedIcon}>
+                    <VerificationIcon size={20} />
+                  </View>
                 </View>
-              )}
-            </Pressable>
+                <Text style={styles.userRole}>{t('home.profile.family')} {getUserRole()}</Text>
+              </View>
+            </View>
+            
+            <View style={styles.headerActions}>
+              <Pressable 
+                style={styles.notificationButton}
+                onPress={() => {
+                  // Clear notification count when user opens notifications
+                  setNotificationCount(0);
+                  router.push('/notifications');
+                }}
+              >
+                <Image 
+                  source={require('@/assets/images/icon/notification.png')}
+                  style={styles.notificationIcon}
+                  resizeMode="contain"
+                />
+                {notificationCount > 0 && (
+                  <View style={styles.notificationBadge}>
+                    <Text style={styles.notificationBadgeText}>
+                      {notificationCount > 99 ? '99+' : notificationCount}
+                    </Text>
+                  </View>
+                )}
+              </Pressable>
+            </View>
           </View>
         </View>
-      </View>
+      </FadeInAnimation>
       
       <ScrollView 
         style={styles.scrollView} 
@@ -749,139 +757,161 @@ export default function HomeDashboard() {
       >
 
         {/* Futures Elements Section */}
-        <View style={styles.futuresElementsPanel}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{t('home.sections.futuresElements')}</Text>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>3</Text>
+        <SlideInAnimation direction="up" delay={0} duration={600} intensity={50}>
+          <View style={styles.futuresElementsPanel}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{t('home.sections.futuresElements')}</Text>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>3</Text>
+              </View>
+            </View>
+            <Text style={styles.sectionSubtitle}>{t('home.sections.quickActionsDescription')}</Text>
+            
+            <View style={styles.quickActionsGrid}>
+              {/* Tasks */}
+              <View style={{ flex: 1 }}>
+                <BounceInAnimation delay={100} duration={800}>
+                  <Pressable 
+                    style={styles.quickActionButton}
+                    onPress={() => router.push('/(tabs)/tasks')}
+                  >
+                    <View style={styles.quickActionIcon}>
+                      <Image
+                        source={require('@/assets/images/icon/tasks.png')}
+                        style={{
+                          width: 18,
+                          height: 18,
+                          resizeMode: 'contain'
+                        }}
+                      />
+                    </View>
+                    <Text style={styles.quickActionTitle}>{t('home.quickActions.tasks.title')}</Text>
+                    <Text style={styles.quickActionSubtitle}>{t('home.quickActions.tasks.subtitle')}</Text>
+                  </Pressable>
+                </BounceInAnimation>
+              </View>
+
+              {/* Calendar */}
+              <View style={{ flex: 1 }}>
+                <BounceInAnimation delay={200} duration={800}>
+                  <Pressable 
+                    style={styles.quickActionButton}
+                    onPress={() => router.push('/(tabs)/calendar')}
+                  >
+                    <View style={styles.quickActionIcon}>
+                      <Image
+                        source={require('@/assets/images/icon/calendar2.png')}
+                        style={{
+                          width: 18,
+                          height: 18,
+                          resizeMode: 'contain'
+                        }}
+                      />
+                    </View>
+                    <Text style={styles.quickActionTitle}>{t('home.quickActions.calendar.title')}</Text>
+                    <Text style={styles.quickActionSubtitle}>{t('home.quickActions.calendar.subtitle')}</Text>
+                  </Pressable>
+                </BounceInAnimation>
+              </View>
+
+              {/* Shop List */}
+              <View style={{ flex: 1 }}>
+                <BounceInAnimation delay={300} duration={800}>
+                  <Pressable 
+                    style={styles.quickActionButton}
+                    onPress={() => router.push('/(tabs)/shopList')}
+                  >
+                    <View style={styles.quickActionIcon}>
+                      <Image
+                        source={require('@/assets/images/icon/shop_list.png')}
+                        style={{
+                          width: 18,
+                          height: 18,
+                          resizeMode: 'contain'
+                        }}
+                      />
+                    </View>
+                    <Text style={styles.quickActionTitle}>{t('home.quickActions.shopList.title')}</Text>
+                    <Text style={styles.quickActionSubtitle}>{t('home.quickActions.shopList.subtitle')}</Text>
+                  </Pressable>
+                </BounceInAnimation>
+              </View>
+
+              {/* Soon */}
+              <View style={{ flex: 1 }}>
+                <BounceInAnimation delay={400} duration={800}>
+                  <Pressable style={[styles.quickActionButton, styles.quickActionButtonDisabled]}>
+                    <View style={[styles.quickActionIcon, styles.quickActionIconDisabled]}>
+                      <Image
+                        source={require('@/assets/images/icon/soon_dis.png')}
+                        style={{
+                          width: 18,
+                          height: 18,
+                          resizeMode: 'contain'
+                        }}
+                      />
+                    </View>
+                    <Text style={[styles.quickActionTitle, styles.quickActionTitleDisabled]}>{t('home.quickActions.soon.title')}</Text>
+                    <Text style={[styles.quickActionSubtitle, styles.quickActionSubtitleDisabled]}>{t('home.quickActions.soon.subtitle')}</Text>
+                  </Pressable>
+                </BounceInAnimation>
+              </View>
             </View>
           </View>
-          <Text style={styles.sectionSubtitle}>{t('home.sections.quickActionsDescription')}</Text>
-          
-          <View style={styles.quickActionsGrid}>
-            {/* Tasks */}
-            <Pressable 
-              style={styles.quickActionButton}
-              onPress={() => router.push('/(tabs)/tasks')}
-            >
-              <View style={styles.quickActionIcon}>
-                <Image
-                  source={require('@/assets/images/icon/tasks.png')}
-                  style={{
-                    width: 18,
-                    height: 18,
-                    resizeMode: 'contain'
-                  }}
-                />
-              </View>
-              <Text style={styles.quickActionTitle}>{t('home.quickActions.tasks.title')}</Text>
-              <Text style={styles.quickActionSubtitle}>{t('home.quickActions.tasks.subtitle')}</Text>
-            </Pressable>
-
-            {/* Calendar */}
-            <Pressable 
-              style={styles.quickActionButton}
-              onPress={() => router.push('/(tabs)/calendar')}
-            >
-              <View style={styles.quickActionIcon}>
-                <Image
-                  source={require('@/assets/images/icon/calendar2.png')}
-                  style={{
-                    width: 18,
-                    height: 18,
-                    resizeMode: 'contain'
-                  }}
-                />
-              </View>
-              <Text style={styles.quickActionTitle}>{t('home.quickActions.calendar.title')}</Text>
-              <Text style={styles.quickActionSubtitle}>{t('home.quickActions.calendar.subtitle')}</Text>
-            </Pressable>
-
-            {/* Shop List */}
-            <Pressable 
-              style={styles.quickActionButton}
-              onPress={() => router.push('/(tabs)/shopList')}
-            >
-              <View style={styles.quickActionIcon}>
-                <Image
-                  source={require('@/assets/images/icon/shop_list.png')}
-                  style={{
-                    width: 18,
-                    height: 18,
-                    resizeMode: 'contain'
-                  }}
-                />
-              </View>
-              <Text style={styles.quickActionTitle}>{t('home.quickActions.shopList.title')}</Text>
-              <Text style={styles.quickActionSubtitle}>{t('home.quickActions.shopList.subtitle')}</Text>
-            </Pressable>
-
-            {/* Soon */}
-            <Pressable style={[styles.quickActionButton, styles.quickActionButtonDisabled]}>
-              <View style={[styles.quickActionIcon, styles.quickActionIconDisabled]}>
-                <Image
-                  source={require('@/assets/images/icon/soon_dis.png')}
-                  style={{
-                    width: 18,
-                    height: 18,
-                    resizeMode: 'contain'
-                  }}
-                />
-              </View>
-              <Text style={[styles.quickActionTitle, styles.quickActionTitleDisabled]}>{t('home.quickActions.soon.title')}</Text>
-              <Text style={[styles.quickActionSubtitle, styles.quickActionSubtitleDisabled]}>{t('home.quickActions.soon.subtitle')}</Text>
-            </Pressable>
-          </View>
-        </View>
+        </SlideInAnimation>
 
         {/* My Work Summary Banner */}
-        <View style={styles.workSummaryBanner}>
-          <View style={styles.workSummaryContent}>
-            <View style={styles.workSummaryText}>
-              <Text style={styles.workSummaryTitle}>{t('home.workSummary.title')}</Text>
-              <Text style={styles.workSummarySubtitle}>{t('home.workSummary.subtitle')}</Text>
-            </View>
-            <View style={styles.workSummaryIcon}>
-              <Image
-                source={require('@/assets/images/icon/sparkling_camera.png')}
-                style={{
-                  width: 117,
-                  height: 85,
-                  resizeMode: 'contain'
-                }}
-              />
+        <SlideInAnimation direction="up" delay={200} duration={600} intensity={50}>
+          <View style={styles.workSummaryBanner}>
+            <View style={styles.workSummaryContent}>
+              <View style={styles.workSummaryText}>
+                <Text style={styles.workSummaryTitle}>{t('home.workSummary.title')}</Text>
+                <Text style={styles.workSummarySubtitle}>{t('home.workSummary.subtitle')}</Text>
+              </View>
+              <View style={styles.workSummaryIcon}>
+                <Image
+                  source={require('@/assets/images/icon/sparkling_camera.png')}
+                  style={{
+                    width: 117,
+                    height: 85,
+                    resizeMode: 'contain'
+                  }}
+                />
 
+              </View>
             </View>
           </View>
-        </View>
+        </SlideInAnimation>
 
         {/* Today on the Calendar Section */}
-        <View style={styles.futuresElementsPanel}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{t('home.sections.todayCalendar')}</Text>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{todayEvents.length}</Text>
+        <SlideInAnimation direction="up" delay={300} duration={600} intensity={50}>
+          <View style={styles.futuresElementsPanel}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{t('home.sections.todayCalendar')}</Text>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{todayEvents.length}</Text>
+              </View>
             </View>
-          </View>
-          <Text style={styles.sectionSubtitle}>{t('home.sections.calendarDescription')}</Text>
-          
-          {eventsLoading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color="#6366F1" />
-              <Text style={styles.loadingText}>{t('home.loading.events')}</Text>
-            </View>
-          ) : eventsError ? (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{t('home.errors.loadEvents')}</Text>
-            </View>
-          ) : todayEvents.length > 0 ? (
-            todayEvents.map((event) => {
-              console.log('🎯 Rendering event:', event.title, {
-                assignees: event.assignees,
-                assignee_count: event.assignee_count
-              });
-              return (
-                <View key={event.id} style={styles.calendarEventCard}>
+            <Text style={styles.sectionSubtitle}>{t('home.sections.calendarDescription')}</Text>
+            
+            {eventsLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color="#6366F1" />
+                <Text style={styles.loadingText}>{t('home.loading.events')}</Text>
+              </View>
+            ) : eventsError ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{t('home.errors.loadEvents')}</Text>
+              </View>
+            ) : todayEvents.length > 0 ? (
+              todayEvents.map((event, index) => {
+                console.log('🎯 Rendering event:', event.title, {
+                  assignees: event.assignees,
+                  assignee_count: event.assignee_count
+                });
+                return (
+                  <FadeInAnimation key={event.id} delay={400 + (index * 100)} duration={600}>
+                    <View style={styles.calendarEventCard}>
                   <View style={styles.eventHeader}>
                     <Text style={styles.eventMainTitle}>{event.title}</Text>
                   </View>
@@ -1006,11 +1036,12 @@ export default function HomeDashboard() {
                       })}
                     </Text>
                   </View>
-                </View>
-              );
-            })
-          ) : (
-            <View style={styles.emptyTaskCard}>
+                    </View>
+                  </FadeInAnimation>
+                );
+              })
+            ) : (
+              <View style={styles.emptyTaskCard}>
               <Image
                 source={isDarkMode 
                   ? require('@/assets/images/icon/meeting_image_dark.png')
@@ -1025,10 +1056,12 @@ export default function HomeDashboard() {
               </Text>
             </View>
           )}
-        </View>
+          </View>
+        </SlideInAnimation>
 
         {/* Today Task Section */}
-        <View style={styles.futuresElementsPanel}>
+        <SlideInAnimation direction="up" delay={400} duration={600} intensity={50}>
+          <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{t('home.sections.todayTasks')}</Text>
                 <View style={styles.badge}>
@@ -1047,8 +1080,9 @@ export default function HomeDashboard() {
                   <Text style={styles.errorText}>{t('home.errors.loadTasks')}</Text>
                 </View>
               ) : todayTasks.length > 0 ? (
-                todayTasks.map((task) => (
-              <View key={task.task_id} style={styles.taskCard}>
+                todayTasks.map((task, index) => (
+                  <FadeInAnimation key={task.task_id} delay={500 + (index * 100)} duration={600}>
+                    <View style={styles.taskCard}>
              <View style={styles.taskHeader}>
                <View style={styles.taskIcon}>
                  <Image
@@ -1140,10 +1174,11 @@ export default function HomeDashboard() {
                     </Text>
                </View>
             </View>
-          </View>
-            ))
-          ) : (
-            <View style={styles.emptyTaskCard}>
+                    </View>
+                  </FadeInAnimation>
+                ))
+              ) : (
+                <View style={styles.emptyTaskCard}>
               <Image
                 source={isDarkMode 
                   ? require('@/assets/images/icon/no_task_dark.png')
@@ -1158,10 +1193,12 @@ export default function HomeDashboard() {
               </Text>
             </View>
           )}
-        </View>
+          </View>
+        </SlideInAnimation>
 
         {/* Today added to Shopping list Section */}
-        <View style={styles.futuresElementsPanel}>
+        <SlideInAnimation direction="up" delay={500} duration={600} intensity={50}>
+          <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{t('home.sections.todayShopping')}</Text>
             <View style={styles.badge}>
@@ -1180,8 +1217,9 @@ export default function HomeDashboard() {
               <Text style={styles.errorText}>{t('home.errors.loadShoppingItems')}</Text>
             </View>
           ) : todayShoppingItems.length > 0 ? (
-            todayShoppingItems.map((item) => (
-              <View key={item.id} style={styles.shoppingListItemCard}>
+            todayShoppingItems.map((item, index) => (
+              <FadeInAnimation key={item.id} delay={600 + (index * 100)} duration={600}>
+                <View style={styles.shoppingListItemCard}>
                 <View style={styles.shoppingItemHeader}>
                   <Image
                     source={require('@/assets/images/icon/shop_date.png')}
@@ -1266,7 +1304,8 @@ export default function HomeDashboard() {
                     </Text>
                   </View>
                 </View>
-              </View>
+                </View>
+              </FadeInAnimation>
             ))
           ) : (
             <View style={styles.emptyTaskCard}>
@@ -1284,7 +1323,8 @@ export default function HomeDashboard() {
               </Text>
             </View>
           )}
-        </View>
+          </View>
+        </SlideInAnimation>
 
         {/* Bottom spacing for navigation */}
         <View style={styles.bottomSpacing} />
