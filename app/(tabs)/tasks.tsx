@@ -10,11 +10,12 @@ import {
   StatusBar,
 } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
-import { useFamilyTasks } from '@/hooks/useFamilyTasks';
+import { useFamilyTasks, FamilyTask } from '@/hooks/useFamilyTasks';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useDarkMode } from '@/contexts/DarkModeContext';
 import { router } from 'expo-router';
 import { getTheme } from '@/constants/theme';
+import TaskEditModal from '@/components/TaskEditModal';
 
 export default function Tasks() {
   const { user, profile } = useAuth();
@@ -23,6 +24,8 @@ export default function Tasks() {
   const { isDarkMode } = useDarkMode();
   const theme = getTheme(isDarkMode);
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'inProgress' | 'finish'>('inProgress');
+  const [selectedTask, setSelectedTask] = useState<FamilyTask | null>(null);
+  const [showTaskEditModal, setShowTaskEditModal] = useState(false);
 
   // Listen for refresh events from notifications
   useEffect(() => {
@@ -411,7 +414,14 @@ export default function Tasks() {
               const progress = calculateProgress();
 
               return (
-                <View key={task.id} style={styles.taskCard}>
+                <Pressable 
+                  key={task.id} 
+                  style={styles.taskCard}
+                  onPress={() => {
+                    setSelectedTask(task);
+                    setShowTaskEditModal(true);
+                  }}
+                >
                   <View style={styles.taskHeader}>
                     <View style={styles.taskIcon}>
                       <Image
@@ -489,12 +499,25 @@ export default function Tasks() {
                        </Text>
                      </View>
                    </View>
-                </View>
+                </Pressable>
               );
             })
           )}
         </View>
       </ScrollView>
+
+      {/* Task Edit Modal */}
+      <TaskEditModal
+        visible={showTaskEditModal}
+        onClose={() => {
+          setShowTaskEditModal(false);
+          setSelectedTask(null);
+        }}
+        task={selectedTask}
+        onTaskUpdated={() => {
+          refreshTasks();
+        }}
+      />
     </SafeAreaView>
   );
 }

@@ -21,7 +21,7 @@ import { router } from 'expo-router';
 import { getTheme, brandColors } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { useCurrentUserEvents } from '@/hooks/useCurrentUserEvents';
-import { useTodayTasks } from '@/hooks/useTodayTasks';
+import { useTodayTasks, TodayTask } from '@/hooks/useTodayTasks';
 import { useTodayShoppingItems } from '@/hooks/useTodayShoppingItems';
 // Animation imports
 import { 
@@ -29,6 +29,7 @@ import {
   SlideInAnimation, 
   BounceInAnimation 
 } from '@/components/CoolAnimations';
+import TaskEditModal from '@/components/TaskEditModal';
 // Removed unused imports
 
 // Custom verification icon component
@@ -53,6 +54,8 @@ export default function HomeDashboard() {
   const [loadingStarted, setLoadingStarted] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
   const [realtimeChannel, setRealtimeChannel] = useState<any>(null);
+  const [selectedTask, setSelectedTask] = useState<TodayTask | null>(null);
+  const [showTaskEditModal, setShowTaskEditModal] = useState(false);
   // Removed directProfileData - home page should only use centralized state
   
   // Get current user's events for today
@@ -1082,7 +1085,13 @@ export default function HomeDashboard() {
               ) : todayTasks.length > 0 ? (
                 todayTasks.map((task, index) => (
                   <FadeInAnimation key={task.task_id} delay={500 + (index * 100)} duration={600}>
-                    <View style={styles.taskCard}>
+                    <Pressable 
+                      style={styles.taskCard}
+                      onPress={() => {
+                        setSelectedTask(task);
+                        setShowTaskEditModal(true);
+                      }}
+                    >
              <View style={styles.taskHeader}>
                <View style={styles.taskIcon}>
                  <Image
@@ -1174,7 +1183,7 @@ export default function HomeDashboard() {
                     </Text>
                </View>
             </View>
-                    </View>
+                    </Pressable>
                   </FadeInAnimation>
                 ))
               ) : (
@@ -1329,6 +1338,19 @@ export default function HomeDashboard() {
         {/* Bottom spacing for navigation */}
         <View style={styles.bottomSpacing} />
       </ScrollView>
+
+      {/* Task Edit Modal */}
+      <TaskEditModal
+        visible={showTaskEditModal}
+        onClose={() => {
+          setShowTaskEditModal(false);
+          setSelectedTask(null);
+        }}
+        task={selectedTask}
+        onTaskUpdated={() => {
+          refreshTasks();
+        }}
+      />
     </SafeAreaView>
   );
 }
