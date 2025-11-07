@@ -28,6 +28,7 @@ import {
   SlideInAnimation, 
   BounceInAnimation 
 } from '@/components/CoolAnimations';
+import RankSystemModal from '@/components/RankSystemModal';
 
 // Custom verification icon component
 const VerificationIcon = ({ size = 16 }: { size?: number }) => (
@@ -60,6 +61,7 @@ export default function FlamesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [familyRanking, setFamilyRanking] = useState<FamilyMemberRanking[]>([]);
   const [rankingLoading, setRankingLoading] = useState(false);
+  const [showRankSystemModal, setShowRankSystemModal] = useState(false);
   
   const { isInFamily, familyMembers, loading: familyLoading, refreshFamily, currentFamily } = useFamily();
   const { user, profile, session } = useAuth();
@@ -78,9 +80,9 @@ export default function FlamesScreen() {
   } = useFamilyPoints();
 
   // Get family data counts
-  const { tasks, loading: tasksLoading } = useFamilyTasks();
-  const { events, loading: eventsLoading } = useFamilyCalendarEvents();
-  const { items, loading: itemsLoading } = useFamilyShoppingItems();
+  const { tasks, loading: tasksLoading, refreshTasks } = useFamilyTasks();
+  const { events, loading: eventsLoading, refreshEvents } = useFamilyCalendarEvents();
+  const { items, loading: itemsLoading, refreshItems } = useFamilyShoppingItems();
 
   // Function to fetch family member ranking
   const fetchFamilyRanking = async () => {
@@ -205,12 +207,69 @@ export default function FlamesScreen() {
   // Fallback to family ranking data if currentUserPoints is not available
   const currentUserFromRanking = familyRanking.find(member => member.user_id === user?.id);
   const userFlames = currentUserPoints || currentUserFromRanking?.total_points || 0;
-  const currentRank = 4;
-  // Calculate current user's rank
+  
+  // Calculate current user's rank based on flames
+  // Rank thresholds match RankSystemModal
+  const getCurrentRank = (flames: number) => {
+    if (flames >= 30000) {
+      return { 
+        title: 'The Captain', 
+        nextThreshold: null, 
+        currentThreshold: 30000,
+        progress: 0,
+        total: 0
+      };
+    } else if (flames >= 17500) {
+      return { 
+        title: 'The Family Anchor', 
+        nextThreshold: 30000, 
+        currentThreshold: 17500,
+        progress: flames - 17500,
+        total: 30000 - 17500
+      };
+    } else if (flames >= 10000) {
+      return { 
+        title: 'The Keystone', 
+        nextThreshold: 17500, 
+        currentThreshold: 10000,
+        progress: flames - 10000,
+        total: 17500 - 10000
+      };
+    } else if (flames >= 5000) {
+      return { 
+        title: 'The Coordinator', 
+        nextThreshold: 10000, 
+        currentThreshold: 5000,
+        progress: flames - 5000,
+        total: 10000 - 5000
+      };
+    } else if (flames >= 1500) {
+      return { 
+        title: 'The Achiever', 
+        nextThreshold: 5000, 
+        currentThreshold: 1500,
+        progress: flames - 1500,
+        total: 5000 - 1500
+      };
+    } else {
+      return { 
+        title: 'The Contributor', 
+        nextThreshold: 1500, 
+        currentThreshold: 0,
+        progress: flames,
+        total: 1500
+      };
+    }
+  };
+  
+  const currentRankInfo = getCurrentRank(userFlames);
+  const currentRankTitle = currentRankInfo.title;
+  const progressToNext = currentRankInfo.progress;
+  const progressTotal = currentRankInfo.total;
+  
+  // Calculate current user's family rank position
   const currentUserRank = familyRanking.find(member => member.user_id === user?.id)?.rank_position || 1;
   const familyRank = currentUserRank;
-  const progressToNext = 360;
-  const progressTotal = 400;
 
 
   return (
@@ -277,15 +336,18 @@ export default function FlamesScreen() {
           <View style={styles.section}>
             <View style={styles.futuresElementsPanel}>
           <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t('flames.currentRank.title')}</Text>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{currentRank}</Text>
-          </View>
+                <Text style={styles.sectionTitle}>{t('flames.currentRank.title')}</Text>
+                <View style={styles.badge}>
+                 <Text style={styles.badgeText}>{userFlames.toLocaleString()}</Text>
+            </View>
               </View>
             <Text style={styles.sectionSubtitle}>{t('flames.currentRank.subtitle')}</Text>
             
             <View style={styles.progressCard}>
-              <View style={styles.goldMemberSection}>
+              <Pressable 
+                style={styles.goldMemberSection}
+                onPress={() => setShowRankSystemModal(true)}
+              >
                 <View style={styles.crownIconContainer}>
                   <Image
                     source={require('@/assets/images/icon/crown.png')}
@@ -293,11 +355,11 @@ export default function FlamesScreen() {
                     resizeMode="contain"
                   />
               </View>
-                <View style={styles.goldMemberInfo}>
-                  <Text style={styles.goldMemberTitle}>{t('flames.currentRank.goldMember')}</Text>
-                  <Text style={styles.goldMemberSubtitle}>{t('flames.currentRank.currentStatus')}</Text>
-                  </View>
-                </View>
+                  <View style={styles.goldMemberInfo}>
+                   <Text style={styles.goldMemberTitle}>{currentRankTitle}</Text>
+                   <Text style={styles.goldMemberSubtitle}>{userFlames.toLocaleString()} Flames</Text>
+                    </View>
+                </Pressable>
               <View style={styles.progressSection}>
                 <View style={styles.progressBarContainer}>
                   <Text style={styles.progressLabel}>{t('flames.currentRank.progressToPlatinum')}</Text>
@@ -578,6 +640,22 @@ export default function FlamesScreen() {
         {/* Bottom spacing for tab bar */}
         <View style={styles.bottomSpacing} />
       </ScrollView>
+
+      {/* Rank System Modal */}
+      <RankSystemModal
+        visible={showRankSystemModal}
+        onClose={() => setShowRankSystemModal(false)}
+        onStartGoal={async () => {
+          // Refresh all data to update the Achievements Section
+          await Promise.all([
+            refreshTasks(),
+            refreshEvents(),
+            refreshItems(),
+            refreshData(),
+            fetchFamilyRanking(),
+          ]);
+        }}
+      />
     </SafeAreaView>
   );
 }

@@ -22,6 +22,8 @@ import {
   SlideInAnimation, 
   BounceInAnimation 
 } from '@/components/CoolAnimations';
+import EventEditModal from '@/components/EventEditModal';
+import { CalendarEvent } from '@/hooks/useCalendarEventsByDate';
 
 export default function Calendar() {
   const { t } = useLanguage();
@@ -45,6 +47,8 @@ export default function Calendar() {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth(), 1);
   });
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [showEventEditModal, setShowEventEditModal] = useState(false);
 
   // State for single date selection - default to today
   const [selectedSingleDate, setSelectedSingleDate] = useState<Date | null>(() => {
@@ -430,7 +434,13 @@ export default function Calendar() {
                  
                 return (
                   <BounceInAnimation key={event.id} delay={500 + (filteredEvents.indexOf(event) * 50)} duration={600}>
-                    <View style={styles.calendarEventCard}>
+                    <Pressable 
+                      style={styles.calendarEventCard}
+                      onPress={() => {
+                        setSelectedEvent(event);
+                        setShowEventEditModal(true);
+                      }}
+                    >
                      <View style={styles.eventHeader}>
                        <Text style={styles.eventMainTitle}>{event.title}</Text>
                        {event.description && (
@@ -503,7 +513,7 @@ export default function Calendar() {
                          </Text>
                        </View>
                      </View>
-                   </View>
+                    </Pressable>
                   </BounceInAnimation>
                  );
                })
@@ -651,6 +661,34 @@ export default function Calendar() {
           </View>
         </View>
       </Modal>
+
+      {/* Event Edit Modal */}
+      <EventEditModal
+        visible={showEventEditModal}
+        onClose={() => {
+          setShowEventEditModal(false);
+          setSelectedEvent(null);
+        }}
+        event={selectedEvent ? {
+          id: selectedEvent.id,
+          title: selectedEvent.title,
+          description: selectedEvent.description,
+          event_date: selectedEvent.event_date,
+          end_date: selectedEvent.end_date,
+          location: selectedEvent.location,
+          created_by: selectedEvent.created_by,
+          family_id: selectedEvent.family_id,
+          assignee_count: selectedEvent.assigneeProfiles?.length || 0,
+          assignees: selectedEvent.assigneeProfiles?.map(p => ({
+            user_id: p.id,
+            name: p.name,
+            avatar: p.avatar_url,
+          })) || [],
+        } : null}
+        onEventUpdated={() => {
+          refreshEvents();
+        }}
+      />
     </SafeAreaView>
   );
 }

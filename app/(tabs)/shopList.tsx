@@ -23,14 +23,18 @@ import {
   SlideInAnimation, 
   BounceInAnimation 
 } from '@/components/CoolAnimations';
+import ShoppingItemEditModal from '@/components/ShoppingItemEditModal';
+import { ShoppingItem } from '@/hooks/useFamilyShoppingItems';
 
 export default function ShopListScreen() {
   const { t } = useLanguage();
   const { isDarkMode } = useDarkMode();
   const theme = getTheme(isDarkMode);
   const styles = createStyles(theme, isDarkMode);
-  const [activeFilter, setActiveFilter] = useState('Buy Items');
+  const [activeFilter, setActiveFilter] = useState('All Items');
   const [familyTimeout, setFamilyTimeout] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<ShoppingItem | null>(null);
+  const [showItemEditModal, setShowItemEditModal] = useState(false);
   
   // Get shopping items data
   const { 
@@ -130,13 +134,11 @@ export default function ShopListScreen() {
   const filteredItems = useMemo(() => {
     if (activeFilter === 'All Items') {
       return items;
-    } else if (activeFilter === 'Buy Items') {
-      return getPendingItems();
-    } else if (activeFilter === 'Finished') {
+    } else if (activeFilter === 'Items Buyed') {
       return getCompletedItems();
     }
     return items;
-  }, [items, activeFilter, getPendingItems, getCompletedItems]);
+  }, [items, activeFilter, getCompletedItems]);
 
   // Group items by date
   const groupedItems = useMemo(() => {
@@ -182,15 +184,13 @@ export default function ShopListScreen() {
   // Filter data for tabs
   const filterData = useMemo(() => {
     const allItems = items.length;
-    const buyItems = getPendingItems().length;
     const finishedItems = getCompletedItems().length;
     
     return [
       { id: 'all', label: t('shopListPage.filters.allItems'), count: allItems, active: activeFilter === 'All Items' },
-      { id: 'buy', label: t('shopListPage.filters.buyItems'), count: buyItems, active: activeFilter === 'Buy Items' },
-      { id: 'finished', label: t('shopListPage.filters.finished'), count: finishedItems, active: activeFilter === 'Finished' },
+      { id: 'finished', label: t('shopListPage.filters.finished'), count: finishedItems, active: activeFilter === 'Items Buyed' },
     ];
-  }, [items, activeFilter, getPendingItems, getCompletedItems, t]);
+  }, [items, activeFilter, getCompletedItems, t]);
 
   // Show loading state for family or items
   if (familyLoading || itemsLoading) {
@@ -304,25 +304,29 @@ export default function ShopListScreen() {
           <Text style={styles.summarySubtitle}>{t('shopListPage.summary.subtitle')}</Text>
           
           <View style={styles.progressCards}>
-            <BounceInAnimation delay={100} duration={800}>
-              <View style={styles.progressCard}>
-                <View style={styles.progressCardHeader}>
-                  <View style={styles.progressDotGreen} />
-                  <Text style={styles.progressCardTitle}>{t('shopListPage.summary.itemsToBuy')}</Text>
+            <View style={{ flex: 1 }}>
+              <BounceInAnimation delay={100} duration={800}>
+                <View style={styles.progressCard}>
+                  <View style={styles.progressCardHeader}>
+                    <View style={styles.progressDotGreen} />
+                    <Text style={styles.progressCardTitle}>{t('shopListPage.summary.itemsToBuy')}</Text>
+                  </View>
+                  <Text style={styles.progressCardValue}>{summaryData.itemsToBuy}</Text>
                 </View>
-                <Text style={styles.progressCardValue}>{summaryData.itemsToBuy}</Text>
-              </View>
-            </BounceInAnimation>
+              </BounceInAnimation>
+            </View>
             
-            <BounceInAnimation delay={200} duration={800}>
-              <View style={styles.progressCard}>
-                <View style={styles.progressCardHeader}>
-                  <View style={styles.progressDotBlue} />
-                  <Text style={styles.progressCardTitle}>{t('shopListPage.summary.purchasedItems')}</Text>
+            <View style={{ flex: 1 }}>
+              <BounceInAnimation delay={200} duration={800}>
+                <View style={styles.progressCard}>
+                  <View style={styles.progressCardHeader}>
+                    <View style={styles.progressDotBlue} />
+                    <Text style={styles.progressCardTitle}>{t('shopListPage.summary.purchasedItems')}</Text>
+                  </View>
+                  <Text style={styles.progressCardValue}>{summaryData.purchasedItems}</Text>
                 </View>
-                <Text style={styles.progressCardValue}>{summaryData.purchasedItems}</Text>
-              </View>
-            </BounceInAnimation>
+              </BounceInAnimation>
+            </View>
           </View>
         </View>
         </SlideInAnimation>
@@ -332,33 +336,35 @@ export default function ShopListScreen() {
           <View style={styles.filterBarContainer}>
           <View style={styles.filterBar}>
             {filterData.map((filter, index) => (
-              <BounceInAnimation key={filter.id} delay={300 + (index * 50)} duration={600}>
-                <Pressable
-                style={[
-                  styles.filterButton,
-                  filter.active && styles.filterButtonActive
-                ]}
-                onPress={() => setActiveFilter(filter.label)}
-              >
-                <Text style={[
-                  styles.filterText,
-                  filter.active && styles.filterTextActive
-                ]}>
-                  {filter.label}
-                </Text>
-                <View style={[
-                  styles.filterBadge,
-                  filter.active && styles.filterBadgeActive
-                ]}>
-                  <Text style={[
-                    styles.filterBadgeText,
-                    filter.active && styles.filterBadgeTextActive
-                  ]}>
-                    {filter.count}
-                  </Text>
-                </View>
-              </Pressable>
-              </BounceInAnimation>
+              <View key={filter.id} style={{ flex: 1 }}>
+                <BounceInAnimation delay={300 + (index * 50)} duration={600}>
+                  <Pressable
+                    style={[
+                      styles.filterButton,
+                      filter.active && styles.filterButtonActive
+                    ]}
+                    onPress={() => setActiveFilter(filter.label)}
+                  >
+                    <Text style={[
+                      styles.filterText,
+                      filter.active && styles.filterTextActive
+                    ]}>
+                      {filter.label}
+                    </Text>
+                    <View style={[
+                      styles.filterBadge,
+                      filter.active && styles.filterBadgeActive
+                    ]}>
+                      <Text style={[
+                        styles.filterBadgeText,
+                        filter.active && styles.filterBadgeTextActive
+                      ]}>
+                        {filter.count}
+                      </Text>
+                    </View>
+                  </Pressable>
+                </BounceInAnimation>
+              </View>
             ))}
           </View>
         </View>
@@ -380,7 +386,13 @@ export default function ShopListScreen() {
               
               {dateGroup.items.map((item, itemIndex) => (
                 <BounceInAnimation key={item.id} delay={600 + (groupIndex * 100) + (itemIndex * 50)} duration={600}>
-                  <View style={styles.itemContainer}>
+                  <Pressable 
+                    style={styles.itemContainer}
+                    onPress={() => {
+                      setSelectedItem(item);
+                      setShowItemEditModal(true);
+                    }}
+                  >
                   <View style={styles.itemCard}>
                     <View style={styles.itemHeader}>
                       <View style={styles.itemInfo}>
@@ -418,7 +430,7 @@ export default function ShopListScreen() {
                       <Text style={styles.purchaserName}>{item.purchaser}</Text>
                     </View>
                   </View>
-                </View>
+                    </Pressable>
                 </BounceInAnimation>
               ))}
             </View>
@@ -430,6 +442,19 @@ export default function ShopListScreen() {
         {/* Bottom spacing for tab bar */}
         <View style={styles.bottomSpacing} />
       </ScrollView>
+
+      {/* Shopping Item Edit Modal */}
+      <ShoppingItemEditModal
+        visible={showItemEditModal}
+        onClose={() => {
+          setShowItemEditModal(false);
+          setSelectedItem(null);
+        }}
+        item={selectedItem}
+        onItemUpdated={() => {
+          refreshItems();
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -514,6 +539,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
   progressCards: {
     flexDirection: 'row',
     gap: 16,
+    alignItems: 'stretch',
   },
   progressCard: {
     flex: 1,
@@ -522,6 +548,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     padding: 16,
     borderWidth: 1,
     borderColor: theme.border,
+    minHeight: 80,
   },
   progressCardHeader: {
     flexDirection: 'row',
@@ -567,6 +594,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     flexDirection: 'row',
     gap: 4,
     width: '100%',
+    alignItems: 'stretch',
   },
   filterButton: {
     flex: 1,
@@ -574,10 +602,11 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: 16,
     backgroundColor: 'transparent',
+    minHeight: 40,
   },
   filterButtonActive: {
     backgroundColor: '#17f196',
@@ -655,6 +684,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     borderWidth: 1,
     borderColor: theme.border,
     marginBottom: 8,
+    minHeight: 80,
   },
   itemHeader: {
     flexDirection: 'row',

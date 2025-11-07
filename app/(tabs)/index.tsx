@@ -30,6 +30,7 @@ import {
   BounceInAnimation 
 } from '@/components/CoolAnimations';
 import TaskEditModal from '@/components/TaskEditModal';
+import EventEditModal from '@/components/EventEditModal';
 // Removed unused imports
 
 // Custom verification icon component
@@ -56,6 +57,8 @@ export default function HomeDashboard() {
   const [realtimeChannel, setRealtimeChannel] = useState<any>(null);
   const [selectedTask, setSelectedTask] = useState<TodayTask | null>(null);
   const [showTaskEditModal, setShowTaskEditModal] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [showEventEditModal, setShowEventEditModal] = useState(false);
   // Removed directProfileData - home page should only use centralized state
   
   // Get current user's events for today
@@ -858,7 +861,13 @@ export default function HomeDashboard() {
                 });
                 return (
                   <FadeInAnimation key={event.id} delay={400 + (index * 100)} duration={600}>
-                    <View style={styles.calendarEventCard}>
+                    <Pressable 
+                      style={styles.calendarEventCard}
+                      onPress={() => {
+                        setSelectedEvent(event);
+                        setShowEventEditModal(true);
+                      }}
+                    >
                   <View style={styles.eventHeader}>
                     <Text style={styles.eventMainTitle}>{event.title}</Text>
                   </View>
@@ -983,7 +992,7 @@ export default function HomeDashboard() {
                       })}
                     </Text>
                   </View>
-                    </View>
+                    </Pressable>
                   </FadeInAnimation>
                 );
               })
@@ -1066,17 +1075,25 @@ export default function HomeDashboard() {
                  />
                     <Text style={styles.statusTagText}>{task.completed ? t('home.tasks.completed') : t('home.tasks.inProgress')}</Text>
                </View>
-               <View style={styles.priorityTag}>
-                 <Image
-                   source={require('@/assets/images/icon/flag.png')}
-                   style={{
-                     width: 10,
-                     height: 10,
-                     resizeMode: 'contain'
-                   }}
-                 />
-                    <Text style={styles.priorityTagText}>{t('home.tasks.highPriority')}</Text>
-               </View>
+               {(() => {
+                 const priority = (task as any).priority || task.category || 'Normal';
+                 const isHighLevel = priority === 'High Level' || priority === 'high' || priority === 'household';
+                 return (
+                   <View style={[
+                     styles.priorityTag,
+                     isHighLevel ? styles.priorityTagHigh : styles.priorityTagNormal
+                   ]}>
+                     <Image
+                       source={require('@/assets/images/icon/flag.png')}
+                       style={styles.priorityTagIcon}
+                       resizeMode="contain"
+                     />
+                     <Text style={styles.priorityTagText}>
+                       {isHighLevel ? 'High Level' : 'Normal'}
+                     </Text>
+                   </View>
+                 );
+               })()}
              </View>
             
             <View style={styles.progressBar}>
@@ -1353,6 +1370,19 @@ export default function HomeDashboard() {
         task={selectedTask}
         onTaskUpdated={() => {
           refreshTasks();
+        }}
+      />
+
+      {/* Event Edit Modal */}
+      <EventEditModal
+        visible={showEventEditModal}
+        onClose={() => {
+          setShowEventEditModal(false);
+          setSelectedEvent(null);
+        }}
+        event={selectedEvent}
+        onEventUpdated={() => {
+          refreshEvents();
         }}
       />
     </SafeAreaView>
@@ -1815,17 +1845,21 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
   priorityTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FF6B6B',
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 4,
     gap: 4,
   },
+  priorityTagNormal: {
+    backgroundColor: '#17F196', // Green for Normal
+  },
+  priorityTagHigh: {
+    backgroundColor: '#FF6B6B', // Red for High Level
+  },
   priorityTagIcon: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#FFFFFF',
+    width: 10,
+    height: 10,
+    resizeMode: 'contain',
   },
   priorityTagText: {
     fontSize: 10,

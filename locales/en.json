@@ -399,8 +399,7 @@
     },
     "filters": {
       "allItems": "All Items",
-      "buyItems": "Buy Items",
-      "finished": "Finished"
+      "finished": "Items Buyed"
     },
     "item": {
       "item": "Item",

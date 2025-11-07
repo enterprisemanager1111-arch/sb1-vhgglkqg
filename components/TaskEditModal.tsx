@@ -316,6 +316,7 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
   const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(null);
   const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null);
   const [currentPickerTab, setCurrentPickerTab] = useState<'start' | 'end'>('start');
+  const [showPriorityPicker, setShowPriorityPicker] = useState(false);
   const { showLoading, hideLoading } = useLoading();
   
   const { familyMembers, currentFamily } = useFamily();
@@ -340,15 +341,26 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
         assigneeIds = task.task_assignments.map(a => a.assignee_id);
       }
       
+      // Map category/priority values to "Normal" or "High Level"
+      let initialCategory = task.category || ('priority' in task ? (task as any).priority : null) || 'household';
+      if (initialCategory === 'household' || initialCategory === 'high' || initialCategory === 'High Level') {
+        initialCategory = 'High Level';
+      } else if (initialCategory === 'Normal' || initialCategory === 'normal') {
+        initialCategory = 'Normal';
+      } else {
+        initialCategory = 'Normal';
+      }
+      
       setForm({
         title: task.title || '',
         description: task.description || '',
         assignee: assigneeIds,
         startDate: task.start_date ? task.start_date.split('T')[0] : '',
         endDate: task.end_date ? task.end_date.split('T')[0] : '',
-        category: task.category || 'household',
+        category: initialCategory,
         points: task.points || 150,
       });
+      
       setShowDatePicker(false);
     }
   }, [visible, task]);
@@ -475,24 +487,51 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
       // Get task ID (TodayTask uses task_id, FamilyTask uses id)
       const taskId = 'task_id' in task ? task.task_id : task.id;
       
+      // Ensure priority has a value (default to 'Normal' if not set)
+      const priorityValue = form.category || 'Normal';
+      
+      console.log('🔧 Updating task - Priority value:', priorityValue);
+      console.log('🔧 Form category (priority):', form.category);
+      console.log('🔧 Full form data:', JSON.stringify(form, null, 2));
+      
+      // Prepare update payload - MUST include priority field
+      const updatePayload: {
+        title: string;
+        description: string | null;
+        priority: string; // Priority field - always included
+        points: number;
+        start_date: string | null;
+        end_date: string | null;
+        updated_at: string;
+      } = {
+        title: form.title.trim(),
+        description: form.description.trim() || null,
+        priority: priorityValue, // Priority: 'Normal' or 'High Level'
+        points: form.points,
+        start_date: form.startDate ? `${form.startDate}T00:00:00Z` : null,
+        end_date: form.endDate ? `${form.endDate}T23:59:59Z` : null,
+        updated_at: new Date().toISOString(),
+      };
+      
+      console.log('🔧 Update payload being sent (includes priority):', JSON.stringify(updatePayload, null, 2));
+      console.log('🔧 Priority value in payload:', updatePayload.priority);
+      
       // Update the task
-      const { error: updateError } = await supabase
+      const { data: updateData, error: updateError } = await supabase
         .from('family_tasks')
-        .update({
-          title: form.title.trim(),
-          description: form.description.trim() || null,
-          category: form.category,
-          points: form.points,
-          start_date: form.startDate ? `${form.startDate}T00:00:00Z` : null,
-          end_date: form.endDate ? `${form.endDate}T23:59:59Z` : null,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq('id', taskId)
-        .eq('family_id', currentFamily.id);
+        .eq('family_id', currentFamily.id)
+        .select();
 
       if (updateError) {
+        console.error('❌ Update error:', updateError);
         throw updateError;
       }
+      
+      console.log('✅ Task updated successfully!');
+      console.log('✅ Updated task data:', updateData?.[0]);
+      console.log('✅ Category in database after update:', updateData?.[0]?.category);
 
       // Update task assignments
       // Use task_assignment (singular) table which has: task_id, user_id, status
@@ -539,6 +578,7 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
       hideLoading();
       setLoading(false);
       
+      // Refresh the task list to show updated priority
       if (onTaskUpdated) {
         onTaskUpdated();
       }
@@ -730,10 +770,7 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
                         <Text style={styles.inputLabel}>Priority</Text>
                         <Pressable 
                           style={styles.inputContainer}
-                          onPress={() => {
-                            // TODO: Implement priority picker
-                            Alert.alert('Priority', 'Priority picker coming soon');
-                          }}
+                          onPress={() => setShowPriorityPicker(true)}
                         >
                           <RNImage 
                             source={require('@/assets/images/icon/priority.png')}
@@ -741,7 +778,7 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
                             resizeMode="contain"
                           />
                           <Text style={styles.input}>
-                            {form.category === 'household' ? 'High Priority' : form.category || 'High Priority'}
+                            {form.category === 'High Level' || form.category === 'high' || form.category === 'household' ? 'High Level' : 'Normal'}
                           </Text>
                           <ChevronDown size={16} color={theme.placeholder} strokeWidth={2} style={styles.chevronIcon} />
                         </Pressable>
@@ -793,6 +830,66 @@ export default function TaskEditModal({ visible, onClose, task, onTaskUpdated }:
           isDarkMode={isDarkMode}
           t={t}
         />
+      )}
+
+      {/* Priority Picker Modal */}
+      {showPriorityPicker && (
+        <Modal
+          visible={showPriorityPicker}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowPriorityPicker(false)}
+        >
+          <View style={styles.priorityPickerOverlay}>
+            <Pressable 
+              style={styles.priorityPickerOverlayPressable}
+              onPress={() => setShowPriorityPicker(false)}
+            />
+            <View style={styles.priorityPickerContainer} pointerEvents="box-none">
+              <View style={styles.priorityPickerHeader}>
+                <Pressable
+                  onPress={() => setShowPriorityPicker(false)}
+                  style={styles.priorityPickerCancelButton}
+                >
+                  <Text style={styles.priorityPickerCancelText}>Cancel</Text>
+                </Pressable>
+                <Text style={styles.priorityPickerTitle}>Select Priority</Text>
+                <Pressable
+                  onPress={() => setShowPriorityPicker(false)}
+                  style={styles.priorityPickerDoneButton}
+                >
+                  <Text style={styles.priorityPickerDoneText}>Done</Text>
+                </Pressable>
+              </View>
+              <View style={styles.priorityPickerContent}>
+                <Pressable
+                  style={[
+                    styles.priorityOption,
+                    (form.category === 'Normal' || (form.category !== 'High Level' && form.category !== 'high' && form.category !== 'household')) && styles.priorityOptionSelected
+                  ]}
+                  onPress={() => {
+                    updateForm('category', 'Normal');
+                    setShowPriorityPicker(false);
+                  }}
+                >
+                  <Text style={styles.priorityOptionText}>Normal</Text>
+                </Pressable>
+                <Pressable
+                  style={[
+                    styles.priorityOption,
+                    (form.category === 'High Level' || form.category === 'high' || form.category === 'household') && styles.priorityOptionSelected
+                  ]}
+                  onPress={() => {
+                    updateForm('category', 'High Level');
+                    setShowPriorityPicker(false);
+                  }}
+                >
+                  <Text style={styles.priorityOptionText}>High Level</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
       )}
     </>
   );
@@ -1211,6 +1308,82 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     fontSize: 14,
     color: theme.textSecondary,
     textAlign: 'center',
+  },
+  priorityPickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  priorityPickerOverlayPressable: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  priorityPickerContainer: {
+    backgroundColor: theme.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+    maxHeight: '40%',
+  },
+  priorityPickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border,
+  },
+  priorityPickerCancelButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  priorityPickerCancelText: {
+    fontSize: 16,
+    color: theme.textSecondary,
+    fontFamily: 'Helvetica',
+  },
+  priorityPickerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: theme.text,
+    fontFamily: 'Helvetica',
+  },
+  priorityPickerDoneButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  priorityPickerDoneText: {
+    fontSize: 16,
+    color: '#17f196',
+    fontWeight: '600',
+    fontFamily: 'Helvetica',
+  },
+  priorityPickerContent: {
+    gap: 12,
+  },
+  priorityOption: {
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: theme.border,
+    backgroundColor: theme.input,
+    alignItems: 'center',
+  },
+  priorityOptionSelected: {
+    borderColor: '#17f196',
+    backgroundColor: isDarkMode ? '#2a4a3a' : '#F4F3FF',
+  },
+  priorityOptionText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: theme.text,
+    fontFamily: 'Helvetica',
   },
 });
 

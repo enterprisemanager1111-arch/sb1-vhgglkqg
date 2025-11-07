@@ -28,7 +28,7 @@ export default function Tasks() {
   const { t } = useLanguage();
   const { isDarkMode } = useDarkMode();
   const theme = getTheme(isDarkMode);
-  const [selectedFilter, setSelectedFilter] = useState<'all' | 'inProgress' | 'finish'>('inProgress');
+  const [selectedFilter, setSelectedFilter] = useState<'inProgress' | 'finish'>('inProgress');
   const [selectedTask, setSelectedTask] = useState<FamilyTask | null>(null);
   const [showTaskEditModal, setShowTaskEditModal] = useState(false);
 
@@ -193,20 +193,18 @@ export default function Tasks() {
     return tasksToUse.filter(task => {
       // If task is completed, show it in 'finish' filter
       if (task.completed) {
-        return selectedFilter === 'finish' || selectedFilter === 'all';
+        return selectedFilter === 'finish';
       }
 
       // If no dates, categorize based on completion status
       if (!task.start_date || !task.end_date) {
         switch (selectedFilter) {
-          case 'all':
-            return true;
           case 'inProgress':
             return !task.completed; // Show as in progress if not completed
           case 'finish':
             return task.completed; // Show as done if completed
           default:
-            return true;
+            return false;
         }
       }
 
@@ -214,8 +212,6 @@ export default function Tasks() {
       const endDate = new Date(task.end_date).toISOString().split('T')[0];
 
       switch (selectedFilter) {
-        case 'all':
-          return true; // Show all tasks
         case 'inProgress':
           // In Progress: start_date <= today <= end_date
           return startDate <= todayString && todayString <= endDate;
@@ -223,7 +219,7 @@ export default function Tasks() {
           // Done: end_date < today (tasks past their end date)
           return endDate < todayString;
         default:
-          return true;
+          return false;
       }
     });
   };
@@ -277,21 +273,6 @@ export default function Tasks() {
                 <View style={styles.progressCard}>
                   <View style={styles.progressCardContent}>
                     <Image
-                      source={require('@/assets/images/icon/code-circle.png')}
-                      style={styles.progressIconImage}
-                    />
-                    <Text style={styles.progressLabel}>{t('tasksPage.summary.toDo')}</Text>
-                  </View>
-                  <Text style={styles.progressNumber}>{todo}</Text>
-                </View>
-              </BounceInAnimation>
-            </View>
-            
-            <View style={{ flex: 1 }}>
-              <BounceInAnimation delay={200} duration={800}>
-                <View style={styles.progressCard}>
-                  <View style={styles.progressCardContent}>
-                    <Image
                       source={require('@/assets/images/icon/task_clock.png')}
                       style={styles.progressIconImage}
                     />
@@ -303,7 +284,7 @@ export default function Tasks() {
             </View>
             
             <View style={{ flex: 1 }}>
-              <BounceInAnimation delay={300} duration={800}>
+              <BounceInAnimation delay={200} duration={800}>
                 <View style={styles.progressCard}>
                   <View style={styles.progressCardContent}>
                     <Image
@@ -354,16 +335,6 @@ export default function Tasks() {
           <View style={styles.filterBarContainer}>
           <View style={styles.filterBar}>
             <Pressable 
-              style={[styles.filterButton, selectedFilter === 'all' && styles.filterButtonActive]}
-              onPress={() => setSelectedFilter('all')}
-            >
-              <Text style={[styles.filterText, selectedFilter === 'all' && styles.filterTextActive]}>{t('tasksPage.filter.all')}</Text>
-              <View style={[styles.filterBadge, selectedFilter === 'all' && styles.filterBadgeActive]}>
-                <Text style={[styles.filterBadgeText, selectedFilter === 'all' && styles.filterBadgeTextActive]}>{todo + inProgress + done}</Text>
-              </View>
-            </Pressable>
-            
-            <Pressable 
               style={[styles.filterButton, selectedFilter === 'inProgress' && styles.filterButtonActive]}
               onPress={() => setSelectedFilter('inProgress')}
             >
@@ -400,9 +371,7 @@ export default function Tasks() {
               />
               <Text style={styles.emptyStateText}>{t('tasksPage.emptyState.title')}</Text>
               <Text style={styles.emptyStateSubtext}>
-                {selectedFilter === 'all' 
-                  ? t('tasksPage.emptyState.noTasks') 
-                  : selectedFilter === 'inProgress' 
+                {selectedFilter === 'inProgress' 
                   ? t('tasksPage.emptyState.noInProgress') 
                   : t('tasksPage.emptyState.noCompleted')}
               </Text>
@@ -466,13 +435,25 @@ export default function Tasks() {
                       />
                       <Text style={styles.statusTagText}>{taskStatus}</Text>
                     </View>
-                    <View style={styles.priorityTag}>
-                      <Image
-                        source={require('@/assets/images/icon/flag.png')}
-                        style={styles.priorityIcon}
-                      />
-                      <Text style={styles.priorityText}>{task.category || 'General'}</Text>
-                    </View>
+                    {(() => {
+                      const priority = (task as any).priority || task.category || 'Normal';
+                      const isHighLevel = priority === 'High Level' || priority === 'high' || priority === 'household';
+                      return (
+                        <View style={[
+                          styles.priorityTag,
+                          isHighLevel ? styles.priorityTagHigh : styles.priorityTagNormal
+                        ]}>
+                          <Image
+                            source={require('@/assets/images/icon/flag.png')}
+                            style={styles.priorityIcon}
+                            resizeMode="contain"
+                          />
+                          <Text style={styles.priorityText}>
+                            {isHighLevel ? 'High Level' : 'Normal'}
+                          </Text>
+                        </View>
+                      );
+                    })()}
                   </View>
                   
                   <View style={styles.progressBar}>
@@ -864,11 +845,16 @@ const createStyles = (theme: ReturnType<typeof getTheme>) => StyleSheet.create({
   priorityTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FF6B6B',
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 4,
     gap: 4,
+  },
+  priorityTagNormal: {
+    backgroundColor: '#17F196', // Green for Normal
+  },
+  priorityTagHigh: {
+    backgroundColor: '#FF6B6B', // Red for High Level
   },
   priorityIcon: {
     width: 10,
