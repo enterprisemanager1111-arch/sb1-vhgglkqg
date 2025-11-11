@@ -169,7 +169,9 @@
         "startDate": "Start date (optional)",
         "startDatePlaceholder": "Start date",
         "endDate": "End date (optional)",
-        "endDatePlaceholder": "End date"
+        "endDatePlaceholder": "End date",
+        "dueDate": "Due Date (optional)",
+        "dueDatePlaceholder": "Select due date"
       },
       "reward": {
         "title": "Task Reward",
@@ -183,6 +185,9 @@
       "datePicker": {
         "selectStartDate": "Select Start Date",
         "selectEndDate": "Select End Date",
+        "selectDueDate": "Select Due Date",
+        "startDate": "Start Date",
+        "endDate": "End Date",
         "done": "Done",
         "invalidDate": "Invalid Date",
         "endDateError": "End date cannot be before start date",

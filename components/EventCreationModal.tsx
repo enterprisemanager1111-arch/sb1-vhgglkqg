@@ -21,6 +21,7 @@ import { supabase } from '@/lib/supabase';
 import { useDarkMode } from '@/contexts/DarkModeContext';
 import { getTheme } from '@/constants/theme';
 import { FadeInAnimation, SlideInAnimation, BounceInAnimation } from '@/components/CoolAnimations';
+import { router } from 'expo-router';
 
 // Custom DateTime Picker Modal Component for Start Time
 const DateTimePickerModal = ({ 
@@ -714,6 +715,9 @@ const EventCreationModal: React.FC<EventCreationModalProps> = ({
       
       Alert.alert(t('eventCreationModal.success.title'), t('eventCreationModal.success.message'));
       handleClose();
+      
+      // Navigate to calendar page after successful event creation
+      router.push('/(tabs)/calendar');
       
     } catch (error: any) {
       console.error('❌ Error creating event with family:', error);

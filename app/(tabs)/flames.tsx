@@ -267,6 +267,24 @@ export default function FlamesScreen() {
   const progressToNext = currentRankInfo.progress;
   const progressTotal = currentRankInfo.total;
   
+  // Get next rank title based on current rank
+  const getNextRankTitle = (currentTitle: string): string | null => {
+    const rankProgression: { [key: string]: string | null } = {
+      'The Contributor': 'The Achiever',
+      'The Achiever': 'The Coordinator',
+      'The Coordinator': 'The Keystone',
+      'The Keystone': 'The Family Anchor',
+      'The Family Anchor': 'The Captain',
+      'The Captain': null, // Max rank, no next
+    };
+    return rankProgression[currentTitle] || null;
+  };
+  
+  const nextRankTitle = getNextRankTitle(currentRankTitle);
+  const progressLabelText = nextRankTitle 
+    ? `Progress to ${nextRankTitle}`
+    : 'Max Rank Achieved';
+  
   // Calculate current user's family rank position
   const currentUserRank = familyRanking.find(member => member.user_id === user?.id)?.rank_position || 1;
   const familyRank = currentUserRank;
@@ -362,7 +380,7 @@ export default function FlamesScreen() {
                 </Pressable>
               <View style={styles.progressSection}>
                 <View style={styles.progressBarContainer}>
-                  <Text style={styles.progressLabel}>{t('flames.currentRank.progressToPlatinum')}</Text>
+                  <Text style={styles.progressLabel}>{progressLabelText}</Text>
                   <Text style={styles.progressText}>{t('flames.currentRank.flamesProgress', { current: progressToNext, total: progressTotal })}</Text>
                   </View>
                 <View style={styles.progressBar}>

@@ -806,7 +806,7 @@ export default function EventEditModal({ visible, onClose, event, onEventUpdated
                             onPress={() => setShowStartTimePicker(true)}
                           >
                             <RNImage 
-                              source={require('@/assets/images/icon/calendar2_dis.png')}
+                              source={require('@/assets/images/icon/calendar.png')}
                               style={styles.inputIcon}
                               resizeMode="contain"
                             />

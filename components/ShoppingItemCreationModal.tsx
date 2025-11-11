@@ -22,6 +22,7 @@ import { supabase } from '@/lib/supabase';
 import { useDarkMode } from '@/contexts/DarkModeContext';
 import { getTheme } from '@/constants/theme';
 import { FadeInAnimation, SlideInAnimation, BounceInAnimation } from '@/components/CoolAnimations';
+import { router } from 'expo-router';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -126,6 +127,9 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
       Alert.alert(t('shoppingItemCreationModal.success.title'), t('shoppingItemCreationModal.success.message'));
       handleClose();
       
+      // Navigate to shopList page after successful shopping item creation
+      router.push('/(tabs)/shopList');
+      
     } catch (error: any) {
       console.error('❌ Error creating shopping item with family:', error);
       Alert.alert(t('common.error'), error.message || t('shoppingItemCreationModal.validation.createFailed'));
@@ -187,6 +191,9 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
       
       Alert.alert(t('shoppingItemCreationModal.success.title'), t('shoppingItemCreationModal.success.message'));
       handleClose();
+      
+      // Navigate to shopList page after successful shopping item creation
+      router.push('/(tabs)/shopList');
       
     } catch (error: any) {
       console.error('❌ Error in direct insert fallback:', error);

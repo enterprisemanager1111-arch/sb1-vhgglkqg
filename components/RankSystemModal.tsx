@@ -148,7 +148,7 @@ const RankSystemModal: React.FC<RankSystemModalProps> = ({
     {
       id: 'keystone',
       title: 'The Keystone',
-      icon: require('@/assets/images/icon/family_rank/anchor.png'), // Using anchor as placeholder
+      icon: require('@/assets/images/icon/family_rank/keystone.png'), // Using anchor as placeholder
       flames: 10000,
       totalFlames: 17500,
       description: 'Foundational stability. You\'re the essential piece that holds the team together.',
