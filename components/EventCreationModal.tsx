@@ -1214,6 +1214,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
   radioButton: {
     width: 20,
     height: 20,
+    marginLeft: 10,
     borderRadius: 10,
     borderWidth: 2,
     borderColor: theme.border,

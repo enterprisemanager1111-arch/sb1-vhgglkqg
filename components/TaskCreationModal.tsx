@@ -11,12 +11,11 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-// Custom Date Range Picker Modal Component
-const DateRangePickerModal = ({ 
+// Custom Date Picker Modal Component (End Date Only)
+const DatePickerModal = ({ 
   visible, 
   onClose, 
-  onDateRangeSelect, 
-  selectedStartDate,
+  onDateSelect, 
   selectedEndDate,
   t,
   theme,
@@ -24,38 +23,59 @@ const DateRangePickerModal = ({
 }: { 
   visible: boolean; 
   onClose: () => void; 
-  onDateRangeSelect: (startDate: Date | null, endDate: Date | null) => void;
-  selectedStartDate: Date | null;
+  onDateSelect: (endDate: Date | null) => void;
   selectedEndDate: Date | null;
   t: any;
   theme: any;
   isDarkMode: boolean;
 }) => {
-  const [tempStartDate, setTempStartDate] = useState(selectedStartDate || new Date());
-  const [tempEndDate, setTempEndDate] = useState(selectedEndDate || new Date());
-  const [currentPicker, setCurrentPicker] = useState<'start' | 'end'>('start');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Set to start of day for comparison
   
   const styles = createStyles(theme, isDarkMode);
 
-  // Reset dates when modal opens
+  // Initialize with selectedEndDate or today
+  const [tempEndDate, setTempEndDate] = useState(() => {
+    if (selectedEndDate) {
+      const date = new Date(selectedEndDate);
+      date.setHours(0, 0, 0, 0);
+      // Ensure date is not before today
+      return date < today ? new Date() : date;
+    }
+    return new Date();
+  });
+
+  // Reset date when modal opens
   React.useEffect(() => {
     if (visible) {
-      const start = selectedStartDate || new Date();
-      const end = selectedEndDate || new Date();
-      setTempStartDate(start);
-      setTempEndDate(end);
-      setCurrentPicker('start');
+      if (selectedEndDate) {
+        const date = new Date(selectedEndDate);
+        date.setHours(0, 0, 0, 0);
+        // Ensure date is not before today
+        setTempEndDate(date < today ? new Date() : date);
+      } else {
+        // Default to today if no date is selected
+        setTempEndDate(new Date());
+      }
     }
-  }, [visible, selectedStartDate, selectedEndDate]);
+  }, [visible, selectedEndDate]);
 
   const handleConfirm = () => {
-    // Validate end date is not before start date
-    if (tempEndDate && tempStartDate && tempEndDate < tempStartDate) {
+    console.log('📅 Date picker confirm button clicked');
+    console.log('📅 Selected date:', tempEndDate);
+    
+    // Validate end date is not before today
+    const endDate = new Date(tempEndDate);
+    endDate.setHours(0, 0, 0, 0);
+    
+    if (endDate < today) {
+      console.log('⚠️ Selected date is before today, showing error');
       Alert.alert(t('taskCreationModal.datePicker.invalidDate'), t('taskCreationModal.datePicker.endDateError'));
       return;
     }
     
-    onDateRangeSelect(tempStartDate, tempEndDate);
+    console.log('✅ Date validated, calling onDateSelect');
+    onDateSelect(tempEndDate);
     onClose();
   };
 
@@ -64,32 +84,19 @@ const DateRangePickerModal = ({
     return Array.from({ length: daysInMonth }, (_, i) => i + 1);
   };
 
-  // Check if a date is disabled (for end date picker)
-  const isDateDisabled = (day: number, isEndDate: boolean) => {
-    if (isEndDate && tempStartDate) {
-      const currentDate = new Date(tempEndDate.getFullYear(), tempEndDate.getMonth(), day);
-      return currentDate < tempStartDate;
-    }
-    return false;
+  // Check if a date is disabled (must be >= today)
+  const isDateDisabled = (day: number) => {
+    const currentDate = new Date(tempEndDate.getFullYear(), tempEndDate.getMonth(), day);
+    currentDate.setHours(0, 0, 0, 0);
+    return currentDate < today;
   };
 
-  // Check if year/month combination is valid for end date picker
-  const isYearMonthValid = (year: number, month: number, isEndDate: boolean) => {
-    if (isEndDate && tempStartDate) {
-      const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
-      const lastDateOfMonth = new Date(year, month, lastDayOfMonth);
-      return lastDateOfMonth >= tempStartDate;
-    }
-    return true;
-  };
-
-  const getCurrentDate = () => currentPicker === 'start' ? tempStartDate : tempEndDate;
-  const setCurrentDate = (date: Date) => {
-    if (currentPicker === 'start') {
-      setTempStartDate(date);
-    } else {
-      setTempEndDate(date);
-    }
+  // Check if year/month combination is valid (must have at least one day >= today)
+  const isYearMonthValid = (year: number, month: number) => {
+    const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+    const lastDateOfMonth = new Date(year, month, lastDayOfMonth);
+    lastDateOfMonth.setHours(0, 0, 0, 0);
+    return lastDateOfMonth >= today;
   };
 
   const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i);
@@ -136,26 +143,6 @@ const DateRangePickerModal = ({
               <Text style={styles.datePickerDoneText}>{t('taskCreationModal.datePicker.done')}</Text>
             </Pressable>
           </View>
-          
-          {/* Picker Type Selector */}
-          <View style={styles.dateRangeSelector}>
-            <Pressable
-              style={[styles.dateRangeButton, currentPicker === 'start' && styles.dateRangeButtonActive]}
-              onPress={() => setCurrentPicker('start')}
-            >
-              <Text style={[styles.dateRangeButtonText, currentPicker === 'start' && styles.dateRangeButtonTextActive]}>
-                {t('taskCreationModal.datePicker.startDate')}
-              </Text>
-            </Pressable>
-            <Pressable
-              style={[styles.dateRangeButton, currentPicker === 'end' && styles.dateRangeButtonActive]}
-              onPress={() => setCurrentPicker('end')}
-            >
-              <Text style={[styles.dateRangeButtonText, currentPicker === 'end' && styles.dateRangeButtonTextActive]}>
-                {t('taskCreationModal.datePicker.endDate')}
-              </Text>
-            </Pressable>
-          </View>
 
           <View style={styles.datePickerContent}>
             <View style={styles.datePickerRow}>
@@ -163,26 +150,25 @@ const DateRangePickerModal = ({
                 <Text style={styles.datePickerLabel}>{t('taskCreationModal.datePicker.year')}</Text>
                 <ScrollView style={styles.datePickerScroll} showsVerticalScrollIndicator={false}>
                   {years.map((year) => {
-                    const isEndDate = currentPicker === 'end';
-                    const yearDisabled = !isYearMonthValid(year, getCurrentDate().getMonth(), isEndDate);
+                    const yearDisabled = !isYearMonthValid(year, tempEndDate.getMonth());
                     return (
                     <Pressable
                       key={year}
                       style={[
                         styles.datePickerOption,
-                          getCurrentDate().getFullYear() === year && styles.datePickerOptionSelected,
+                          tempEndDate.getFullYear() === year && styles.datePickerOptionSelected,
                           yearDisabled && styles.datePickerOptionDisabled
                         ]}
                         onPress={() => {
                           if (!yearDisabled) {
-                            setCurrentDate(new Date(year, getCurrentDate().getMonth(), getCurrentDate().getDate()));
+                            setTempEndDate(new Date(year, tempEndDate.getMonth(), tempEndDate.getDate()));
                           }
                         }}
                         disabled={yearDisabled}
                     >
                       <Text style={[
                         styles.datePickerOptionText,
-                          getCurrentDate().getFullYear() === year && styles.datePickerOptionTextSelected,
+                          tempEndDate.getFullYear() === year && styles.datePickerOptionTextSelected,
                           yearDisabled && styles.datePickerOptionTextDisabled
                       ]}>
                         {year}
@@ -197,26 +183,25 @@ const DateRangePickerModal = ({
                 <Text style={styles.datePickerLabel}>{t('taskCreationModal.datePicker.month')}</Text>
                 <ScrollView style={styles.datePickerScroll} showsVerticalScrollIndicator={false}>
                   {months.map((month, index) => {
-                    const isEndDate = currentPicker === 'end';
-                    const monthDisabled = !isYearMonthValid(getCurrentDate().getFullYear(), index, isEndDate);
+                    const monthDisabled = !isYearMonthValid(tempEndDate.getFullYear(), index);
                     return (
                     <Pressable
                       key={month}
                       style={[
                         styles.datePickerOption,
-                          getCurrentDate().getMonth() === index && styles.datePickerOptionSelected,
+                          tempEndDate.getMonth() === index && styles.datePickerOptionSelected,
                           monthDisabled && styles.datePickerOptionDisabled
                         ]}
                         onPress={() => {
                           if (!monthDisabled) {
-                            setCurrentDate(new Date(getCurrentDate().getFullYear(), index, getCurrentDate().getDate()));
+                            setTempEndDate(new Date(tempEndDate.getFullYear(), index, tempEndDate.getDate()));
                           }
                         }}
                         disabled={monthDisabled}
                     >
                       <Text style={[
                         styles.datePickerOptionText,
-                          getCurrentDate().getMonth() === index && styles.datePickerOptionTextSelected,
+                          tempEndDate.getMonth() === index && styles.datePickerOptionTextSelected,
                           monthDisabled && styles.datePickerOptionTextDisabled
                       ]}>
                         {month}
@@ -230,27 +215,26 @@ const DateRangePickerModal = ({
               <View style={styles.datePickerColumn}>
                 <Text style={styles.datePickerLabel}>{t('taskCreationModal.datePicker.day')}</Text>
                 <ScrollView style={styles.datePickerScroll} showsVerticalScrollIndicator={false}>
-                  {generateDays(getCurrentDate().getFullYear(), getCurrentDate().getMonth()).map((day) => {
-                    const isEndDate = currentPicker === 'end';
-                    const disabled = isDateDisabled(day, isEndDate);
+                  {generateDays(tempEndDate.getFullYear(), tempEndDate.getMonth()).map((day) => {
+                    const disabled = isDateDisabled(day);
                     return (
                     <Pressable
                       key={day}
                       style={[
                         styles.datePickerOption,
-                          getCurrentDate().getDate() === day && styles.datePickerOptionSelected,
+                          tempEndDate.getDate() === day && styles.datePickerOptionSelected,
                           disabled && styles.datePickerOptionDisabled
                         ]}
                         onPress={() => {
                           if (!disabled) {
-                            setCurrentDate(new Date(getCurrentDate().getFullYear(), getCurrentDate().getMonth(), day));
+                            setTempEndDate(new Date(tempEndDate.getFullYear(), tempEndDate.getMonth(), day));
                           }
                         }}
                         disabled={disabled}
                     >
                       <Text style={[
                         styles.datePickerOptionText,
-                          getCurrentDate().getDate() === day && styles.datePickerOptionTextSelected,
+                          tempEndDate.getDate() === day && styles.datePickerOptionTextSelected,
                           disabled && styles.datePickerOptionTextDisabled
                       ]}>
                         {day}
@@ -307,7 +291,6 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
   const [form, setForm] = useState<TaskForm>(defaultForm);
   const [loading, setLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(null);
   const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null);
   const { showLoading, hideLoading } = useLoading();
   
@@ -321,14 +304,27 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
   
   const styles = createStyles(theme, isDarkMode);
   
+  // Helper function to get today's date in YYYY-MM-DD format
+  const getTodayDateString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  
   React.useEffect(() => {
     if (visible) {
-      setForm(defaultForm);
+      // Set start date to today automatically
+      const todayString = getTodayDateString();
+      setForm({
+        ...defaultForm,
+        startDate: todayString, // Always set start date to today
+      });
       setShowDatePicker(false); // Reset date picker when modal opens
-      setSelectedStartDate(null); // Reset dates
-      setSelectedEndDate(null);
+      setSelectedEndDate(null); // Reset end date
       
-      console.log('🔄 TaskCreationModal opened - no API calls made');
+      console.log('🔄 TaskCreationModal opened - start date set to today:', todayString);
     } else {
       // Clear loading state when modal is closed
       console.log('🔄 TaskCreationModal closed, clearing loading state...');
@@ -388,36 +384,57 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
     });
   };
 
-  const handleDateRangeSelect = (startDate: Date | null, endDate: Date | null) => {
-    setSelectedStartDate(startDate);
+  const handleDateSelect = (endDate: Date | null) => {
+    console.log('📅 handleDateSelect called with:', endDate);
+    
+    if (!endDate) {
+      console.log('⚠️ No date selected, clearing end date');
+      updateForm('endDate', '');
+      setSelectedEndDate(null);
+      return;
+    }
+    
     setSelectedEndDate(endDate);
     
-    // Format dates as YYYY-MM-DD for the form using local timezone
-    const formatDate = (date: Date | null) => {
-      if (!date) return '';
+    // Format date as YYYY-MM-DD for the form using local timezone
+    const formatDate = (date: Date) => {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
     };
     
-    const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
     
-    console.log('🔧 Date range selected:', { startDate, endDate, formattedStartDate, formattedEndDate });
-    updateForm('startDate', formattedStartDate);
+    // Start date is always today
+    const todayString = getTodayDateString();
+    
+    console.log('✅ Due date selected and saved:', { 
+      endDate: endDate.toISOString(), 
+      formattedEndDate, 
+      startDate: todayString 
+    });
+    
+    updateForm('startDate', todayString); // Always set to today
     updateForm('endDate', formattedEndDate);
+    
+    console.log('✅ Form updated - endDate:', formattedEndDate);
   };
 
-  // Initialize dates from form when opening date picker
+  // Initialize end date from form when opening date picker
   React.useEffect(() => {
     if (showDatePicker) {
-      const start = form.startDate ? new Date(form.startDate) : null;
-      const end = form.endDate ? new Date(form.endDate) : null;
-      setSelectedStartDate(start);
-      setSelectedEndDate(end);
+      if (form.endDate) {
+        // Parse YYYY-MM-DD format correctly
+        const [year, month, day] = form.endDate.split('-').map(Number);
+        const end = new Date(year, month - 1, day);
+        setSelectedEndDate(end);
+      } else {
+        // If no end date is set, default to today
+        setSelectedEndDate(new Date());
+      }
     }
-  }, [showDatePicker]);
+  }, [showDatePicker, form.endDate]);
 
   const formatDisplayDate = (dateString: string) => {
     if (!dateString) return '';
@@ -629,7 +646,9 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
       console.log('🔧 Form endDate:', form.endDate, 'type:', typeof form.endDate);
       
       // Convert dates to ISO strings without timezone issues
-      const startDate = form.startDate ? `${form.startDate}T00:00:00.000Z` : undefined;
+      // Start date is always today
+      const todayString = getTodayDateString();
+      const startDate = `${todayString}T00:00:00.000Z`;
       const endDate = form.endDate ? `${form.endDate}T23:59:59.999Z` : undefined;
       
       console.log('🔧 Converted startDate:', startDate);
@@ -900,6 +919,8 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
                     <Pressable 
                       style={styles.inputContainer}
                       onPress={() => {
+                        console.log('📅 Due date field clicked - opening date picker');
+                        console.log('📅 Current form.endDate:', form.endDate);
                         setShowDatePicker(true);
                       }}
                     >
@@ -908,12 +929,8 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
                         style={styles.inputIcon}
                         resizeMode="contain"
                       />
-                      <Text style={[styles.input, (form.startDate || form.endDate) ? styles.inputText : styles.inputPlaceholder]}>
-                        {form.startDate && form.endDate 
-                          ? `${formatDisplayDate(form.startDate)} - ${formatDisplayDate(form.endDate)}`
-                          : form.startDate 
-                          ? formatDisplayDate(form.startDate)
-                          : form.endDate
+                      <Text style={[styles.input, form.endDate ? styles.inputText : styles.inputPlaceholder]}>
+                        {form.endDate
                           ? formatDisplayDate(form.endDate)
                           : t('taskCreationModal.form.dueDatePlaceholder')}
                       </Text>
@@ -971,12 +988,11 @@ export default function TaskCreationModal({ visible, onClose }: TaskCreationModa
         </View>
       </Modal>
 
-      {/* Custom Date Range Picker Modal */}
-      <DateRangePickerModal
+      {/* Custom Date Picker Modal (End Date Only) */}
+      <DatePickerModal
         visible={showDatePicker}
         onClose={() => setShowDatePicker(false)}
-        onDateRangeSelect={handleDateRangeSelect}
-        selectedStartDate={selectedStartDate}
+        onDateSelect={handleDateSelect}
         selectedEndDate={selectedEndDate}
         t={t}
         theme={theme}

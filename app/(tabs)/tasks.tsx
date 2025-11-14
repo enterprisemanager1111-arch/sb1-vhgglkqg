@@ -80,80 +80,60 @@ export default function Tasks() {
   const tasksToUse = tasks && tasks.length > 0 ? tasks : testTasks;
   console.log('🔍 Using tasks:', tasksToUse);
 
-  // Calculate task counts based on date criteria
+  // Calculate task counts based on date criteria (matching the filtering logic)
   const getTaskCounts = () => {
-    console.log('🔍 Tasks data:', tasksToUse);
-    console.log('🔍 Tasks length:', tasksToUse?.length);
-    
     if (!tasksToUse || tasksToUse.length === 0) {
-      console.log('❌ No tasks available');
       return { todo: 0, inProgress: 0, done: 0 };
     }
 
     const currentDate = new Date();
     const todayString = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD format
-    console.log('📅 Today string:', todayString);
-    console.log('📅 Current date object:', currentDate);
-    console.log('📅 Current date (formatted):', currentDate.toLocaleDateString());
+
+    // Parse dates consistently - same logic as getFilteredTasks
+    const parseDateString = (dateValue: any): string => {
+      if (!dateValue) return '';
+      // If it's already a date string in YYYY-MM-DD format, use it directly
+      if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return dateValue;
+      }
+      // Otherwise, parse as Date and extract date part
+      const date = new Date(dateValue);
+      if (isNaN(date.getTime())) return '';
+      return date.toISOString().split('T')[0];
+    };
 
     let todo = 0;
     let inProgress = 0;
     let done = 0;
 
-    tasksToUse.forEach((task, index) => {
-      console.log(`🔍 Task ${index + 1}:`, {
-        title: task.title,
-        start_date: task.start_date,
-        end_date: task.end_date,
-        completed: task.completed
-      });
-      
-      // If task is completed, count it as done regardless of dates
-      if (task.completed) {
-        done++;
-        console.log(`✅ Task ${index + 1} categorized as DONE (completed)`);
-        return;
-      }
-      
-      // If no dates, categorize based on completion status
+    tasksToUse.forEach((task) => {
+      // Skip tasks without dates (same as filtering logic)
       if (!task.start_date || !task.end_date) {
-        if (task.completed) {
-          done++;
-          console.log(`✅ Task ${index + 1} categorized as DONE (completed, no dates)`);
-        } else {
-          inProgress++;
-          console.log(`✅ Task ${index + 1} categorized as IN PROGRESS (no dates)`);
-        }
         return;
       }
 
-      const startDate = new Date(task.start_date).toISOString().split('T')[0];
-      const endDate = new Date(task.end_date).toISOString().split('T')[0];
-      
-      console.log(`📊 Task ${index + 1} dates:`, {
-        startDate,
-        endDate,
-        todayString
-      });
+      const startDate = parseDateString(task.start_date);
+      const endDate = parseDateString(task.end_date);
 
-      // ToDo: start_date > current Date
-      if (startDate > todayString) {
-        todo++;
-        console.log(`✅ Task ${index + 1} categorized as TODO`);
+      // Skip if dates couldn't be parsed
+      if (!startDate || !endDate) {
+        return;
       }
-      // In Progress: start_date <= current Date <= end_date
-      else if (startDate <= todayString && todayString <= endDate) {
+
+      // In Progress: start_date < current date && end_date > current date
+      if (startDate < todayString && endDate > todayString) {
         inProgress++;
-        console.log(`✅ Task ${index + 1} categorized as IN PROGRESS`);
       }
-      // Done: end_date < current date (tasks past their end date)
+      // Finish: end_date < current date (tasks past their end date)
       else if (endDate < todayString) {
         done++;
-        console.log(`✅ Task ${index + 1} categorized as DONE`);
+      }
+      // ToDo: start_date > current Date (future tasks)
+      else if (startDate > todayString) {
+        todo++;
       }
     });
 
-    console.log('📊 Final counts:', { todo, inProgress, done });
     return { todo, inProgress, done };
   };
 
@@ -191,32 +171,38 @@ export default function Tasks() {
     const todayString = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD format
 
     return tasksToUse.filter(task => {
-      // If task is completed, show it in 'finish' filter
-      if (task.completed) {
-        return selectedFilter === 'finish';
-      }
-
-      // If no dates, categorize based on completion status
+      // If no dates, don't show in either section
       if (!task.start_date || !task.end_date) {
-        switch (selectedFilter) {
-          case 'inProgress':
-            return !task.completed; // Show as in progress if not completed
-          case 'finish':
-            return task.completed; // Show as done if completed
-          default:
-            return false;
-        }
+        return false;
       }
 
-      const startDate = new Date(task.start_date).toISOString().split('T')[0];
-      const endDate = new Date(task.end_date).toISOString().split('T')[0];
+      // Parse dates consistently - handle both date strings and timestamps
+      const parseDateString = (dateValue: any): string => {
+        if (!dateValue) return '';
+        // If it's already a date string in YYYY-MM-DD format, use it directly
+        if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          return dateValue;
+        }
+        // Otherwise, parse as Date and extract date part
+        const date = new Date(dateValue);
+        if (isNaN(date.getTime())) return '';
+        return date.toISOString().split('T')[0];
+      };
+
+      const startDate = parseDateString(task.start_date);
+      const endDate = parseDateString(task.end_date);
+
+      // Skip if dates couldn't be parsed
+      if (!startDate || !endDate) {
+        return false;
+      }
 
       switch (selectedFilter) {
         case 'inProgress':
-          // In Progress: start_date <= today <= end_date
-          return startDate <= todayString && todayString <= endDate;
+          // In Progress: start_date < current date && end_date > current date
+          return startDate < todayString && endDate > todayString;
         case 'finish':
-          // Done: end_date < today (tasks past their end date)
+          // Finish: end_date < current date (tasks past their end date)
           return endDate < todayString;
         default:
           return false;
@@ -378,32 +364,72 @@ export default function Tasks() {
             </View>
           ) : (
             filteredTasks.map((task) => {
-              // Determine task status based on dates
+              // Parse dates consistently - same logic as filtering
+              const parseDateString = (dateValue: any): string => {
+                if (!dateValue) return '';
+                if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                  return dateValue;
+                }
+                const date = new Date(dateValue);
+                if (isNaN(date.getTime())) return '';
+                return date.toISOString().split('T')[0];
+              };
+
               const currentDate = new Date();
               const todayString = currentDate.toISOString().split('T')[0];
-              const startDate = new Date(task.start_date).toISOString().split('T')[0];
-              const endDate = new Date(task.end_date).toISOString().split('T')[0];
+              const startDate = parseDateString(task.start_date);
+              const endDate = parseDateString(task.end_date);
               
+              // Determine task status based on dates
               let taskStatus = t('tasksPage.taskStatus.toDo');
-              if (startDate <= todayString && todayString <= endDate) {
+              if (startDate < todayString && endDate > todayString) {
                 taskStatus = t('tasksPage.taskStatus.inProgress');
               } else if (endDate < todayString) {
                 taskStatus = t('tasksPage.taskStatus.done');
               }
 
-              // Calculate progress based on dates
+              // Calculate progress based on dates (matching SQL function logic)
               const calculateProgress = () => {
-                if (task.completed) return 100;
-                if (taskStatus === t('tasksPage.taskStatus.toDo')) return 0;
-                if (taskStatus === t('tasksPage.taskStatus.done')) return 100;
+                if (!startDate || !endDate) return 0;
                 
-                // For in progress tasks, calculate based on time elapsed
-                const start = new Date(task.start_date);
-                const end = new Date(task.end_date);
+                // Parse dates to Date objects at midnight for calculation
+                const parseDateOnly = (dateString: string): Date => {
+                  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    const [year, month, day] = dateString.split('-').map(Number);
+                    return new Date(year, month - 1, day);
+                  }
+                  const date = new Date(dateString);
+                  const year = date.getFullYear();
+                  const month = date.getMonth();
+                  const day = date.getDate();
+                  return new Date(year, month, day);
+                };
+
+                const start = parseDateOnly(startDate);
+                const end = parseDateOnly(endDate);
                 const now = new Date();
+                const currentDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+                // If current date < start date: 0%
+                if (currentDateOnly < start) return 0;
+                
+                // If current date >= end date: 100%
+                if (currentDateOnly >= end) return 100;
+                
+                // Calculate progress: (current_date - start_date) / (end_date - start_date) * 100
                 const totalDuration = end.getTime() - start.getTime();
-                const elapsedDuration = now.getTime() - start.getTime();
-                return Math.min(100, Math.max(0, (elapsedDuration / totalDuration) * 100));
+                const elapsedDuration = currentDateOnly.getTime() - start.getTime();
+                
+                if (totalDuration > 0) {
+                  const calculatedProgress = (elapsedDuration / totalDuration) * 100;
+                  return Math.min(100, Math.max(0, calculatedProgress));
+                } else if (totalDuration === 0) {
+                  // Same start and end date
+                  return 100;
+                } else {
+                  // Invalid: end date before start date
+                  return 0;
+                }
               };
 
               const progress = calculateProgress();

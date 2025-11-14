@@ -10,6 +10,7 @@ import {
   Image,
   Modal,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
@@ -206,15 +207,18 @@ export default function Calendar() {
     return dates;
   };
   
+  // Calculate date card width for scroll calculation
+  const dateCardWidth = (Dimensions.get('window').width - 60 - 32) / 5;
+  const cardWidthWithGap = dateCardWidth + 8; // card width + gap
+
   // Scroll to current date on component mount
   useEffect(() => {
     const scrollToCurrentDate = () => {
       if (scrollViewRef.current) {
         // Calculate the position to center the current date
-        // Each date card is 64px wide + 8px gap = 72px per item
-        const cardWidth = 72; // 64px width + 8px gap
+        // Each date card width + 8px gap
         const currentDateIndex = today - 1; // Array is 0-indexed
-        const scrollPosition = (currentDateIndex * cardWidth) - (cardWidth * 2); // Center by subtracting 2 cards worth
+        const scrollPosition = (currentDateIndex * cardWidthWithGap) - (cardWidthWithGap * 2); // Center by subtracting 2 cards worth
         
         scrollViewRef.current.scrollTo({
           x: Math.max(0, scrollPosition), // Ensure we don't scroll to negative position
@@ -226,7 +230,7 @@ export default function Calendar() {
     // Small delay to ensure the component is fully rendered
     const timer = setTimeout(scrollToCurrentDate, 100);
     return () => clearTimeout(timer);
-  }, [today]);
+  }, [today, cardWidthWithGap]);
 
   // Mock data for the design
   const mockData = {
@@ -693,7 +697,17 @@ export default function Calendar() {
   );
 }
 
-const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) => StyleSheet.create({
+const { width: screenWidth } = Dimensions.get('window');
+
+const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) => {
+  // Calculate date card width: 5 cards should fill the screen width
+  // summaryCard has marginHorizontal: 10 and padding: 20
+  // Total horizontal spacing = 10 + 20 + 20 + 10 = 60px
+  // With 5 cards and 4 gaps of 8px = 32px for gaps
+  // Card width = (screenWidth - 60 - 32) / 5
+  const dateCardWidth = (screenWidth - 60 - 32) / 5;
+  
+  return StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.background,
@@ -833,7 +847,7 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     justifyContent: 'center', // Center the cards when showing selected dates
   },
   dateCard: {
-    width: 64,
+    width: dateCardWidth,
     height: 118,
     flexShrink: 0,
     borderRadius: 16,
@@ -1293,4 +1307,5 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     fontWeight: '600',
     color: theme.textSecondary,
   },
-});
+  });
+};

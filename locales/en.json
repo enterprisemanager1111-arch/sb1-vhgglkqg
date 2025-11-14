@@ -301,7 +301,8 @@
       "quantityPlaceholder": "1.0 stk",
       "itemDescription": "Item Description",
       "itemDescriptionPlaceholder": "Buy organic milk",
-      "assignTask": "Assign task (optional)"
+      "assignTask": "Assign task (optional)",
+      "noMembers": "No family members available"
     },
     "reward": {
       "title": "Shop item Reward",

@@ -1037,7 +1037,7 @@ export default function HomeDashboard() {
                 </View>
               ) : todayTasks.length > 0 ? (
                 todayTasks.map((task, index) => (
-                  <FadeInAnimation key={task.task_id} delay={500 + (index * 100)} duration={600}>
+                  <FadeInAnimation key={task.task_id || task.id} delay={500 + (index * 100)} duration={600}>
                     <Pressable 
                       style={styles.taskCard}
                       onPress={() => {
@@ -1097,10 +1097,78 @@ export default function HomeDashboard() {
              </View>
             
             <View style={styles.progressBar}>
+              {(() => {
+                // Calculate progress based on dates (matching tasks page logic)
+                const calculateProgress = () => {
+                  if (!task.start_date || !task.end_date) {
+                    return 0;
+                  }
+
+                  // Parse dates consistently
+                  const parseDateString = (dateValue: any): string => {
+                    if (!dateValue) return '';
+                    if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                      return dateValue;
+                    }
+                    const date = new Date(dateValue);
+                    if (isNaN(date.getTime())) return '';
+                    return date.toISOString().split('T')[0];
+                  };
+
+                  const startDate = parseDateString(task.start_date);
+                  const endDate = parseDateString(task.end_date);
+
+                  if (!startDate || !endDate) return 0;
+
+                  // Parse dates to Date objects at midnight for calculation
+                  const parseDateOnly = (dateString: string): Date => {
+                    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                      const [year, month, day] = dateString.split('-').map(Number);
+                      return new Date(year, month - 1, day);
+                    }
+                    const date = new Date(dateString);
+                    const year = date.getFullYear();
+                    const month = date.getMonth();
+                    const day = date.getDate();
+                    return new Date(year, month, day);
+                  };
+
+                  const start = parseDateOnly(startDate);
+                  const end = parseDateOnly(endDate);
+                  const now = new Date();
+                  const currentDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+                  // If current date < start date: 0%
+                  if (currentDateOnly < start) return 0;
+                  
+                  // If current date >= end date: 100%
+                  if (currentDateOnly >= end) return 100;
+                  
+                  // Calculate progress: (current_date - start_date) / (end_date - start_date) * 100
+                  const totalDuration = end.getTime() - start.getTime();
+                  const elapsedDuration = currentDateOnly.getTime() - start.getTime();
+                  
+                  if (totalDuration > 0) {
+                    const calculatedProgress = (elapsedDuration / totalDuration) * 100;
+                    return Math.min(100, Math.max(0, calculatedProgress));
+                  } else if (totalDuration === 0) {
+                    // Same start and end date
+                    return 100;
+                  } else {
+                    // Invalid: end date before start date
+                    return 0;
+                  }
+                };
+
+                const progress = calculateProgress();
+
+                return (
                   <View style={[
                     styles.progressFill, 
-                    { width: `${task.completed ? 100 : 0}%` }
+                    { width: `${progress}%` }
                   ]} />
+                );
+              })()}
             </View>
             
             <View style={styles.taskFooter}>

@@ -3,7 +3,8 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface TodayTask {
-  task_id: string;
+  task_id?: string;
+  id?: string;
   family_id: string;
   title: string;
   description?: string;
@@ -13,12 +14,21 @@ export interface TodayTask {
   start_date: string;
   end_date: string;
   completed: boolean;
-  created_by: string;
+  created_by?: string;
   created_at: string;
+  progress?: number;
   assignees?: Array<{
     user_id: string;
     name: string;
     avatar_url?: string;
+  }>;
+  task_assignments?: Array<{
+    id: number;
+    assignee_id: string;
+    assignee_profile: {
+      name: string;
+      avatar_url?: string;
+    };
   }>;
 }
 
@@ -49,9 +59,9 @@ export const useTodayTasks = (): UseTodayTasksReturn => {
 
       console.log('🔍 Fetching today\'s tasks for user:', user.id);
       
-      // Call the get_today_tasks_with_detail RPC function
+      // Call the get_today_tasks_with_details RPC function
       const { data: tasksData, error: rpcError } = await supabase
-        .rpc('get_today_tasks_with_detail', {
+        .rpc('get_today_tasks_with_details', {
           _user_id: user.id
         });
 
@@ -65,14 +75,32 @@ export const useTodayTasks = (): UseTodayTasksReturn => {
       console.log('📋 Today\'s tasks fetched:', tasksData);
       console.log('📋 Tasks count:', tasksData?.length || 0);
       
+      // Transform the response to match the expected format
+      const transformedTasks = (tasksData || []).map((task: any) => {
+        // Transform task_assignments to assignees format
+        const assignees = task.task_assignments?.map((assignment: any) => ({
+          user_id: assignment.assignee_id,
+          name: assignment.assignee_profile?.name || '',
+          avatar_url: assignment.assignee_profile?.avatar_url || null
+        })) || [];
+
+        return {
+          ...task,
+          task_id: task.id || task.task_id, // Map id to task_id for compatibility
+          assignees: assignees,
+          progress: task.progress !== null && task.progress !== undefined ? Number(task.progress) : undefined
+        };
+      });
+      
       // Debug task details
-      if (tasksData && tasksData.length > 0) {
-        tasksData.forEach((task: TodayTask, index: number) => {
+      if (transformedTasks && transformedTasks.length > 0) {
+        transformedTasks.forEach((task: TodayTask, index: number) => {
           console.log(`📋 Task ${index + 1} (${task.title}):`, {
             completed: task.completed,
             category: task.category,
             points: task.points,
             due_date: task.due_date,
+            progress: task.progress,
             assignees: task.assignees
           });
         });
@@ -82,7 +110,7 @@ export const useTodayTasks = (): UseTodayTasksReturn => {
         console.log('📋 Current date:', new Date().toISOString().split('T')[0]);
       }
 
-      setTasks(tasksData || []);
+      setTasks(transformedTasks);
       setError(null);
     } catch (err) {
       console.error('Today\'s tasks fetch error:', err);
@@ -119,7 +147,7 @@ export const useTodayTasks = (): UseTodayTasksReturn => {
       console.log('🔄 Refetching tasks due to real-time change...');
       try {
         const { data: tasksData, error: rpcError } = await supabase
-          .rpc('get_today_tasks_with_detail', {
+          .rpc('get_today_tasks_with_details', {
             _user_id: user.id
           });
 
@@ -128,8 +156,25 @@ export const useTodayTasks = (): UseTodayTasksReturn => {
           return;
         }
 
-        console.log('✅ Tasks refetched successfully:', tasksData?.length || 0);
-        setTasks(tasksData || []);
+        // Transform the response to match the expected format
+        const transformedTasks = (tasksData || []).map((task: any) => {
+          // Transform task_assignments to assignees format
+          const assignees = task.task_assignments?.map((assignment: any) => ({
+            user_id: assignment.assignee_id,
+            name: assignment.assignee_profile?.name || '',
+            avatar_url: assignment.assignee_profile?.avatar_url || null
+          })) || [];
+
+          return {
+            ...task,
+            task_id: task.id || task.task_id, // Map id to task_id for compatibility
+            assignees: assignees,
+            progress: task.progress !== null && task.progress !== undefined ? Number(task.progress) : undefined
+          };
+        });
+
+        console.log('✅ Tasks refetched successfully:', transformedTasks?.length || 0);
+        setTasks(transformedTasks);
         setError(null);
       } catch (err) {
         console.error('❌ Error in real-time refetch:', err);
