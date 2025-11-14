@@ -431,39 +431,56 @@ const ShoppingItemCreationModal: React.FC<ShoppingItemCreationModalProps> = ({
             <SlideInAnimation direction="up" delay={600} duration={400} intensity={30}>
               <View style={styles.inputSection}>
               <Text style={styles.inputLabel}>{t('shoppingItemCreationModal.form.assignTask')}</Text>
-              <View style={styles.assigneeContainer}>
-                {familyMembers.map((member) => (
-                  <Pressable
-                    key={member.id}
-                    style={[
-                      styles.assigneeButton,
-                      form.assignee === member.user_id && styles.assigneeButtonSelected
-                    ]}
-                    onPress={() => handleAssigneeSelect(member.user_id)}
-                  >
-                    <Text style={[
-                      styles.assigneeText,
-                      form.assignee === member.user_id && styles.assigneeTextSelected
-                    ]}>
-                      {member.profiles?.name || 'Unknown'}
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                style={styles.assigneeScrollContainer}
+                contentContainerStyle={styles.assigneeContainer}
+              >
+                {familyMembers && familyMembers.length > 0 ? (
+                  familyMembers.map((member) => {
+                    const isSelected = form.assignee === member.user_id;
+                    return (
+                      <Pressable
+                        key={member.user_id || member.id}
+                        style={[
+                          styles.assigneeButton,
+                          isSelected && styles.selectedAssignee
+                        ]}
+                        onPress={() => handleAssigneeSelect(member.user_id)}
+                      >
+                        <Text style={[
+                          styles.assigneeText,
+                          isSelected && styles.selectedAssigneeText
+                        ]}>
+                          {member.profiles?.name || 'Unknown'}
+                        </Text>
+                        <View style={[
+                          styles.radioButton,
+                          isSelected && styles.radioButtonSelected
+                        ]}>
+                          {isSelected && (
+                            <RNImage
+                              source={require('@/assets/images/icon/finished.png')}
+                              style={styles.finishedIcon}
+                              resizeMode="contain"
+                            />
+                          )}
+                        </View>
+                      </Pressable>
+                    );
+                  })
+                ) : (
+                  <View style={styles.assigneeContainer}>
+                    <Text style={styles.assigneeText}>
+                      {t('taskCreationModal.form.noMembers')}
                     </Text>
-                    <View style={[
-                      styles.checkIcon,
-                      form.assignee === member.user_id && styles.checkIconSelected
-                    ]}>
-                      {form.assignee === member.user_id ? (
-                        <RNImage 
-                          source={require('@/assets/images/icon/finished.png')}
-                          style={styles.checkIconImage}
-                          resizeMode="contain"
-                        />
-                      ) : (
-                        <View style={styles.uncheckedIcon} />
-                      )}
-                    </View>
-                  </Pressable>
-                ))}
-              </View>
+                    <Text style={styles.assigneeSubtext}>
+                      {t('taskCreationModal.form.joinFamily')}
+                    </Text>
+                  </View>
+                )}
+              </ScrollView>
             </View>
             </SlideInAnimation>
 
@@ -613,54 +630,67 @@ const createStyles = (theme: ReturnType<typeof getTheme>, isDarkMode: boolean) =
     width: '120%',
     color: theme.text,
   },
+  assigneeScrollContainer: {
+    maxHeight: 60,
+  },
   assigneeContainer: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 8,
+    paddingRight: 8,
   },
   assigneeButton: {
-    // flex: 1,
+    minWidth: 120,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: theme.input,
-    borderWidth: 1,
-    borderColor: theme.border,
     borderRadius: 8,
-    width: '50%',
     paddingHorizontal: 12,
     paddingVertical: 12,
-  },
-  assigneeButtonSelected: {
-    borderColor: '#17f196',
     borderWidth: 1,
+    borderColor: theme.border,
+  },
+  selectedAssignee: {
+    backgroundColor: isDarkMode ? '#2a4a3a' : '#F4F3FF',
+    borderColor: '#17f196',
   },
   assigneeText: {
     fontSize: 14,
-    color: theme.textSecondary,
-  },
-  assigneeTextSelected: {
+    fontWeight: '400',
     color: theme.text,
   },
-  checkIcon: {
+  assigneeSubtext: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: theme.textSecondary,
+    marginTop: 4,
+  },
+  selectedAssigneeText: {
+    // color: '#FFFFFF',
+  },
+  radioButton: {
+    width: 20,
+    height: 20,
+    marginLeft: 10,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: theme.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radioButtonSelected: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: theme.input,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkIconSelected: {
     backgroundColor: '#17f196',
+    borderColor: '#17f196',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  checkIconImage: {
+  finishedIcon: {
     width: 12,
     height: 12,
-  },
-  uncheckedIcon: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: theme.border,
+    tintColor: '#FFFFFF',
   },
   // Shop item Reward - Matching TaskCreationModal style
   rewardContainer: {
